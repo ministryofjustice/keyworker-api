@@ -1,0 +1,10 @@
+
+security:
+  oauth2:
+    resource:
+       userInfoUri: http://localhost:8901/auth/user
+
+logging:
+  level:
+    org.springframework.security: INFO
+    uk.gov.justice.digital: DEBUG
