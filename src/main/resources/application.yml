@@ -16,7 +16,7 @@ spring:
       WRITE_DATES_AS_TIMESTAMPS : false
 
 server:
-  port: 8080
+  port: 8088
   context-path: /keyworker
 
 security:
