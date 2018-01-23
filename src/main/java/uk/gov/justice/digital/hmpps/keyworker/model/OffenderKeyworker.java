@@ -6,7 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "offender_key_worker")
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class OffenderKeyworker {
 
     @Id
-    @Column(name = "offender_keywork_id", nullable = false)
+    @Column(name = "offender_keyworker_id", nullable = false)
     private String offenderKeyworkerId;
 
     @Column(name = "offender_book_id", nullable = false)
@@ -24,5 +24,5 @@ public class OffenderKeyworker {
     private Long officerId;
 
     @Column(name = "assigned_datetime", nullable = false)
-    private LocalDateTime assignedDateTime;
+    private Date assignedDateTime;
 }

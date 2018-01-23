@@ -1,8 +1,33 @@
+spring:
+  jpa:
+    show-sql: true
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    url: jdbc:hsqldb:mem:spon-request-db;sql.syntax_pgs=true;shutdown=false
+    username: sa
+    password:
+
+  jackson:
+    date-format: "yyyy-MM-dd HH:mm:ss"
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS : false
+
+server:
+  port: 8080
+  context-path: /keyworker
 
 security:
   oauth2:
+    client:
+      client-id: keyworker
+      client-secret: keyworkersecret
+      access-token-uri: http://localhost:8901/auth/oauth/token
+      user-authorization-uri: http://localhost:8901/auth/oauth/authorize
     resource:
-       userInfoUri: http://localhost:8901/auth/user
+      user-info-uri: http://localhost:8901/auth/me
 
 logging:
   level:
