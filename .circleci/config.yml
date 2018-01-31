@@ -1,5 +1,5 @@
 defaults: &defaults
-  working_directory: app
+  working_directory: /tmp/circleci-keyworker-service
 
 version: 2
 jobs:
@@ -31,7 +31,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: app
+          at: /tmp/circleci-keyworker-service/
       - setup_remote_docker:
           exclusive: true
       - run:
