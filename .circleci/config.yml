@@ -1,0 +1,76 @@
+defaults: &defaults
+  working_directory: /tmp/circleci-keyworker-service
+
+version: 2
+jobs:
+  build:
+    <<: *defaults
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    steps:
+      - checkout
+      - run: ./gradlew build
+      - store_test_results:
+          path: build/test-results
+      - store_test_results:
+          path: target/site
+      - store_artifacts:
+          path: build/reports/tests
+      - store_artifacts:
+          path: target/site
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/libs
+            - build.gradle
+
+  build_docker:
+    <<: *defaults
+    docker:
+      - image: circleci/python:latest-browsers
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/circleci-keyworker-service/
+      - setup_remote_docker:
+          exclusive: true
+      - run:
+          command: |
+            jar xvf build/libs/keyworker-service-*.jar META-INF/build-info.properties
+            API_VERSION=$(grep 'build.version=' META-INF/build-info.properties | awk -F= '{print $2}')
+            rm META-INF/build-info.properties
+            TAG=${API_VERSION}.${CIRCLE_BRANCH}
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              TAG=KEYWORKER_SERVICE_${API_VERSION}
+            fi
+            docker build --rm=false . \
+               --tag "mojdigitalstudio/keyworker-service:$TAG" \
+               --label "maintainer=michael.willis@digital.justice.gov.uk" \
+               --label "app.version=$TAG" \
+               --label "build.version=$TAG" \
+               --label "build.number=$CIRCLE_BUILD_NUM" \
+               --label "build.url=$CIRCLE_BUILD_URL" \
+               --label "build.gitref=$CIRCLE_SHA1"
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push mojdigitalstudio/keyworker-service:$TAG
+
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              docker tag mojdigitalstudio/keyworker-service:$TAG mojdigitalstudio/keyworker-service:latest
+              docker push mojdigitalstudio/keyworker-service:latest
+              git tag $TAG
+              git push --tags
+            fi
+
+
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              ignore: /.*/
+      - build_docker:
+          requires:
+            - build
+
