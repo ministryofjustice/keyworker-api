@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
@@ -21,10 +22,10 @@ public class KeyworkerServiceController {
 
     @RequestMapping(value="/{offenderKeyworkerId}",method = RequestMethod.GET)
     @ApiOperation(value = "Get Key-worker for an offender")
-    public OffenderKeyworker getOffenderKeyworker(@PathVariable("offenderKeyworkerId") String offenderKeyworkerId) {
+    public OffenderKeyworkerDto getOffenderKeyworker(@PathVariable("offenderKeyworkerId") String offenderKeyworkerId) {
         logger.debug("Looking up data for keyworker {}", offenderKeyworkerId);
 
-        OffenderKeyworker keyworker = keyworkerService.getOffenderKeyworker(offenderKeyworkerId);
+        OffenderKeyworkerDto keyworker = keyworkerService.getOffenderKeyworker(offenderKeyworkerId);
         return keyworker;
     }
 
