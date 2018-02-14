@@ -22,12 +22,12 @@ server:
 security:
   oauth2:
     client:
-      client-id: keyworker
-      client-secret: keyworkersecret
-      access-token-uri: http://localhost:8901/auth/oauth/token
-      user-authorization-uri: http://localhost:8901/auth/oauth/authorize
+      client-id: elite2apiclient
+      client-secret: clientsecret
+      access-token-uri: http://localhost:8080/oauth/token
+      user-authorization-uri: http://localhost:8080/oauth/authorize
     resource:
-      user-info-uri: http://localhost:8901/auth/me
+      user-info-uri: http://localhost:8080/api/users/me
 
 logging:
   level:

@@ -8,13 +8,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class KeyworkerService {
@@ -28,45 +30,41 @@ public class KeyworkerService {
     @Value("${elite2-api.endpoint.url:http://localhost:8080/api/}")
     private String elite2ApiEndpointUrl;
 
-    public OffenderKeyworkerDto getOffenderKeyworker(String offenderKeyworkerId) {
-        final OffenderKeyworker byOffenderKeyworkerId = repository.findByOffenderKeyworkerId(offenderKeyworkerId);
+    public List<OffenderKeyworkerDto> getOffendersForKeyworker(String staffUsername) {
+        final List<OffenderKeyworker> offenderKeyworkers = repository.findAllByStaffUsername(staffUsername);
 
-        OffenderKeyworkerDto keyworkerDto = null;
+        List<OffenderKeyworkerDto> keyworkerDtos = new ArrayList<>();
 
-        if (byOffenderKeyworkerId != null) {
-            HttpHeaders headers = new HttpHeaders();
-
-            ResponseEntity<Map> offenderBooking = restTemplate.exchange(
-                    elite2ApiEndpointUrl + "bookings/" + byOffenderKeyworkerId.getOffenderBookingId(),
-                    HttpMethod.GET,
-                    new HttpEntity<>(null, headers),
-                    new ParameterizedTypeReference<Map>() {
-                    });
-            keyworkerDto = OffenderKeyworkerDto.builder()
-                    .offenderBookingId(byOffenderKeyworkerId.getOffenderBookingId())
-                    .offenderKeyworkerId(byOffenderKeyworkerId.getOffenderKeyworkerId())
-                    .officerId(byOffenderKeyworkerId.getOfficerId())
-                    .assignedDateTime(byOffenderKeyworkerId.getAssignedDateTime())
-                    .lastName(offenderBooking.getBody().get("lastName").toString())
-                    .build();
+        if (offenderKeyworkers != null) {
+            offenderKeyworkers.forEach(offenderKeyworker -> {
+                HttpHeaders headers = new HttpHeaders();
+                String lastName = null, firstName = null, nomisId = null;
+                try {
+                    ResponseEntity<Map> offenderBooking = restTemplate.exchange(
+                            elite2ApiEndpointUrl + "bookings/" + offenderKeyworker.getOffenderBookingId(),
+                            HttpMethod.GET,
+                            new HttpEntity<>(null, headers),
+                            new ParameterizedTypeReference<Map>() {
+                            });
+                    lastName = offenderBooking.getBody().get("lastName").toString();
+                    firstName = offenderBooking.getBody().get("firstName").toString();
+                    nomisId = offenderBooking.getBody().get("offenderNo").toString();
+                } catch (RestClientException e) {
+                    // its fine
+                }
+                keyworkerDtos.add(OffenderKeyworkerDto.builder()
+                        .offenderBookingId(offenderKeyworker.getOffenderBookingId())
+                        .offenderKeyworkerId(offenderKeyworker.getOffenderKeyworkerId())
+                        .staffUsername(offenderKeyworker.getStaffUsername())
+                        .assignedDateTime(offenderKeyworker.getAssignedDateTime())
+                        .offenderLastName(lastName)
+                        .offenderFirstName(firstName)
+                        .nomisId(nomisId)
+                        .build());
+            });
 
         }
 
-        return keyworkerDto;
-    }
-
-    public void saveOffenderKeyworker(OffenderKeyworker offenderKeyworker){
-        offenderKeyworker.setOffenderKeyworkerId( UUID.randomUUID().toString());
-
-        repository.save(offenderKeyworker);
-
-    }
-
-    public void updateOffenderKeyworker(OffenderKeyworker offenderKeyworker){
-        repository.save(offenderKeyworker);
-    }
-
-    public void deleteOffenderKeyworker(OffenderKeyworker offenderKeyworker){
-        repository.delete( offenderKeyworker.getOffenderKeyworkerId());
+        return keyworkerDtos;
     }
 }

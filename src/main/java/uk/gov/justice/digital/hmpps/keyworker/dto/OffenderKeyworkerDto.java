@@ -11,13 +11,17 @@ import java.util.Date;
 @EqualsAndHashCode
 public class OffenderKeyworkerDto {
 
-    private String offenderKeyworkerId;
+    private Long offenderKeyworkerId;
 
     private Long offenderBookingId;
 
-    private Long officerId;
+    private String staffUsername;
 
     private Date assignedDateTime;
 
-    private String lastName;
+    private String offenderLastName;
+
+    private String offenderFirstName;
+
+    private String nomisId;
 }

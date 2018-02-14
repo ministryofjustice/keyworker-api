@@ -2,10 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.model;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -13,15 +10,16 @@ import java.util.Date;
 @Data
 public class OffenderKeyworker {
 
-    @Id
+    @Id()
+    @GeneratedValue(strategy=GenerationType.AUTO)
     @Column(name = "offender_keyworker_id", nullable = false)
-    private String offenderKeyworkerId;
+    private Long offenderKeyworkerId;
 
     @Column(name = "offender_book_id", nullable = false)
     private Long offenderBookingId;
 
-    @Column(name = "officer_id", nullable = false)
-    private Long officerId;
+    @Column(name = "staff_username", nullable = false)
+    private String staffUsername;
 
     @Column(name = "assigned_datetime", nullable = false)
     private Date assignedDateTime;
