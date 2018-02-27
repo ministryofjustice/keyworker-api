@@ -6,7 +6,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class PageDto {
+public class PagingAndSortingDto {
     private Integer pageOffset;
     private Integer pageLimit;
     private String sortFields;

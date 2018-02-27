@@ -4,19 +4,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
+import java.net.URI;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
 @Service
 public class KeyworkerService {
+    private static final ParameterizedTypeReference<List<KeyworkerAllocationDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDto>>() {
+    };
+
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST = new ParameterizedTypeReference<List<KeyworkerDto>>() {
     };
-    private static final ParameterizedTypeReference<List<KeyworkerAllocationDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDto>>() {
+
+    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST = new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
     };
 
 //    @Autowired
@@ -46,18 +55,44 @@ public class KeyworkerService {
         return responseEntity.getBody();
     }
 
-    public List<KeyworkerAllocationDto> getKeyworkerAllocations(AllocationsRequestDto allocationRequest, PageDto page) {
+    public List<KeyworkerAllocationDto> getKeyworkerAllocations(AllocationsRequestDto allocationRequest, PagingAndSortingDto pagingAndSorting) {
 
-        ResponseEntity<List<KeyworkerAllocationDto>> responseEntity = restTemplate.exchange(
-                "{endpointUri}/key-worker/{agencyId}/allocations",
-                HttpMethod.GET,
-                null,
-                KEYWOKER_ALLOCATION_LIST,
-                elite2ApiEndpointUrl,
-                allocationRequest.getAgencyId()
-        );
+        URI uri = new UriTemplate("{endpointUri}/key-worker/{agencyId}/allocations")
+                .expand(elite2ApiEndpointUrl, allocationRequest.getAgencyId());
 
-        return responseEntity.getBody();
+        RequestEntity requestEntity = withPagingAndSorting(
+                pagingAndSorting,
+                withAllocationRequestParameters(allocationRequest, uri));
+
+        return restTemplate.exchange(requestEntity, KEYWOKER_ALLOCATION_LIST).getBody();
+    }
+
+    public List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, PagingAndSortingDto pagingAndSorting) {
+
+        URI uri = new UriTemplate("{endpointUri}/key-worker/{agencyId}/offenders/unallocated")
+                .expand(elite2ApiEndpointUrl, agencyId);
+
+        RequestEntity requestEntity = withPagingAndSorting(pagingAndSorting, uri);
+
+        return restTemplate.exchange(requestEntity, OFFENDER_SUMMARY_DTO_LIST).getBody();
+    }
+
+    private RequestEntity<Void> withPagingAndSorting(PagingAndSortingDto pagingAndSorting, URI uri) {
+
+        return RequestEntity.get(uri)
+            .header("Page-Offset", pagingAndSorting.getPageOffset().toString())
+            .header("Page-Limit", pagingAndSorting.getPageLimit().toString())
+            .header("Sort-Fields", pagingAndSorting.getSortFields())
+            .header("Sort-Order", pagingAndSorting.getSortOrder().name())
+        .build();
+    }
+
+    private URI withAllocationRequestParameters(AllocationsRequestDto allocationRequest, URI uri) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUri(uri);
+        allocationRequest.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.name()));
+        allocationRequest.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
+        allocationRequest.getToDate().ifPresent(td -> builder.queryParam("toDate", td.format(DateTimeFormatter.ISO_DATE)));
+        return builder.build().toUri();
     }
 
 

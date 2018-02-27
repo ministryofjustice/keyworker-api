@@ -16,8 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
 @RestController
 @RequestMapping(
         value="key-worker",
@@ -62,13 +60,33 @@ public class KeyworkerServiceController {
                         .fromDate(fromDate)
                         .toDate(toDate)
                         .build(),
-                PageDto
+                PagingAndSortingDto
                         .builder()
                         .pageOffset(pageOffset)
                         .pageLimit(pageLimit)
                         .sortFields(sortFields)
                         .sortOrder(sortOrder)
-                .build()
+                        .build()
+        );
+    }
+
+    @GetMapping(path = "/{agencyId}/offenders/unallocated")
+    List<OffenderSummaryDto> getUnallocatedOffenders(
+            @PathVariable("agencyId") String agencyId,
+            @RequestHeader(value = "Page-Offset", defaultValue = "0") Integer pageOffset,
+            @RequestHeader(value = "Page-Limit", defaultValue = "10") Integer pageLimit,
+            @RequestHeader(value = "Sort-Fields", defaultValue = "") String sortFields,
+            @RequestHeader(value = "Sort-Order", defaultValue = "ASC") SortOrder sortOrder
+    ) {
+        return keyworkerService.getUnallocatedOffenders(
+                agencyId,
+                PagingAndSortingDto
+                        .builder()
+                        .pageOffset(pageOffset)
+                        .pageLimit(pageLimit)
+                        .sortFields(sortFields)
+                        .sortOrder(sortOrder)
+                        .build()
         );
     }
 
