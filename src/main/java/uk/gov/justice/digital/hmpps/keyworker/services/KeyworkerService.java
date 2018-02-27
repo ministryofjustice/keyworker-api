@@ -3,34 +3,65 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class KeyworkerService {
+    private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST = new ParameterizedTypeReference<List<KeyworkerDto>>() {
+    };
+    private static final ParameterizedTypeReference<List<KeyworkerAllocationDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDto>>() {
+    };
 
-    @Autowired
-    private OffenderKeyworkerRepository repository;
+//    @Autowired
+//    private OffenderKeyworkerRepository repository;
 
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${elite2-api.endpoint.url:http://localhost:8080/api/}")
+    @Value("${elite2-api.endpoint.url}")
     private String elite2ApiEndpointUrl;
 
+
     public List<OffenderKeyworkerDto> getOffendersForKeyworker(String staffUsername) {
+        return Collections.emptyList();
+    }
+
+    public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
+
+        ResponseEntity<List<KeyworkerDto>> responseEntity = restTemplate.exchange(
+                "{endpointUri}/key-worker/{agencyId}/available",
+                HttpMethod.GET,
+                null,
+                KEYWORKER_DTO_LIST,
+                elite2ApiEndpointUrl,
+                agencyId);
+
+        return responseEntity.getBody();
+    }
+
+    public List<KeyworkerAllocationDto> getKeyworkerAllocations(AllocationsRequestDto allocationRequest, PageDto page) {
+
+        ResponseEntity<List<KeyworkerAllocationDto>> responseEntity = restTemplate.exchange(
+                "{endpointUri}/key-worker/{agencyId}/allocations",
+                HttpMethod.GET,
+                null,
+                KEYWOKER_ALLOCATION_LIST,
+                elite2ApiEndpointUrl,
+                allocationRequest.getAgencyId()
+        );
+
+        return responseEntity.getBody();
+    }
+
+
+/*    public List<OffenderKeyworkerDto> getOffendersForKeyworker(String staffUsername) {
         final List<OffenderKeyworker> offenderKeyworkers = repository.findAllByStaffUsername(staffUsername);
 
         List<OffenderKeyworkerDto> keyworkerDtos = new ArrayList<>();
@@ -66,5 +97,5 @@ public class KeyworkerService {
         }
 
         return keyworkerDtos;
-    }
+    }*/
 }

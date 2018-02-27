@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
+/*
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -13,3 +14,4 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     OffenderKeyworker findByOffenderBookingId(Long bookingId);
 
 }
+*/
