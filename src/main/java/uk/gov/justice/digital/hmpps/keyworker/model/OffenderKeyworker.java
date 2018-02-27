@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
+/*
 import lombok.Data;
 
 import javax.persistence.*;
@@ -24,3 +25,4 @@ public class OffenderKeyworker {
     @Column(name = "assigned_datetime", nullable = false)
     private Date assignedDateTime;
 }
+*/
