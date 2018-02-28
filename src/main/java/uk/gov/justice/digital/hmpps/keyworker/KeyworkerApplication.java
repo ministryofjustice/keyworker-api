@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,10 +13,13 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayInterceptor;
+import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayTokenGenerator;
+import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
 import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
 
 import java.security.Principal;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
@@ -23,6 +28,12 @@ import java.util.List;
 @Configuration
 @RestController
 public class KeyworkerApplication {
+
+    @Value("${use.api.gateway.auth}")
+    private boolean useApiGateway;
+
+    @Autowired
+    private ApiGatewayTokenGenerator apiGatewayTokenGenerator;
 
     @RequestMapping("/")
     public String home(Principal user) {
@@ -33,14 +44,21 @@ public class KeyworkerApplication {
     @Bean
     public RestTemplate getCustomRestTemplate() {
         RestTemplate template = new RestTemplate();
-        List<ClientHttpRequestInterceptor> interceptors = template.getInterceptors();
-        if (interceptors == null) {
-            template.setInterceptors(Collections.singletonList(new UserContextInterceptor()));
-        } else {
-            interceptors.add(new UserContextInterceptor());
-            template.setInterceptors(interceptors);
+
+        final List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+        final List<ClientHttpRequestInterceptor> currentInterceptors = template.getInterceptors();
+        if (currentInterceptors != null) {
+            interceptors.addAll(currentInterceptors);
         }
 
+        interceptors.add(new UserContextInterceptor());
+        if (useApiGateway) {
+            interceptors.add(new ApiGatewayInterceptor(apiGatewayTokenGenerator));
+        } else {
+            interceptors.add(new JwtAuthInterceptor());
+
+        }
+        template.setInterceptors(interceptors);
         return template;
     }
 

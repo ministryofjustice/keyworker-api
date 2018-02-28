@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
@@ -17,7 +18,7 @@ public class UserContextFilter implements Filter {
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
-        final String authToken = httpServletRequest.getHeader(UserContext.AUTH_TOKEN);
+        final String authToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
         log.debug("I am entering the key-worker service id with auth token: {}", authToken);
 
         UserContext.setAuthToken(authToken);
