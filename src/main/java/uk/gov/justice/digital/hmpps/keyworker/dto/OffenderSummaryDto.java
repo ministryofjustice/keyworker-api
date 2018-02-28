@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.validation.constraints.NotNull;
+
 
 @ApiModel(description = "Offender Summary")
 
@@ -18,7 +20,8 @@ import org.hibernate.validator.constraints.NotBlank;
 public class OffenderSummaryDto {
 
     @ApiModelProperty(required = true, value = "A unique booking id.")
-    private int bookingId;
+    @NotNull
+    private Long bookingId;
 
     @ApiModelProperty(required = true, value = "The offender's unique offender number (aka NOMS Number in the UK).")
     @NotBlank

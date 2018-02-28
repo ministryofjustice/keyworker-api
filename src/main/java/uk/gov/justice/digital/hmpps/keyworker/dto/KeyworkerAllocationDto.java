@@ -21,10 +21,12 @@ import javax.validation.constraints.Pattern;
 public class KeyworkerAllocationDto {
 
     @ApiModelProperty(required = true, value = "Offender Booking Id")
-    private long bookingId;
+    @NotNull
+    private Long bookingId;
 
     @ApiModelProperty(required = true, value = "Keyworker's staff Id")
-    private long staffId;
+    @NotNull
+    private Long staffId;
 
     @ApiModelProperty(required = true, value = "Whether auto or manual")
     @NotNull

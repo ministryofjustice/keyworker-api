@@ -6,18 +6,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 
-public class AllocationsFilterDto {
-    private String agencyId;
-    private Optional<AllocationType> allocationType;
-    private Optional<LocalDate> fromDate;
-    private Optional<LocalDate> toDate;
+public class ErrorResponse {
+    private Integer status;
+    private Integer errorCode;
+    private String userMessage;
+    private String developerMessage;
+    private String moreInfo;
 }

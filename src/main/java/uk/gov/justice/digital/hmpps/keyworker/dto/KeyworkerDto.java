@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.validation.constraints.NotNull;
+
 
 @ApiModel(description = "Keyworker Details")
 
@@ -18,7 +20,8 @@ import org.hibernate.validator.constraints.NotBlank;
 public class KeyworkerDto {
 
     @ApiModelProperty(required = true, value = "Staff Id")
-    private long staffId;
+    @NotNull
+    private Long staffId;
 
     @ApiModelProperty(required = true, value = "")
     @NotBlank

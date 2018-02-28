@@ -9,7 +9,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
@@ -26,10 +25,15 @@ import java.util.Optional;
         value="key-worker",
         produces = MediaType.APPLICATION_JSON_VALUE)
 public class KeyworkerServiceController {
-    @Autowired
-    private KeyworkerService keyworkerService;
 
     private static final Logger logger = LoggerFactory.getLogger(KeyworkerServiceController.class);
+
+    private final KeyworkerService keyworkerService;
+
+    @Autowired
+    public KeyworkerServiceController(KeyworkerService keyworkerService) {
+        this.keyworkerService = keyworkerService;
+    }
 
 
     @ApiOperation(
@@ -55,9 +59,9 @@ public class KeyworkerServiceController {
             @RequestParam(value = "allocationType", required = false) Optional<AllocationType> allocationType,
             @RequestParam(value = "fromDate",       required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> fromDate,
             @RequestParam(value = "toDate",         required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> toDate,
-            @RequestHeader(value = "Page-Offset", defaultValue = "0"  ) Integer pageOffset,
-            @RequestHeader(value = "Page-Limit",  defaultValue = "10" ) Integer pageLimit,
-            @RequestHeader(value = "Sort-Fields", defaultValue = ""   ) String sortFields,
+            @RequestHeader(value = "Page-Offset", defaultValue =   "0") Integer pageOffset,
+            @RequestHeader(value = "Page-Limit",  defaultValue =  "10") Integer pageLimit,
+            @RequestHeader(value = "Sort-Fields", defaultValue =    "") String sortFields,
             @RequestHeader(value = "Sort-Order",  defaultValue = "ASC") SortOrder sortOrder
     ) {
         return keyworkerService.getKeyworkerAllocations(
@@ -87,10 +91,10 @@ public class KeyworkerServiceController {
     @GetMapping(path = "/{agencyId}/offenders/unallocated")
     public List<OffenderSummaryDto> getUnallocatedOffenders(
             @PathVariable("agencyId") String agencyId,
-            @RequestHeader(value = "Page-Offset", defaultValue = "0") Integer pageOffset,
-            @RequestHeader(value = "Page-Limit", defaultValue = "10") Integer pageLimit,
-            @RequestHeader(value = "Sort-Fields", defaultValue = "") String sortFields,
-            @RequestHeader(value = "Sort-Order", defaultValue = "ASC") SortOrder sortOrder
+            @RequestHeader(value = "Page-Offset", defaultValue =   "0") Integer pageOffset,
+            @RequestHeader(value = "Page-Limit",  defaultValue =  "10") Integer pageLimit,
+            @RequestHeader(value = "Sort-Fields", defaultValue =    "") String sortFields,
+            @RequestHeader(value = "Sort-Order",  defaultValue = "ASC") SortOrder sortOrder
     ) {
         return keyworkerService.getUnallocatedOffenders(
                 agencyId,
@@ -135,8 +139,6 @@ public class KeyworkerServiceController {
     @PostMapping(
             path = "/allocate",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-
-    @PreAuthorize("#oauth2.hasScope('write')")
 
     public ResponseEntity allocate(@Valid @RequestBody KeyworkerAllocationDto keyworkerAllocation) {
         keyworkerService.allocate(keyworkerAllocation);

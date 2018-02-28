@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,27 +17,31 @@ import java.util.List;
 
 @Service
 public class KeyworkerService {
-    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {
-    };
 
-    private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST = new ParameterizedTypeReference<List<KeyworkerDto>>() {
-    };
-
-    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST = new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
-    };
+    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
+    private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST = new ParameterizedTypeReference<List<KeyworkerDto>>() {};
+    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST = new ParameterizedTypeReference<List<OffenderSummaryDto>>() {};
 
     private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
-
 
 //    @Autowired
 //    private OffenderKeyworkerRepository repository;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     @Value("${elite2-api.endpoint.url}")
     private String elite2ApiEndpointUrl;
 
+    private final RestTemplate restTemplate;
+
+    @Autowired
+    public KeyworkerService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(contentType);
+        return httpHeaders;
+    }
 
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
@@ -95,6 +100,7 @@ public class KeyworkerService {
             .getBody();
     }
 
+    @PreAuthorize("#oauth2.hasScope('write')")
     public void allocate(KeyworkerAllocationDto keyworkerAllocation) {
 
         restTemplate.postForObject(
@@ -103,12 +109,6 @@ public class KeyworkerService {
                 Void.class,
                 elite2ApiEndpointUrl);
    }
-
-    private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(contentType);
-        return httpHeaders;
-    }
 
     private RequestEntity<Void> withPagingAndSorting(PagingAndSortingDto pagingAndSorting, URI uri) {
 

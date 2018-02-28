@@ -21,7 +21,8 @@ import java.time.LocalDateTime;
 public class KeyworkerAllocationDetailsDto {
 
     @ApiModelProperty(required = true, value = "Offender Booking Id")
-    private long bookingId;
+    @NotNull
+    private Long bookingId;
 
     @ApiModelProperty(required = true, value = "Offender Unique Reference")
     @NotBlank
@@ -39,7 +40,8 @@ public class KeyworkerAllocationDetailsDto {
     private String lastName;
 
     @ApiModelProperty(required = true, value = "The key worker's Staff Id")
-    private long staffId;
+    @NotNull
+    private Long staffId;
 
     @ApiModelProperty(required = true, value = "Agency Id")
     @NotBlank
