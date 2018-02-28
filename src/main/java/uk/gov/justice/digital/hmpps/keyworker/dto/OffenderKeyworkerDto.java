@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.util.Date;
@@ -8,7 +9,8 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class OffenderKeyworkerDto {
 
     private Long offenderKeyworkerId;

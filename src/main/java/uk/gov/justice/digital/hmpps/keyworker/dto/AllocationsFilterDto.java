@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -11,7 +12,7 @@ import java.util.Optional;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@JsonInclude(JsonInclude.Include.NON_NULL)
 
 public class AllocationsFilterDto {
     private String agencyId;
