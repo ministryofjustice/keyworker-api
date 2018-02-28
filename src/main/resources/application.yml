@@ -37,3 +37,4 @@ logging:
 elite2-api:
   endpoint:
     url: http://localhost:8080/api
+#    url: https://noms-api-dev.dsd.io/elite2api/api
