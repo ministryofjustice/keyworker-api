@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,12 +12,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 
 @Service
 public class KeyworkerService {
-    private static final ParameterizedTypeReference<List<KeyworkerAllocationDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDto>>() {
+    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWOKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {
     };
 
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST = new ParameterizedTypeReference<List<KeyworkerDto>>() {
@@ -27,6 +24,9 @@ public class KeyworkerService {
 
     private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST = new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
     };
+
+    private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
+
 
 //    @Autowired
 //    private OffenderKeyworkerRepository repository;
@@ -37,10 +37,6 @@ public class KeyworkerService {
     @Value("${elite2-api.endpoint.url}")
     private String elite2ApiEndpointUrl;
 
-
-    public List<OffenderKeyworkerDto> getOffendersForKeyworker(String staffUsername) {
-        return Collections.emptyList();
-    }
 
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
@@ -55,14 +51,14 @@ public class KeyworkerService {
         return responseEntity.getBody();
     }
 
-    public List<KeyworkerAllocationDto> getKeyworkerAllocations(AllocationsRequestDto allocationRequest, PagingAndSortingDto pagingAndSorting) {
+    public List<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
         URI uri = new UriTemplate("{endpointUri}/key-worker/{agencyId}/allocations")
-                .expand(elite2ApiEndpointUrl, allocationRequest.getAgencyId());
+                .expand(elite2ApiEndpointUrl, allocationFilter.getAgencyId());
 
         RequestEntity requestEntity = withPagingAndSorting(
                 pagingAndSorting,
-                withAllocationRequestParameters(allocationRequest, uri));
+                withAllocationFilterParameters(allocationFilter, uri));
 
         return restTemplate.exchange(requestEntity, KEYWOKER_ALLOCATION_LIST).getBody();
     }
@@ -77,6 +73,43 @@ public class KeyworkerService {
         return restTemplate.exchange(requestEntity, OFFENDER_SUMMARY_DTO_LIST).getBody();
     }
 
+    public KeyworkerDto getKeyworkerDetails(String staffId) {
+
+        return restTemplate.getForObject(
+                "{endpointUri}/key-worker/{staffId}",
+                KeyworkerDto.class,
+                elite2ApiEndpointUrl,
+                staffId);
+    }
+
+    public String startAutoAllocation(String agencyId) {
+
+        return restTemplate
+            .exchange(
+                RequestEntity.post(
+                        new UriTemplate("{endpointUri}/key-worker/{agencyId}/allocate/start")
+                            .expand(elite2ApiEndpointUrl, agencyId))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .build(),
+                String.class)
+            .getBody();
+    }
+
+    public void allocate(KeyworkerAllocationDto keyworkerAllocation) {
+
+        restTemplate.postForObject(
+                "{endpointUri}/key-worker/allocate",
+                new HttpEntity<>(keyworkerAllocation, CONTENT_TYPE_APPLICATION_JSON),
+                Void.class,
+                elite2ApiEndpointUrl);
+   }
+
+    private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(contentType);
+        return httpHeaders;
+    }
+
     private RequestEntity<Void> withPagingAndSorting(PagingAndSortingDto pagingAndSorting, URI uri) {
 
         return RequestEntity.get(uri)
@@ -87,11 +120,13 @@ public class KeyworkerService {
         .build();
     }
 
-    private URI withAllocationRequestParameters(AllocationsRequestDto allocationRequest, URI uri) {
+    private URI withAllocationFilterParameters(AllocationsFilterDto allocationRequest, URI uri) {
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(uri);
         allocationRequest.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.name()));
         allocationRequest.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
         allocationRequest.getToDate().ifPresent(td -> builder.queryParam("toDate", td.format(DateTimeFormatter.ISO_DATE)));
+
         return builder.build().toUri();
     }
 

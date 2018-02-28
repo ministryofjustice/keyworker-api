@@ -13,7 +13,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @EqualsAndHashCode
 
-public class AllocationsRequestDto {
+public class AllocationsFilterDto {
     private String agencyId;
     private Optional<AllocationType> allocationType;
     private Optional<LocalDate> fromDate;

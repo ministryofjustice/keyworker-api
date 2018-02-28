@@ -8,8 +8,10 @@ import lombok.*;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class KeyworkerDto {
-    private String staffId;
+    private long staffId;
     private String firstName;
     private String lastName;
+    private String email;
+    private Long thumbnailId;
     private int numberAllocated;
 }
