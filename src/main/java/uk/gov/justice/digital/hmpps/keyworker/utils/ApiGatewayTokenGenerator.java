@@ -1,15 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pdi.jwt.Jwt;
+import pdi.jwt.JwtAlgorithm;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
-
+import java.time.Instant;
 
 @Component
 @Slf4j
@@ -19,23 +16,18 @@ public class ApiGatewayTokenGenerator {
     private final String apiGatewayPrivateKey;
 
     public ApiGatewayTokenGenerator(@Value("${api.gateway.token}") final String apiGatewayToken,
-                                    @Value("${api.gateway.private.key}") final String apiGatewayPrivateKey) {
+                                     @Value("${api.gateway.private.key}") final String apiGatewayPrivateKey) {
         this.apiGatewayToken = apiGatewayToken;
         this.apiGatewayPrivateKey = apiGatewayPrivateKey;
     }
 
-    public String createGatewayToken() throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
+    public String createGatewayToken() {
 
-        Long milliseconds = System.currentTimeMillis();
+        final String payloadToken = String.format("{ \"iat\": %d, \"token\": \"%s\" }",
+                Instant.now().getEpochSecond(),
+                apiGatewayToken);
 
-        final String payload = String.format("{ \"iat\": %d, \"token\": \"%s\" }", milliseconds, apiGatewayToken);
-        return Jwts.builder()
-                .setPayload(payload)
-                .signWith(SignatureAlgorithm.ES256, Utils.loadPrivateKey(apiGatewayPrivateKey))
-                .compact();
+            return Jwt.encode(payloadToken, apiGatewayPrivateKey, JwtAlgorithm.ES256$.MODULE$);
+
     }
-
-
-
-
 }

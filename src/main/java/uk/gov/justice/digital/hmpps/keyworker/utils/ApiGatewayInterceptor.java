@@ -26,9 +26,7 @@ public class ApiGatewayInterceptor implements ClientHttpRequestInterceptor {
         HttpHeaders headers = request.getHeaders();
         headers.add("elite-authorization", UserContext.getAuthToken());
         try {
-            final String gatewayToken = apiGatewayTokenGenerator.createGatewayToken();
-            log.info("API Gateway Token {}", gatewayToken);
-            headers.add(HttpHeaders.AUTHORIZATION, "bearer "+ gatewayToken);
+            headers.add(HttpHeaders.AUTHORIZATION, "Bearer "+ apiGatewayTokenGenerator.createGatewayToken());
         } catch (Exception e) {
             throw new IOException(e);
         }
