@@ -19,6 +19,7 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import uk.gov.justice.digital.hmpps.keyworker.controllers.KeyworkerServiceController;
 
 @Configuration
 @EnableSwagger2
@@ -72,8 +73,9 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any())
-                .build();
+                    .apis(RequestHandlerSelectors.basePackage(KeyworkerServiceController.class.getPackage().getName()))
+                    .paths(PathSelectors.any())
+                    .build()
+                .useDefaultResponseMessages(false);
     }
 }

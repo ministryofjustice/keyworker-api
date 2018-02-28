@@ -19,5 +19,5 @@ public class AllocationsFilterDto {
     private String agencyId;
     private Optional<AllocationType> allocationType;
     private Optional<LocalDate> fromDate;
-    private Optional<LocalDate> toDate;
+    private LocalDate toDate;
 }

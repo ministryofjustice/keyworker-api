@@ -26,7 +26,7 @@ public class KeyworkerAllocationDto {
 
     @ApiModelProperty(required = true, value = "Keyworker's staff Id")
     @NotNull
-    private Long staffId;
+    private long staffId;
 
     @ApiModelProperty(required = true, value = "Whether auto or manual")
     @NotNull

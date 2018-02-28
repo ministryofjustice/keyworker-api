@@ -125,7 +125,7 @@ public class KeyworkerService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(uri);
         allocationRequest.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.name()));
         allocationRequest.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
-        allocationRequest.getToDate().ifPresent(td -> builder.queryParam("toDate", td.format(DateTimeFormatter.ISO_DATE)));
+        builder.queryParam("toDate", allocationRequest.getToDate().format(DateTimeFormatter.ISO_DATE));
 
         return builder.build().toUri();
     }
