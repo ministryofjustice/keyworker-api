@@ -23,3 +23,8 @@ hs_err_pid*
 #IntelliJ project files
 .idea
 *.iml
+
+.gradle/
+gradle/
+build/
+/gradlew.bat

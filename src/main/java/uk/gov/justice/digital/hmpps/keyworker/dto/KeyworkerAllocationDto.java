@@ -1,21 +1,39 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
+
+@ApiModel(description = "New Allocation")
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class KeyworkerAllocationDto {
-    private int bookingId;
-    private String offenderNo;
-    private String firstName;
-    private String middleNames;
-    private String lastName;
-    private int staffId;
-    private String agencyId;
-    private String assigned;
-    private String allocationType;
-    private String internalLocationDesc;
+
+    @ApiModelProperty(required = true, value = "Offender Booking Id")
+    @NotNull
+    private Long bookingId;
+
+    @ApiModelProperty(required = true, value = "Keyworker's staff Id")
+    @NotNull
+    private long staffId;
+
+    @ApiModelProperty(required = true, value = "Whether auto or manual")
+    @NotNull
+    private AllocationType type;
+
+    @ApiModelProperty(value = "Allocation reason")
+    @Length(max = 12)
+    @Pattern(regexp = "\\w*")
+    private String reason;
 }
