@@ -65,7 +65,8 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-jetty")
     compile("org.springframework.boot:spring-boot-devtools")
     compile("org.springframework.boot:spring-boot-starter-actuator")
-//    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.hibernate:hibernate-java8")
 
     compile("org.springframework.boot:spring-boot-starter-security")
     compile("org.springframework.security.oauth:spring-security-oauth2")
@@ -81,10 +82,10 @@ dependencies {
     compile group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '4.8'
     compile group: 'com.pauldijou', name: 'jwt-core_2.11', version: '0.15.0'
 
-//    compile group: 'org.flywaydb', name: 'flyway-core', version: '5.0.2'
-//    compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
+    compile group: 'org.flywaydb', name: 'flyway-core', version: '5.0.2'
+    compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
 
-    compileOnly 'org.projectlombok:lombok:1.16.18'
+    compile 'org.projectlombok:lombok:1.16.18'
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile 'org.assertj:assertj-core:3.8.0'

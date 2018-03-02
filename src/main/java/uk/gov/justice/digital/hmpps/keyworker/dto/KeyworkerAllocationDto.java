@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;

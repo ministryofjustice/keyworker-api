@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 
 import java.time.LocalDate;
 import java.util.Optional;

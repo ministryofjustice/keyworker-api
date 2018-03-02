@@ -24,8 +24,6 @@ import java.util.List;
 
 @SpringBootApplication
 @EnableResourceServer
-@EnableAutoConfiguration
-@Configuration
 @RestController
 public class KeyworkerApplication {
 

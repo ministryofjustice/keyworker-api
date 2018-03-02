@@ -1,14 +1,53 @@
-DROP TABLE IF EXISTS offender_key_worker;
+DROP TABLE IF EXISTS OFFENDER_KEY_WORKER;
 
-CREATE TABLE offender_key_worker (
-  offender_keyworker_id      BIGINT PRIMARY KEY NOT NULL IDENTITY,
-  offender_book_id           BIGINT NOT NULL,
-  staff_username             VARCHAR(35) NOT NULL,
-  assigned_datetime          TIMESTAMP NOT NULL);
+CREATE TABLE OFFENDER_KEY_WORKER
+(
+  OFFENDER_KEYWORKER_ID          NUMERIC(10)    NOT NULL,
 
+  OFFENDER_BOOK_ID                    BIGINT    NOT NULL,
+  STAFF_ID                       NUMERIC(10)    NOT NULL,
+  ASSIGNED_DATE_TIME               TIMESTAMP    NOT NULL,
 
-INSERT INTO offender_key_worker (offender_book_id, staff_username, assigned_datetime)
-VALUES (-1, 'ITAG_USER', '2017-08-12 09:00:00');
+  ACTIVE_FLAG                      CHAR(  1)    NOT NULL,
+  ALLOC_REASON                  VARCHAR( 12)    NOT NULL,
+  ALLOC_TYPE                       CHAR(  1)    NOT NULL,
+  USER_ID                       VARCHAR( 32)    NOT NULL,
+  AGY_LOC_ID                    VARCHAR(  6)    NOT NULL,
 
-INSERT INTO offender_key_worker (offender_book_id, staff_username, assigned_datetime)
-VALUES (-2, 'ITAG_USER','2018-01-12 10:00:00');
+  EXPIRY_DATE                          DATE,
+  DEALLOC_REASON                VARCHAR( 12),
+
+  CREATE_DATETIME                  TIMESTAMP    NOT NULL,
+  CREATE_USER_ID                VARCHAR( 32)    NOT NULL,
+
+  MODIFY_DATETIME               TIMESTAMP(9),
+  MODIFY_USER_ID                VARCHAR( 32),
+
+  AUDIT_TIMESTAMP               TIMESTAMP(9),
+  AUDIT_USER_ID                 VARCHAR( 32),
+  AUDIT_MODULE_NAME             VARCHAR( 65),
+  AUDIT_CLIENT_USER_ID          VARCHAR( 64),
+  AUDIT_CLIENT_IP_ADDRESS       VARCHAR( 39),
+  AUDIT_CLIENT_WORKSTATION_NAME VARCHAR( 64),
+  AUDIT_ADDITIONAL_INFO         VARCHAR(256),
+
+  CONSTRAINT OFFENDER_KEY_WORKER_PK PRIMARY KEY (OFFENDER_KEYWORKER_ID),
+
+  CONSTRAINT OFFENDER_KEYWORKER_UNIQUE UNIQUE (OFFENDER_BOOK_ID, STAFF_ID, ASSIGNED_DATE_TIME),
+
+  CONSTRAINT OFFENDER_KEY_WORKER_C1 CHECK (ALLOC_TYPE IN ('A','M'))
+
+);
+
+COMMENT ON TABLE OFFENDER_KEY_WORKER IS 'Records the Key Worker assignment history of offenders on remand or serving custodial sentences held within an establishment.';
+
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.OFFENDER_BOOK_ID   IS 'The Related Offender Book Id';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.STAFF_ID           IS 'The Related Key Worker Staff Id';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.ASSIGNED_DATE_TIME IS 'Assigned Date and Time';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.USER_ID            IS 'Assigned by User Id';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.AGY_LOC_ID         IS 'Establishment';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.ACTIVE_FLAG        IS 'Assignment Active Flag';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.EXPIRY_DATE        IS 'Expiry Date of Assignment';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.ALLOC_REASON       IS 'Reason for allocation';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.DEALLOC_REASON     IS 'Reason for deallocation';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.ALLOC_TYPE         IS 'Type of allocation, M for manual, A for auto';
