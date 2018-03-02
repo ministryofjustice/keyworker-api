@@ -65,23 +65,23 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/python:latest-browsers
-      steps:
-        - checkout
-        - attach_workspace:
-            at: /tmp/circleci-keyworker-service/
-        - deploy:
-            name: Install elastic beanstalk CLI
-            command: |
-              if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                sudo apt-get install python-pip python-dev
-                pip install --user 'six>-1.9.0' awsebcli --ignore-installed
-              fi
-        - deploy:
-            name: Deploy to Elastic Beanstalk Dev
-            command: |
-              if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                ~/.local/bin/eb deploy --process --verbose
-              fi
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/circleci-keyworker-service/
+      - deploy:
+          name: Install elastic beanstalk CLI
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              sudo apt-get install python-pip python-dev
+              pip install --user 'six>-1.9.0' awsebcli --ignore-installed
+            fi
+      - deploy:
+          name: Deploy to Elastic Beanstalk Dev
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              ~/.local/bin/eb deploy --process --verbose
+            fi
 
 workflows:
   version: 2
