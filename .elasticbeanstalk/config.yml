@@ -1,0 +1,8 @@
+branch-defaults:
+  master:
+    environment: keyworker-srv-dev
+global:
+  application_name: keyworker-srv-dev
+  default_region: eu-west-2
+deploy:
+  artifact: Dockerrun.aws.json
