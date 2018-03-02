@@ -16,18 +16,8 @@ spring:
       WRITE_DATES_AS_TIMESTAMPS : false
 
 server:
-  port: 8088
+  port: 8080
   context-path: /api
-
-security:
-  oauth2:
-    client:
-      client-id: elite2apiclient
-      client-secret: clientsecret
-      access-token-uri: http://localhost:8080/oauth/token
-      user-authorization-uri: http://localhost:8080/oauth/authorize
-    resource:
-      user-info-uri: http://localhost:8080/api/users/me
 
 logging:
   level:
