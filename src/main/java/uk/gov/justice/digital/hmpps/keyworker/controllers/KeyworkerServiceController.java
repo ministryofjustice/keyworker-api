@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
 import javax.validation.Valid;
