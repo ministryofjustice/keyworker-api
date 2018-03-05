@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyworker,Long> {
 
-    List<OffenderKeyworker> findByOffenderBookingId(Long bookingId);
+    List<OffenderKeyworker> findByOffenderNo(String offenderNo);
 }

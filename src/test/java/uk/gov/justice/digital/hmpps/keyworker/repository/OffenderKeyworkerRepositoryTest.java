@@ -9,12 +9,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.Audit;
 import uk.gov.justice.digital.hmpps.keyworker.model.CreateUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -28,15 +25,14 @@ import static org.hamcrest.Matchers.*;
 public class OffenderKeyworkerRepositoryTest {
 
     private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016,1, 2, 3, 4, 5);
-    private static final LocalDate EXPIRY_DATE = LocalDate.of(2020, 12, 30);
-    private static final LocalDateTime AUDIT_TIMESTAMP = LocalDateTime.of(2016, 1, 2, 3, 4, 5, 6);
+    private static final LocalDateTime EXPIRY_DATE_TIME = LocalDateTime.of(2020, 12, 30, 9, 34, 56);
     private static long currentId;
 
     @Autowired
     private OffenderKeyworkerRepository repository;
 
     @Test
-    public void givenATransientOffenderKeyworker_WhenPersisted_itShoudBeRetrievableById() {
+    public void givenATransientOffenderKeyworkerWhenPersistedIitShoudBeRetrievableById() {
 
         val transientEntity = transientEntity();
 
@@ -61,15 +57,14 @@ public class OffenderKeyworkerRepositoryTest {
         assertThat(retrievedEntity.getUserId(), is("The Assigning User"));
         assertThat(retrievedEntity.getAgencyLocationId(), is ("123456"));
         assertThat(retrievedEntity.getAgencyLocationId(), is("123456"));
-        assertThat(retrievedEntity.getExpiryDate(), is(EXPIRY_DATE));
+        assertThat(retrievedEntity.getExpiryDateTime(), is(EXPIRY_DATE_TIME));
         assertThat(retrievedEntity.getDeallocationReason(), is("Unknown"));
 
         assertThat(retrievedEntity.getCreateUpdate(), is(equalTo(transientEntity.getCreateUpdate())));
-        assertThat(retrievedEntity.getAudit(), is(nullValue()));
     }
 
     @Test
-    public void givenAPersistentInstance_thenNullableValuesAreUpdateable() {
+    public void givenAPersistentInstanceThenNullableValuesAreUpdateable() {
 
         val entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
@@ -82,7 +77,6 @@ public class OffenderKeyworkerRepositoryTest {
         assertThat(retrievedEntity.getCreateUpdate().getModifyUserId(), nullValue());
 
         retrievedEntity.setCreateUpdate((addUpdateInfo(retrievedEntity.getCreateUpdate())));
-        retrievedEntity.setAudit(auditInfo());
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -93,27 +87,22 @@ public class OffenderKeyworkerRepositoryTest {
 
         assertThat(persistedUpdates.getCreateUpdate().getModifyDateTime(), notNullValue());
         assertThat(persistedUpdates.getCreateUpdate().getModifyUserId(), is("Modify User Id"));
-
-        assertThat(persistedUpdates.getAudit(), is(equalTo(auditInfo())));
     }
 
     private OffenderKeyworker transientEntity() {
         return OffenderKeyworker
                 .builder()
-
-                .offenderBookingId(nextId())
+                .offenderNo("A1234AA")
                 .staffId(nextId())
                 .assignedDateTime(ASSIGNED_DATE_TIME)
-
                 .active(true)
                 .allocationReason("NoIdea")
                 .allocationType(AllocationType.A)
                 .userId("The Assigning User")
                 .agencyLocationId("123456")
-                .expiryDate(EXPIRY_DATE)
+                .expiryDateTime(EXPIRY_DATE_TIME)
                 .deallocationReason("Unknown")
                 .createUpdate(creationTimeInfo())
-                .audit(emptyAuditInfo())
                 .build();
     }
 
@@ -130,25 +119,6 @@ public class OffenderKeyworkerRepositoryTest {
                 .toBuilder()
                 .modifyDateTime(LocalDateTime.now())
                 .modifyUserId("Modify User Id")
-                .build();
-    }
-
-    private Audit emptyAuditInfo() {
-        return Audit
-                .builder()
-                .build();
-    }
-
-    private Audit auditInfo() {
-        return Audit
-                .builder()
-                .timestamp(AUDIT_TIMESTAMP)
-                .userId("Audit User Id")
-                .moduleName("Module")
-                .clientUserId("Client User Id")
-                .clientIpAddress("192.168.1.1")
-                .clientWorkstationName("Client Workstation Name")
-                .additionalInfo("Additional Information")
                 .build();
     }
 
