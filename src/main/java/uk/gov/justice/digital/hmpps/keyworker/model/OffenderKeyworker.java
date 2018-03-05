@@ -6,7 +6,6 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,13 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-
-// Use the 'Business Key' fields for equals and hashCode because these should never change...
-@EqualsAndHashCode( of={
-                "offenderBookingId",
-                "staffId",
-                "assignedDateTime"
-})
+@EqualsAndHashCode(of = {"offenderNo", "staffId", "assignedDateTime"})
 public class OffenderKeyworker {
 
     @Id()
@@ -30,8 +23,9 @@ public class OffenderKeyworker {
     private Long offenderKeyworkerId;
 
     @NotNull
-    @Column(name = "OFFENDER_BOOK_ID", nullable = false)
-    private Long offenderBookingId;
+    @Length(max = 10)
+    @Column(name = "OFFENDER_NO", nullable = false)
+    private String offenderNo;
 
     @NotNull
     @Column(name = "STAFF_ID", nullable = false)
@@ -46,27 +40,26 @@ public class OffenderKeyworker {
     private boolean active;
 
     @NotNull
-    @Length(max=12)
+    @Length(max = 12)
     @Column(name = "ALLOC_REASON", nullable = false)
     private String allocationReason;
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ALLOC_TYPE", nullable = false)
     private AllocationType allocationType;
 
     @NotNull
-    @Length(max=32)
+    @Length(max = 32)
     @Column(name = "USER_ID", nullable = false)
     private String userId;
 
     @NotNull
-    @Length(max=6)
+    @Length(max = 6)
     @Column(name = "AGY_LOC_ID", nullable = false)
     private String agencyLocationId;
 
-    @Column(name = "EXPIRY_DATE")
-    LocalDate expiryDate;
+    @Column(name = "EXPIRY_DATE_TIME")
+    LocalDateTime expiryDateTime;
 
     @Length(max = 12)
     @Column(name = "DEALLOC_REASON")
@@ -77,14 +70,9 @@ public class OffenderKeyworker {
      *
      * The way these fields behave and are used will probably change when OFFENDER_KEY_WORKER
      * data is no longer imported from elite2-api.
-     * For now fields like creationDateTime must always be set before persting.
+     * For now fields like creationDateTime must always be set before persisting.
      * Later, annotations such as @CreationTimestamp or @Generated might be useful.
      * ------------------------------------------------------------------------------------- */
-
     @NotNull
     private CreateUpdate createUpdate;
-
-    @NotNull
-    private Audit audit;
-
 }
