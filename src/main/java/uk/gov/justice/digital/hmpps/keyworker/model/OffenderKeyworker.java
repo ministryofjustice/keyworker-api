@@ -40,12 +40,12 @@ public class OffenderKeyworker {
     private boolean active;
 
     @NotNull
-    @Length(max = 12)
     @Column(name = "ALLOC_REASON", nullable = false)
-    private String allocationReason;
+    @Convert(converter = AllocationReasonConvertor.class)
+    private AllocationReason allocationReason;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "ALLOC_TYPE", nullable = false)
+    @Convert(converter = AllocationTypeConvertor.class)
     private AllocationType allocationType;
 
     @NotNull
@@ -56,14 +56,14 @@ public class OffenderKeyworker {
     @NotNull
     @Length(max = 6)
     @Column(name = "AGY_LOC_ID", nullable = false)
-    private String agencyLocationId;
+    private String agencyId;
 
     @Column(name = "EXPIRY_DATE_TIME")
     LocalDateTime expiryDateTime;
 
-    @Length(max = 12)
     @Column(name = "DEALLOC_REASON")
-    private String deallocationReason;
+    @Convert(converter = DeallocationReasonConvertor.class)
+    private DeallocationReason deallocationReason;
 
     /* --------------------------------------------------------------------------------------
      * Generic fields below here.  Move to super-type?

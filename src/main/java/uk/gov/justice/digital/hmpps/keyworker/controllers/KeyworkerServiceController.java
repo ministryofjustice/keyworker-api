@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,19 +17,19 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
+
 @Api(tags = {"key-worker"})
 
 @RestController
 @RequestMapping(
         value="key-worker",
         produces = MediaType.APPLICATION_JSON_VALUE)
+@Slf4j
 public class KeyworkerServiceController {
-
-    private static final Logger logger = LoggerFactory.getLogger(KeyworkerServiceController.class);
 
     private final KeyworkerService keyworkerService;
 
-    @Autowired
     public KeyworkerServiceController(KeyworkerService keyworkerService) {
         this.keyworkerService = keyworkerService;
     }
@@ -58,7 +56,7 @@ public class KeyworkerServiceController {
             @PathVariable(name = "agencyId")
                     String agencyId) {
 
-        logger.debug("finding available keyworkers for agency {}", agencyId);
+        log.debug("finding available keyworkers for agency {}", agencyId);
         return keyworkerService.getAvailableKeyworkers(agencyId);
     }
 
@@ -98,19 +96,19 @@ public class KeyworkerServiceController {
                     Optional<LocalDate> toDate,
 
             @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue="0")
-            @RequestHeader(value = "Page-Offset", defaultValue =   "0")
-                    Integer pageOffset,
+            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
+                    Long pageOffset,
 
             @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue="10")
-            @RequestHeader(value = "Page-Limit",  defaultValue =  "10")
-                    Integer pageLimit,
+            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
+                    Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>")
-            @RequestHeader(value = "Sort-Fields", defaultValue =    "")
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
                     String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
-            @RequestHeader(value = "Sort-Order",  defaultValue = "ASC")
+            @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
         return keyworkerService.getKeyworkerAllocations(
@@ -153,19 +151,19 @@ public class KeyworkerServiceController {
                     String agencyId,
 
             @ApiParam(value = "Requested offset of first record in returned collection of unallocated records.", defaultValue="0")
-            @RequestHeader(value = "Page-Offset", defaultValue =   "0")
-                    Integer pageOffset,
+            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
+                    Long pageOffset,
 
             @ApiParam(value = "Requested limit to number of unallocated records returned.", defaultValue="10")
-            @RequestHeader(value = "Page-Limit",  defaultValue =  "10")
-                    Integer pageLimit,
+            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
+                    Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
-            @RequestHeader(value = "Sort-Fields", defaultValue =    "")
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
                     String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
-            @RequestHeader(value = "Sort-Order",  defaultValue = "ASC")
+            @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
         return keyworkerService.getUnallocatedOffenders(

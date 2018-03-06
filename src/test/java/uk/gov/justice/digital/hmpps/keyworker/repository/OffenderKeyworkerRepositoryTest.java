@@ -8,14 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.CreateUpdate;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
 
 import java.time.LocalDateTime;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -43,24 +40,22 @@ public class OffenderKeyworkerRepositoryTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        assertThat(persistedEntity.getOffenderKeyworkerId(), notNullValue());
+        assertThat(persistedEntity.getOffenderKeyworkerId()).isNotNull();
 
         TestTransaction.start();
 
         val retrievedEntity = repository.findOne(entity.getOffenderKeyworkerId());
 
         // equals only compares the business key columns: offenderBookingId, staffId and assignedDateTime
-        assertThat(retrievedEntity, is(equalTo(transientEntity)));
+        assertThat(retrievedEntity).isEqualTo(transientEntity);
 
-        assertThat(retrievedEntity.isActive(), is(true));
-        assertThat(retrievedEntity.getAllocationType(), is(AllocationType.A));
-        assertThat(retrievedEntity.getUserId(), is("The Assigning User"));
-        assertThat(retrievedEntity.getAgencyLocationId(), is ("123456"));
-        assertThat(retrievedEntity.getAgencyLocationId(), is("123456"));
-        assertThat(retrievedEntity.getExpiryDateTime(), is(EXPIRY_DATE_TIME));
-        assertThat(retrievedEntity.getDeallocationReason(), is("Unknown"));
-
-        assertThat(retrievedEntity.getCreateUpdate(), is(equalTo(transientEntity.getCreateUpdate())));
+        assertThat(retrievedEntity.isActive()).isTrue();
+        assertThat(retrievedEntity.getAllocationType()).isEqualTo(AllocationType.AUTO);
+        assertThat(retrievedEntity.getUserId()).isEqualTo("The Assigning User");
+        assertThat(retrievedEntity.getAgencyId()).isEqualTo("LEI");
+        assertThat(retrievedEntity.getExpiryDateTime()).isEqualTo(EXPIRY_DATE_TIME);
+        assertThat(retrievedEntity.getDeallocationReason()).isEqualTo(DeallocationReason.OVERRIDE);
+        assertThat(retrievedEntity.getCreateUpdate()).isEqualTo(transientEntity.getCreateUpdate());
     }
 
     @Test
@@ -73,8 +68,8 @@ public class OffenderKeyworkerRepositoryTest {
         TestTransaction.start();
         val retrievedEntity = repository.findOne(entity.getOffenderKeyworkerId());
 
-        assertThat(retrievedEntity.getCreateUpdate().getModifyDateTime(), nullValue());
-        assertThat(retrievedEntity.getCreateUpdate().getModifyUserId(), nullValue());
+        assertThat(retrievedEntity.getCreateUpdate().getModifyDateTime()).isNull();
+        assertThat(retrievedEntity.getCreateUpdate().getModifyUserId()).isNull();
 
         retrievedEntity.setCreateUpdate((addUpdateInfo(retrievedEntity.getCreateUpdate())));
 
@@ -85,8 +80,8 @@ public class OffenderKeyworkerRepositoryTest {
 
         val persistedUpdates = repository.findOne(entity.getOffenderKeyworkerId());
 
-        assertThat(persistedUpdates.getCreateUpdate().getModifyDateTime(), notNullValue());
-        assertThat(persistedUpdates.getCreateUpdate().getModifyUserId(), is("Modify User Id"));
+        assertThat(persistedUpdates.getCreateUpdate().getModifyDateTime()).isNotNull();
+        assertThat(persistedUpdates.getCreateUpdate().getModifyUserId()).isEqualTo("Modify User Id");
     }
 
     private OffenderKeyworker transientEntity() {
@@ -96,12 +91,12 @@ public class OffenderKeyworkerRepositoryTest {
                 .staffId(nextId())
                 .assignedDateTime(ASSIGNED_DATE_TIME)
                 .active(true)
-                .allocationReason("NoIdea")
-                .allocationType(AllocationType.A)
+                .allocationReason(AllocationReason.MANUAL)
+                .allocationType(AllocationType.AUTO)
                 .userId("The Assigning User")
-                .agencyLocationId("123456")
+                .agencyId("LEI")
                 .expiryDateTime(EXPIRY_DATE_TIME)
-                .deallocationReason("Unknown")
+                .deallocationReason(DeallocationReason.OVERRIDE)
                 .createUpdate(creationTimeInfo())
                 .build();
     }
