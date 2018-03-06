@@ -84,7 +84,7 @@ dependencies {
 
     compile group: 'org.flywaydb', name: 'flyway-core', version: '5.0.2'
     compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
-
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'
     compile 'org.projectlombok:lombok:1.16.18'
 
     testCompile('org.springframework.boot:spring-boot-starter-test')

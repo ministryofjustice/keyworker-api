@@ -6,7 +6,7 @@ spring:
       ddl-auto: none
 
   datasource:
-    url: jdbc:hsqldb:mem:spon-request-db;sql.syntax_pgs=true;shutdown=false
+    url: ${app.db.url}
     username: sa
     password:
 
