@@ -1,29 +1,40 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-
 public class OffenderKeyworkerDto {
-
     private Long offenderKeyworkerId;
 
-    private Long offenderBookingId;
+    private String offenderNo;
 
-    private String staffUsername;
+    private Long staffId;
 
-    private Date assignedDateTime;
+    private String agencyId;
 
-    private String offenderLastName;
+    private LocalDateTime assigned;
 
-    private String offenderFirstName;
+    private LocalDateTime expired;
 
-    private String nomisId;
+    private String userId;
+
+    private String active;
+
+    private LocalDateTime created;
+
+    private String createdBy;
+
+    private LocalDateTime modified;
+
+    private String modifiedBy;
 }
