@@ -3,7 +3,11 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.RequestEntity;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -58,19 +62,67 @@ public abstract class Elite2ApiSource {
                 .build();
     }
 
-    protected RequestEntity<Void> withPagingAndSorting(PagingAndSortingDto pagingAndSorting, URI uri) {
-        return RequestEntity.get(uri)
-                .header(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString())
-                .header(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString())
-                .header(HEADER_SORT_FIELDS, pagingAndSorting.getSortFields())
-                .header(HEADER_SORT_ORDER, pagingAndSorting.getSortOrder().name())
-                .build();
+    protected <T> ResponseEntity<T> getWithPagingAndSorting(URI uri, PagingAndSortingDto pagingAndSorting,
+                                                            ParameterizedTypeReference<T> responseType) {
+        return restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                withPagingAndSorting(pagingAndSorting),
+                responseType);
     }
 
-    protected RequestEntity<Void> withPaging(PagingAndSortingDto pagingAndSorting, URI uri) {
-        return RequestEntity.get(uri)
-                .header(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString())
-                .header(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString())
-                .build();
+    protected <T> ResponseEntity<T> getWithPaging(URI uri, PagingAndSortingDto pagingAndSorting,
+                                                  ParameterizedTypeReference<T> responseType) {
+        return restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                withPaging(pagingAndSorting),
+                responseType);
+    }
+
+    protected <T> ResponseEntity<T> getWithSorting(URI uri, PagingAndSortingDto pagingAndSorting,
+                                                  ParameterizedTypeReference<T> responseType) {
+        return restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                withSorting(pagingAndSorting),
+                responseType);
+    }
+
+    protected <T> ResponseEntity<T> getForList(URI uri, ParameterizedTypeReference<T> responseType) {
+        return restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                null,
+                responseType);
+    }
+
+    protected HttpEntity<?> withPagingAndSorting(PagingAndSortingDto pagingAndSorting) {
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
+        headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
+        headers.add(HEADER_SORT_FIELDS, pagingAndSorting.getSortFields());
+        headers.add(HEADER_SORT_ORDER, pagingAndSorting.getSortOrder().name());
+
+        return new HttpEntity<>(null, headers);
+    }
+
+    protected HttpEntity<?> withPaging(PagingAndSortingDto pagingAndSorting) {
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
+        headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
+
+        return new HttpEntity<>(null, headers);
+    }
+
+    protected HttpEntity<?> withSorting(PagingAndSortingDto pagingAndSorting) {
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.add(HEADER_SORT_FIELDS, pagingAndSorting.getSortFields());
+        headers.add(HEADER_SORT_ORDER, pagingAndSorting.getSortOrder().name());
+
+        return new HttpEntity<>(null, headers);
     }
 }
