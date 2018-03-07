@@ -9,5 +9,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     List<OffenderKeyworker> findByOffenderNo(String offenderNo);
 
+    List<OffenderKeyworker> findByStaffId(Long staffId);
+
     boolean existsByAgencyId(String agencyId);
 }
