@@ -48,7 +48,6 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
     @GetMapping(path = "/{agencyId}/available")
-
     public List<KeyworkerDto> getAvailableKeyworkers(
 
             @ApiParam(value = "agencyId", required = true)
@@ -57,6 +56,7 @@ public class KeyworkerServiceController {
                     String agencyId) {
 
         log.debug("finding available keyworkers for agency {}", agencyId);
+
         return keyworkerService.getAvailableKeyworkers(agencyId);
     }
 
@@ -74,8 +74,7 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
     @GetMapping(path = "/{agencyId}/allocations")
-
-    public List<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(
+    public ResponseEntity<List<KeyworkerAllocationDetailsDto>> getKeyworkerAllocations(
             @ApiParam(value = "agencyId", required = true)
             @NotEmpty
             @PathVariable("agencyId")
@@ -83,7 +82,7 @@ public class KeyworkerServiceController {
 
             @ApiParam(value = "Optional filter by type of allocation. A for auto allocations, M for manual allocations.")
             @RequestParam(value = "allocationType", required = false)
-                    Optional<AllocationType> allocationType,
+                    String allocationType,
 
             @ApiParam(value = "Returned allocations must have been assigned on or after this date (in YYYY-MM-DD format).")
             @RequestParam(value = "fromDate",       required = false)
@@ -111,11 +110,11 @@ public class KeyworkerServiceController {
             @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
-        return keyworkerService.getKeyworkerAllocations(
+        Page<KeyworkerAllocationDetailsDto> page = keyworkerService.getKeyworkerAllocations(
                 AllocationsFilterDto
                         .builder()
                         .agencyId(agencyId)
-                        .allocationType(allocationType)
+                        .allocationType(Optional.ofNullable(AllocationType.get(allocationType)))
                         .fromDate(fromDate)
                         .toDate(toDate.orElse(LocalDate.now()))
                         .build(),
@@ -125,8 +124,9 @@ public class KeyworkerServiceController {
                         .pageLimit(pageLimit)
                         .sortFields(sortFields)
                         .sortOrder(sortOrder)
-                        .build()
-        );
+                        .build());
+
+        return new ResponseEntity<>(page.getItems(), page.toHeaders(), HttpStatus.OK);
     }
 
     /* --------------------------------------------------------------------------------*/
@@ -143,8 +143,7 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
     @GetMapping(path = "/{agencyId}/offenders/unallocated")
-
-    public List<OffenderSummaryDto> getUnallocatedOffenders(
+    public ResponseEntity<List<OffenderSummaryDto>> getUnallocatedOffenders(
             @ApiParam(value = "agencyId", required = true)
             @NotEmpty
             @PathVariable("agencyId")
@@ -166,16 +165,16 @@ public class KeyworkerServiceController {
             @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
-        return keyworkerService.getUnallocatedOffenders(
-                agencyId,
+        Page<OffenderSummaryDto> page = keyworkerService.getUnallocatedOffenders(agencyId,
                 PagingAndSortingDto
                         .builder()
                         .pageOffset(pageOffset)
                         .pageLimit(pageLimit)
                         .sortFields(sortFields)
                         .sortOrder(sortOrder)
-                        .build()
-        );
+                        .build());
+
+        return new ResponseEntity<>(page.getItems(), page.toHeaders(), HttpStatus.OK);
     }
 
 
@@ -198,7 +197,8 @@ public class KeyworkerServiceController {
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
-                    String staffId) {
+                    Long staffId) {
+
         return keyworkerService.getKeyworkerDetails(staffId);
     }
 
@@ -245,7 +245,7 @@ public class KeyworkerServiceController {
                     KeyworkerAllocationDto keyworkerAllocation) {
 
         keyworkerService.allocate(keyworkerAllocation);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-
 }

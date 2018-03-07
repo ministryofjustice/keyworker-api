@@ -29,46 +29,46 @@ public class KeyworkerService extends Elite2ApiSource {
 
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
-        ResponseEntity<List<KeyworkerDto>> responseEntity = restTemplate.exchange(
-                "/key-worker/{agencyId}/available",
-                HttpMethod.GET,
-                null,
-                KEYWORKER_DTO_LIST,
-                agencyId);
+        URI uri = new UriTemplate("/key-worker/{agencyId}/available").expand(agencyId);
+
+        ResponseEntity<List<KeyworkerDto>> responseEntity = getForList(uri, KEYWORKER_DTO_LIST);
 
         return responseEntity.getBody();
     }
 
-    public List<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
+    public Page<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
-        URI uri = new UriTemplate("/key-worker/{agencyId}/allocations")
-                .expand(allocationFilter.getAgencyId());
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/key-worker/{agencyId}/allocations");
 
-        RequestEntity requestEntity = withPagingAndSorting(
-                pagingAndSorting,
-                withAllocationFilterParameters(allocationFilter, uri));
+        allocationFilter.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.name()));
+        allocationFilter.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
 
-        return restTemplate.exchange(requestEntity, KEYWORKER_ALLOCATION_LIST).getBody();
+        builder.queryParam("toDate", allocationFilter.getToDate().format(DateTimeFormatter.ISO_DATE));
+
+        URI uri = builder.buildAndExpand(allocationFilter.getAgencyId()).toUri();
+
+        ResponseEntity<List<KeyworkerAllocationDetailsDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, KEYWORKER_ALLOCATION_LIST);
+
+        return new Page<>(response.getBody(), response.getHeaders());
     }
 
-    public List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, PagingAndSortingDto pagingAndSorting) {
+    public Page<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, PagingAndSortingDto pagingAndSorting) {
 
-        URI uri = new UriTemplate("/key-worker/{agencyId}/offenders/unallocated")
-                .expand(agencyId);
+        URI uri = new UriTemplate("/key-worker/{agencyId}/offenders/unallocated").expand(agencyId);
 
-        RequestEntity requestEntity = withPagingAndSorting(pagingAndSorting, uri);
+        ResponseEntity<List<OffenderSummaryDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, OFFENDER_SUMMARY_DTO_LIST);
 
-        return restTemplate.exchange(requestEntity, OFFENDER_SUMMARY_DTO_LIST).getBody();
+        return new Page<>(response.getBody(), response.getHeaders());
     }
 
-    public KeyworkerDto getKeyworkerDetails(String staffId) {
+    public KeyworkerDto getKeyworkerDetails(Long staffId) {
 
-        return restTemplate.getForObject(
-                "/key-worker/{staffId}",
-                KeyworkerDto.class,
-                staffId);
+        URI uri = new UriTemplate("/key-worker/{staffId}").expand(staffId);
+
+        return restTemplate.getForObject(uri.toString(), KeyworkerDto.class);
     }
 
+    @PreAuthorize("#oauth2.hasScope('write')")
     public String startAutoAllocation(String agencyId) {
 
         return restTemplate
@@ -89,15 +89,5 @@ public class KeyworkerService extends Elite2ApiSource {
                 "/key-worker/allocate",
                 new HttpEntity<>(keyworkerAllocation, CONTENT_TYPE_APPLICATION_JSON),
                 Void.class);
-    }
-
-    private URI withAllocationFilterParameters(AllocationsFilterDto allocationRequest, URI uri) {
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUri(uri);
-        allocationRequest.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.name()));
-        allocationRequest.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
-        builder.queryParam("toDate", allocationRequest.getToDate().format(DateTimeFormatter.ISO_DATE));
-
-        return builder.build().toUri();
     }
 }

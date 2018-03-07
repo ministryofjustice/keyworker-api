@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
@@ -79,8 +78,6 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
         URI uri = new UriTemplate(URI_KEY_WORKER_GET_ALLOCATION_HISTORY).expand(agencyId);
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageOffset(offset).pageLimit(limit).build();
 
-        RequestEntity requestEntity = withPaging(pagingAndSorting, uri);
-
-        return restTemplate.exchange(requestEntity, PARAM_TYPE_REF_OFF_KEY_WORKER).getBody();
+        return getWithPaging(uri, pagingAndSorting, PARAM_TYPE_REF_OFF_KEY_WORKER).getBody();
     }
 }

@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +24,7 @@ public enum AllocationType {
         return this == MANUAL;
     }
 
+    @JsonValue
     public String getTypeCode() {
         return typeCode;
     }
@@ -39,6 +43,7 @@ public enum AllocationType {
         }
     }
 
+    @JsonCreator
     public static AllocationType get(String typeCode) {
         return lookup.get(typeCode);
     }
