@@ -1,0 +1,22 @@
+version: '3.1'
+services:
+  keyworker-service:
+    image: mojdigitalstudio/keyworker-service:latest
+    networks:
+      - hmpps
+    container_name: keyworker-service
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx256m
+      - SERVER_PORT=8081
+      - SPRING_PROFILES_ACTIVE=dev
+      - API_GATEWAY_TOKEN=***
+      - API_GATEWAY_PRIVATE_KEY=***
+      - USE_API_GATEWAY_AUTH=false
+      - JWT_SIGNING_KEY=secret
+      - ELITE2_API_URI_ROOT=https://noms-api-dev.dsd.io/elite2api/api
+networks:
+  hmpps:
