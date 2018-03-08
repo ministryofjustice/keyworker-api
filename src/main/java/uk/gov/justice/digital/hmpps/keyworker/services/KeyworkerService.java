@@ -52,7 +52,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/key-worker/{agencyId}/allocations");
 
-        allocationFilter.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.name()));
+        allocationFilter.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.toString()));
         allocationFilter.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
 
         builder.queryParam("toDate", allocationFilter.getToDate().format(DateTimeFormatter.ISO_DATE));
