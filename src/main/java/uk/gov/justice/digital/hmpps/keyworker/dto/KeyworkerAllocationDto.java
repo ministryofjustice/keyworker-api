@@ -3,38 +3,57 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
-import org.hibernate.validator.constraints.Length;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.NotBlank;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import java.time.LocalDateTime;
 
-
-@ApiModel(description = "New Allocation")
-
+@ApiModel(description = "Key worker allocation detail")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-
 public class KeyworkerAllocationDto {
 
-    @ApiModelProperty(required = true, value = "Offender Booking Id")
-    @NotNull
-    private Long bookingId;
+    @ApiModelProperty(required = true, value = "Identifies offender who is subject of allocation.")
+    @NotBlank
+    private String offenderNo;
 
-    @ApiModelProperty(required = true, value = "Keyworker's staff Id")
+    @ApiModelProperty(required = true, value = "Identifies Key worker who is subject of allocation.")
     @NotNull
-    private long staffId;
+    private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Whether auto or manual")
+    @ApiModelProperty(required = true, value = "Agency where allocation is effective.")
+    @NotBlank
+    private String agencyId;
+
+    @ApiModelProperty(required = true, value = "Type of allocation - auto or manual.")
     @NotNull
-    private AllocationType type;
+    private AllocationType allocationType;
 
-    @ApiModelProperty(value = "Allocation reason")
-    @Length(max = 12)
-    @Pattern(regexp = "\\w*")
-    private String reason;
+    @ApiModelProperty(required = true, value = "Reason for allocation.")
+    @NotNull
+    private AllocationReason allocationReason;
+
+    @ApiModelProperty(value = "Reason for de-allocation.")
+    private DeallocationReason deallocationReason;
+
+    @ApiModelProperty(required = true, value = "Indicates if allocation is active or not.")
+    @NotNull
+    private Boolean active;
+
+    @ApiModelProperty(required = true, value = "Date and time from which allocation was effective.")
+    @NotNull
+    private LocalDateTime assigned;
+
+    @ApiModelProperty(value = "Date and time at which allocation expired.")
+    private LocalDateTime expired;
 }

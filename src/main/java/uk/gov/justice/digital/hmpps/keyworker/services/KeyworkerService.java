@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.net.URI;
 import java.time.format.DateTimeFormatter;
@@ -14,10 +16,14 @@ import java.util.List;
 
 @Service
 public class KeyworkerService extends Elite2ApiSource {
+    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
+            new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
 
-    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST = new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
-    private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST = new ParameterizedTypeReference<List<KeyworkerDto>>() {};
-    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST = new ParameterizedTypeReference<List<OffenderSummaryDto>>() {};
+    private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
+            new ParameterizedTypeReference<List<KeyworkerDto>>() {};
+
+    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST =
+            new ParameterizedTypeReference<List<OffenderSummaryDto>>() {};
 
     private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
 
@@ -25,6 +31,12 @@ public class KeyworkerService extends Elite2ApiSource {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(contentType);
         return httpHeaders;
+    }
+
+    private final OffenderKeyworkerRepository repository;
+
+    public KeyworkerService(OffenderKeyworkerRepository repository) {
+        this.repository = repository;
     }
 
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
@@ -71,15 +83,13 @@ public class KeyworkerService extends Elite2ApiSource {
     @PreAuthorize("#oauth2.hasScope('write')")
     public String startAutoAllocation(String agencyId) {
 
-        return restTemplate
-            .exchange(
-                RequestEntity.post(
-                        new UriTemplate("/key-worker/{agencyId}/allocate/start")
-                            .expand(agencyId))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .build(),
-                String.class)
-            .getBody();
+        URI uri = new UriTemplate("/key-worker/{agencyId}/allocate/start").expand(agencyId);
+
+        return restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.POST,
+                new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
+                String.class).getBody();
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
@@ -89,5 +99,13 @@ public class KeyworkerService extends Elite2ApiSource {
                 "/key-worker/allocate",
                 new HttpEntity<>(keyworkerAllocation, CONTENT_TYPE_APPLICATION_JSON),
                 Void.class);
+    }
+
+    public List<OffenderKeyworker> getAllocationHistoryForPrisoner(String offenderNo) {
+        return repository.findByOffenderNo(offenderNo);
+    }
+
+    public List<OffenderKeyworker> getAllocationsForKeyworker(Long staffId) {
+        return repository.findByStaffId(staffId);
     }
 }

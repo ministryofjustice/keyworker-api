@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum AllocationReason {
+    AUTO("AUTO"),
     MANUAL("MANUAL");
 
     private final String reasonCode;
