@@ -174,7 +174,7 @@ public class KeyworkerService extends Elite2ApiSource {
         return repository.findByStaffId(staffId);
     }
 
-    public Page<KeyworkerDto> getActiveKeyworkers(String agencyId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
+    public Page<KeyworkerDto> getKeyworkers(String agencyId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString("/staff/roles/{agencyId}/role/KW");
         nameFilter.ifPresent(filter -> uriBuilder.queryParam("nameFilter", filter));

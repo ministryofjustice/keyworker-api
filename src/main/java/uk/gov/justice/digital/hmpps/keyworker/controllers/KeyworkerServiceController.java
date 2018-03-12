@@ -252,8 +252,8 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Search for active key workers within agency.",
-            notes = "Search for active key workers using firstname or lastname",
+            value = "Search for key workers within agency.",
+            notes = "Search for key workers using firstname or lastname",
             nickname="keyworkersearch")
 
     @ApiResponses(value = {
@@ -262,7 +262,7 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List")  })
 
-    @GetMapping(path="/{agencyId}/active")
+    @GetMapping(path="/{agencyId}/members")
 
 
     public ResponseEntity keyworkerSearch(
@@ -299,7 +299,7 @@ public class KeyworkerServiceController {
                 .sortOrder(sortOrder)
                 .build();
 
-        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getActiveKeyworkers(agencyId, nameFilter, pageDto);
+        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(agencyId, nameFilter, pageDto);
         return new ResponseEntity<>(activeKeyworkerPage.getItems(), activeKeyworkerPage.toHeaders(), HttpStatus.OK);
 
     }
