@@ -16,9 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-
 @Transactional
-
 public class OffenderKeyworkerRepositoryTest {
 
     private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016,1, 2, 3, 4, 5);
@@ -29,7 +27,7 @@ public class OffenderKeyworkerRepositoryTest {
     private OffenderKeyworkerRepository repository;
 
     @Test
-    public void givenATransientOffenderKeyworkerWhenPersistedIitShoudBeRetrievableById() {
+    public void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
         val transientEntity = transientEntity();
 
@@ -49,12 +47,12 @@ public class OffenderKeyworkerRepositoryTest {
         // equals only compares the business key columns: offenderBookingId, staffId and assignedDateTime
         assertThat(retrievedEntity).isEqualTo(transientEntity);
 
-        assertThat(retrievedEntity.isActive()).isTrue();
-        assertThat(retrievedEntity.getAllocationType()).isEqualTo(AllocationType.AUTO);
-        assertThat(retrievedEntity.getUserId()).isEqualTo("The Assigning User");
-        assertThat(retrievedEntity.getAgencyId()).isEqualTo("LEI");
-        assertThat(retrievedEntity.getExpiryDateTime()).isEqualTo(EXPIRY_DATE_TIME);
-        assertThat(retrievedEntity.getDeallocationReason()).isEqualTo(DeallocationReason.OVERRIDE);
+        assertThat(retrievedEntity.isActive()).isEqualTo(transientEntity.isActive());
+        assertThat(retrievedEntity.getAllocationType()).isEqualTo(transientEntity.getAllocationType());
+        assertThat(retrievedEntity.getUserId()).isEqualTo(transientEntity.getUserId());
+        assertThat(retrievedEntity.getAgencyId()).isEqualTo(transientEntity.getAgencyId());
+        assertThat(retrievedEntity.getExpiryDateTime()).isEqualTo(transientEntity.getExpiryDateTime());
+        assertThat(retrievedEntity.getDeallocationReason()).isEqualTo(transientEntity.getDeallocationReason());
         assertThat(retrievedEntity.getCreateUpdate()).isEqualTo(transientEntity.getCreateUpdate());
     }
 

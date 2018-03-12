@@ -11,14 +11,11 @@ import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-
 @Embeddable
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-
 public class CreateUpdate {
     @NotNull
     @Column(name = "CREATE_DATETIME")

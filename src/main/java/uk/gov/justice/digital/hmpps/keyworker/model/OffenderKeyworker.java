@@ -44,6 +44,7 @@ public class OffenderKeyworker {
     @Convert(converter = AllocationReasonConvertor.class)
     private AllocationReason allocationReason;
 
+    @NotNull
     @Column(name = "ALLOC_TYPE", nullable = false)
     @Convert(converter = AllocationTypeConvertor.class)
     private AllocationType allocationType;

@@ -15,26 +15,15 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OffenderKeyworkerDto {
     private Long offenderKeyworkerId;
-
     private String offenderNo;
-
     private Long staffId;
-
     private String agencyId;
-
     private LocalDateTime assigned;
-
     private LocalDateTime expired;
-
     private String userId;
-
     private String active;
-
     private LocalDateTime created;
-
     private String createdBy;
-
     private LocalDateTime modified;
-
     private String modifiedBy;
 }
