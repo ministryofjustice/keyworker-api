@@ -149,7 +149,7 @@ public class KeyworkerService extends Elite2ApiSource {
     public void allocate(OffenderKeyworker allocation) {
         Validate.notNull(allocation);
 
-        // This service method creates a new allocation record, therefore it will convertToKeyworkerDto certain defaults automatically.
+        // This service method creates a new allocation record, therefore it will apply certain defaults automatically.
         LocalDateTime now = LocalDateTime.now();
         String currentUser = authenticationFacade.getCurrentUsername();
 
