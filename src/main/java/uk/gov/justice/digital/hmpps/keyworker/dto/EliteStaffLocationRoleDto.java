@@ -1,27 +1,28 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * Staff Details
+ **/
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class StaffLocationRoleDto {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
+public class EliteStaffLocationRoleDto {
+
     private Long staffId;
     private String firstName;
     private String lastName;
     private String email;
     private Long thumbnailId;
     private String agencyId;
-    private String agencyDescription;
     private LocalDate fromDate;
     private LocalDate toDate;
     private String position;
