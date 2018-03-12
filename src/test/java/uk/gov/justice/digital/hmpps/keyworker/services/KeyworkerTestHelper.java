@@ -22,6 +22,22 @@ public class KeyworkerTestHelper {
     public static final int CAPACITY_TIER_2 = 9;
     public static final int FULLY_ALLOCATED = CAPACITY_TIER_2;
 
+    private static int offenderNumber = 1110;
+
+    public static String getNextOffenderNo() {
+        return String.format("A%4dAA", ++offenderNumber);
+    }
+
+    public static Set<String> getNextOffenderNo(int count) {
+        Set<String> offNos = new HashSet<>();
+
+        for (int i = 0; i < count; i++) {
+            offNos.add(String.format("A%4dAA", ++offenderNumber));
+        }
+
+        return offNos;
+    }
+
     public static void verifyException(Throwable thrown, Class<? extends Throwable> expectedException, String expectedMessage) {
         assertThat(thrown).isInstanceOf(expectedException).hasMessage(expectedMessage);
     }
@@ -51,7 +67,7 @@ public class KeyworkerTestHelper {
     }
 
     public static OffenderSummaryDto getOffender(long bookingId, String agencyId) {
-        return getOffender(bookingId, agencyId, null, true);
+        return getOffender(bookingId, agencyId, getNextOffenderNo(), true);
     }
 
     public static OffenderSummaryDto getOffender(long bookingId, String agencyId, String offenderNo, boolean currentlyInPrison) {
@@ -63,11 +79,23 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static void verifyAutoAllocation(OffenderKeyworker kwAlloc, String offenderNo, long staffId) {
-        assertThat(kwAlloc.getOffenderNo()).isEqualTo(offenderNo);
-        assertThat(kwAlloc.getStaffId()).isEqualTo(staffId);
+    public static void verifyAutoAllocation(OffenderKeyworker kwAlloc, String agencyId, String offenderNo, long staffId) {
+        verifyNewAllocation(kwAlloc, agencyId, offenderNo, staffId);
+
         assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.AUTO);
         assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
+    }
+
+    public static void verifyNewAllocation(OffenderKeyworker kwAlloc, String agencyId, String offenderNo, long staffId) {
+        assertThat(kwAlloc.getOffenderNo()).isEqualTo(offenderNo);
+        assertThat(kwAlloc.getStaffId()).isEqualTo(staffId);
+        assertThat(kwAlloc.getAllocationType()).isNotNull();
+        assertThat(kwAlloc.getAllocationReason()).isNotNull();
+        assertThat(kwAlloc.getAssignedDateTime()).isNotNull();
+        assertThat(kwAlloc.isActive()).isTrue();
+        assertThat(kwAlloc.getAgencyId()).isEqualTo(agencyId);
+        assertThat(kwAlloc.getDeallocationReason()).isNull();
+        assertThat(kwAlloc.getExpiryDateTime()).isNull();
     }
 
     public static void mockPrisonerAllocationHistory(KeyworkerService keyworkerService,
@@ -104,6 +132,7 @@ public class KeyworkerTestHelper {
                 .active(true)
                 .assignedDateTime(assigned)
                 .allocationType(AllocationType.AUTO)
+                .allocationReason(AllocationReason.AUTO)
                 .build();
     }
 

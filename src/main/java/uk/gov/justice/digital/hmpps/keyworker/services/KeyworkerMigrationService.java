@@ -27,8 +27,8 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
     @Value("${svc.kw.migration.page.limit:10}")
     private long migrationPageSize;
 
-    @Value("${svc.kw.migration.agencies}")
-    private Set<String> agenciesForMigration;
+    @Value("${svc.kw.supported.agencies}")
+    private Set<String> supportedAgencies;
 
     private final OffenderKeyworkerRepository repository;
     private final BulkOffenderKeyworkerImporter importer;
@@ -42,7 +42,7 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
         Validate.notBlank(agencyId, "Agency id is required.");
 
         // Check configuration to verify that agency is eligible for migration.
-        if (!agenciesForMigration.contains(agencyId)) {
+        if (!supportedAgencies.contains(agencyId)) {
             throw AgencyNotSupportedException.withId(agencyId);
         }
 
