@@ -4,7 +4,7 @@ CREATE TABLE KEY_WORKER
 (
   STAFF_ID                            BIGINT    NOT NULL,
   STATUS                        VARCHAR( 12)    NOT NULL,
-  CAPACITY                           TINYINT    NOT NULL,
+  CAPACITY                               INT    NOT NULL,
 
   CONSTRAINT KEY_WORKER_PK PRIMARY KEY (STAFF_ID)
 );
