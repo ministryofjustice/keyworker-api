@@ -191,15 +191,20 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @GetMapping(path="/{staffId}")
+    @GetMapping(path="/{staffId}/agencyId/{agencyId}")
 
     public KeyworkerDto getKeyworkerDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
-                    Long staffId) {
+                    Long staffId,
 
-        return keyworkerService.getKeyworkerDetails(staffId);
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId) {
+
+        return keyworkerService.getKeyworkerDetails(agencyId, staffId);
     }
 
     /* --------------------------------------------------------------------------------*/

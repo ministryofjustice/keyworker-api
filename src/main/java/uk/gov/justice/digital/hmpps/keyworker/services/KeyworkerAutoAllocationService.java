@@ -128,7 +128,7 @@ public class KeyworkerAutoAllocationService {
         confirmAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
-        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(keyworker.getStaffId());
+        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(offender.getAgencyLocationId(), keyworker.getStaffId());
 
         keyworkerPool.refreshKeyworker(refreshedKeyworker);
     }

@@ -270,7 +270,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, allocStaffId);
 
-        verify(keyworkerService, times(1)).getKeyworkerDetails(allocStaffId);
+        verify(keyworkerService, times(1)).getKeyworkerDetails(TEST_AGENCY_ID, allocStaffId);
     }
 
     // Given an offender at an agency is not allocated to a KW
@@ -340,7 +340,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, allocLaterStaffId);
 
-        verify(keyworkerService, times(1)).getKeyworkerDetails(allocLaterStaffId);
+        verify(keyworkerService, times(1)).getKeyworkerDetails(TEST_AGENCY_ID, allocLaterStaffId);
     }
 
     // Given an offender at an agency is not allocated to a KW
@@ -396,7 +396,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, leastAllocStaffId);
 
-        verify(keyworkerService, times(1)).getKeyworkerDetails(eq(leastAllocStaffId));
+        verify(keyworkerService, times(1)).getKeyworkerDetails(eq(TEST_AGENCY_ID), eq(leastAllocStaffId));
     }
 
     // Given an offender at an agency is not allocated to a KW
@@ -472,7 +472,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         KeyworkerTestHelper.verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, olderLeastAllocStaffId);
 
-        verify(keyworkerService, times(1)).getKeyworkerDetails(eq(olderLeastAllocStaffId));
+        verify(keyworkerService, times(1)).getKeyworkerDetails(eq(TEST_AGENCY_ID), eq(olderLeastAllocStaffId));
     }
 
     // Given multiple pages (page size = 10) of offenders at an agency are not allocated to a KW
@@ -529,7 +529,7 @@ public class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
 
-        verify(keyworkerService, times(totalOffenders)).getKeyworkerDetails(isLongBetween(1L, totalKeyworkers));
+        verify(keyworkerService, times(totalOffenders)).getKeyworkerDetails(eq(TEST_AGENCY_ID), isLongBetween(1L, totalKeyworkers));
     }
 
     // Given multiple pages (page size = 10) of offenders at an agency are not allocated to a KW
@@ -592,7 +592,7 @@ public class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
 
-        verify(keyworkerService, times(totalCapacity)).getKeyworkerDetails(isLongBetween(1L, totalKeyworkers));
+        verify(keyworkerService, times(totalCapacity)).getKeyworkerDetails(eq(TEST_AGENCY_ID), isLongBetween(1L, totalKeyworkers));
 
         verifyException(thrown, AllocationException.class, KeyworkerPool.OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
     }
@@ -699,13 +699,13 @@ public class KeyworkerAutoAllocationServiceTest {
 
             @Override
             public Object answer(InvocationOnMock invocation) {
-                Long staffId = (Long) invocation.getArguments()[0];
+                Long staffId = (Long) invocation.getArguments()[1];
                 int newAllocCount = keyworkerAllocs.get(staffId) + 1;
                 keyworkerAllocs.put(staffId, newAllocCount);
 
                 return getKeyworker(staffId, newAllocCount);
             }
-        }).when(keyworkerService).getKeyworkerDetails(anyLong());
+        }).when(keyworkerService).getKeyworkerDetails(eq(TEST_AGENCY_ID), anyLong());
     }
 
     class IsLongBetween extends ArgumentMatcher<Long> {

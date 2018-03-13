@@ -9,6 +9,7 @@ import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
@@ -116,11 +117,20 @@ public class KeyworkerService extends Elite2ApiSource {
         return new Page<>(response.getBody(), response.getHeaders());
     }
 
-    public KeyworkerDto getKeyworkerDetails(Long staffId) {
+    public KeyworkerDto getKeyworkerDetails(String agencyId, Long staffId) {
 
-        URI uri = new UriTemplate("/key-worker/{staffId}").expand(staffId);
+        URI uri = new UriTemplate("/staff/roles/{agencyId}/role/KW?staffId={staffId}").expand(agencyId, staffId);
 
-        return restTemplate.getForObject(uri.toString(), KeyworkerDto.class);
+        // We only expect one row. Allow 2 to detect unexpected extras
+        PagingAndSortingDto paging = PagingAndSortingDto.builder().pageLimit(2L).pageOffset(0L).build();
+        ResponseEntity<List<StaffLocationRoleDto>> response = getWithPaging(uri, paging, ELITE_STAFF_LOCATION_DTO_LIST);
+
+        if (response.getBody().isEmpty()) {
+            return null;
+        }
+        Assert.isTrue(response.getBody().size() <= 1, String.format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
+        final StaffLocationRoleDto dto = response.getBody().get(0);
+        return convertToKeyworkerDto(dto);
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
