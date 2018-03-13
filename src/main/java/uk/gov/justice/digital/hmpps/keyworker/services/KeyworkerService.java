@@ -182,7 +182,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
         ResponseEntity<List<StaffLocationRoleDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST);
 
-        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().map(dto -> convertToKeyworkerDto(dto)
+        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().map(this::convertToKeyworkerDto
         ).collect(Collectors.toList());
 
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
@@ -190,6 +190,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private KeyworkerDto convertToKeyworkerDto(StaffLocationRoleDto dto) {
         final Keyworker keyworker = keyworkerRepository.findOne(dto.getStaffId());
+        final Integer allocationsCount = repository.countByStaffId(dto.getStaffId());
 
         return KeyworkerDto.builder()
                 .firstName(dto.getFirstName())
@@ -202,6 +203,7 @@ public class KeyworkerService extends Elite2ApiSource {
                 .agencyDescription(dto.getAgencyDescription())
                 .agencyId(dto.getAgencyId())
                 .status(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE)
+                .numberAllocated(allocationsCount)
                 .build();
     }
 
