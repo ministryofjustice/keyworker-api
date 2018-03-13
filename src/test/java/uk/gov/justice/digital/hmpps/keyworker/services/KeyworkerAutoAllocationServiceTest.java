@@ -17,7 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
@@ -45,7 +45,6 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 @RunWith(MockitoJUnitRunner.class)
 public class KeyworkerAutoAllocationServiceTest {
     private static final String TEST_AGENCY_ID = "LEI";
-    private static final String TEST_USERNAME = "VANILLA";
 
     private KeyworkerAutoAllocationService keyworkerAutoAllocationService;
 
@@ -115,7 +114,7 @@ public class KeyworkerAutoAllocationServiceTest {
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         // Verify collaborator interactions
-        verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), any(PagingAndSortingDto.class));
+        verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), anyString(), any(SortOrder.class));
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString());
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
 
@@ -131,14 +130,14 @@ public class KeyworkerAutoAllocationServiceTest {
     @Test
     public void testServicePerformsNoAllocationsWhenAllOffendersAreAllocated() {
         // No unallocated offenders
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.emptySet(), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.emptySet());
 
         // Invoke auto-allocate
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString());
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
@@ -155,7 +154,7 @@ public class KeyworkerAutoAllocationServiceTest {
     @Test
     public void testServiceErrorsWhenNoKeyWorkersAvailableForAutoAllocation() {
         // Some unallocated offenders
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
 
         // No available Key workers
         mockKeyworkers(0, 0, 0);
@@ -165,7 +164,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
@@ -186,7 +185,7 @@ public class KeyworkerAutoAllocationServiceTest {
     @Test
     public void testServiceErrorsWhenNoKeyWorkersWithSpareAllocationCapacity() {
         // Some unallocated offenders
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
 
         // Some available Key workers (at full capacity)
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(3, FULLY_ALLOCATED, FULLY_ALLOCATED);
@@ -202,7 +201,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -229,7 +228,7 @@ public class KeyworkerAutoAllocationServiceTest {
         final long allocStaffId = 2;
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
         KeyworkerDto previousKeyworker = getKeyworker(allocStaffId, highAllocCount);
@@ -256,7 +255,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -291,7 +290,7 @@ public class KeyworkerAutoAllocationServiceTest {
         final long allocLaterStaffId = 4;
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
         KeyworkerDto earlierKeyworker = getKeyworker(allocEarlierStaffId, lowAllocCount);
@@ -326,7 +325,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -360,7 +359,7 @@ public class KeyworkerAutoAllocationServiceTest {
         final String allocOffenderNo = getNextOffenderNo();
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
         KeyworkerDto leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount);
@@ -383,7 +382,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -420,7 +419,7 @@ public class KeyworkerAutoAllocationServiceTest {
         final long olderLeastAllocStaffId = 4;
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo), 10);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
         KeyworkerDto recentLeastAllocKeyworker = getKeyworker(recentLeastAllocStaffId, lowAllocCount);
@@ -458,7 +457,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -486,12 +485,10 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, auto-allocation of multiple offenders may not complete successfully.
     @Test
     public void testAllOffendersAllocated() {
-        // Multple pages of unallocated offenders (25 offenders = 3 pages when page size is 10)
         Integer totalOffenders = 25;
         Integer totalKeyworkers = 5;
-        Long pageSize = 10L;
 
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders), pageSize);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
 
         // Enough available Key workers (with enough total capacity to allocate all offenders)
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers, 0, 0);
@@ -509,8 +506,8 @@ public class KeyworkerAutoAllocationServiceTest {
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
         // Verify collaborator interactions and log output
-        verify(keyworkerService, atLeast(totalOffenders / pageSize.intValue()))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+        verify(keyworkerService, times(1))
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -545,12 +542,10 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, auto-allocation may fail to allocate some offenders when there is capacity.
     @Test
     public void testSomeOffendersAllocatedBeforeErrorDueToNoCapacity() {
-        // Multple pages of unallocated offenders (25 offenders = 3 pages when page size is 10)
         Integer totalOffenders = 25;
         Integer totalKeyworkers = 5;
-        Long pageSize = 10L;
 
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders), pageSize);
+        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
 
         // Some available Key workers with some capacity but not enough total capacity to allocate all offenders
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers,FULLY_ALLOCATED - 2, FULLY_ALLOCATED);
@@ -572,8 +567,8 @@ public class KeyworkerAutoAllocationServiceTest {
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         // Verify collaborator interactions and log output
-        verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), any(PagingAndSortingDto.class));
+        verify(keyworkerService, times(1))
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
@@ -597,28 +592,16 @@ public class KeyworkerAutoAllocationServiceTest {
         verifyException(thrown, AllocationException.class, KeyworkerPool.OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
     }
 
-    private void mockUnallocatedOffenders(String agencyId, Set<String> offenderNos, long limit) {
-        Answer unallocOffendersAnswer = new Answer() {
-            private final long originalTotal = offenderNos.size();
-            Page<OffenderSummaryDto> pagedUnallocatedOffenders;
-            private long totalRemaining = originalTotal;
+    private void mockUnallocatedOffenders(String agencyId, Set<String> offenderNos) {
+        final String[] offNos = offenderNos.toArray(new String[0]);
 
-            public Object answer(InvocationOnMock invocation) {
-                if (totalRemaining > 0) {
-                    pagedUnallocatedOffenders =
-                            pagedUnallocatedOffenders(agencyId, offenderNos, totalRemaining, originalTotal - totalRemaining + 1, limit);
+        List<OffenderSummaryDto> unallocatedOffenders = new ArrayList<>();
 
-                    totalRemaining -= limit;
-                } else {
-                    pagedUnallocatedOffenders = new Page<>(Collections.emptyList(), 0, 0, limit);
-                }
+        for (int i = 0; i < offNos.length; i++) {
+            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, agencyId, offNos[i], true));
+        }
 
-                return pagedUnallocatedOffenders;
-            }
-        };
-
-        doAnswer(unallocOffendersAnswer).when(keyworkerService)
-                .getUnallocatedOffenders(eq(agencyId), any(PagingAndSortingDto.class));
+        when(keyworkerService.getUnallocatedOffenders(eq(agencyId), anyString(), any(SortOrder.class))).thenReturn(unallocatedOffenders);
     }
 
     // Provides page of unallocated offenders (consistent with supplied pagination parameters)
