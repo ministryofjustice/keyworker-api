@@ -27,24 +27,22 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @Validated
 @Slf4j
 public class KeyworkerService extends Elite2ApiSource {
+    public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/locations/description/{agencyId}/inmates";
+
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
             new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {
             };
 
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
             new ParameterizedTypeReference<List<KeyworkerDto>>() {
-            };
-
-    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST =
-            new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
             };
 
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
@@ -59,9 +57,11 @@ public class KeyworkerService extends Elite2ApiSource {
         return httpHeaders;
     }
 
+    private final KeyworkerMigrationService migrationService;
     private final AuthenticationFacade authenticationFacade;
     private final OffenderKeyworkerRepository repository;
     private final KeyworkerRepository keyworkerRepository;
+    private final KeyworkerAllocationProcessor processor;
 
     @Value("${svc.kw.supported.agencies}")
     private Set<String> supportedAgencies;
@@ -69,14 +69,19 @@ public class KeyworkerService extends Elite2ApiSource {
     @Value("${svc.kw.allocation.capacity.default}")
     private int capacityDefault;
 
-    public KeyworkerService(AuthenticationFacade authenticationFacade, OffenderKeyworkerRepository repository, KeyworkerRepository keyworkerRepository) {
+    public KeyworkerService(KeyworkerMigrationService migrationService, AuthenticationFacade authenticationFacade,
+                            OffenderKeyworkerRepository repository, KeyworkerRepository keyworkerRepository,
+                            KeyworkerAllocationProcessor processor) {
+        this.migrationService = migrationService;
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
+        this.processor = processor;
     }
 
-
     public void verifyAgencySupport(String agencyId) {
+        Validate.notBlank(agencyId);
+
         if (!supportedAgencies.contains(agencyId)) {
             throw AgencyNotSupportedException.withId(agencyId);
         }
@@ -107,13 +112,16 @@ public class KeyworkerService extends Elite2ApiSource {
         return new Page<>(response.getBody(), response.getHeaders());
     }
 
-    public Page<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, PagingAndSortingDto pagingAndSorting) {
+    public List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, String sortFields, SortOrder sortOrder) {
 
-        URI uri = new UriTemplate("/key-worker/{agencyId}/offenders/unallocated").expand(agencyId);
+        migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
 
-        ResponseEntity<List<OffenderSummaryDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, OFFENDER_SUMMARY_DTO_LIST);
+        URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(agencyId);
 
-        return new Page<>(response.getBody(), response.getHeaders());
+        List<OffenderSummaryDto> allOffenders = getAllWithSorting(
+                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderSummaryDto>>() {});
+
+        return processor.filterByUnallocated(allOffenders);
     }
 
     public KeyworkerDto getKeyworkerDetails(Long staffId) {

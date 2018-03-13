@@ -23,6 +23,7 @@ public class KeyworkerTestHelper {
     public static final int FULLY_ALLOCATED = CAPACITY_TIER_2;
 
     private static int offenderNumber = 1110;
+    private static long bookingId = 0;
 
     public static String getNextOffenderNo() {
         return String.format("A%4dAA", ++offenderNumber);
@@ -36,6 +37,10 @@ public class KeyworkerTestHelper {
         }
 
         return offNos;
+    }
+
+    public static long getNextBookingId() {
+        return ++bookingId;
     }
 
     public static void verifyException(Throwable thrown, Class<? extends Throwable> expectedException, String expectedMessage) {
@@ -77,6 +82,19 @@ public class KeyworkerTestHelper {
                 .offenderNo(offenderNo)
                 .currentlyInPrison(currentlyInPrison ? "Y" : "N")
                 .build();
+    }
+
+    public static List<OffenderSummaryDto> getOffenders(String agencyId, long total) {
+        Validate.notBlank(agencyId);
+        Validate.isTrue(total > 0);
+
+        List<OffenderSummaryDto> dtos = new ArrayList<>();
+
+        for (long i = 1; i <= total; i++) {
+            dtos.add(getOffender(getNextBookingId(), agencyId));
+        }
+
+        return dtos;
     }
 
     public static void verifyAutoAllocation(OffenderKeyworker kwAlloc, String agencyId, String offenderNo, long staffId) {
@@ -149,5 +167,16 @@ public class KeyworkerTestHelper {
                 .deallocationReason(reason)
                 .expiryDateTime(expiry)
                 .build();
+    }
+
+    public static List<OffenderKeyworker> getAllocations(String agencyId, Set<String> offNos) {
+        Validate.notBlank(agencyId);
+        Validate.notEmpty(offNos);
+
+        List<OffenderKeyworker> allocs = new ArrayList<>();
+
+        offNos.forEach(offNo -> allocs.add(getPreviousKeyworkerAutoAllocation(agencyId, offNo, 1)));
+
+        return allocs;
     }
 }

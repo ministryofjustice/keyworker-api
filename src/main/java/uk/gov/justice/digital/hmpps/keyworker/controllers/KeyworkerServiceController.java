@@ -143,19 +143,11 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
     @GetMapping(path = "/{agencyId}/offenders/unallocated")
-    public ResponseEntity<List<OffenderSummaryDto>> getUnallocatedOffenders(
+    public List<OffenderSummaryDto> getUnallocatedOffenders(
             @ApiParam(value = "agencyId", required = true)
             @NotEmpty
             @PathVariable("agencyId")
                     String agencyId,
-
-            @ApiParam(value = "Requested offset of first record in returned collection of unallocated records.", defaultValue="0")
-            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
-                    Long pageOffset,
-
-            @ApiParam(value = "Requested limit to number of unallocated records returned.", defaultValue="10")
-            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
-                    Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
             @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
@@ -165,16 +157,7 @@ public class KeyworkerServiceController {
             @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
-        Page<OffenderSummaryDto> page = keyworkerService.getUnallocatedOffenders(agencyId,
-                PagingAndSortingDto
-                        .builder()
-                        .pageOffset(pageOffset)
-                        .pageLimit(pageLimit)
-                        .sortFields(sortFields)
-                        .sortOrder(sortOrder)
-                        .build());
-
-        return new ResponseEntity<>(page.getItems(), page.toHeaders(), HttpStatus.OK);
+        return keyworkerService.getUnallocatedOffenders(agencyId, sortFields, sortOrder);
     }
 
 
