@@ -41,6 +41,10 @@ public class BulkOffenderKeyworkerImporter extends SimpleJpaRepository<OffenderK
     public List<OffenderKeyworker> importAll() {
         items.forEach(entityManager::persist);
 
-        return items;
+        List<OffenderKeyworker> persistedItems = new ArrayList<>(items);
+
+        items.clear();
+
+        return persistedItems;
     }
 }
