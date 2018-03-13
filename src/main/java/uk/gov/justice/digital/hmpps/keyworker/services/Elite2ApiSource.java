@@ -84,7 +84,7 @@ public abstract class Elite2ApiSource {
     }
 
     protected <T> ResponseEntity<T> getWithSorting(URI uri, PagingAndSortingDto pagingAndSorting,
-                                                  ParameterizedTypeReference<T> responseType) {
+                                                   ParameterizedTypeReference<T> responseType) {
         return restTemplate.exchange(
                 uri.toString(),
                 HttpMethod.GET,
@@ -92,9 +92,9 @@ public abstract class Elite2ApiSource {
                 responseType);
     }
 
-    protected <T> List<T> getAllWithSorting(URI uri, String sortFields, SortOrder sortOrder) {
+    protected <T> List<T> getAllWithSorting(URI uri, String sortFields, SortOrder sortOrder,
+                                            ParameterizedTypeReference<List<T>> responseType) {
         final long initialPageSize = 50;
-        final ParameterizedTypeReference<List<T>> typeRef = new ParameterizedTypeReference<List<T>>() {};
 
         // Initial request (for up to 50 items).
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder()
@@ -104,7 +104,7 @@ public abstract class Elite2ApiSource {
                 .pageLimit(initialPageSize)
                 .build();
 
-        ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, typeRef);
+        ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, responseType);
 
         final List<T> items = new ArrayList<>(response.getBody());
 
@@ -117,7 +117,7 @@ public abstract class Elite2ApiSource {
             pagingAndSorting.setPageOffset(initialPageSize);
             pagingAndSorting.setPageLimit(totalRemaining);
 
-            response = getWithPagingAndSorting(uri, pagingAndSorting, typeRef);
+            response = getWithPagingAndSorting(uri, pagingAndSorting, responseType);
 
             items.addAll(response.getBody());
         }

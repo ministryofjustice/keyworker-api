@@ -118,7 +118,8 @@ public class KeyworkerService extends Elite2ApiSource {
 
         URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(agencyId);
 
-        List<OffenderSummaryDto> allOffenders = getAllWithSorting(uri, sortFields, sortOrder);
+        List<OffenderSummaryDto> allOffenders = getAllWithSorting(
+                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderSummaryDto>>() {});
 
         return processor.filterByUnallocated(allOffenders);
     }
