@@ -248,4 +248,60 @@ public class KeyworkerServiceController {
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Search for key workers within agency.",
+            notes = "Search for key workers using firstname or lastname",
+            nickname="keyworkersearch")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = KeyworkerDto.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class, responseContainer = "List"),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List")  })
+
+    @GetMapping(path="/{agencyId}/members")
+
+
+    public ResponseEntity keyworkerSearch(
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId,
+
+            @ApiParam(value = "Filter results by first name and/or last name of key worker. Supplied filter term is matched to start of key worker's first and last name.")
+            @RequestParam(value = "nameFilter", required = false)
+                    Optional<String> nameFilter,
+
+            @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue="0")
+            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
+                    Long pageOffset,
+
+            @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue="10")
+            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
+                    Long pageLimit,
+
+            @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
+                    String sortFields,
+
+            @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
+            @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
+                    SortOrder sortOrder) {
+
+        final PagingAndSortingDto pageDto = PagingAndSortingDto
+                .builder()
+                .pageOffset(pageOffset)
+                .pageLimit(pageLimit)
+                .sortFields(sortFields)
+                .sortOrder(sortOrder)
+                .build();
+
+        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(agencyId, nameFilter, pageDto);
+        return new ResponseEntity<>(activeKeyworkerPage.getItems(), activeKeyworkerPage.toHeaders(), HttpStatus.OK);
+
+    }
+
 }

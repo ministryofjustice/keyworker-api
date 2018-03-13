@@ -82,11 +82,29 @@ public class OffenderKeyworkerRepositoryTest {
         assertThat(persistedUpdates.getCreateUpdate().getModifyUserId()).isEqualTo("Modify User Id");
     }
 
+    @Test
+    public void shouldReturnCountByStaffId() {
+        long UNKNOWN_STAFFID = 98765L;
+
+        final long nextId = nextId();
+        repository.save(buildEntity(nextId));
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+
+        assertThat(repository.countByStaffId(nextId)).isEqualTo(1);
+        assertThat(repository.countByStaffId(UNKNOWN_STAFFID)).isEqualTo(0);
+    }
+
     private OffenderKeyworker transientEntity() {
+        return buildEntity(nextId());
+    }
+
+    private OffenderKeyworker buildEntity(Long staffId){
         return OffenderKeyworker
                 .builder()
                 .offenderNo("A1234AA")
-                .staffId(nextId())
+                .staffId(staffId)
                 .assignedDateTime(ASSIGNED_DATE_TIME)
                 .active(true)
                 .allocationReason(AllocationReason.MANUAL)
