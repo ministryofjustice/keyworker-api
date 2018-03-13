@@ -25,4 +25,6 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
     boolean existsByAgencyId(String agencyId);
+
+    Integer countByStaffId(Long staffId);
 }

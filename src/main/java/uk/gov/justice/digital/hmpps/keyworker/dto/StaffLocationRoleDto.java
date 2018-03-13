@@ -21,6 +21,7 @@ public class StaffLocationRoleDto {
     private String email;
     private Long thumbnailId;
     private String agencyId;
+    private String agencyDescription;
     private LocalDate fromDate;
     private LocalDate toDate;
     private String position;

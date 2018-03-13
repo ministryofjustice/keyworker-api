@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotBlank;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import javax.validation.constraints.NotNull;
 
@@ -44,4 +45,20 @@ public class KeyworkerDto {
     @ApiModelProperty(required = true, value = "Number of offenders allocated to Key worker.")
     @NotNull
     private Integer numberAllocated;
+
+    @ApiModelProperty(value = "Key worker's schedule type.")
+    private String scheduleType;
+
+    @ApiModelProperty(value = "Key worker's agency Id.")
+    private String agencyId;
+
+    @ApiModelProperty(value = "Key worker's agency description.")
+    private String agencyDescription;
+
+    @ApiModelProperty(value = "Key worker's status.")
+    private KeyworkerStatus status;
+
+
+
+
 }
