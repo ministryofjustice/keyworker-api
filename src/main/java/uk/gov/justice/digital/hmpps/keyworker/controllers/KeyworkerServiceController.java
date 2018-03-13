@@ -320,7 +320,7 @@ public class KeyworkerServiceController {
     @GetMapping(path="/{staffId}/offenders")
 
 
-    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworker(
+    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
