@@ -7,6 +7,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -16,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Validated
 public class KeyworkerService extends Elite2ApiSource {
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
             new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
@@ -112,12 +116,59 @@ public class KeyworkerService extends Elite2ApiSource {
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
-    public void allocate(KeyworkerAllocationDto keyworkerAllocation) {
+    @Transactional
+    public void allocate(@Valid KeyworkerAllocationDto keyworkerAllocation) {
+        Validate.notNull(keyworkerAllocation);
+        verifyAgencySupport(keyworkerAllocation.getAgencyId());
 
-        restTemplate.postForObject(
-                "/key-worker/allocate",
-                new HttpEntity<>(keyworkerAllocation, CONTENT_TYPE_APPLICATION_JSON),
-                Void.class);
+        doAllocate(keyworkerAllocation);
+    }
+
+    private void doAllocate(KeyworkerAllocationDto newAllocation) {
+
+        /* TODO - validation
+        final String agencyId = bookingService.getBookingAgency(bookingId);
+        if (!bookingService.isSystemUser()) {
+            bookingService.verifyBookingAccess(bookingId);
+        }
+        validateStaffId(bookingId, newAllocation.getStaffId());
+        ==  @Override
+    public void checkAvailableKeyworker(Long bookingId, Long staffId) {
+        final String sql = getQuery("CHECK_AVAILABLE_KEY_WORKER");
+        try {
+            jdbcTemplate.queryForObject(sql, createParams("bookingId", bookingId, "staffId", staffId), Long.class);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new EntityNotFoundException(
+                    String.format("Key worker with id %d not available for offender %d", staffId, bookingId));
+        }
+ SELECT DISTINCT(SLR.SAC_STAFF_ID)
+  FROM STAFF_LOCATION_ROLES SLR
+    INNER JOIN STAFF_MEMBERS SM ON SM.STAFF_ID = SLR.SAC_STAFF_ID
+      AND SM.STATUS = 'ACTIVE'
+    INNER JOIN OFFENDER_BOOKINGS OB ON OB.AGY_LOC_ID = SLR.CAL_AGY_LOC_ID
+      AND OB.OFFENDER_BOOK_ID = :bookingId
+      AND OB.ACTIVE_FLAG = 'Y'
+  WHERE SLR.SAC_STAFF_ID = :staffId
+    AND SLR.POSITION = 'AO'
+    AND SLR.ROLE = 'KW'
+    AND TRUNC(SYSDATE) BETWEEN TRUNC(SLR.FROM_DATE) AND TRUNC(COALESCE(SLR.TO_DATE,SYSDATE))
+    }*/
+
+        // Remove current allocation if any
+        repository.deactivate(newAllocation.getOffenderNo(), newAllocation.getDeallocationReason(), LocalDateTime.now());
+
+        OffenderKeyworker allocation = OffenderKeyworker.builder()//
+                .offenderNo(newAllocation.getOffenderNo())//
+                .staffId(newAllocation.getStaffId())//
+                .agencyId(newAllocation.getAgencyId())//
+                .allocationReason(newAllocation.getAllocationReason())//
+                .active(true)//
+                .assignedDateTime(LocalDateTime.now())//
+                .allocationType(newAllocation.getAllocationType())//
+                .userId(authenticationFacade.getCurrentUsername())
+                .build();
+
+        allocate(allocation);
     }
 
     /**
