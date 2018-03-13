@@ -16,7 +16,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     @Modifying
     @Query("update OffenderKeyworker set" +
-            "  active = 'n'," +
+            "  active = 'N'," +
             "  expiryDateTime = :expiryDate," +
             "  deallocationReason = :deallocationReason" +
             " where offenderNo = :offenderNo and active = 'Y'")
