@@ -241,7 +241,7 @@ public class KeyworkerService extends Elite2ApiSource {
                     .lastName(offenderSummaryDto.getLastName())
                     .staffId(allocation.getStaffId())
                     .agencyId(allocation.getAgencyId())
-                    .assigned(allocation.getExpiryDateTime())
+                    .assigned(allocation.getAssignedDateTime())
                     .allocationType(allocation.getAllocationType())
                     .internalLocationDesc(offenderSummaryDto.getInternalLocationDesc())
                     .build();
