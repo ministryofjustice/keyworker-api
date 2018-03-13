@@ -258,9 +258,9 @@ public class KeyworkerServiceController {
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = KeyworkerDto.class, responseContainer = "List"),
-            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class, responseContainer = "List"),
-            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List")  })
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
 
     @GetMapping(path="/{agencyId}/members")
 
@@ -302,6 +302,31 @@ public class KeyworkerServiceController {
         final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(agencyId, nameFilter, pageDto);
         return new ResponseEntity<>(activeKeyworkerPage.getItems(), activeKeyworkerPage.toHeaders(), HttpStatus.OK);
 
+    }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Specified key worker’s currently assigned offenders.",
+            notes = "Specified key worker’s currently assigned offenders.",
+            nickname="keyworkerallocations")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = KeyworkerDto.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
+
+    @GetMapping(path="/{staffId}/offenders")
+
+
+    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworker(
+            @ApiParam(value = "staffId", required = true)
+            @NotEmpty
+            @PathVariable("staffId")
+                    Long staffId){
+
+        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(staffId);
     }
 
 }

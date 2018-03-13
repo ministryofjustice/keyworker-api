@@ -26,6 +26,7 @@ import javax.validation.Valid;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
@@ -223,6 +224,32 @@ public class KeyworkerService extends Elite2ApiSource {
 
     public List<OffenderKeyworker> getAllocationsForKeyworker(Long staffId) {
         return repository.findByStaffId(staffId);
+    }
+
+    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(Long staffId) {
+        final List<OffenderKeyworker> allocations = repository.findByStaffId(staffId);
+
+        final List<KeyworkerAllocationDetailsDto> detailsDtoList = allocations.stream().map(allocation -> {
+
+            URI uri = new UriTemplate("/locations/description/{agencyId}/inmates?keywords={offenderNo}").expand(staffId, allocation.getOffenderNo());
+            final OffenderSummaryDto offenderSummaryDto = restTemplate.getForObject(uri.toString(), OffenderSummaryDto.class);
+            return KeyworkerAllocationDetailsDto.builder()
+                    .bookingId(offenderSummaryDto.getBookingId())
+                    .offenderNo(allocation.getOffenderNo())
+                    .firstName(offenderSummaryDto.getFirstName())
+                    .middleNames(offenderSummaryDto.getMiddleNames())
+                    .lastName(offenderSummaryDto.getLastName())
+                    .staffId(allocation.getStaffId())
+                    .agencyId(allocation.getAgencyId())
+                    .assigned(allocation.getExpiryDateTime())
+                    .allocationType(allocation.getAllocationType())
+                    .internalLocationDesc(offenderSummaryDto.getInternalLocationDesc())
+                    .build();
+        }).sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName)).collect(Collectors.toList());
+
+        log.debug("Retrieved allocations for keyworker {}:\n{}", staffId, detailsDtoList);
+
+        return detailsDtoList;
     }
 
     public Page<KeyworkerDto> getKeyworkers(String agencyId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
