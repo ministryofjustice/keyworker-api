@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -7,27 +8,41 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.client.ExpectedCount.manyTimes;
+import static org.springframework.test.web.client.ExpectedCount.once;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -72,6 +87,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Before
     public void setUp() {
         ReflectionTestUtils.setField(service, "supportedAgencies", Collections.singleton(TEST_AGENCY));
+       // ReflectionTestUtils.setField(service, "restTemplate", restTemplate);
     }
 
     @Test
@@ -167,6 +183,77 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         verify(repository, times(1)).save(argCap.capture());
 
         KeyworkerTestHelper.verifyNewAllocation(argCap.getValue(), TEST_AGENCY, offenderNo, staffId);
+    }
+
+    @Test
+    public void testGetKeyworkerDetails() throws JsonProcessingException {
+        final long staffId = 5L;
+        final int CAPACITY = 10;
+        final int ALLOCATIONS = 4;
+        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
+        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
+
+        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, 5)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+
+        when(keyworkerRepository.findOne(staffId)).thenReturn(Keyworker.builder()
+                .staffId(staffId)
+                .capacity(CAPACITY)
+                .status(KeyworkerStatus.ACTIVE)
+                .build()
+        );
+        when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(ALLOCATIONS);
+
+        KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
+
+        server.verify();
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, KeyworkerStatus.ACTIVE, keyworkerDetails);
+    }
+
+    @Test
+    public void testGetKeyworkerDetailsNoCapacity() throws JsonProcessingException {
+        final long staffId = 5L;
+        final int ALLOCATIONS = 4;
+        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
+        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
+
+        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, 5)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+
+        when(keyworkerRepository.findOne(staffId)).thenReturn(Keyworker.builder()
+                .staffId(staffId)
+                .capacity(null)
+                .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
+                .build()
+        );
+        when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(ALLOCATIONS);
+
+        KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
+
+        server.verify();
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 11, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
+    }
+
+    @Test
+    public void testGetKeyworkerDetailsNoKeyworker() throws JsonProcessingException {
+        final long staffId = 5L;
+        final int ALLOCATIONS = 4;
+        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
+        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
+
+        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, 5)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+
+        when(keyworkerRepository.findOne(staffId)).thenReturn(null);
+        when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(null);
+
+        KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
+
+        server.verify();
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 11, null, KeyworkerStatus.ACTIVE, keyworkerDetails);
     }
 
     @Test

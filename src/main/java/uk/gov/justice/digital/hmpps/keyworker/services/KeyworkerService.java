@@ -329,9 +329,9 @@ public class KeyworkerService extends Elite2ApiSource {
                 .build();
     }
 
-    private int determineCapacity(StaffLocationRoleDto dto, Keyworker keyworker, Long staffId) {
-        int capacity = capacityDefault;
-        if (keyworker != null) {
+    private Integer determineCapacity(StaffLocationRoleDto dto, Keyworker keyworker, Long staffId) {
+        Integer capacity = capacityDefault;
+        if (keyworker != null && keyworker.getCapacity() != null) {
             capacity = keyworker.getCapacity();
         } else {
             if (dto.getHoursPerWeek() != null) {
