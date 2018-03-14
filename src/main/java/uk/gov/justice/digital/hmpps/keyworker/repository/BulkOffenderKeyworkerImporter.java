@@ -37,7 +37,6 @@ public class BulkOffenderKeyworkerImporter extends SimpleJpaRepository<OffenderK
         items.addAll(okwList);
     }
 
-    @Transactional
     public List<OffenderKeyworker> importAll() {
         items.forEach(entityManager::persist);
 
