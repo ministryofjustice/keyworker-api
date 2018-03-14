@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyworker,Long> {
@@ -25,6 +26,8 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
     boolean existsByAgencyId(String agencyId);
+
+    List<OffenderKeyworker> findByActiveAndOffenderNoIn(boolean isActive, Collection<String> offenderNo);
 
     Integer countByStaffId(Long staffId);
 }

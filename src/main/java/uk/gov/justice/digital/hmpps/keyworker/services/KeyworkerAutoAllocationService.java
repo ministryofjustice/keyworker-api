@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
@@ -71,11 +69,11 @@ public class KeyworkerAutoAllocationService {
         // Get initial counter metric
         long startAllocCount = getCurrentAllocationCount();
 
-        // Get initial page of unallocated offenders for agency
-        Page<OffenderSummaryDto> unallocatedOffenders = getPageUnallocatedOffenders(agencyId, offenderPageLimit);
+        // Get all unallocated offenders for agency
+        List<OffenderSummaryDto> unallocatedOffenders = getUnallocatedOffenders(agencyId);
 
         // Are there any unallocated offenders? If not, log and exit, otherwise proceed.
-        if (unallocatedOffenders.getItems().isEmpty()) {
+        if (unallocatedOffenders.isEmpty()) {
             log.info(OUTCOME_NO_UNALLOCATED_OFFENDERS);
         } else {
             List<KeyworkerDto> availableKeyworkers = keyworkerService.getAvailableKeyworkers(agencyId);
@@ -87,7 +85,7 @@ public class KeyworkerAutoAllocationService {
             }
 
             log.info("Proceeding with auto-allocation for {} unallocated offenders and {} available Key workers at agency [{}].",
-                    unallocatedOffenders.getTotalRecords(), availableKeyworkers.size(), agencyId);
+                    unallocatedOffenders.size(), availableKeyworkers.size(), agencyId);
 
             // At this point, we have some unallocated offenders and some available Key workers. Let's put the Key
             // workers into a pool then start processing allocations.
@@ -96,11 +94,7 @@ public class KeyworkerAutoAllocationService {
             // Continue processing allocations for unallocated offenders until no further unallocated offenders exist
             // or Key workers no longer have capacity.
             try {
-                while (!unallocatedOffenders.getItems().isEmpty()) {
-                    processAllocations(unallocatedOffenders.getItems(), keyworkerPool);
-
-                    unallocatedOffenders = getPageUnallocatedOffenders(agencyId, offenderPageLimit);
-                }
+                processAllocations(unallocatedOffenders, keyworkerPool);
             } catch(AllocationException aex) {
                 long allocCount = calcAndLogAllocationsProcessed(agencyId, startAllocCount);
 
@@ -133,10 +127,8 @@ public class KeyworkerAutoAllocationService {
         keyworkerPool.refreshKeyworker(refreshedKeyworker);
     }
 
-    private Page<OffenderSummaryDto> getPageUnallocatedOffenders(String agencyId, long pageLimit) {
-        PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageOffset(0L).pageLimit(pageLimit).build();
-
-        return keyworkerService.getUnallocatedOffenders(agencyId, pagingAndSorting);
+    private List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId) {
+        return keyworkerService.getUnallocatedOffenders(agencyId, null,null);
     }
 
     private void confirmAllocation(OffenderSummaryDto offender, KeyworkerDto keyworker) {
