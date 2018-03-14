@@ -21,6 +21,7 @@ public class OffenderKeyworkerRepositoryTest {
 
     private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016,1, 2, 3, 4, 5);
     private static final LocalDateTime EXPIRY_DATE_TIME = LocalDateTime.of(2020, 12, 30, 9, 34, 56);
+    private static final String AGENCY_ID_LEI = "LEI";
     private static long currentId;
 
     @Autowired
@@ -83,7 +84,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void shouldReturnCountByStaffId() {
+    public void shouldReturnCountByStaffIdAndAgencyIdAndActive() {
         long UNKNOWN_STAFFID = 98765L;
 
         final long nextId = nextId();
@@ -92,8 +93,9 @@ public class OffenderKeyworkerRepositoryTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        assertThat(repository.countByStaffId(nextId)).isEqualTo(1);
-        assertThat(repository.countByStaffId(UNKNOWN_STAFFID)).isEqualTo(0);
+        assertThat(repository.countByStaffIdAndAgencyIdAndActive(nextId, AGENCY_ID_LEI, true)).isEqualTo(1);
+        assertThat(repository.countByStaffIdAndAgencyIdAndActive(nextId, AGENCY_ID_LEI, false)).isEqualTo(0);
+        assertThat(repository.countByStaffIdAndAgencyIdAndActive(UNKNOWN_STAFFID, AGENCY_ID_LEI, true)).isEqualTo(0);
     }
 
     private OffenderKeyworker transientEntity() {
@@ -110,7 +112,7 @@ public class OffenderKeyworkerRepositoryTest {
                 .allocationReason(AllocationReason.MANUAL)
                 .allocationType(AllocationType.AUTO)
                 .userId("The Assigning User")
-                .agencyId("LEI")
+                .agencyId(AGENCY_ID_LEI)
                 .expiryDateTime(EXPIRY_DATE_TIME)
                 .deallocationReason(DeallocationReason.OVERRIDE)
                 .createUpdate(creationTimeInfo())

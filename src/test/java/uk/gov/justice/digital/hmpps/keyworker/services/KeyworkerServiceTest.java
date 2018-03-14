@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
@@ -39,6 +42,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 public class KeyworkerServiceTest extends AbstractServiceTest {
     private static final String TEST_AGENCY = "LEI";
     private static final String TEST_USER = "VANILLA";
+    private static final Long TEST_STAFF_ID = 67L;
     private static final Long TEST_PAGE_SIZE = 50L;
 
     @Autowired
@@ -164,6 +168,91 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         KeyworkerTestHelper.verifyNewAllocation(argCap.getValue(), TEST_AGENCY, offenderNo, staffId);
     }
+
+    @Test
+    public void testGetAllocationsForKeyworkerWithOffenderDetails() throws Exception {
+
+        String offender1Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "1");
+        String offender2Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "2");
+        String offender3Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "3");
+
+        String testJsonResponseOffender1 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1",true)));
+        String testJsonResponseOffender2 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(62, TEST_AGENCY, "2",true)));
+        String testJsonResponseOffender3 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true)));
+
+        final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
+
+        // Mock allocation lookup
+        when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
+
+        server.expect(requestTo(offender1Uri))
+                .andRespond(withSuccess(testJsonResponseOffender1, MediaType.APPLICATION_JSON)
+                        );
+
+        server.expect(requestTo(offender2Uri))
+                .andRespond(withSuccess(testJsonResponseOffender2, MediaType.APPLICATION_JSON)
+                );
+
+        server.expect(requestTo(offender3Uri))
+                .andRespond(withSuccess(testJsonResponseOffender3, MediaType.APPLICATION_JSON)
+                );
+
+        // Invoke service method
+        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID);
+
+        // Verify response
+        assertThat(allocationList).hasSize(3);
+        assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L,62L,63L));
+
+        // Verify mocks
+        verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
+
+        server.verify();
+    }
+
+    @Test
+    public void testGetAllocationsForKeyworkerWithOffenderDetails_NoAssociatedEliteBookingRecord() throws Exception {
+
+        String offender1Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "1");
+        //Elite search responds with empty list for this offender
+        String offender2Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "2");
+        String offender3Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "3");
+
+        String testJsonResponseOffender1 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1",true)));
+        String testJsonResponseOffender3 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true)));
+
+        final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
+
+        // Mock allocation lookup
+        when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
+
+        server.expect(requestTo(offender1Uri))
+                .andRespond(withSuccess(testJsonResponseOffender1, MediaType.APPLICATION_JSON)
+                );
+
+        server.expect(requestTo(offender2Uri))
+                .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON)
+                );
+
+        server.expect(requestTo(offender3Uri))
+                .andRespond(withSuccess(testJsonResponseOffender3, MediaType.APPLICATION_JSON)
+                );
+
+        // Invoke service method
+        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID);
+
+        // Verify response
+        assertThat(allocationList).hasSize(2);
+        assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L,63L));
+
+        // Verify mocks
+        verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
+
+        server.verify();
+    }
+
+
+
 
     private OffenderKeyworker getTestOffenderKeyworker(String agencyId, String offenderNo, long staffId) {
         return OffenderKeyworker.builder()
