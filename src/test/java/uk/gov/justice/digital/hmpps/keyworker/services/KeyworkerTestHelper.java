@@ -5,12 +5,13 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,6 +70,36 @@ public class KeyworkerTestHelper {
         }
 
         return keyworkers;
+    }
+
+    public static StaffLocationRoleDto getStaffLocationRoleDto(long staffId) {
+        return StaffLocationRoleDto.builder()
+                .staffId(staffId)
+                .firstName("First")
+                .lastName("Last")
+                .agencyId("LEI")
+                .agencyDescription("LEEDS")
+                .fromDate(LocalDate.of(2018, Month.FEBRUARY, 28))
+                .position("AO")
+                .positionDescription("Admin Officer")
+                .role("KW")
+                .roleDescription("Key Worker")
+                .scheduleType("FT")
+                .scheduleTypeDescription("Full Time")
+                .hoursPerWeek(new BigDecimal(11.0))
+                .build();
+    }
+
+    public static void verifyKeyworkerDto(long staffId, Integer capacity, Integer allocations, KeyworkerStatus status, KeyworkerDto keyworkerDetails) {
+        assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
+        assertThat(keyworkerDetails.getNumberAllocated()).isEqualTo(allocations);
+        assertThat(keyworkerDetails.getFirstName()).isEqualTo("First");
+        assertThat(keyworkerDetails.getLastName()).isEqualTo("Last");
+        assertThat(keyworkerDetails.getAgencyId()).isEqualTo("LEI");
+        assertThat(keyworkerDetails.getAgencyDescription()).isEqualTo("LEEDS");
+        assertThat(keyworkerDetails.getCapacity()).isEqualTo(capacity);
+        assertThat(keyworkerDetails.getScheduleType()).isEqualTo("Full Time");
+        assertThat(keyworkerDetails.getStatus()).isEqualTo(status);
     }
 
     public static OffenderSummaryDto getOffender(long bookingId, String agencyId) {
