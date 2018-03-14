@@ -295,8 +295,8 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Specified key worker’s currently assigned offenders.",
-            notes = "Specified key worker’s currently assigned offenders.",
+            value = "Specified key worker’s currently assigned offenders for given agency.",
+            notes = "Specified key worker’s currently assigned offenders for given agency.",
             nickname="keyworkerallocations")
 
     @ApiResponses(value = {
@@ -305,16 +305,21 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
 
-    @GetMapping(path="/{staffId}/offenders")
+    @GetMapping(path="/{staffId}/agencyId/{agencyId}/offenders")
 
 
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
-                    Long staffId){
+                    Long staffId,
 
-        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(staffId);
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId){
+
+        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(agencyId, staffId);
     }
 
 }

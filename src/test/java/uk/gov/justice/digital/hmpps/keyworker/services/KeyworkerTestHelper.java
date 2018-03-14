@@ -80,6 +80,7 @@ public class KeyworkerTestHelper {
                 .bookingId(bookingId)
                 .agencyLocationId(agencyId)
                 .offenderNo(offenderNo)
+                .lastName("Testlastname")
                 .currentlyInPrison(currentlyInPrison ? "Y" : "N")
                 .build();
     }

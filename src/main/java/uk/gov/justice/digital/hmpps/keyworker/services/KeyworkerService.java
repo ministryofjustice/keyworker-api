@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.omg.PortableInterceptor.ACTIVE;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class KeyworkerService extends Elite2ApiSource {
     public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/locations/description/{agencyId}/inmates";
+    public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "?keywords={offenderNo}";
 
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
             new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {
@@ -49,6 +51,10 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
             new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {
+            };
+
+    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST =
+            new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
             };
 
     private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
@@ -121,7 +127,8 @@ public class KeyworkerService extends Elite2ApiSource {
         URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(agencyId);
 
         List<OffenderSummaryDto> allOffenders = getAllWithSorting(
-                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderSummaryDto>>() {});
+                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
+                });
 
         return processor.filterByUnallocated(allOffenders);
     }
@@ -244,14 +251,33 @@ public class KeyworkerService extends Elite2ApiSource {
         return repository.findByStaffId(staffId);
     }
 
-    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(Long staffId) {
-        final List<OffenderKeyworker> allocations = repository.findByStaffId(staffId);
+    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String agencyId, Long staffId) {
 
-        final List<KeyworkerAllocationDetailsDto> detailsDtoList = allocations.stream().map(allocation -> {
+        migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
 
-            URI uri = new UriTemplate("/locations/description/{agencyId}/inmates?keywords={offenderNo}").expand(staffId, allocation.getOffenderNo());
-            final OffenderSummaryDto offenderSummaryDto = restTemplate.getForObject(uri.toString(), OffenderSummaryDto.class);
-            return KeyworkerAllocationDetailsDto.builder()
+        final List<OffenderKeyworker> allocations = repository.findByStaffIdAndAgencyIdAndActive(staffId, agencyId, true);
+
+        final List<KeyworkerAllocationDetailsDto> detailsDtoList = allocations.stream()
+                .map(allocation -> decorateWithOffenderDetails(agencyId, allocation))
+                //remove allocations from returned list that do not have associated booking records
+                .filter(dto -> dto.getBookingId()!=null)
+                .sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName))
+                .collect(Collectors.toList());
+
+        log.debug("Retrieved allocations for keyworker {}:\n{}", staffId, detailsDtoList);
+
+        return detailsDtoList;
+    }
+
+    private KeyworkerAllocationDetailsDto decorateWithOffenderDetails(String agencyId, OffenderKeyworker allocation) {
+        KeyworkerAllocationDetailsDto dto;
+        URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(agencyId, allocation.getOffenderNo());
+
+        final ResponseEntity<List<OffenderSummaryDto>> listOfOne = getForList(uri, OFFENDER_SUMMARY_DTO_LIST);
+
+        if (listOfOne.getBody().size() > 0) {
+            final OffenderSummaryDto offenderSummaryDto = listOfOne.getBody().get(0);
+            dto =  KeyworkerAllocationDetailsDto.builder()
                     .bookingId(offenderSummaryDto.getBookingId())
                     .offenderNo(allocation.getOffenderNo())
                     .firstName(offenderSummaryDto.getFirstName())
@@ -263,11 +289,11 @@ public class KeyworkerService extends Elite2ApiSource {
                     .allocationType(allocation.getAllocationType())
                     .internalLocationDesc(offenderSummaryDto.getInternalLocationDesc())
                     .build();
-        }).sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName)).collect(Collectors.toList());
-
-        log.debug("Retrieved allocations for keyworker {}:\n{}", staffId, detailsDtoList);
-
-        return detailsDtoList;
+        } else {
+            log.error(String.format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using elite endpoint %s", allocation.getOffenderNo(), agencyId, uri));
+            dto =  KeyworkerAllocationDetailsDto.builder().build();
+        }
+        return dto;
     }
 
     public Page<KeyworkerDto> getKeyworkers(String agencyId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
@@ -286,7 +312,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private KeyworkerDto convertToKeyworkerDto(StaffLocationRoleDto dto) {
         final Keyworker keyworker = keyworkerRepository.findOne(dto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffId(dto.getStaffId());
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(dto.getStaffId(), dto.getAgencyId(), true);
 
         return KeyworkerDto.builder()
                 .firstName(dto.getFirstName())

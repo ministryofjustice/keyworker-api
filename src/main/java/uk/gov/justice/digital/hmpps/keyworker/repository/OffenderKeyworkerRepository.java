@@ -25,9 +25,11 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
+    List<OffenderKeyworker> findByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
+
     boolean existsByAgencyId(String agencyId);
 
     List<OffenderKeyworker> findByActiveAndOffenderNoIn(boolean isActive, Collection<String> offenderNo);
 
-    Integer countByStaffId(Long staffId);
+    Integer countByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
 }
