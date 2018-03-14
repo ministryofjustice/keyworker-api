@@ -8,9 +8,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,24 +27,16 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.client.ExpectedCount.manyTimes;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 /**
  * Test class for {@link KeyworkerService}.
@@ -239,7 +228,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     public void testGetKeyworkerDetailsNoKeyworker() throws JsonProcessingException {
         final long staffId = 5L;
-        final int ALLOCATIONS = 4;
         List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
         String testJsonResponse = objectMapper.writeValueAsString(testDtos);
 
