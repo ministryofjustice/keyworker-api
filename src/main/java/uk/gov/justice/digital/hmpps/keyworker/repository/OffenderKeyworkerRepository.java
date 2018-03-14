@@ -15,14 +15,6 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     List<OffenderKeyworker> findByOffenderNo(String offenderNo);
 
-    @Modifying
-    @Query("update OffenderKeyworker set" +
-            "  active = 'N'," +
-            "  expiryDateTime = :expiryDate," +
-            "  deallocationReason = :deallocationReason" +
-            " where offenderNo = :offenderNo and active = 'Y'")
-    int deactivate(@Param("offenderNo") String offenderNo, @Param("deallocationReason")DeallocationReason deallocationReason, @Param("expiryDate")LocalDateTime expiryDate);
-
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
     List<OffenderKeyworker> findByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
@@ -30,6 +22,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     boolean existsByAgencyId(String agencyId);
 
     List<OffenderKeyworker> findByActiveAndOffenderNoIn(boolean isActive, Collection<String> offenderNo);
+    List<OffenderKeyworker> findByActiveAndOffenderNo(boolean isActive, String offenderNo);
 
     Integer countByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
 }
