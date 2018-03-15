@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@ApiModel(description = "Key worker allocation detail")
+@ApiModel(description = "New Key worker allocation")
 @Data
 @Builder
 @NoArgsConstructor
@@ -45,15 +45,4 @@ public class KeyworkerAllocationDto {
 
     @ApiModelProperty(value = "Reason for de-allocation.")
     private DeallocationReason deallocationReason;
-
-    @ApiModelProperty(required = true, value = "Indicates if allocation is active or not.")
-    @NotNull
-    private Boolean active;
-
-    @ApiModelProperty(required = true, value = "Date and time from which allocation was effective.")
-    @NotNull
-    private LocalDateTime assigned;
-
-    @ApiModelProperty(value = "Date and time at which allocation expired.")
-    private LocalDateTime expired;
 }
