@@ -94,6 +94,7 @@ public class KeyworkerService extends Elite2ApiSource {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
         URI uri = new UriTemplate("/key-worker/{agencyId}/available").expand(agencyId);
@@ -103,6 +104,7 @@ public class KeyworkerService extends Elite2ApiSource {
         return responseEntity.getBody();
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/key-worker/{agencyId}/allocations");
@@ -119,6 +121,7 @@ public class KeyworkerService extends Elite2ApiSource {
         return new Page<>(response.getBody(), response.getHeaders());
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, String sortFields, SortOrder sortOrder) {
 
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
@@ -132,6 +135,7 @@ public class KeyworkerService extends Elite2ApiSource {
         return processor.filterByUnallocated(allOffenders);
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public KeyworkerDto getKeyworkerDetails(String agencyId, Long staffId) {
 
         URI uri = new UriTemplate("/staff/roles/{agencyId}/role/KW?staffId={staffId}").expand(agencyId, staffId);
@@ -225,14 +229,17 @@ public class KeyworkerService extends Elite2ApiSource {
         repository.save(allocation);
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<OffenderKeyworker> getAllocationHistoryForPrisoner(String offenderNo) {
         return repository.findByOffenderNo(offenderNo);
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<OffenderKeyworker> getAllocationsForKeyworker(Long staffId) {
         return repository.findByStaffId(staffId);
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String agencyId, Long staffId) {
 
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
@@ -278,6 +285,7 @@ public class KeyworkerService extends Elite2ApiSource {
         return dto;
     }
 
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerDto> getKeyworkers(String agencyId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString("/staff/roles/{agencyId}/role/KW");
