@@ -21,3 +21,13 @@ To Run:
 ```bash
 docker-compose up
 ```
+
+####Running against local **postgres** docker:
+Run the postgres docker image:
+```bash
+docker pull postgres
+docker run --name=keyworker-postgres -p 5432:5432 postgres
+```
+Run spring boot with the the postgres spring profile
+
+
