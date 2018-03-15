@@ -7,9 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
 import javax.validation.Valid;
@@ -30,8 +32,11 @@ public class KeyworkerServiceController {
 
     private final KeyworkerService keyworkerService;
 
-    public KeyworkerServiceController(KeyworkerService keyworkerService) {
+    private final KeyworkerMigrationService migrationService;
+
+    public KeyworkerServiceController(KeyworkerService keyworkerService, KeyworkerMigrationService migrationService) {
         this.keyworkerService = keyworkerService;
+        this.migrationService = migrationService;
     }
 
     /* --------------------------------------------------------------------------------*/
@@ -320,6 +325,12 @@ public class KeyworkerServiceController {
                     String agencyId){
 
         return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(agencyId, staffId);
+    }
+
+    @PostMapping(path="/migrate/{agencyId}")
+    @PreAuthorize("#oauth2.hasScope('admin')")
+    public void migrate(@PathVariable("agencyId") String agencyId) {
+        migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
     }
 
 }

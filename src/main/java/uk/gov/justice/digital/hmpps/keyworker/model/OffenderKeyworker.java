@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class OffenderKeyworker {
 
     @Id()
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = "offender_keyworker_id", nullable = false)
     private Long offenderKeyworkerId;
 

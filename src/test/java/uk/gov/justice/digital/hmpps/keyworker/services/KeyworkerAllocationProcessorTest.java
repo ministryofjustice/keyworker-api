@@ -117,7 +117,7 @@ public class KeyworkerAllocationProcessorTest {
 
         // Verify
         assertThat(results.size()).isEqualTo(unallocatedOffNos.size());
-        assertThat(results).extracting(OffenderSummaryDto::getOffenderNo).containsExactlyElementsOf(unallocatedOffNos);
+        assertThat(results).extracting(OffenderSummaryDto::getOffenderNo).hasSameElementsAs(unallocatedOffNos);
 
         verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(SetUtils.union(allocatedOffNos, unallocatedOffNos)));
     }

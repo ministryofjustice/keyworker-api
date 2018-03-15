@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @Validated
 @Slf4j
 public class KeyworkerService extends Elite2ApiSource {
@@ -160,7 +161,6 @@ public class KeyworkerService extends Elite2ApiSource {
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
-    @Transactional
     public void allocate(@Valid @NotNull KeyworkerAllocationDto keyworkerAllocation) {
 
         doAllocateValidation(keyworkerAllocation);
