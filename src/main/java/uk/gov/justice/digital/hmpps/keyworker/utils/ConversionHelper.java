@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.CreateUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,19 @@ public final class ConversionHelper {
                 .expiryDateTime(dto.getExpired())
                 .userId(dto.getUserId())
                 .createUpdate(createUpdate)
+                .build();
+    }
+
+    public static OffenderKeyworker getOffenderKeyworker(KeyworkerAllocationDto newAllocation, String userId) {
+        return OffenderKeyworker.builder()
+                .offenderNo(newAllocation.getOffenderNo())
+                .staffId(newAllocation.getStaffId())
+                .agencyId(newAllocation.getAgencyId())
+                .allocationReason(newAllocation.getAllocationReason())
+                .active(true)
+                .assignedDateTime(LocalDateTime.now())
+                .allocationType(newAllocation.getAllocationType())
+                .userId(userId)
                 .build();
     }
 }

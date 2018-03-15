@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.omg.PortableInterceptor.ACTIVE;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -23,15 +22,14 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
+import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -163,56 +161,40 @@ public class KeyworkerService extends Elite2ApiSource {
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
-    public void allocate(@Valid KeyworkerAllocationDto keyworkerAllocation) {
-        Validate.notNull(keyworkerAllocation);
-        verifyAgencySupport(keyworkerAllocation.getAgencyId());
+    public void allocate(@Valid @NotNull KeyworkerAllocationDto keyworkerAllocation) {
 
+        doAllocateValidation(keyworkerAllocation);
         doAllocate(keyworkerAllocation);
+    }
+
+    private void doAllocateValidation(KeyworkerAllocationDto keyworkerAllocation) {
+        verifyAgencySupport(keyworkerAllocation.getAgencyId());
+        Validate.notBlank(keyworkerAllocation.getOffenderNo(), "Missing prisoner number.");
+        Validate.notNull(keyworkerAllocation.getStaffId(), "Missing staff id.");
+
+        final URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(keyworkerAllocation.getAgencyId(), keyworkerAllocation.getOffenderNo());
+        final List<OffenderSummaryDto> list = getForList(uri, OFFENDER_SUMMARY_DTO_LIST).getBody();
+        Validate.notEmpty(list, String.format("Prisoner %s not found at agencyId %s using endpoint %s.",
+                keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getAgencyId(), uri));
+
+        KeyworkerDto keyworkerDetails = getKeyworkerDetails(keyworkerAllocation.getAgencyId(), keyworkerAllocation.getStaffId());
+        Validate.notNull(keyworkerDetails, String.format("Keyworker %d not found at agencyId %s.",
+                keyworkerAllocation.getStaffId(), keyworkerAllocation.getAgencyId()));
     }
 
     private void doAllocate(KeyworkerAllocationDto newAllocation) {
 
-        /* TODO - validation
-        final String agencyId = bookingService.getBookingAgency(bookingId);
-        if (!bookingService.isSystemUser()) {
-            bookingService.verifyBookingAccess(bookingId);
-        }
-        validateStaffId(bookingId, newAllocation.getStaffId());
-        ==  @Override
-    public void checkAvailableKeyworker(Long bookingId, Long staffId) {
-        final String sql = getQuery("CHECK_AVAILABLE_KEY_WORKER");
-        try {
-            jdbcTemplate.queryForObject(sql, createParams("bookingId", bookingId, "staffId", staffId), Long.class);
-        } catch (EmptyResultDataAccessException ex) {
-            throw new EntityNotFoundException(
-                    String.format("Key worker with id %d not available for offender %d", staffId, bookingId));
-        }
- SELECT DISTINCT(SLR.SAC_STAFF_ID)
-  FROM STAFF_LOCATION_ROLES SLR
-    INNER JOIN STAFF_MEMBERS SM ON SM.STAFF_ID = SLR.SAC_STAFF_ID
-      AND SM.STATUS = 'ACTIVE'
-    INNER JOIN OFFENDER_BOOKINGS OB ON OB.AGY_LOC_ID = SLR.CAL_AGY_LOC_ID
-      AND OB.OFFENDER_BOOK_ID = :bookingId
-      AND OB.ACTIVE_FLAG = 'Y'
-  WHERE SLR.SAC_STAFF_ID = :staffId
-    AND SLR.POSITION = 'AO'
-    AND SLR.ROLE = 'KW'
-    AND TRUNC(SYSDATE) BETWEEN TRUNC(SLR.FROM_DATE) AND TRUNC(COALESCE(SLR.TO_DATE,SYSDATE))
-    }*/
-
         // Remove current allocation if any
-        repository.deactivate(newAllocation.getOffenderNo(), newAllocation.getDeallocationReason(), LocalDateTime.now());
+        final List<OffenderKeyworker> entities = repository.findByActiveAndOffenderNo(
+                true, newAllocation.getOffenderNo());
+        final LocalDateTime now = LocalDateTime.now();
+        entities.forEach(e -> {
+            e.setActive(false);
+            e.setExpiryDateTime(now);
+            e.setDeallocationReason(newAllocation.getDeallocationReason());
+        });
 
-        OffenderKeyworker allocation = OffenderKeyworker.builder()//
-                .offenderNo(newAllocation.getOffenderNo())//
-                .staffId(newAllocation.getStaffId())//
-                .agencyId(newAllocation.getAgencyId())//
-                .allocationReason(newAllocation.getAllocationReason())//
-                .active(true)//
-                .assignedDateTime(LocalDateTime.now())//
-                .allocationType(newAllocation.getAllocationType())//
-                .userId(authenticationFacade.getCurrentUsername())
-                .build();
+        OffenderKeyworker allocation = ConversionHelper.getOffenderKeyworker(newAllocation, authenticationFacade.getCurrentUsername());
 
         allocate(allocation);
     }
