@@ -23,6 +23,8 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     List<OffenderKeyworker> findByActiveAndOffenderNoIn(boolean isActive, Collection<String> offenderNo);
     List<OffenderKeyworker> findByActiveAndOffenderNo(boolean isActive, String offenderNo);
+    List<OffenderKeyworker> findByActiveAndAgencyIdAndOffenderNoIn(boolean isActive, String agencyId, Collection<String> offenderNo);
+    List<OffenderKeyworker> findByActiveAndAgencyId(boolean isActive, String agencyId);
 
     Integer countByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
 }
