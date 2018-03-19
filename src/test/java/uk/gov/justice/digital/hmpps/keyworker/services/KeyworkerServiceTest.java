@@ -231,6 +231,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final String kwUri = String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId);
         server.expect(once(), requestTo(kwUri)).andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
+        String staffUri = expandUriTemplate(KeyworkerService.URI_STAFF, staffId);
+        server.expect(requestTo(staffUri)).andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+
         thrown.expectMessage(String.format("Keyworker %d not found at agencyId %s.", staffId, TEST_AGENCY));
 
         service.allocate(dto);
