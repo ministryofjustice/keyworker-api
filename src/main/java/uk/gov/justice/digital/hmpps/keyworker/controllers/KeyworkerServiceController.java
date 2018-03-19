@@ -137,6 +137,33 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
+            value = "Keyworker details for specified offenders in the given agency.",
+            notes = "Keyworker details for specified offenders in the given agency, where the offender and details exist.",
+            nickname="getOffenders")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = OffenderKeyworkerDto.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping(path = "/{agencyId}/offenders")
+    public List<OffenderKeyworkerDto> getOffenders(
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId,
+
+            @ApiParam(value = "Offenders for which details are required, or get all.")
+            @RequestParam(value = "offenderNo", required = false)
+                    List<String> offenderNos
+    ) {
+        return keyworkerService.getOffenders(agencyId, offenderNos);
+    }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
             value = "All unallocated offenders in specified agency.",
             notes = "All unallocated offenders in specified agency.",
             nickname="getUnallocatedOffenders")

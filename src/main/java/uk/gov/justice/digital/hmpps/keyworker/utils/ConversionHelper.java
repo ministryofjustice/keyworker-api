@@ -46,6 +46,27 @@ public final class ConversionHelper {
                 .build();
     }
 
+    public static List<OffenderKeyworkerDto> convertOffenderKeyworkerModel2Dto(List<OffenderKeyworker> models) {
+        Validate.notNull(models);
+
+        return models.stream().map(ConversionHelper::convertOffenderKeyworkerModel2Dto).collect(Collectors.toList());
+    }
+
+    public static OffenderKeyworkerDto convertOffenderKeyworkerModel2Dto(OffenderKeyworker model) {
+        Validate.notNull(model);
+
+        return OffenderKeyworkerDto.builder()
+                .offenderKeyworkerId(model.getOffenderKeyworkerId())
+                .offenderNo(model.getOffenderNo())
+                .staffId(model.getStaffId())
+                .agencyId(model.getAgencyId())
+                .active(model.isActive() ? "Y" : "N")
+                .assigned(model.getAssignedDateTime())
+                .expired(model.getExpiryDateTime())
+                .userId(model.getUserId())
+                .build();
+    }
+
     public static OffenderKeyworker getOffenderKeyworker(KeyworkerAllocationDto newAllocation, String userId) {
         return OffenderKeyworker.builder()
                 .offenderNo(newAllocation.getOffenderNo())

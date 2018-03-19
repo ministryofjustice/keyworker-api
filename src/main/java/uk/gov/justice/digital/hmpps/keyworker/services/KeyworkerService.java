@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
@@ -133,6 +134,17 @@ public class KeyworkerService extends Elite2ApiSource {
                 });
 
         return processor.filterByUnallocated(allOffenders);
+    }
+
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public List<OffenderKeyworkerDto> getOffenders(String agencyId, Collection<String> offenderNos) {
+        verifyAgencySupport(agencyId);
+        migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
+        final List<OffenderKeyworker> results =
+                CollectionUtils.isEmpty(offenderNos)
+                        ? repository.findByActiveAndAgencyId(true, agencyId)
+                        : repository.findByActiveAndAgencyIdAndOffenderNoIn(true, agencyId, offenderNos);
+        return ConversionHelper.convertOffenderKeyworkerModel2Dto(results);
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")

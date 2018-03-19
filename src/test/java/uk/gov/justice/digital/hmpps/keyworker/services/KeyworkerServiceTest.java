@@ -28,8 +28,10 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -291,6 +293,51 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         verify(repository, times(1)).save(argCap.capture());
 
         KeyworkerTestHelper.verifyNewAllocation(argCap.getValue(), TEST_AGENCY, offenderNo, staffId);
+    }
+
+    @Test
+    public void testGetOffenders() throws Exception {
+
+        final LocalDateTime time1 = LocalDateTime.of(2018, Month.FEBRUARY, 26, 6, 0);
+        final LocalDateTime time2 = LocalDateTime.of(2018, Month.FEBRUARY, 27, 6, 0);
+        OffenderKeyworker offender1 = OffenderKeyworker.builder()
+                .offenderKeyworkerId(11L)
+                .offenderNo("offender1")
+                .staffId(21L)
+                .agencyId(TEST_AGENCY)
+                .active(true)
+                .assignedDateTime(time1)
+                .expiryDateTime(time2)
+                .userId("me")
+                .build();
+        OffenderKeyworker offender2 = OffenderKeyworker.builder()
+                .offenderKeyworkerId(12L)
+                .offenderNo("offender2")
+                .active(false)
+                .build();
+        final List<String> testOffenderNos = Arrays.asList("offender1", "offender2");
+        List<OffenderKeyworker> results = Arrays.asList(offender1, offender2);
+        when(repository.existsByAgencyId(TEST_AGENCY)).thenReturn(true);
+        when(repository.findByActiveAndAgencyIdAndOffenderNoIn(true, TEST_AGENCY, testOffenderNos)).thenReturn(results);
+
+        final List<OffenderKeyworkerDto> offenders = service.getOffenders(TEST_AGENCY, testOffenderNos);
+
+        assertThat(offenders).asList().containsExactly(OffenderKeyworkerDto.builder()
+                        .offenderKeyworkerId(11L)
+                        .offenderNo("offender1")
+                        .staffId(21L)
+                        .agencyId(TEST_AGENCY)
+                        .active("Y")
+                        .assigned(time1)
+                        .expired(time2)
+                        .userId("me")
+                        .build(),
+                OffenderKeyworkerDto.builder()
+                        .offenderKeyworkerId(12L)
+                        .offenderNo("offender2")
+                        .active("N")
+                        .build()
+        );
     }
 
     @Test
