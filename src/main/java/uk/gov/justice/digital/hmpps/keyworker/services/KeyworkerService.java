@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 public class KeyworkerService extends Elite2ApiSource {
     public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/locations/description/{agencyId}/inmates";
     public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "?keywords={offenderNo}";
+    public static final String URI_STAFF = "/staff/{staffId}";
 
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
             new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {
@@ -157,7 +158,14 @@ public class KeyworkerService extends Elite2ApiSource {
         ResponseEntity<List<StaffLocationRoleDto>> response = getWithPaging(uri, paging, ELITE_STAFF_LOCATION_DTO_LIST);
 
         if (response.getBody().isEmpty()) {
-            return null;
+            // As a fallback, just get basic staff details (i.e. name)
+            uri = new UriTemplate("/staff/{staffId}").expand(staffId);
+            StaffLocationRoleDto basicStaffDetails = restTemplate.exchange(
+                    uri.toString(),
+                    HttpMethod.GET,
+                    new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
+                    StaffLocationRoleDto.class).getBody();
+            return basicStaffDetails == null ? null : ConversionHelper.getKeyworkerDto(basicStaffDetails);
         }
         Assert.isTrue(response.getBody().size() <= 1, String.format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
         final StaffLocationRoleDto dto = response.getBody().get(0);
@@ -316,19 +324,11 @@ public class KeyworkerService extends Elite2ApiSource {
         final Keyworker keyworker = keyworkerRepository.findOne(dto.getStaffId());
         final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(dto.getStaffId(), dto.getAgencyId(), true);
 
-        return KeyworkerDto.builder()
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .email(dto.getEmail())
-                .staffId(dto.getStaffId())
-                .thumbnailId(dto.getThumbnailId())
-                .capacity(determineCapacity(dto, keyworker, dto.getStaffId()))
-                .scheduleType(dto.getScheduleTypeDescription())
-                .agencyDescription(dto.getAgencyDescription())
-                .agencyId(dto.getAgencyId())
-                .status(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE)
-                .numberAllocated(allocationsCount)
-                .build();
+        final KeyworkerDto keyworkerDto = ConversionHelper.getKeyworkerDto(dto);
+        keyworkerDto.setCapacity(determineCapacity(dto, keyworker, dto.getStaffId()));
+        keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
+        keyworkerDto.setNumberAllocated(allocationsCount);
+        return keyworkerDto;
     }
 
     private Integer determineCapacity(StaffLocationRoleDto dto, Keyworker keyworker, Long staffId) {
