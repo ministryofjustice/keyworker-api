@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 
 @ApiModel(description = "New Key worker allocation")
 @Data

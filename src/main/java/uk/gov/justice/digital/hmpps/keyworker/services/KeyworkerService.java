@@ -29,8 +29,13 @@ import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 @Service
 @Transactional
@@ -70,30 +75,22 @@ public class KeyworkerService extends Elite2ApiSource {
     private final OffenderKeyworkerRepository repository;
     private final KeyworkerRepository keyworkerRepository;
     private final KeyworkerAllocationProcessor processor;
-
-    @Value("${svc.kw.supported.agencies}")
-    private Set<String> supportedAgencies;
+    private final AgencyValidation agencyValidation;
 
     @Value("${svc.kw.allocation.capacity.default}")
     private int capacityDefault;
 
     public KeyworkerService(KeyworkerMigrationService migrationService, AuthenticationFacade authenticationFacade,
                             OffenderKeyworkerRepository repository, KeyworkerRepository keyworkerRepository,
-                            KeyworkerAllocationProcessor processor) {
+                            KeyworkerAllocationProcessor processor, AgencyValidation agencyValidation) {
         this.migrationService = migrationService;
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
         this.processor = processor;
+        this.agencyValidation = agencyValidation;
     }
 
-    public void verifyAgencySupport(String agencyId) {
-        Validate.notBlank(agencyId);
-
-        if (!supportedAgencies.contains(agencyId)) {
-            throw AgencyNotSupportedException.withId(agencyId);
-        }
-    }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
@@ -138,7 +135,6 @@ public class KeyworkerService extends Elite2ApiSource {
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<OffenderKeyworkerDto> getOffenders(String agencyId, Collection<String> offenderNos) {
-        verifyAgencySupport(agencyId);
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
         final List<OffenderKeyworker> results =
                 CollectionUtils.isEmpty(offenderNos)
@@ -147,7 +143,24 @@ public class KeyworkerService extends Elite2ApiSource {
         return ConversionHelper.convertOffenderKeyworkerModel2Dto(results);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public Optional<KeyworkerDto> getCurrentKeyworkerForPrisoner(String agencyId, String offenderNo) {
+        KeyworkerDto currentKeyworker = null;
+        if (repository.existsByAgencyId(agencyId)) {
+            OffenderKeyworker activeOffenderKeyworker = repository.findByOffenderNoAndActive(offenderNo, true);
+            if (activeOffenderKeyworker != null) {
+                currentKeyworker = getBasicKeyworkerDto(activeOffenderKeyworker.getStaffId());
+            }
+        } else {
+            URI uri = new UriTemplate("/bookings/offenderNo/{offenderNo}/key-worker").expand(offenderNo);
+            currentKeyworker = restTemplate.exchange(
+                    uri.toString(),
+                    HttpMethod.GET,
+                    new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
+                    KeyworkerDto.class).getBody();
+        }
+        return Optional.ofNullable(currentKeyworker);
+    }
+
     public KeyworkerDto getKeyworkerDetails(String agencyId, Long staffId) {
 
         URI uri = new UriTemplate("/staff/roles/{agencyId}/role/KW?staffId={staffId}").expand(agencyId, staffId);
@@ -157,18 +170,26 @@ public class KeyworkerService extends Elite2ApiSource {
         ResponseEntity<List<StaffLocationRoleDto>> response = getWithPaging(uri, paging, ELITE_STAFF_LOCATION_DTO_LIST);
 
         if (response.getBody().isEmpty()) {
-            // As a fallback, just get basic staff details (i.e. name)
-            uri = new UriTemplate("/staff/{staffId}").expand(staffId);
-            StaffLocationRoleDto basicStaffDetails = restTemplate.exchange(
-                    uri.toString(),
-                    HttpMethod.GET,
-                    new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
-                    StaffLocationRoleDto.class).getBody();
-            return basicStaffDetails == null ? null : ConversionHelper.getKeyworkerDto(basicStaffDetails);
+            return getBasicKeyworkerDto(staffId);
         }
-        Assert.isTrue(response.getBody().size() <= 1, String.format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
+        Assert.isTrue(response.getBody().size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
         final StaffLocationRoleDto dto = response.getBody().get(0);
         return convertToKeyworkerDto(dto);
+    }
+
+    /**
+     * As a fallback, just get basic staff details (i.e. name)
+     * @param staffId staff ID
+     * @return KeyworkerDto Basic Key-worker Details
+     */
+    private KeyworkerDto getBasicKeyworkerDto(Long staffId) {
+        URI uri = new UriTemplate("/staff/{staffId}").expand(staffId);
+        StaffLocationRoleDto basicStaffDetails = restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
+                StaffLocationRoleDto.class).getBody();
+        return basicStaffDetails == null ? null : ConversionHelper.getKeyworkerDto(basicStaffDetails);
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
@@ -191,17 +212,17 @@ public class KeyworkerService extends Elite2ApiSource {
     }
 
     private void doAllocateValidation(KeyworkerAllocationDto keyworkerAllocation) {
-        verifyAgencySupport(keyworkerAllocation.getAgencyId());
+        agencyValidation.verifyAgencySupport(keyworkerAllocation.getAgencyId());
         Validate.notBlank(keyworkerAllocation.getOffenderNo(), "Missing prisoner number.");
         Validate.notNull(keyworkerAllocation.getStaffId(), "Missing staff id.");
 
         final URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(keyworkerAllocation.getAgencyId(), keyworkerAllocation.getOffenderNo());
         final List<OffenderSummaryDto> list = getForList(uri, OFFENDER_SUMMARY_DTO_LIST).getBody();
-        Validate.notEmpty(list, String.format("Prisoner %s not found at agencyId %s using endpoint %s.",
+        Validate.notEmpty(list, format("Prisoner %s not found at agencyId %s using endpoint %s.",
                 keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getAgencyId(), uri));
 
         KeyworkerDto keyworkerDetails = getKeyworkerDetails(keyworkerAllocation.getAgencyId(), keyworkerAllocation.getStaffId());
-        Validate.notNull(keyworkerDetails, String.format("Keyworker %d not found at agencyId %s.",
+        Validate.notNull(keyworkerDetails, format("Keyworker %d not found at agencyId %s.",
                 keyworkerAllocation.getStaffId(), keyworkerAllocation.getAgencyId()));
     }
 
@@ -294,7 +315,7 @@ public class KeyworkerService extends Elite2ApiSource {
                     .internalLocationDesc(offenderSummaryDto.getInternalLocationDesc())
                     .build();
         } else {
-            log.error(String.format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using elite endpoint %s", allocation.getOffenderNo(), agencyId, uri));
+            log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using elite endpoint %s", allocation.getOffenderNo(), agencyId, uri));
             dto =  KeyworkerAllocationDetailsDto.builder().build();
         }
         return dto;
@@ -340,4 +361,21 @@ public class KeyworkerService extends Elite2ApiSource {
         return capacity;
     }
 
+    public void addOrUpdate(Long staffId, KeyworkerUpdateDto keyworkerUpdateDto) {
+
+        Keyworker keyworker = keyworkerRepository.findOne(staffId);
+
+        if (keyworker == null) {
+
+            keyworkerRepository.save(Keyworker.builder()
+                    .staffId(staffId)
+                    .capacity(keyworkerUpdateDto.getCapacity())
+                    .status(keyworkerUpdateDto.getStatus())
+                    .build());
+
+        }else{
+            keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
+            keyworker.setStatus(keyworkerUpdateDto.getStatus());
+        }
+    }
 }

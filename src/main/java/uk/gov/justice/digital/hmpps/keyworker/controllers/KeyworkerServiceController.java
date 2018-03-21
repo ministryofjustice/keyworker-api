@@ -11,9 +11,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -225,6 +227,34 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
+            value = "Offenders current Keyworker",
+            notes = "Offenders current Keyworker",
+            nickname="getOffendersKeyworker")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = KeyworkerDto.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping(path="/{agencyId}/offender/{offenderNo}")
+
+    public KeyworkerDto getOffendersKeyworker(
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId,
+            @ApiParam(value = "offenderNo", required = true)
+            @NotEmpty
+            @PathVariable("offenderNo")
+                    String offenderNo) {
+
+        return keyworkerService.getCurrentKeyworkerForPrisoner(agencyId, offenderNo).orElseThrow(EntityNotFoundException::new);
+    }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
             value = "Initiate auto-allocation process for specified agency.",
             notes = "Initiate auto-allocation process for specified agency.",
             nickname="autoAllocate")
@@ -360,4 +390,30 @@ public class KeyworkerServiceController {
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
     }
 
+    @ApiOperation(
+            value = "Add or update a key worker record",
+            notes = "Staff members available capacity",
+            nickname="addOrUpdateKeyworker")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "OK", response = OffenderSummaryDto.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PostMapping(path = "/{staffId}/keyworker")
+    @PreAuthorize("#oauth2.hasScope('admin')")
+    public void addOrUpdateKeyworker(
+            @ApiParam(value = "staffId", required = true)
+            @NotEmpty
+            @PathVariable("staffId")
+                    long staffId,
+
+            @ApiParam(value = "New keyworker details." , required=true )
+            @Valid
+            @RequestBody
+                    KeyworkerUpdateDto keyworkerUpdateDto
+
+    ) {
+        keyworkerService.addOrUpdate(staffId, keyworkerUpdateDto);
+    }
 }
