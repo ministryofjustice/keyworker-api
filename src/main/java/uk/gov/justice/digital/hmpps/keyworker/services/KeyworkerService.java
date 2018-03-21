@@ -345,4 +345,21 @@ public class KeyworkerService extends Elite2ApiSource {
         return capacity;
     }
 
+    public void addOrUpdate(Long staffId, KeyworkerUpdateDto keyworkerUpdateDto) {
+
+        Keyworker keyworker = keyworkerRepository.findOne(staffId);
+
+        if (keyworker == null) {
+
+            keyworkerRepository.save(Keyworker.builder()
+                    .staffId(staffId)
+                    .capacity(keyworkerUpdateDto.getCapacity())
+                    .status(keyworkerUpdateDto.getStatus())
+                    .build());
+
+        }else{
+            keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
+            keyworker.setStatus(keyworkerUpdateDto.getStatus());
+        }
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
@@ -360,4 +361,30 @@ public class KeyworkerServiceController {
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
     }
 
+    @ApiOperation(
+            value = "Add or update a key worker record",
+            notes = "Staff members available capacity",
+            nickname="addOrUpdateKeyworker")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "OK", response = OffenderSummaryDto.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PostMapping(path = "/{staffId}/keyworker")
+    @PreAuthorize("#oauth2.hasScope('admin')")
+    public void addOrUpdateKeyworker(
+            @ApiParam(value = "staffId", required = true)
+            @NotEmpty
+            @PathVariable("staffId")
+                    long staffId,
+
+            @ApiParam(value = "New keyworker details." , required=true )
+            @Valid
+            @RequestBody
+                    KeyworkerUpdateDto keyworkerUpdateDto
+
+    ) {
+        keyworkerService.addOrUpdate(staffId, keyworkerUpdateDto);
+    }
 }
