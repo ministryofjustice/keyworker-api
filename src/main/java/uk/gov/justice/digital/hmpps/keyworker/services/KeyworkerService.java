@@ -16,7 +16,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.model.CreateUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -234,13 +233,9 @@ public class KeyworkerService extends Elite2ApiSource {
 
         // This service method creates a new allocation record, therefore it will apply certain defaults automatically.
         LocalDateTime now = LocalDateTime.now();
-        String currentUser = authenticationFacade.getCurrentUsername();
-
-        CreateUpdate createUpdate = CreateUpdate.builder().creationDateTime(now).createUserId(currentUser).build();
 
         allocation.setActive(true);
         allocation.setAssignedDateTime(now);
-        allocation.setCreateUpdate(createUpdate);
 
         if (StringUtils.isBlank(allocation.getUserId())) {
             allocation.setUserId(authenticationFacade.getCurrentUsername());

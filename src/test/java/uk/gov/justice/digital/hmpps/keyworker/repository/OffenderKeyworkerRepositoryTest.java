@@ -1,18 +1,23 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
 import lombok.val;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -26,6 +31,11 @@ public class OffenderKeyworkerRepositoryTest {
 
     @Autowired
     private OffenderKeyworkerRepository repository;
+
+    @BeforeClass
+    public static void beforeClass() {
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("user", "pw"));
+    }
 
     @Test
     public void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
@@ -54,7 +64,12 @@ public class OffenderKeyworkerRepositoryTest {
         assertThat(retrievedEntity.getAgencyId()).isEqualTo(transientEntity.getAgencyId());
         assertThat(retrievedEntity.getExpiryDateTime()).isEqualTo(transientEntity.getExpiryDateTime());
         assertThat(retrievedEntity.getDeallocationReason()).isEqualTo(transientEntity.getDeallocationReason());
-        assertThat(retrievedEntity.getCreateUpdate()).isEqualTo(transientEntity.getCreateUpdate());
+        assertThat(retrievedEntity.getCreateUserId()).isEqualTo("user");
+        assertThat(retrievedEntity.getCreationDateTime()).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.HOURS));
+        assertThat(retrievedEntity.getCreationDateTime()).isEqualTo(persistedEntity.getCreationDateTime());
+        assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(persistedEntity.getCreationDateTime());
+        assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(persistedEntity.getModifyDateTime());
+        assertThat(retrievedEntity.getModifyUserId()).isEqualTo("user");
     }
 
     @Test
@@ -64,13 +79,14 @@ public class OffenderKeyworkerRepositoryTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
+        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("Modify User Id", "pw"));
         TestTransaction.start();
         val retrievedEntity = repository.findOne(entity.getOffenderKeyworkerId());
 
-        assertThat(retrievedEntity.getCreateUpdate().getModifyDateTime()).isNull();
-        assertThat(retrievedEntity.getCreateUpdate().getModifyUserId()).isNull();
+        assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(retrievedEntity.getCreationDateTime());
+        assertThat(retrievedEntity.getModifyUserId()).isEqualTo(retrievedEntity.getCreateUserId());
 
-        retrievedEntity.setCreateUpdate((addUpdateInfo(retrievedEntity.getCreateUpdate())));
+        retrievedEntity.setDeallocationReason(DeallocationReason.TRANSFER);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -79,8 +95,8 @@ public class OffenderKeyworkerRepositoryTest {
 
         val persistedUpdates = repository.findOne(entity.getOffenderKeyworkerId());
 
-        assertThat(persistedUpdates.getCreateUpdate().getModifyDateTime()).isNotNull();
-        assertThat(persistedUpdates.getCreateUpdate().getModifyUserId()).isEqualTo("Modify User Id");
+        assertThat(persistedUpdates.getModifyDateTime()).isAfter(persistedUpdates.getCreationDateTime());
+        assertThat(persistedUpdates.getModifyUserId()).isEqualTo("Modify User Id");
     }
 
     @Test
@@ -115,23 +131,7 @@ public class OffenderKeyworkerRepositoryTest {
                 .agencyId(AGENCY_ID_LEI)
                 .expiryDateTime(EXPIRY_DATE_TIME)
                 .deallocationReason(DeallocationReason.OVERRIDE)
-                .createUpdate(creationTimeInfo())
-                .build();
-    }
-
-    private CreateUpdate creationTimeInfo() {
-        return CreateUpdate
-                .builder()
-                .creationDateTime(LocalDateTime.now())
-                .createUserId("Creation User Id")
-                .build();
-    }
-
-    private CreateUpdate addUpdateInfo(CreateUpdate createUpdate) {
-        return createUpdate
-                .toBuilder()
-                .modifyDateTime(LocalDateTime.now())
-                .modifyUserId("Modify User Id")
+                //.createUpdate(creationTimeInfo())
                 .build();
     }
 

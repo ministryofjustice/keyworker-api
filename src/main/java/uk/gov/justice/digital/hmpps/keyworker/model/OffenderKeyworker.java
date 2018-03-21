@@ -3,10 +3,17 @@ package uk.gov.justice.digital.hmpps.keyworker.model;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+
+import static javax.persistence.TemporalType.TIMESTAMP;
 
 @Entity
 @Table(name = "OFFENDER_KEY_WORKER")
@@ -15,6 +22,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"offenderNo", "staffId", "assignedDateTime"})
+@EntityListeners(AuditingEntityListener.class)
 public class OffenderKeyworker {
 
     @Id()
@@ -71,9 +79,21 @@ public class OffenderKeyworker {
      *
      * The way these fields behave and are used will probably change when OFFENDER_KEY_WORKER
      * data is no longer imported from elite2-api.
-     * For now fields like creationDateTime must always be set before persisting.
-     * Later, annotations such as @CreationTimestamp or @Generated might be useful.
      * ------------------------------------------------------------------------------------- */
-    @NotNull
-    private CreateUpdate createUpdate;
+
+    @CreatedDate
+    @Column(name = "CREATE_DATETIME", nullable = false)
+    LocalDateTime creationDateTime;
+
+    @CreatedBy
+    @Column(name = "CREATE_USER_ID", nullable = false)
+    String createUserId;
+
+    @LastModifiedDate
+    @Column(name = "MODIFY_DATETIME")
+    LocalDateTime modifyDateTime;
+
+    @LastModifiedBy
+    @Column(name = "MODIFY_USER_ID")
+    String modifyUserId;
 }

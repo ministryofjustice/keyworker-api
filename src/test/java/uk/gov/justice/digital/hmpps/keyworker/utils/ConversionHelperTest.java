@@ -61,8 +61,6 @@ public class ConversionHelperTest {
                 .active("Y")
                 .agencyId("XXX")
                 .assigned(LocalDateTime.of(2016, 9, 9, 9, 9, 9))
-                .createdBy("USER")
-                .created(LocalDateTime.of(2016, 8, 8, 8, 8, 8))
                 .userId("MANAGER")
                 .build();
     }
@@ -74,12 +72,8 @@ public class ConversionHelperTest {
                 .active("N")
                 .agencyId("XXX")
                 .assigned(LocalDateTime.of(2015, 9, 9, 9, 9, 9))
-                .createdBy("USER")
-                .created(LocalDateTime.of(2015, 8, 8, 8, 8, 8))
                 .userId("MANAGER")
                 .expired(LocalDateTime.of(2016, 9, 9, 9, 9, 9))
-                .modified(LocalDateTime.of(2016, 8, 8, 8, 8, 8))
-                .modifiedBy("TINKER")
                 .build();
     }
 
@@ -90,10 +84,6 @@ public class ConversionHelperTest {
         assertThat(okw.getAgencyId()).isEqualTo(dto.getAgencyId());
         assertThat(okw.getAssignedDateTime()).isEqualTo(dto.getAssigned());
         assertThat(okw.getUserId()).isEqualTo(dto.getUserId());
-        assertThat(okw.getCreateUpdate().getCreationDateTime()).isEqualTo(dto.getCreated());
-        assertThat(okw.getCreateUpdate().getCreateUserId()).isEqualTo(dto.getCreatedBy());
-        assertThat(okw.getCreateUpdate().getModifyDateTime()).isEqualTo(dto.getModified());
-        assertThat(okw.getCreateUpdate().getModifyUserId()).isEqualTo(dto.getModifiedBy());
         assertThat(okw.getExpiryDateTime()).isEqualTo(dto.getExpired());
     }
 }
