@@ -8,6 +8,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 
+import javax.persistence.EntityNotFoundException;
+
 
 @org.springframework.web.bind.annotation.RestControllerAdvice(
         basePackageClasses = KeyworkerServiceController.class
@@ -50,6 +52,17 @@ public class ControllerAdvice {
                 .body(ErrorResponse
                         .builder()
                         .status(HttpStatus.BAD_REQUEST.value())
+                        .developerMessage(e.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(Exception e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse
+                        .builder()
+                        .status(HttpStatus.NOT_FOUND.value())
                         .developerMessage(e.getMessage())
                         .build());
     }

@@ -13,7 +13,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
@@ -27,7 +26,9 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Matchers.any;
@@ -56,6 +57,9 @@ public class KeyworkerAutoAllocationServiceTest {
 
     @Mock
     private BufferMetricReader metricReader;
+
+    @Mock
+    private AgencyValidation agencyValidation;
 
     private long allocCount;
 
@@ -89,8 +93,9 @@ public class KeyworkerAutoAllocationServiceTest {
                 .when(metricReader).findOne(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS);
 
         // Construct service under test (using mock collaborators)
+        Set<String> aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
         keyworkerAutoAllocationService =
-                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader);
+                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader, agencyValidation);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -106,9 +111,7 @@ public class KeyworkerAutoAllocationServiceTest {
     // And auto-allocation process throws an AgencyNotSupported exception
     @Test
     public void testServicePerformsNoAllocationsForUnsupportedAgency() {
-        ReflectionTestUtils.setField(keyworkerService, "supportedAgencies", Collections.singleton("XXX"));
-
-        doCallRealMethod().when(keyworkerService).verifyAgencySupport(eq(TEST_AGENCY_ID));
+        doThrow(new AgencyNotSupportedException(format("Agency [%s] is not supported by this service.", TEST_AGENCY_ID))).when(agencyValidation).verifyAgencySupport(eq(TEST_AGENCY_ID));
 
         // Invoke auto-allocate for unsupported agency (catching expected exception)
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
