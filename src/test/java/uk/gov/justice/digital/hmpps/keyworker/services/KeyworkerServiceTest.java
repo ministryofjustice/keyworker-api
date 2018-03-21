@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.ExpectedCount.once;
@@ -492,6 +493,48 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
 
         server.verify();
+    }
+
+    @Test
+    public void testThatANewKeyworkerRecordIsInserted() {
+        final long staffId = 1;
+        final int capacity = 10;
+        final KeyworkerStatus status = KeyworkerStatus.ACTIVE;
+
+        ArgumentCaptor<Keyworker> argCap = ArgumentCaptor.forClass(Keyworker.class);
+
+        when(keyworkerRepository.findOne(staffId)).thenReturn(null);
+
+        service.addOrUpdate(staffId,
+                KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
+
+        verify(keyworkerRepository, times(1)).save(argCap.capture());
+
+        assertThat(argCap.getValue().getStaffId()).isEqualTo(staffId);
+        assertThat(argCap.getValue().getCapacity()).isEqualTo(capacity);
+        assertThat(argCap.getValue().getStatus()).isEqualTo(status);
+    }
+
+    @Test
+    public void testThatKeyworkerRecordIsUpdated() {
+        final long staffId = 1;
+        final int capacity = 100;
+        final KeyworkerStatus status = KeyworkerStatus.UNAVAILABLE_SUSPENDED;
+
+        final Keyworker existingKeyWorker = Keyworker.builder()
+                .staffId(staffId)
+                .capacity(10)
+                .status(KeyworkerStatus.ACTIVE)
+                .build();
+
+        when(keyworkerRepository.findOne(staffId)).thenReturn(existingKeyWorker);
+
+        service.addOrUpdate(staffId,
+                KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
+
+        assertThat(existingKeyWorker.getStaffId()).isEqualTo(staffId);
+        assertThat(existingKeyWorker.getCapacity()).isEqualTo(capacity);
+        assertThat(existingKeyWorker.getStatus()).isEqualTo(status);
     }
 
 
