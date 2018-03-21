@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.CreateUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
@@ -77,6 +79,19 @@ public final class ConversionHelper {
                 .assignedDateTime(LocalDateTime.now())
                 .allocationType(newAllocation.getAllocationType())
                 .userId(userId)
+                .build();
+    }
+
+    public static KeyworkerDto getKeyworkerDto(StaffLocationRoleDto dto) {
+        return KeyworkerDto.builder()
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .email(dto.getEmail())
+                .staffId(dto.getStaffId())
+                .thumbnailId(dto.getThumbnailId())
+                .scheduleType(dto.getScheduleTypeDescription())
+                .agencyDescription(dto.getAgencyDescription())
+                .agencyId(dto.getAgencyId())
                 .build();
     }
 }
