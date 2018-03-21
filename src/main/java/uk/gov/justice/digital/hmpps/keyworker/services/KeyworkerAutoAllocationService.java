@@ -38,6 +38,7 @@ public class KeyworkerAutoAllocationService {
     private final CounterService counterService;
     private final BufferMetricReader metricReader;
     private final long offenderPageLimit;
+    private final AgencyValidation agencyValidation;
 
     /**
      * Constructor.
@@ -48,11 +49,13 @@ public class KeyworkerAutoAllocationService {
     public KeyworkerAutoAllocationService(KeyworkerService keyworkerService,
                                           KeyworkerPoolFactory keyworkerPoolFactory,
                                           CounterService counterService,
-                                          BufferMetricReader metricReader) {
+                                          BufferMetricReader metricReader,
+                                          AgencyValidation agencyValidation) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.counterService = counterService;
         this.metricReader = metricReader;
+        this.agencyValidation = agencyValidation;
 
         this.offenderPageLimit = 10L;
     }
@@ -62,7 +65,7 @@ public class KeyworkerAutoAllocationService {
         // Confirm a valid agency has been supplied.
         Validate.isTrue(StringUtils.isNotBlank(agencyId), "Agency id must be provided.");
 
-        keyworkerService.verifyAgencySupport(agencyId);
+        agencyValidation.verifyAgencySupport(agencyId);
 
         log.info("Key worker auto-allocation process initiated for agency [{}].", agencyId);
 

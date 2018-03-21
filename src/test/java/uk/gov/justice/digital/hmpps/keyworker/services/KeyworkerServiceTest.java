@@ -17,7 +17,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -31,20 +30,18 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.ExpectedCount.once;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 
 /**
  * Test class for {@link KeyworkerService}.
@@ -81,22 +78,13 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @MockBean
     private KeyworkerAllocationProcessor processor;
 
+    @MockBean
+    private AgencyValidation agencyValidation;
+
     @Before
-    public void setUp() {
-        ReflectionTestUtils.setField(service, "supportedAgencies", Collections.singleton(TEST_AGENCY));
-       // ReflectionTestUtils.setField(service, "restTemplate", restTemplate);
+    public void setup() {
+        doThrow(new AgencyNotSupportedException("Agency [MDI] is not supported by this service.")).when(agencyValidation).verifyAgencySupport(eq("MDI"));
     }
-
-    @Test
-    public void testVerifyAgencySupportForSupportedAgency() {
-        service.verifyAgencySupport(TEST_AGENCY);
-    }
-
-    @Test(expected = AgencyNotSupportedException.class)
-    public void testVerifyAgencySupportForUnsupportedAgency() {
-        service.verifyAgencySupport("XXX");
-    }
-
     @Test
     public void testGetUnallocatedOffendersForSupportedAgencyNoneAllocated() throws Exception {
         Long count = 10L;
@@ -357,13 +345,54 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
     }
 
-    private void expectKeyworkerDetailsCall(long staffId, Integer CAPACITY, int ALLOCATIONS) throws JsonProcessingException {
-        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
-        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
+    @Test
+    public void testGetActiveKeyworkerForOffender() throws JsonProcessingException {
+        final String offenderNo = "X5555XX";
+        final long staffId = 5L;
+        expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, true);
 
-        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, 5)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+        Optional<KeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
+
+        server.verify();
+        KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, "First", "Last");
+    }
+
+    @Test
+    public void testGetActiveKeyworkerForOffenderNonYetMigrated() throws JsonProcessingException {
+        final String offenderNo = "X5555YY";
+        final long staffId = 6L;
+        KeyworkerDto expectedKeyworkerDto = expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, false);
+
+        Optional<KeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
+
+        server.verify();
+        KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, expectedKeyworkerDto.getFirstName(), expectedKeyworkerDto.getLastName());
+    }
+
+    private KeyworkerDto expectGetActiveKeyworkerForOffenderCall(String offenderNo, long staffId, boolean agencyMigrated) throws JsonProcessingException {
+
+        when(repository.existsByAgencyId(TEST_AGENCY)).thenReturn(agencyMigrated);
+        if (agencyMigrated) {
+            when(repository.findByOffenderNoAndActive(offenderNo, true)).thenReturn(OffenderKeyworker.builder()
+                    .staffId(staffId)
+                    .build()
+            );
+            expectBasicStaffApiCall(staffId);
+            return null;
+
+        } else {
+            KeyworkerDto keyworkerDto = KeyworkerTestHelper.getKeyworker(staffId, 1);
+            String testJsonResponse = objectMapper.writeValueAsString(keyworkerDto);
+
+            server.expect(once(), requestTo(String.format("/bookings/offenderNo/%s/key-worker", offenderNo)))
+                    .andExpect(method(HttpMethod.GET))
+                    .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+            return keyworkerDto;
+        }
+    }
+
+    private void expectKeyworkerDetailsCall(long staffId, Integer CAPACITY, int ALLOCATIONS) throws JsonProcessingException {
+        expectStaffRoleApiCall(staffId);
 
         when(keyworkerRepository.findOne(staffId)).thenReturn(Keyworker.builder()
                 .staffId(staffId)
@@ -372,6 +401,24 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .build()
         );
         when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(ALLOCATIONS);
+    }
+
+    private void expectStaffRoleApiCall(long staffId) throws JsonProcessingException {
+        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
+        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
+
+        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+    }
+
+    private void expectBasicStaffApiCall(long staffId) throws JsonProcessingException {
+        StaffLocationRoleDto staffLocationRoleDto = KeyworkerTestHelper.getStaffLocationRoleDto(staffId);
+        String testJsonResponse = objectMapper.writeValueAsString(staffLocationRoleDto);
+
+        server.expect(once(), requestTo(String.format("/staff/%d", staffId)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
     }
 
     @Test(expected = HttpClientErrorException.class)
@@ -397,12 +444,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     public void testGetKeyworkerDetailsNoKeyworker() throws JsonProcessingException {
         final long staffId = 5L;
-        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
-        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
-
-        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, 5)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+        expectStaffRoleApiCall(staffId);
 
         when(keyworkerRepository.findOne(staffId)).thenReturn(null);
         when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(null);
