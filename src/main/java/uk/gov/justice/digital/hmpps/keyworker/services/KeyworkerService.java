@@ -100,27 +100,25 @@ public class KeyworkerService extends Elite2ApiSource {
 
         ResponseEntity<List<KeyworkerDto>> responseEntity = getForList(uri, KEYWORKER_DTO_LIST);
 
-        final List<KeyworkerDto> decoratedList = responseEntity.getBody().stream().map(this::decorateWithKeyworkerData
+        final List<KeyworkerDto> decoratedList = responseEntity.getBody().stream().map(t ->
+                decorateWithKeyworkerData(t, agencyId)
         ).collect(Collectors.toList());
 
         return decoratedList;
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
-    public Page<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
+    public Page<KeyworkerAllocationDetailsDto> getAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/key-worker/{agencyId}/allocations");
+        final List<OffenderKeyworker> list =
+                allocationFilter.getAllocationType().isPresent() ?
+                        repository.findByActiveAndAgencyIdAndAllocationType(true, allocationFilter.getAgencyId(), allocationFilter.getAllocationType().get())
+                        :
+                        repository.findByActiveAndAgencyId(true, allocationFilter.getAgencyId());
+// TODO implement date filters
+        final List<KeyworkerAllocationDetailsDto> results = ConversionHelper.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(list);
 
-        allocationFilter.getAllocationType().ifPresent(at -> builder.queryParam("allocationType", at.getTypeCode()));
-        allocationFilter.getFromDate().ifPresent(fd -> builder.queryParam("fromDate", fd.format(DateTimeFormatter.ISO_DATE)));
-
-        builder.queryParam("toDate", allocationFilter.getToDate().format(DateTimeFormatter.ISO_DATE));
-
-        URI uri = builder.buildAndExpand(allocationFilter.getAgencyId()).toUri();
-
-        ResponseEntity<List<KeyworkerAllocationDetailsDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, KEYWORKER_ALLOCATION_LIST);
-
-        return new Page<>(response.getBody(), response.getHeaders());
+        return new Page<KeyworkerAllocationDetailsDto>(results, (long) list.size(), 0L, (long) list.size());
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
@@ -194,18 +192,6 @@ public class KeyworkerService extends Elite2ApiSource {
                 new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
                 StaffLocationRoleDto.class).getBody();
         return basicStaffDetails == null ? null : ConversionHelper.getKeyworkerDto(basicStaffDetails);
-    }
-
-    @PreAuthorize("#oauth2.hasScope('write')")
-    public String startAutoAllocation(String agencyId) {
-
-        URI uri = new UriTemplate("/key-worker/{agencyId}/allocate/start").expand(agencyId);
-
-        return restTemplate.exchange(
-                uri.toString(),
-                HttpMethod.POST,
-                new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
-                String.class).getBody();
     }
 
     @PreAuthorize("#oauth2.hasScope('write')")
@@ -355,13 +341,14 @@ public class KeyworkerService extends Elite2ApiSource {
         return keyworkerDto;
     }
 
-    private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
+    private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto, String agencyId) {
         final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true);
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), agencyId, true);
 
         keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
         keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
         keyworkerDto.setNumberAllocated(allocationsCount);
+        keyworkerDto.setAgencyId(agencyId);
         return keyworkerDto;
     }
 

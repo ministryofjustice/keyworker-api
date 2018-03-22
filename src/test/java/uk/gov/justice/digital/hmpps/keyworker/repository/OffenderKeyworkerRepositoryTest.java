@@ -98,6 +98,49 @@ public class OffenderKeyworkerRepositoryTest {
         assertThat(repository.countByStaffIdAndAgencyIdAndActive(UNKNOWN_STAFFID, AGENCY_ID_LEI, true)).isEqualTo(0);
     }
 
+    @Test
+    public void shouldDeleteProvisionalRows() {
+
+         OffenderKeyworker entity1 = buildEntity(nextId());
+         OffenderKeyworker entity2 = buildEntity(nextId());
+        entity1.setAllocationType(AllocationType.PROVISIONAL);
+        entity2.setAllocationType(AllocationType.PROVISIONAL);
+        entity1 = repository.save(entity1);
+        entity2 = repository.save(entity2);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
+
+        assertThat(repository.deleteExistingProvisionals(AGENCY_ID_LEI)).isEqualTo(2);
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
+        assertThat(repository.findOne(entity1.getOffenderKeyworkerId())).isNull();
+        assertThat(repository.findOne(entity2.getOffenderKeyworkerId())).isNull();
+    }
+
+    @Test
+    public void shouldUpdateProvisionalRows() {
+
+        OffenderKeyworker entity1 = buildEntity(nextId());
+        OffenderKeyworker entity2 = buildEntity(nextId());
+        entity1.setAllocationType(AllocationType.PROVISIONAL);
+        entity2.setAllocationType(AllocationType.PROVISIONAL);
+        entity1 = repository.save(entity1);
+        entity2 = repository.save(entity2);
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        TestTransaction.start();
+
+        assertThat(repository.confirmProvisionals(AGENCY_ID_LEI)).isEqualTo(2);
+
+        TestTransaction.flagForCommit();
+        TestTransaction.end();
+        assertThat(repository.findOne(entity1.getOffenderKeyworkerId()).getAllocationType()).isEqualTo(AllocationType.AUTO);
+        assertThat(repository.findOne(entity2.getOffenderKeyworkerId()).getAllocationType()).isEqualTo(AllocationType.AUTO);
+    }
+
     private OffenderKeyworker transientEntity() {
         return buildEntity(nextId());
     }

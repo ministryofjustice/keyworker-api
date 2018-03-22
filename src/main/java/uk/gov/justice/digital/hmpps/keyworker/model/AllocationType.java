@@ -8,7 +8,8 @@ import java.util.Map;
 
 public enum AllocationType {
     AUTO("A"),
-    MANUAL("M");
+    MANUAL("M"),
+    PROVISIONAL("P");
 
     private final String typeCode;
 
