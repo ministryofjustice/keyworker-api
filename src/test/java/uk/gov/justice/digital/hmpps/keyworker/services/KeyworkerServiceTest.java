@@ -31,12 +31,10 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.client.ExpectedCount.once;
@@ -498,6 +496,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     public void testThatANewKeyworkerRecordIsInserted() {
         final long staffId = 1;
+        final String agencyId = "LEI";
         final int capacity = 10;
         final KeyworkerStatus status = KeyworkerStatus.ACTIVE;
 
@@ -506,7 +505,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(staffId)).thenReturn(null);
 
         service.addOrUpdate(staffId,
-                KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
+                agencyId, KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
 
         verify(keyworkerRepository, times(1)).save(argCap.capture());
 
@@ -519,6 +518,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testThatKeyworkerRecordIsUpdated() {
         final long staffId = 1;
         final int capacity = 100;
+        final String agencyId = "LEI";
         final KeyworkerStatus status = KeyworkerStatus.UNAVAILABLE_SUSPENDED;
 
         final Keyworker existingKeyWorker = Keyworker.builder()
@@ -530,12 +530,45 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(staffId)).thenReturn(existingKeyWorker);
 
         service.addOrUpdate(staffId,
-                KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
+                agencyId, KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
 
         assertThat(existingKeyWorker.getStaffId()).isEqualTo(staffId);
         assertThat(existingKeyWorker.getCapacity()).isEqualTo(capacity);
         assertThat(existingKeyWorker.getStatus()).isEqualTo(status);
     }
+
+    @Test
+    public void testkeyworkerStatusChangeBehaviour_removeAllocations() {
+        final Keyworker existingKeyWorker = Keyworker.builder()
+                .staffId(TEST_STAFF_ID)
+                .build();
+
+        when(keyworkerRepository.findOne(TEST_STAFF_ID)).thenReturn(existingKeyWorker);
+
+        final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
+        when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
+
+        service.addOrUpdate(TEST_STAFF_ID,
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_SUSPENDED).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATION_NO_AUTO).build());
+
+        verify(repository, times(1)).findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true);
+    }
+
+    @Test
+    public void testkeyworkerStatusChangeBehaviour_keepAllocations() {
+        final Keyworker existingKeyWorker = Keyworker.builder()
+                .staffId(TEST_STAFF_ID)
+                .build();
+
+        when(keyworkerRepository.findOne(TEST_STAFF_ID)).thenReturn(existingKeyWorker);
+
+        service.addOrUpdate(TEST_STAFF_ID,
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
+
+        verify(repository, never()).findByStaffIdAndAgencyIdAndActive(any(), any(), anyBoolean());
+    }
+
+
 
 
     private OffenderKeyworker getTestOffenderKeyworker(String agencyId, String offenderNo, long staffId) {
