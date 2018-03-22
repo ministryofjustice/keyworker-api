@@ -45,6 +45,7 @@ import static java.lang.String.format;
 public class KeyworkerService extends Elite2ApiSource {
     public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/locations/description/{agencyId}/inmates";
     public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "?keywords={offenderNo}";
+    public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     public static final String URI_STAFF = "/staff/{staffId}";
 
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
@@ -61,6 +62,10 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST =
             new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
+            };
+
+    private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
+            new ParameterizedTypeReference<List<OffenderLocationDto>>() {
             };
 
     private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
@@ -96,11 +101,13 @@ public class KeyworkerService extends Elite2ApiSource {
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
-        URI uri = new UriTemplate("/key-worker/{agencyId}/available").expand(agencyId);
+        URI uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(agencyId);
 
         ResponseEntity<List<KeyworkerDto>> responseEntity = getForList(uri, KEYWORKER_DTO_LIST);
 
-        final List<KeyworkerDto> decoratedList = responseEntity.getBody().stream().map(this::decorateWithKeyworkerData
+        final List<KeyworkerDto> decoratedList = responseEntity.getBody().stream()
+                .map(keyworkerDto -> decorateWithKeyworkerData(agencyId, keyworkerDto))
+                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
         ).collect(Collectors.toList());
 
         return decoratedList;
@@ -306,21 +313,21 @@ public class KeyworkerService extends Elite2ApiSource {
         KeyworkerAllocationDetailsDto dto;
         URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(agencyId, allocation.getOffenderNo());
 
-        final ResponseEntity<List<OffenderSummaryDto>> listOfOne = getForList(uri, OFFENDER_SUMMARY_DTO_LIST);
+        final ResponseEntity<List<OffenderLocationDto>> listOfOne = getForList(uri, OFFENDER_LOCATION_DTO_LIST);
 
         if (listOfOne.getBody().size() > 0) {
-            final OffenderSummaryDto offenderSummaryDto = listOfOne.getBody().get(0);
+            final OffenderLocationDto offenderSummaryDto = listOfOne.getBody().get(0);
             dto = KeyworkerAllocationDetailsDto.builder()
                     .bookingId(offenderSummaryDto.getBookingId())
                     .offenderNo(allocation.getOffenderNo())
                     .firstName(offenderSummaryDto.getFirstName())
-                    .middleNames(offenderSummaryDto.getMiddleNames())
+                    .middleNames(offenderSummaryDto.getMiddleName())
                     .lastName(offenderSummaryDto.getLastName())
                     .staffId(allocation.getStaffId())
                     .agencyId(allocation.getAgencyId())
                     .assigned(allocation.getAssignedDateTime())
                     .allocationType(allocation.getAllocationType())
-                    .internalLocationDesc(offenderSummaryDto.getInternalLocationDesc())
+                    .internalLocationDesc(offenderSummaryDto.getAssignedLivingUnitDesc())
                     .build();
         } else {
             log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using elite endpoint %s", allocation.getOffenderNo(), agencyId, uri));
@@ -355,13 +362,14 @@ public class KeyworkerService extends Elite2ApiSource {
         return keyworkerDto;
     }
 
-    private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
+    private KeyworkerDto decorateWithKeyworkerData(String agencyId, KeyworkerDto keyworkerDto) {
         final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true);
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), agencyId, true);
 
         keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
         keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
         keyworkerDto.setNumberAllocated(allocationsCount);
+        keyworkerDto.setAgencyId(agencyId);
         return keyworkerDto;
     }
 

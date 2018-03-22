@@ -59,4 +59,5 @@ public class OffenderSummaryDto {
 
     @ApiModelProperty(value = "Internal location description (if known)")
     private String internalLocationDesc;
+    private String assignedLivingUnitDesc;
 }
