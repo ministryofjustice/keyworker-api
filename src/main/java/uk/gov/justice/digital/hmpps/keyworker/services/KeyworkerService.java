@@ -106,7 +106,6 @@ public class KeyworkerService extends Elite2ApiSource {
         return decoratedList;
     }
 
-
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerAllocationDetailsDto> getKeyworkerAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
@@ -179,7 +178,7 @@ public class KeyworkerService extends Elite2ApiSource {
         }
         Assert.isTrue(response.getBody().size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
         final StaffLocationRoleDto dto = response.getBody().get(0);
-        return convertToKeyworkerDto(dto);
+        return decorateWithKeyworkerData(dto);
     }
 
     /**

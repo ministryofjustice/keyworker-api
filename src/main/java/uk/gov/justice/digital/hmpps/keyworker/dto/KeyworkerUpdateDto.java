@@ -20,11 +20,11 @@ import javax.validation.constraints.NotNull;
 
 public class KeyworkerUpdateDto {
 
-    @ApiModelProperty(value = "Key worker's allocation capacity.")
+    @ApiModelProperty(required = true, value = "Key worker's allocation capacity.")
     @NotNull
     private Integer capacity;
 
-    @ApiModelProperty(value = "Key worker's status.")
+    @ApiModelProperty(required = true, value = "Key worker's status.")
     @NotNull
     private KeyworkerStatus status;
 
