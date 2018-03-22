@@ -400,13 +400,18 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PostMapping(path = "/{staffId}/keyworker")
-    @PreAuthorize("#oauth2.hasScope('admin')")
+    @PostMapping(path = "/{staffId}/agencyId/{agencyId}")
     public void addOrUpdateKeyworker(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
-                    long staffId,
+                    Long staffId,
+
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId,
+
 
             @ApiParam(value = "New keyworker details." , required=true )
             @Valid
@@ -414,6 +419,6 @@ public class KeyworkerServiceController {
                     KeyworkerUpdateDto keyworkerUpdateDto
 
     ) {
-        keyworkerService.addOrUpdate(staffId, keyworkerUpdateDto);
+        keyworkerService.addOrUpdate(staffId, agencyId, keyworkerUpdateDto);
     }
 }

@@ -24,7 +24,10 @@ public class KeyworkerUpdateDto {
     @NotNull
     private Integer capacity;
 
-    @ApiModelProperty(value = "Key worker's status.")
+    @ApiModelProperty(required = true, value = "Key worker's status.")
     @NotNull
     private KeyworkerStatus status;
+
+    @ApiModelProperty(value = "Determines behaviour to apply to auto-allocation")
+    private KeyworkerStatusBehaviour behaviour;
 }
