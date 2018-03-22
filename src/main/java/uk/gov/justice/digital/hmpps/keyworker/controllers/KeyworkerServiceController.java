@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -221,6 +222,34 @@ public class KeyworkerServiceController {
                     String agencyId) {
 
         return keyworkerService.getKeyworkerDetails(agencyId, staffId);
+    }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Offenders current Keyworker",
+            notes = "Offenders current Keyworker",
+            nickname="getOffendersKeyworker")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = KeyworkerDto.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping(path="/{agencyId}/offender/{offenderNo}")
+
+    public KeyworkerDto getOffendersKeyworker(
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId,
+            @ApiParam(value = "offenderNo", required = true)
+            @NotEmpty
+            @PathVariable("offenderNo")
+                    String offenderNo) {
+
+        return keyworkerService.getCurrentKeyworkerForPrisoner(agencyId, offenderNo).orElseThrow(EntityNotFoundException::new);
     }
 
     /* --------------------------------------------------------------------------------*/

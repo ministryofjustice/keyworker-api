@@ -33,6 +33,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigration
 public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private static final String TEST_AGENCY = "LEI";
     private static final Long TEST_PAGE_SIZE = 25L;
+    public static final String INVALID_AGENCY_ID = "XXX";
 
     @Autowired
     private KeyworkerMigrationService service;
@@ -49,18 +50,20 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     @MockBean
     private BulkOffenderKeyworkerImporter importer;
 
+    @MockBean
+    private AgencyValidation agencyValidation;
+
     @Before
     public void setUp() throws Exception {
         ReflectionTestUtils.setField(service, "migrationPageSize", TEST_PAGE_SIZE);
+        doThrow(new AgencyNotSupportedException(INVALID_AGENCY_ID)).when(agencyValidation).verifyAgencySupport(eq(INVALID_AGENCY_ID));
     }
 
     // When request made to check and migrate agency that is not eligible for migration
     // Then migration does not start and AgencyNotSupportedException is thrown
     @Test(expected = AgencyNotSupportedException.class)
     public void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() throws Exception {
-        final String invalidAgencyId = "XXX";
-
-        service.checkAndMigrateOffenderKeyWorker(invalidAgencyId);
+        service.checkAndMigrateOffenderKeyWorker(INVALID_AGENCY_ID);
 
         server.verify();
     }

@@ -90,6 +90,12 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
+    public static void verifyBasicKeyworkerDto(KeyworkerDto keyworkerDetails, long staffId, String firstName, String lastName) {
+        assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
+        assertThat(keyworkerDetails.getFirstName()).isEqualTo(firstName);
+        assertThat(keyworkerDetails.getLastName()).isEqualTo(lastName);
+    }
+
     public static void verifyKeyworkerDto(long staffId, Integer capacity, Integer allocations, KeyworkerStatus status, KeyworkerDto keyworkerDetails) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getNumberAllocated()).isEqualTo(allocations);
