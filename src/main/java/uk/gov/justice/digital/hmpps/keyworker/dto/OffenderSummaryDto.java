@@ -49,7 +49,7 @@ public class OffenderSummaryDto {
     private String currentlyInPrison;
 
     @ApiModelProperty(value = "Agency Id (if known)")
-    private String agencyLocationId;
+    private String agencyId;
 
     @ApiModelProperty(value = "Agency description (if known)")
     private String agencyLocationDesc;

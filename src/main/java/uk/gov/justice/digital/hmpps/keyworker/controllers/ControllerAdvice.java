@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
+import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -34,7 +35,6 @@ public class ControllerAdvice {
                         .build());
     }
 
-
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleException(AccessDeniedException e) {
         return ResponseEntity
@@ -42,6 +42,17 @@ public class ControllerAdvice {
                 .body(ErrorResponse
                         .builder()
                         .status(HttpStatus.FORBIDDEN.value())
+                        .build());
+    }
+
+    @ExceptionHandler(AllocationException.class)
+    public ResponseEntity<ErrorResponse> handleException(AllocationException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse
+                        .builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .userMessage(e.getMessage())
                         .build());
     }
 

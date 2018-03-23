@@ -9,8 +9,6 @@ import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
@@ -21,9 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static sun.java2d.cmm.ColorTransform.In;
 
 /**
  * Service implementation of Key worker auto-allocation. On initiation the auto-allocation process will attempt to
@@ -126,17 +121,11 @@ public class KeyworkerAutoAllocationService {
         return calcAndLogAllocationsProcessed(agencyId, startAllocCount);
     }
 
-    /**
-     * Match up provisional allocations from the auto-allocate service with the list passed in and
-     * where they match (normally all will), set them to AUTO
-     * @param allocations Current provisional allocations as retrieved by the front end
-     * @return number of allocations from the list which were actually confirmed, i.e. set to AUTO
-     */
-
     @PreAuthorize("#oauth2.hasScope('write')")
     public Long confirmAllocations(String agencyId) {
         agencyValidation.verifyAgencySupport(agencyId);
-            /*(List<KeyworkerAllocationDto> allocations) {
+            /* TODO not *entirely sure this isnt needed ...
+        (List<KeyworkerAllocationDto> allocations) {
         final AtomicInteger numberConfirmed = new AtomicInteger(0);
         allocations.forEach(a -> {
             final List<OffenderKeyworker> offenderKeyworkers = offenderKeyworkerRepository.findByAllocationTypeAndOffenderNoAndStaffId(
@@ -169,7 +158,7 @@ public class KeyworkerAutoAllocationService {
         confirmAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
-        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(keyworker.getAgencyId(), keyworker.getStaffId());
+        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(offender.getAgencyId(), keyworker.getStaffId());
 
         keyworkerPool.refreshKeyworker(refreshedKeyworker);
     }
@@ -192,7 +181,7 @@ public class KeyworkerAutoAllocationService {
         return OffenderKeyworker.builder()
                 .offenderNo(offender.getOffenderNo())
                 .staffId(keyworker.getStaffId())
-                .agencyId(keyworker.getAgencyId())
+                .agencyId(offender.getAgencyId())
                 .allocationReason(AllocationReason.AUTO)
                 .active(true)
                 .assignedDateTime(LocalDateTime.now())

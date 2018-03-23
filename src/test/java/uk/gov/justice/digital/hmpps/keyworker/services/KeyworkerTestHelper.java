@@ -115,7 +115,7 @@ public class KeyworkerTestHelper {
     public static OffenderSummaryDto getOffender(long bookingId, String agencyId, String offenderNo, boolean currentlyInPrison) {
         return OffenderSummaryDto.builder()
                 .bookingId(bookingId)
-                .agencyLocationId(agencyId)
+                .agencyId(agencyId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
                 .currentlyInPrison(currentlyInPrison ? "Y" : "N")
