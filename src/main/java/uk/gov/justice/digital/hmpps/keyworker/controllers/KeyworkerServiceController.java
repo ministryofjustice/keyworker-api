@@ -334,7 +334,7 @@ public class KeyworkerServiceController {
                     Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
-            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "lastName, firstName")
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "lastName,firstName")
                     String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
