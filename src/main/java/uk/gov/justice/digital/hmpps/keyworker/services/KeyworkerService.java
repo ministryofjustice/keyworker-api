@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -44,6 +45,7 @@ import static java.lang.String.format;
 public class KeyworkerService extends Elite2ApiSource {
     public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/locations/description/{agencyId}/inmates";
     public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "?keywords={offenderNo}";
+    public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     public static final String URI_STAFF = "/staff/{staffId}";
 
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
@@ -60,6 +62,10 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST =
             new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
+            };
+
+    private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
+            new ParameterizedTypeReference<List<OffenderLocationDto>>() {
             };
 
     private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
@@ -95,11 +101,16 @@ public class KeyworkerService extends Elite2ApiSource {
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
-        URI uri = new UriTemplate("/key-worker/{agencyId}/available").expand(agencyId);
+        URI uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(agencyId);
 
         ResponseEntity<List<KeyworkerDto>> responseEntity = getForList(uri, KEYWORKER_DTO_LIST);
 
-        return responseEntity.getBody();
+        final List<KeyworkerDto> decoratedList = responseEntity.getBody().stream()
+                .map(keyworkerDto -> decorateWithKeyworkerData(agencyId, keyworkerDto))
+                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
+        ).collect(Collectors.toList());
+
+        return decoratedList;
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
@@ -174,7 +185,7 @@ public class KeyworkerService extends Elite2ApiSource {
         }
         Assert.isTrue(response.getBody().size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
         final StaffLocationRoleDto dto = response.getBody().get(0);
-        return convertToKeyworkerDto(dto);
+        return decorateWithKeyworkerData(dto);
     }
 
     /**
@@ -285,7 +296,7 @@ public class KeyworkerService extends Elite2ApiSource {
         final List<KeyworkerAllocationDetailsDto> detailsDtoList = allocations.stream()
                 .map(allocation -> decorateWithOffenderDetails(agencyId, allocation))
                 //remove allocations from returned list that do not have associated booking records
-                .filter(dto -> dto.getBookingId()!=null)
+                .filter(dto -> dto.getBookingId() != null)
                 .sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName))
                 .collect(Collectors.toList());
 
@@ -298,21 +309,21 @@ public class KeyworkerService extends Elite2ApiSource {
         KeyworkerAllocationDetailsDto dto;
         URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(agencyId, allocation.getOffenderNo());
 
-        final ResponseEntity<List<OffenderSummaryDto>> listOfOne = getForList(uri, OFFENDER_SUMMARY_DTO_LIST);
+        final ResponseEntity<List<OffenderLocationDto>> listOfOne = getForList(uri, OFFENDER_LOCATION_DTO_LIST);
 
         if (listOfOne.getBody().size() > 0) {
-            final OffenderSummaryDto offenderSummaryDto = listOfOne.getBody().get(0);
-            dto =  KeyworkerAllocationDetailsDto.builder()
+            final OffenderLocationDto offenderSummaryDto = listOfOne.getBody().get(0);
+            dto = KeyworkerAllocationDetailsDto.builder()
                     .bookingId(offenderSummaryDto.getBookingId())
                     .offenderNo(allocation.getOffenderNo())
                     .firstName(offenderSummaryDto.getFirstName())
-                    .middleNames(offenderSummaryDto.getMiddleNames())
+                    .middleNames(offenderSummaryDto.getMiddleName())
                     .lastName(offenderSummaryDto.getLastName())
                     .staffId(allocation.getStaffId())
                     .agencyId(allocation.getAgencyId())
                     .assigned(allocation.getAssignedDateTime())
                     .allocationType(allocation.getAllocationType())
-                    .internalLocationDesc(offenderSummaryDto.getInternalLocationDesc())
+                    .internalLocationDesc(offenderSummaryDto.getAssignedLivingUnitDesc())
                     .build();
         } else {
             log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using elite endpoint %s", allocation.getOffenderNo(), agencyId, uri));
@@ -330,13 +341,13 @@ public class KeyworkerService extends Elite2ApiSource {
 
         ResponseEntity<List<StaffLocationRoleDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST);
 
-        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().map(this::convertToKeyworkerDto
+        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().map(this::decorateWithKeyworkerData
         ).collect(Collectors.toList());
 
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
     }
 
-    private KeyworkerDto convertToKeyworkerDto(StaffLocationRoleDto dto) {
+    private KeyworkerDto decorateWithKeyworkerData(StaffLocationRoleDto dto) {
         final Keyworker keyworker = keyworkerRepository.findOne(dto.getStaffId());
         final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(dto.getStaffId(), dto.getAgencyId(), true);
 
@@ -344,6 +355,17 @@ public class KeyworkerService extends Elite2ApiSource {
         keyworkerDto.setCapacity(determineCapacity(dto, keyworker, dto.getStaffId()));
         keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
         keyworkerDto.setNumberAllocated(allocationsCount);
+        return keyworkerDto;
+    }
+
+    private KeyworkerDto decorateWithKeyworkerData(String agencyId, KeyworkerDto keyworkerDto) {
+        final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), agencyId, true);
+
+        keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
+        keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
+        keyworkerDto.setNumberAllocated(allocationsCount);
+        keyworkerDto.setAgencyId(agencyId);
         return keyworkerDto;
     }
 
@@ -361,8 +383,10 @@ public class KeyworkerService extends Elite2ApiSource {
         return capacity;
     }
 
-    public void addOrUpdate(Long staffId, KeyworkerUpdateDto keyworkerUpdateDto) {
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public void addOrUpdate(Long staffId, String agencyId, KeyworkerUpdateDto keyworkerUpdateDto) {
 
+        Validate.notNull(staffId, "Missing staff id");
         Keyworker keyworker = keyworkerRepository.findOne(staffId);
 
         if (keyworker == null) {
@@ -373,9 +397,29 @@ public class KeyworkerService extends Elite2ApiSource {
                     .status(keyworkerUpdateDto.getStatus())
                     .build());
 
-        }else{
+        } else {
             keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
             keyworker.setStatus(keyworkerUpdateDto.getStatus());
+        }
+
+        final KeyworkerStatusBehaviour behaviour = keyworkerUpdateDto.getBehaviour();
+        if (behaviour != null) applyStatusChangeBehaviour(staffId, agencyId, behaviour);
+    }
+
+    private void applyStatusChangeBehaviour(Long staffId, String agencyId, KeyworkerStatusBehaviour behaviour) {
+
+        if (behaviour.isRemoveAllocations()) {
+            final LocalDateTime now = LocalDateTime.now();
+            final List<OffenderKeyworker> allocations = repository.findByStaffIdAndAgencyIdAndActive(staffId, agencyId, true);
+            allocations.forEach(ok -> {
+                ok.setDeallocationReason(DeallocationReason.RELEASED);
+                ok.setActive(false);
+                ok.setExpiryDateTime(now);
+            });
+        }
+
+        if (behaviour.isRemoveFromAutoAllocation()) {
+            //todo how? new flag on keyworker table?
         }
     }
 }

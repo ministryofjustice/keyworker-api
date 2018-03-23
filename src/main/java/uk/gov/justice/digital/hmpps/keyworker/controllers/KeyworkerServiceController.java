@@ -330,11 +330,11 @@ public class KeyworkerServiceController {
                     Long pageOffset,
 
             @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue="10")
-            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
+            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "1000")
                     Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
-            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "lastName,firstName")
                     String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
@@ -400,13 +400,18 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PostMapping(path = "/{staffId}/keyworker")
-    @PreAuthorize("#oauth2.hasScope('admin')")
+    @PostMapping(path = "/{staffId}/agencyId/{agencyId}")
     public void addOrUpdateKeyworker(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
-                    long staffId,
+                    Long staffId,
+
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId")
+                    String agencyId,
+
 
             @ApiParam(value = "New keyworker details." , required=true )
             @Valid
@@ -414,6 +419,6 @@ public class KeyworkerServiceController {
                     KeyworkerUpdateDto keyworkerUpdateDto
 
     ) {
-        keyworkerService.addOrUpdate(staffId, keyworkerUpdateDto);
+        keyworkerService.addOrUpdate(staffId, agencyId, keyworkerUpdateDto);
     }
 }
