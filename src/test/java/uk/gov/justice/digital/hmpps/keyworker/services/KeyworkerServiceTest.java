@@ -536,6 +536,38 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         server.verify();
     }
 
+
+    @Test
+    public void testGetAvailableKeyworkers() throws Exception {
+        String availableKeyworkersUri = expandUriTemplate(KeyworkerService.URI_AVAILABLE_KEYWORKERS, TEST_AGENCY);
+
+        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0),
+                KeyworkerTestHelper.getKeyworker(2, 0),
+                KeyworkerTestHelper.getKeyworker(3, 0)));
+
+
+        when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).build());
+        when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).build());
+        when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).build());
+
+        when(repository.countByStaffIdAndAgencyIdAndActive(1l, TEST_AGENCY, true)).thenReturn(2);
+        when(repository.countByStaffIdAndAgencyIdAndActive(2l, TEST_AGENCY, true)).thenReturn(3);
+        when(repository.countByStaffIdAndAgencyIdAndActive(3l, TEST_AGENCY, true)).thenReturn(1);
+
+        server.expect(requestTo(availableKeyworkersUri))
+                .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)
+                );
+
+        // Invoke service method
+        List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(TEST_AGENCY);
+
+        // Verify response
+        assertThat(keyworkerList).hasSize(3);
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
+
+        server.verify();
+    }
+
     @Test
     public void testThatANewKeyworkerRecordIsInserted() {
         final long staffId = 1;
@@ -592,7 +624,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_SUSPENDED).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATION_NO_AUTO).build());
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_SUSPENDED).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
 
         verify(repository, times(1)).findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true);
     }

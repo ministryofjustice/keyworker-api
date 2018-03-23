@@ -123,8 +123,6 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
                     .staffId(i)
                     .offenderNo("A" + (1000 + i) + "AA")
                     .active(RandomStringUtils.random(1, "YN"))
-                    .created(LocalDateTime.now())
-                    .createdBy("SA")
                     .build());
         }
 

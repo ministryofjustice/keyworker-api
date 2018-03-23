@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.model.CreateUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
@@ -26,13 +25,6 @@ public final class ConversionHelper {
     public static OffenderKeyworker convertOffenderKeyworkerDto2Model(OffenderKeyworkerDto dto) {
         Validate.notNull(dto);
 
-        CreateUpdate createUpdate = CreateUpdate.builder()
-                .creationDateTime(dto.getCreated())
-                .createUserId(dto.getCreatedBy())
-                .modifyDateTime(dto.getModified())
-                .modifyUserId(dto.getModifiedBy())
-                .build();
-
         return OffenderKeyworker.builder()
                 .offenderNo(dto.getOffenderNo())
                 .staffId(dto.getStaffId())
@@ -41,7 +33,6 @@ public final class ConversionHelper {
                 .assignedDateTime(dto.getAssigned())
                 .expiryDateTime(dto.getExpired())
                 .userId(dto.getUserId())
-                .createUpdate(createUpdate)
                 .build();
     }
 
@@ -65,7 +56,6 @@ public final class ConversionHelper {
                 .userId(model.getUserId())
                 .build();
     }
-
 
     public static OffenderKeyworker getOffenderKeyworker(KeyworkerAllocationDto newAllocation, String userId) {
         return OffenderKeyworker.builder()
