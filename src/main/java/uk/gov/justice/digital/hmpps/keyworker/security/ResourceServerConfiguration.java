@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +16,7 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.stereotype.Service;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
@@ -24,7 +27,7 @@ import uk.gov.justice.digital.hmpps.keyworker.controllers.KeyworkerServiceContro
 @Configuration
 @EnableSwagger2
 @EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
-
+@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
     @Value("${jwt.signing.key}")
@@ -77,5 +80,18 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
                     .paths(PathSelectors.any())
                     .build()
                 .useDefaultResponseMessages(false);
+    }
+
+    @Service(value = "auditorAware")
+    public class AuditorAwareImpl implements AuditorAware<String> {
+        AuthenticationFacade authenticationFacade;
+        public AuditorAwareImpl(AuthenticationFacade authenticationFacade) {
+            this.authenticationFacade = authenticationFacade;
+        }
+
+        @Override
+        public String getCurrentAuditor() {
+             return authenticationFacade.getCurrentUsername();
+        }
     }
 }
