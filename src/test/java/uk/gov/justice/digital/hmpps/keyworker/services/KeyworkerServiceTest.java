@@ -624,7 +624,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_SUSPENDED).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATION_NO_AUTO).build());
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_SUSPENDED).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
 
         verify(repository, times(1)).findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true);
     }

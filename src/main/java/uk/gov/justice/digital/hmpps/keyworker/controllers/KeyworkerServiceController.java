@@ -330,11 +330,11 @@ public class KeyworkerServiceController {
                     Long pageOffset,
 
             @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue="10")
-            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
+            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "1000")
                     Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
-            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "lastName, firstName")
                     String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
