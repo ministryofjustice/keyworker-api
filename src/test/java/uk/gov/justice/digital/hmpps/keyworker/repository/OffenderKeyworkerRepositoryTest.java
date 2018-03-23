@@ -73,7 +73,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void givenAPersistentInstanceThenNullableValuesAreUpdateable() {
+    public void givenAPersistentInstanceThenNullableValuesAreUpdateable() throws InterruptedException {
 
         val entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
@@ -90,7 +90,7 @@ public class OffenderKeyworkerRepositoryTest {
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
-
+        Thread.sleep(2L); // just long enough to make the modifyDateTime different to the creationDateTime
         TestTransaction.start();
 
         val persistedUpdates = repository.findOne(entity.getOffenderKeyworkerId());
