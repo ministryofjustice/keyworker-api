@@ -24,10 +24,7 @@ import static javax.persistence.TemporalType.TIMESTAMP;
 @EqualsAndHashCode(of = {"offenderNo", "staffId", "assignedDateTime"})
 @EntityListeners(AuditingEntityListener.class)
 public class OffenderKeyworker {
-    /*
-public  String testMethod() {
-    return null;
-}*/
+
     @Id()
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name = "offender_keyworker_id", nullable = false)
