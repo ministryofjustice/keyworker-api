@@ -384,7 +384,7 @@ public class KeyworkerServiceController {
             nickname="keyworkerallocations")
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = KeyworkerDto.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "OK", response = KeyworkerAllocationDetailsDto.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
@@ -418,7 +418,7 @@ public class KeyworkerServiceController {
             nickname="addOrUpdateKeyworker")
 
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "OK", response = OffenderSummaryDto.class),
+            @ApiResponse(code = 201, message = "OK"),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
