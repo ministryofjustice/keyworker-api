@@ -115,7 +115,7 @@ public class KeyworkerTestHelper {
     public static OffenderSummaryDto getOffender(long bookingId, String agencyId, String offenderNo, boolean currentlyInPrison) {
         return OffenderSummaryDto.builder()
                 .bookingId(bookingId)
-                .agencyLocationId(agencyId)
+                .agencyId(agencyId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
                 .currentlyInPrison(currentlyInPrison ? "Y" : "N")
@@ -138,7 +138,7 @@ public class KeyworkerTestHelper {
     public static void verifyAutoAllocation(OffenderKeyworker kwAlloc, String agencyId, String offenderNo, long staffId) {
         verifyNewAllocation(kwAlloc, agencyId, offenderNo, staffId);
 
-        assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.AUTO);
+        assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
         assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
     }
 

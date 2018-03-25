@@ -2,10 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
@@ -70,6 +67,24 @@ public final class ConversionHelper {
                 .assignedDateTime(LocalDateTime.now())
                 .allocationType(newAllocation.getAllocationType())
                 .userId(userId)
+                .build();
+    }
+
+    public static List<KeyworkerAllocationDetailsDto> convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(List<OffenderKeyworker> models) {
+        Validate.notNull(models);
+
+        return models.stream().map(ConversionHelper::convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto).collect(Collectors.toList());
+    }
+
+    public static KeyworkerAllocationDetailsDto convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(OffenderKeyworker model) {
+        Validate.notNull(model);
+
+        return KeyworkerAllocationDetailsDto.builder()
+                .offenderNo(model.getOffenderNo())
+                .staffId(model.getStaffId())
+                .agencyId(model.getAgencyId())
+                .assigned(model.getAssignedDateTime())
+                .allocationType(model.getAllocationType())
                 .build();
     }
 

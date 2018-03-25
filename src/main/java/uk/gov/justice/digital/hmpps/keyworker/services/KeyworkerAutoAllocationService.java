@@ -6,6 +6,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +40,7 @@ public class KeyworkerAutoAllocationService {
     private final CounterService counterService;
     private final BufferMetricReader metricReader;
     private final long offenderPageLimit;
+    private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final AgencyValidation agencyValidation;
 
     /**
@@ -50,17 +53,19 @@ public class KeyworkerAutoAllocationService {
                                           KeyworkerPoolFactory keyworkerPoolFactory,
                                           CounterService counterService,
                                           BufferMetricReader metricReader,
+                                          OffenderKeyworkerRepository offenderKeyworkerRepository,
                                           AgencyValidation agencyValidation) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.counterService = counterService;
         this.metricReader = metricReader;
+        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.agencyValidation = agencyValidation;
 
         this.offenderPageLimit = 10L;
     }
 
-//    @VerifyAgencyAccess
+    @PreAuthorize("#oauth2.hasScope('write')")
     public Long autoAllocate(String agencyId) throws AllocationException {
         // Confirm a valid agency has been supplied.
         Validate.isTrue(StringUtils.isNotBlank(agencyId), "Agency id must be provided.");
@@ -68,6 +73,11 @@ public class KeyworkerAutoAllocationService {
         agencyValidation.verifyAgencySupport(agencyId);
 
         log.info("Key worker auto-allocation process initiated for agency [{}].", agencyId);
+
+        // Tidy up any abandoned previous run
+        if (clearExistingProvisionals(agencyId) > 0) {
+            log.info("Cleared {} pre-existing provisional allocations.", agencyId);
+        }
 
         // Get initial counter metric
         long startAllocCount = getCurrentAllocationCount();
@@ -111,6 +121,29 @@ public class KeyworkerAutoAllocationService {
         return calcAndLogAllocationsProcessed(agencyId, startAllocCount);
     }
 
+    @PreAuthorize("#oauth2.hasScope('write')")
+    public Long confirmAllocations(String agencyId) {
+        agencyValidation.verifyAgencySupport(agencyId);
+            /* TODO not *entirely sure this isnt needed ...
+        (List<KeyworkerAllocationDto> allocations) {
+        final AtomicInteger numberConfirmed = new AtomicInteger(0);
+        allocations.forEach(a -> {
+            final List<OffenderKeyworker> offenderKeyworkers = offenderKeyworkerRepository.findByAllocationTypeAndOffenderNoAndStaffId(
+                    AllocationType.PROVISIONAL, a.getOffenderNo(), a.getStaffId());
+            if (offenderKeyworkers.size() == 1) {
+                offenderKeyworkers.get(0).setAllocationType(AllocationType.AUTO);
+                numberConfirmed.incrementAndGet();
+            }
+            // else ... Not found, or more than one. Either way leave alone and emit warning
+        });
+        return numberConfirmed.get();*/
+        return (long)offenderKeyworkerRepository.confirmProvisionals(agencyId);
+    }
+
+    private int clearExistingProvisionals(String agencyId) {
+        return offenderKeyworkerRepository.deleteExistingProvisionals(agencyId);
+    }
+
     private void processAllocations(List<OffenderSummaryDto> offenders, KeyworkerPool keyworkerPool) {
         // Process allocation for each unallocated offender
         for (OffenderSummaryDto offender : offenders) {
@@ -121,11 +154,11 @@ public class KeyworkerAutoAllocationService {
     private void processAllocation(OffenderSummaryDto offender, KeyworkerPool keyworkerPool) {
         KeyworkerDto keyworker = keyworkerPool.getKeyworker(offender.getOffenderNo());
 
-        // At this point, Key worker to which offender will be allocated has been identified - create allocation
+        // At this point, Key worker to which offender will be allocated has been identified - create provisional allocation
         confirmAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
-        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(offender.getAgencyLocationId(), keyworker.getStaffId());
+        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(offender.getAgencyId(), keyworker.getStaffId());
 
         keyworkerPool.refreshKeyworker(refreshedKeyworker);
     }
@@ -148,11 +181,11 @@ public class KeyworkerAutoAllocationService {
         return OffenderKeyworker.builder()
                 .offenderNo(offender.getOffenderNo())
                 .staffId(keyworker.getStaffId())
-                .agencyId(offender.getAgencyLocationId())
+                .agencyId(offender.getAgencyId())
                 .allocationReason(AllocationReason.AUTO)
                 .active(true)
                 .assignedDateTime(LocalDateTime.now())
-                .allocationType(AllocationType.AUTO)
+                .allocationType(AllocationType.PROVISIONAL)
                 .build();
     }
 

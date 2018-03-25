@@ -27,7 +27,7 @@ CREATE TABLE OFFENDER_KEY_WORKER
 
   CONSTRAINT OFFENDER_KEYWORKER_UNIQUE UNIQUE (OFFENDER_NO, STAFF_ID, ASSIGNED_DATE_TIME),
 
-  CONSTRAINT OFFENDER_KEY_WORKER_C1 CHECK (ALLOC_TYPE IN ('A','M'))
+  CONSTRAINT OFFENDER_KEY_WORKER_C1 CHECK (ALLOC_TYPE IN ('A','M','P'))
 );
 
 COMMENT ON TABLE OFFENDER_KEY_WORKER IS 'Records the Key Worker assignment history of offenders on remand or serving custodial sentences held within an establishment.';
@@ -41,4 +41,4 @@ COMMENT ON COLUMN OFFENDER_KEY_WORKER.ACTIVE_FLAG        IS 'Assignment Active F
 COMMENT ON COLUMN OFFENDER_KEY_WORKER.EXPIRY_DATE_TIME   IS 'Expiry Date and Time of Assignment';
 COMMENT ON COLUMN OFFENDER_KEY_WORKER.ALLOC_REASON       IS 'Reason for allocation';
 COMMENT ON COLUMN OFFENDER_KEY_WORKER.DEALLOC_REASON     IS 'Reason for de-allocation';
-COMMENT ON COLUMN OFFENDER_KEY_WORKER.ALLOC_TYPE         IS 'Type of allocation, M for manual, A for auto';
+COMMENT ON COLUMN OFFENDER_KEY_WORKER.ALLOC_TYPE         IS 'Type of allocation, M for manual, A for auto, P for provisional';

@@ -11,7 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 
@@ -33,12 +33,15 @@ import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 public class KeyworkerServiceController {
 
     private final KeyworkerService keyworkerService;
-
     private final KeyworkerMigrationService migrationService;
+    private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
 
-    public KeyworkerServiceController(KeyworkerService keyworkerService, KeyworkerMigrationService migrationService) {
+    public KeyworkerServiceController(KeyworkerService keyworkerService,
+                                      KeyworkerMigrationService migrationService,
+                                      KeyworkerAutoAllocationService keyworkerAutoAllocationService) {
         this.keyworkerService = keyworkerService;
         this.migrationService = migrationService;
+        this.keyworkerAutoAllocationService = keyworkerAutoAllocationService;
     }
 
     /* --------------------------------------------------------------------------------*/
@@ -117,7 +120,7 @@ public class KeyworkerServiceController {
             @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
-        Page<KeyworkerAllocationDetailsDto> page = keyworkerService.getKeyworkerAllocations(
+        Page<KeyworkerAllocationDetailsDto> page = keyworkerService.getAllocations(
                 AllocationsFilterDto
                         .builder()
                         .agencyId(agencyId)
@@ -267,13 +270,32 @@ public class KeyworkerServiceController {
 
     @PostMapping(path = "/{agencyId}/allocate/start")
 
-    public String startAutoAllocation(
+    public Long startAutoAllocation(
             @ApiParam(value = "agencyId", required = true)
             @NotEmpty
             @PathVariable("agencyId") String agencyId) {
-        return keyworkerService.startAutoAllocation(agencyId);
+        return keyworkerAutoAllocationService.autoAllocate(agencyId);
     }
+    /* --------------------------------------------------------------------------------*/
 
+    @ApiOperation(
+            value = "Confirm allocations chosen by the auto-allocation process.",
+            notes = "Confirm allocations chosen by the auto-allocation process.",
+            nickname="confirmAutoAllocation")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Request to confirm allocations has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)", response = String.class),
+            @ApiResponse(code = 404, message = "Agency id provided is not valid or is not accessible to user.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PostMapping(path = "/{agencyId}/allocate/confirm")
+
+    public Long confirmAutoAllocation(
+            @ApiParam(value = "agencyId", required = true)
+            @NotEmpty
+            @PathVariable("agencyId") String agencyId) {
+        return keyworkerAutoAllocationService.confirmAllocations(agencyId);
+    }
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(

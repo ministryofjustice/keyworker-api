@@ -13,15 +13,13 @@ import org.mockito.stubbing.Answer;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
-import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,6 +59,9 @@ public class KeyworkerAutoAllocationServiceTest {
     @Mock
     private AgencyValidation agencyValidation;
 
+    @Mock
+    private OffenderKeyworkerRepository offenderKeyworkerRepository;
+
     private long allocCount;
 
     @Before
@@ -95,7 +96,7 @@ public class KeyworkerAutoAllocationServiceTest {
         // Construct service under test (using mock collaborators)
         Set<String> aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
         keyworkerAutoAllocationService =
-                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader, agencyValidation);
+                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader, offenderKeyworkerRepository, agencyValidation);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -388,9 +389,9 @@ public class KeyworkerAutoAllocationServiceTest {
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
         verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(anyString());
-
         // Expecting allocation to succeed - verify request includes expected values
         ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
@@ -525,7 +526,7 @@ public class KeyworkerAutoAllocationServiceTest {
         kwaArg.getAllValues().forEach(kwAlloc -> {
             assertThat(kwAlloc.getOffenderNo()).isNotNull();
             assertThat(kwAlloc.getStaffId()).isBetween(1L, totalKeyworkers.longValue());
-            assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.AUTO);
+            assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
 
@@ -586,7 +587,7 @@ public class KeyworkerAutoAllocationServiceTest {
         kwaArg.getAllValues().forEach(kwAlloc -> {
             assertThat(kwAlloc.getOffenderNo()).isNotNull();
             assertThat(kwAlloc.getStaffId()).isBetween(1L, totalKeyworkers.longValue());
-            assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.AUTO);
+            assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
 

@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
@@ -48,7 +49,7 @@ public class KeyworkerAllocationProcessorTest {
     }
 
     // When offender summary allocation filter processing requested with a list of 5 offender summary dtos
-    // And none of the offenders has an active allocation to a Key worker
+    // And none of the offenders has an active non-provisional allocation to a Key worker
     // Then response is same list of 5 offender summary dtos
     @Test
     public void testFilterByUnallocatedNoAllocations() {
@@ -58,7 +59,11 @@ public class KeyworkerAllocationProcessorTest {
         Set<String> offNos = dtos.stream().map(OffenderSummaryDto::getOffenderNo).collect(Collectors.toSet());
 
         // Mock repository to return no active allocations for specified offender numbers.
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(Collections.emptyList());
+        final OffenderKeyworker ok = OffenderKeyworker.builder()
+                .offenderNo(offNos.iterator().next())
+                .allocationType(AllocationType.PROVISIONAL)
+                .build();
+        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(Collections.singletonList(ok));
 
         // Invoke service
         List<OffenderSummaryDto> results = processor.filterByUnallocated(dtos);
