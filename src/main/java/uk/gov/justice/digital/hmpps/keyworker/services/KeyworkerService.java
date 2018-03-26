@@ -15,8 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -29,7 +28,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -101,16 +99,29 @@ public class KeyworkerService extends Elite2ApiSource {
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String agencyId) {
 
-        URI uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(agencyId);
+        ResponseEntity<List<KeyworkerDto>> responseEntity = doAvailableKeyworkersRequest(agencyId);
 
-        ResponseEntity<List<KeyworkerDto>> responseEntity = getForList(uri, KEYWORKER_DTO_LIST);
+        final List<KeyworkerDto> returnedList = responseEntity.getBody();
 
-        final List<KeyworkerDto> decoratedList = responseEntity.getBody().stream()
-                .map(keyworkerDto -> decorateWithKeyworkerData(agencyId, keyworkerDto))
+        returnedList.forEach(keyworkerDto -> keyworkerDto.setAgencyId(agencyId));
+
+        final List<KeyworkerDto> decoratedList = returnedList.stream().map(keyworkerDto -> decorateWithKeyworkerData(keyworkerDto))
                 .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
-        ).collect(Collectors.toList());
+                ).collect(Collectors.toList());
 
         return decoratedList;
+    }
+
+    private ResponseEntity<List<KeyworkerDto>> doAvailableKeyworkersRequest(String agencyId) {
+        URI uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(agencyId);
+
+        return getForList(uri, KEYWORKER_DTO_LIST);
+    }
+
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public List<KeyworkerDto> getKeyworkersAvailableforAutoAllocation(String agencyId) {
+        final List<KeyworkerDto> availableKeyworkers = getAvailableKeyworkers(agencyId);
+        return availableKeyworkers.stream().filter(KeyworkerDto::getAutoAllocationAllowed).collect(Collectors.toList());
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
@@ -124,7 +135,7 @@ public class KeyworkerService extends Elite2ApiSource {
 // TODO implement date filters
         final List<KeyworkerAllocationDetailsDto> results = ConversionHelper.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(list);
 
-        return new Page<KeyworkerAllocationDetailsDto>(results, (long) list.size(), 0L, (long) list.size());
+        return new Page<>(results, (long) list.size(), 0L, (long) list.size());
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
@@ -182,7 +193,7 @@ public class KeyworkerService extends Elite2ApiSource {
         }
         Assert.isTrue(response.getBody().size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, agencyId));
         final StaffLocationRoleDto dto = response.getBody().get(0);
-        return decorateWithKeyworkerData(dto);
+        return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto));
     }
 
     /**
@@ -326,47 +337,23 @@ public class KeyworkerService extends Elite2ApiSource {
 
         ResponseEntity<List<StaffLocationRoleDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST);
 
-        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().map(this::decorateWithKeyworkerData
-        ).collect(Collectors.toList());
-
+        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream()
+                .map(dto -> decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto))).collect(Collectors.toList());
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
     }
 
-    private KeyworkerDto decorateWithKeyworkerData(StaffLocationRoleDto dto) {
-        final Keyworker keyworker = keyworkerRepository.findOne(dto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(dto.getStaffId(), dto.getAgencyId(), true);
-
-        final KeyworkerDto keyworkerDto = ConversionHelper.getKeyworkerDto(dto);
-        keyworkerDto.setCapacity(determineCapacity(dto, keyworker, dto.getStaffId()));
-        keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
-        keyworkerDto.setNumberAllocated(allocationsCount);
-        return keyworkerDto;
-    }
-
-    private KeyworkerDto decorateWithKeyworkerData(String agencyId, KeyworkerDto keyworkerDto) {
+    private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
         final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), agencyId, true);
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true);
 
         keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
         keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
         keyworkerDto.setNumberAllocated(allocationsCount);
-        keyworkerDto.setAgencyId(agencyId);
+        keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
+        keyworkerDto.setAutoAllocationAllowed(keyworker != null ? keyworker.getAutoAllocationFlag() : true);
         return keyworkerDto;
     }
 
-    private Integer determineCapacity(StaffLocationRoleDto dto, Keyworker keyworker, Long staffId) {
-        Integer capacity = capacityDefault;
-        if (keyworker != null && keyworker.getCapacity() != null) {
-            capacity = keyworker.getCapacity();
-        } else {
-            if (dto.getHoursPerWeek() != null) {
-                capacity = dto.getHoursPerWeek().intValue();
-            } else {
-                log.debug("No capacity set for key worker {}, using capacity default of {}", staffId, capacityDefault);
-            }
-        }
-        return capacity;
-    }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public void addOrUpdate(Long staffId, String agencyId, KeyworkerUpdateDto keyworkerUpdateDto) {
@@ -380,6 +367,7 @@ public class KeyworkerService extends Elite2ApiSource {
                     .staffId(staffId)
                     .capacity(keyworkerUpdateDto.getCapacity())
                     .status(keyworkerUpdateDto.getStatus())
+                    .autoAllocationFlag(true)
                     .build());
 
         } else {
@@ -404,7 +392,7 @@ public class KeyworkerService extends Elite2ApiSource {
         }
 
         if (behaviour.isRemoveFromAutoAllocation()) {
-            //todo how? new flag on keyworker table?
+            keyworkerRepository.findOne(staffId).setAutoAllocationFlag(false);
         }
     }
 }

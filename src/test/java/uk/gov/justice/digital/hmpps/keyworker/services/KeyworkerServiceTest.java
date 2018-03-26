@@ -397,6 +397,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .staffId(staffId)
                 .capacity(CAPACITY)
                 .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
+                .autoAllocationFlag(true)
                 .build()
         );
         when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(ALLOCATIONS);
@@ -437,7 +438,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
         server.verify();
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 11, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
     }
 
     @Test
@@ -451,7 +452,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
         server.verify();
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 11, null, KeyworkerStatus.ACTIVE, keyworkerDetails);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, null, KeyworkerStatus.ACTIVE, keyworkerDetails);
     }
 
     @Test
@@ -546,9 +547,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 KeyworkerTestHelper.getKeyworker(3, 0)));
 
 
-        when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).build());
-        when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).build());
-        when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).build());
+        when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).autoAllocationFlag(true).build());
 
         when(repository.countByStaffIdAndAgencyIdAndActive(1l, TEST_AGENCY, true)).thenReturn(2);
         when(repository.countByStaffIdAndAgencyIdAndActive(2l, TEST_AGENCY, true)).thenReturn(3);
@@ -564,6 +565,41 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         // Verify response
         assertThat(keyworkerList).hasSize(3);
         assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
+
+        server.verify();
+    }
+
+    @Test
+    public void testGetKeyworkersAvailableforAutoAllocation() throws Exception {
+        String availableKeyworkersUri = expandUriTemplate(KeyworkerService.URI_AVAILABLE_KEYWORKERS, TEST_AGENCY);
+
+        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0),
+                KeyworkerTestHelper.getKeyworker(2, 0),
+                KeyworkerTestHelper.getKeyworker(3, 0),
+                KeyworkerTestHelper.getKeyworker(4, 0)));
+
+
+        when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(4l)).thenReturn(Keyworker.builder().staffId(4l).autoAllocationFlag(false).build());
+
+        when(repository.countByStaffIdAndAgencyIdAndActive(1l, TEST_AGENCY, true)).thenReturn(2);
+        when(repository.countByStaffIdAndAgencyIdAndActive(2l, TEST_AGENCY, true)).thenReturn(3);
+        when(repository.countByStaffIdAndAgencyIdAndActive(3l, TEST_AGENCY, true)).thenReturn(1);
+
+        server.expect(requestTo(availableKeyworkersUri))
+                .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)
+                );
+
+        // Invoke service method
+        List<KeyworkerDto> keyworkerList = service.getKeyworkersAvailableforAutoAllocation(TEST_AGENCY);
+
+        // Verify response
+        assertThat(keyworkerList).hasSize(3);
+        //should exclude staffid 4 - autoAllocationAllowed flag is false
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
+        assertThat(keyworkerList).extracting("autoAllocationAllowed").isEqualTo(ImmutableList.of(true,true,true));
 
         server.verify();
     }
@@ -642,9 +678,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         verify(repository, never()).findByStaffIdAndAgencyIdAndActive(any(), any(), anyBoolean());
     }
-
-
-
 
     private OffenderKeyworker getTestOffenderKeyworker(String agencyId, String offenderNo, long staffId) {
         return OffenderKeyworker.builder()

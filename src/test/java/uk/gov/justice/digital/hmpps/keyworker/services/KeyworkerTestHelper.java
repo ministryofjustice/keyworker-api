@@ -55,6 +55,7 @@ public class KeyworkerTestHelper {
                 .numberAllocated(numberOfAllocations)
                 .firstName(RandomStringUtils.randomAscii(35))
                 .lastName(RandomStringUtils.randomAscii(35))
+                .autoAllocationAllowed(true)
                 .build();
     }
 
@@ -86,7 +87,6 @@ public class KeyworkerTestHelper {
                 .roleDescription("Key Worker")
                 .scheduleType("FT")
                 .scheduleTypeDescription("Full Time")
-                .hoursPerWeek(new BigDecimal(11.0))
                 .build();
     }
 
