@@ -19,13 +19,14 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
     List<OffenderKeyworker> findByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
+    List<OffenderKeyworker> findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(Long staffId, String agencyId, boolean active, AllocationType type);
 
     boolean existsByAgencyId(String agencyId);
 
     List<OffenderKeyworker> findByActiveAndOffenderNoIn(boolean isActive, Collection<String> offenderNo);
     List<OffenderKeyworker> findByActiveAndOffenderNo(boolean isActive, String offenderNo);
-    List<OffenderKeyworker> findByActiveAndAgencyIdAndOffenderNoIn(boolean isActive, String agencyId, Collection<String> offenderNo);
-    List<OffenderKeyworker> findByActiveAndAgencyId(boolean isActive, String agencyId);
+    List<OffenderKeyworker> findByActiveAndAgencyIdAndOffenderNoInAndAllocationTypeIsNot(boolean isActive, String agencyId, Collection<String> offenderNo, AllocationType type);
+    List<OffenderKeyworker> findByActiveAndAgencyIdAndAllocationTypeIsNot(boolean isActive, String agencyId, AllocationType type);
     List<OffenderKeyworker> findByActiveAndAgencyIdAndAllocationType(boolean isActive, String agencyId, AllocationType type);
 
     Integer countByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);

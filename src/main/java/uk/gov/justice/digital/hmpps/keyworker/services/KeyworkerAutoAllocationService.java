@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
@@ -83,7 +83,7 @@ public class KeyworkerAutoAllocationService {
         long startAllocCount = getCurrentAllocationCount();
 
         // Get all unallocated offenders for agency
-        List<OffenderSummaryDto> unallocatedOffenders = getUnallocatedOffenders(agencyId);
+        List<OffenderLocationDto> unallocatedOffenders = getUnallocatedOffenders(agencyId);
 
         // Are there any unallocated offenders? If not, log and exit, otherwise proceed.
         if (unallocatedOffenders.isEmpty()) {
@@ -144,14 +144,14 @@ public class KeyworkerAutoAllocationService {
         return offenderKeyworkerRepository.deleteExistingProvisionals(agencyId);
     }
 
-    private void processAllocations(List<OffenderSummaryDto> offenders, KeyworkerPool keyworkerPool) {
+    private void processAllocations(List<OffenderLocationDto> offenders, KeyworkerPool keyworkerPool) {
         // Process allocation for each unallocated offender
-        for (OffenderSummaryDto offender : offenders) {
+        for (OffenderLocationDto offender : offenders) {
             processAllocation(offender, keyworkerPool);
         }
     }
 
-    private void processAllocation(OffenderSummaryDto offender, KeyworkerPool keyworkerPool) {
+    private void processAllocation(OffenderLocationDto offender, KeyworkerPool keyworkerPool) {
         KeyworkerDto keyworker = keyworkerPool.getKeyworker(offender.getOffenderNo());
 
         // At this point, Key worker to which offender will be allocated has been identified - create provisional allocation
@@ -163,11 +163,11 @@ public class KeyworkerAutoAllocationService {
         keyworkerPool.refreshKeyworker(refreshedKeyworker);
     }
 
-    private List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId) {
+    private List<OffenderLocationDto> getUnallocatedOffenders(String agencyId) {
         return keyworkerService.getUnallocatedOffenders(agencyId, null,null);
     }
 
-    private void confirmAllocation(OffenderSummaryDto offender, KeyworkerDto keyworker) {
+    private void confirmAllocation(OffenderLocationDto offender, KeyworkerDto keyworker) {
         OffenderKeyworker keyWorkerAllocation = buildKeyWorkerAllocation(offender, keyworker);
 
         keyworkerService.allocate(keyWorkerAllocation);
@@ -177,7 +177,7 @@ public class KeyworkerAutoAllocationService {
         log.info(OUTCOME_AUTO_ALLOCATION_SUCCESS, offender.getBookingId(), keyworker.getStaffId());
     }
 
-    private OffenderKeyworker buildKeyWorkerAllocation(OffenderSummaryDto offender, KeyworkerDto keyworker) {
+    private OffenderKeyworker buildKeyWorkerAllocation(OffenderLocationDto offender, KeyworkerDto keyworker) {
         return OffenderKeyworker.builder()
                 .offenderNo(offender.getOffenderNo())
                 .staffId(keyworker.getStaffId())

@@ -174,13 +174,13 @@ public class KeyworkerServiceController {
             nickname="getUnallocatedOffenders")
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = OffenderSummaryDto.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "OK", response = OffenderLocationDto.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class, responseContainer = "List"),
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
     @GetMapping(path = "/{agencyId}/offenders/unallocated")
-    public List<OffenderSummaryDto> getUnallocatedOffenders(
+    public List<OffenderLocationDto> getUnallocatedOffenders(
             @ApiParam(value = "agencyId", required = true)
             @NotEmpty
             @PathVariable("agencyId")

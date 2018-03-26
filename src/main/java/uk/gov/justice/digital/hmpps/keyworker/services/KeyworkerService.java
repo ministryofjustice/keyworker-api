@@ -15,10 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
@@ -56,10 +53,6 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
             new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {
-            };
-
-    private static final ParameterizedTypeReference<List<OffenderSummaryDto>> OFFENDER_SUMMARY_DTO_LIST =
-            new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
             };
 
     private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
@@ -127,26 +120,36 @@ public class KeyworkerService extends Elite2ApiSource {
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerAllocationDetailsDto> getAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
-        final List<OffenderKeyworker> list =
+        final String agencyId = allocationFilter.getAgencyId();
+        final List<OffenderKeyworker> allocations =
                 allocationFilter.getAllocationType().isPresent() ?
-                        repository.findByActiveAndAgencyIdAndAllocationType(true, allocationFilter.getAgencyId(), allocationFilter.getAllocationType().get())
+                        repository.findByActiveAndAgencyIdAndAllocationType(true, agencyId, allocationFilter.getAllocationType().get())
                         :
-                        repository.findByActiveAndAgencyId(true, allocationFilter.getAgencyId());
+                        repository.findByActiveAndAgencyIdAndAllocationTypeIsNot(true, agencyId, AllocationType.PROVISIONAL);
 // TODO implement date filters
-        final List<KeyworkerAllocationDetailsDto> results = ConversionHelper.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(list);
 
-        return new Page<>(results, (long) list.size(), 0L, (long) list.size());
+        // Add offender names and locations
+        URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(agencyId);
+
+        List<OffenderLocationDto> allOffenders = getAllWithSorting(
+                uri, pagingAndSorting.getSortFields(), pagingAndSorting.getSortOrder(),
+                new ParameterizedTypeReference<List<OffenderLocationDto>>() {
+                });
+
+        final List<KeyworkerAllocationDetailsDto> results = processor.decorateAllocated(allocations, allOffenders);
+
+        return new Page<>(results, (long) allocations.size(), 0L, (long) allocations.size());
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
-    public List<OffenderSummaryDto> getUnallocatedOffenders(String agencyId, String sortFields, SortOrder sortOrder) {
+    public List<OffenderLocationDto> getUnallocatedOffenders(String agencyId, String sortFields, SortOrder sortOrder) {
 
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
 
         URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(agencyId);
 
-        List<OffenderSummaryDto> allOffenders = getAllWithSorting(
-                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderSummaryDto>>() {
+        List<OffenderLocationDto> allOffenders = getAllWithSorting(
+                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderLocationDto>>() {
                 });
 
         return processor.filterByUnallocated(allOffenders);
@@ -157,8 +160,8 @@ public class KeyworkerService extends Elite2ApiSource {
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
         final List<OffenderKeyworker> results =
                 CollectionUtils.isEmpty(offenderNos)
-                        ? repository.findByActiveAndAgencyId(true, agencyId)
-                        : repository.findByActiveAndAgencyIdAndOffenderNoIn(true, agencyId, offenderNos);
+                        ? repository.findByActiveAndAgencyIdAndAllocationTypeIsNot(true, agencyId, AllocationType.PROVISIONAL)
+                        : repository.findByActiveAndAgencyIdAndOffenderNoInAndAllocationTypeIsNot(true, agencyId, offenderNos, AllocationType.PROVISIONAL);
         return ConversionHelper.convertOffenderKeyworkerModel2Dto(results);
     }
 
@@ -224,7 +227,7 @@ public class KeyworkerService extends Elite2ApiSource {
         Validate.notNull(keyworkerAllocation.getStaffId(), "Missing staff id.");
 
         final URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(keyworkerAllocation.getAgencyId(), keyworkerAllocation.getOffenderNo());
-        final List<OffenderSummaryDto> list = getForList(uri, OFFENDER_SUMMARY_DTO_LIST).getBody();
+        final List<OffenderLocationDto> list = getForList(uri, OFFENDER_LOCATION_DTO_LIST).getBody();
         Validate.notEmpty(list, format("Prisoner %s not found at agencyId %s using endpoint %s.",
                 keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getAgencyId(), uri));
 
@@ -287,7 +290,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
 
-        final List<OffenderKeyworker> allocations = repository.findByStaffIdAndAgencyIdAndActive(staffId, agencyId, true);
+        final List<OffenderKeyworker> allocations = repository.findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(staffId, agencyId, true, AllocationType.PROVISIONAL);
 
         final List<KeyworkerAllocationDetailsDto> detailsDtoList = allocations.stream()
                 .map(allocation -> decorateWithOffenderDetails(agencyId, allocation))
