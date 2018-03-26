@@ -89,7 +89,7 @@ public class KeyworkerAutoAllocationService {
         if (unallocatedOffenders.isEmpty()) {
             log.info(OUTCOME_NO_UNALLOCATED_OFFENDERS);
         } else {
-            List<KeyworkerDto> availableKeyworkers = keyworkerService.getAvailableKeyworkers(agencyId);
+            List<KeyworkerDto> availableKeyworkers = keyworkerService.getKeyworkersAvailableforAutoAllocation(agencyId);
 
             if (availableKeyworkers.isEmpty()) {
                 log.error(OUTCOME_NO_AVAILABLE_KEY_WORKERS);

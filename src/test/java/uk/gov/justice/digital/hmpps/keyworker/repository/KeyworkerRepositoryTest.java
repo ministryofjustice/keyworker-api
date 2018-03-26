@@ -72,6 +72,7 @@ public class KeyworkerRepositoryTest {
                 .staffId(nextId())
                 .status(KeyworkerStatus.ACTIVE)
                 .capacity(6)
+                .autoAllocationFlag(true)
                 .build();
     }
 

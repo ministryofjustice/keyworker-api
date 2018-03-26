@@ -170,7 +170,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1))
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
 
         verifyException(thrown, AllocationException.class, KeyworkerAutoAllocationService.OUTCOME_NO_AVAILABLE_KEY_WORKERS);
@@ -207,7 +207,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1))
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(anyString());
 
@@ -261,7 +261,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, atLeastOnce())
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
 
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
@@ -331,7 +331,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, atLeastOnce())
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
 
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
@@ -388,7 +388,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, atLeastOnce())
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
 
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(anyString());
@@ -463,7 +463,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, atLeastOnce())
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
         verify(keyworkerService, times(2)).getAllocationsForKeyworker(anyLong());
@@ -513,7 +513,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1))
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
 
         verify(keyworkerService, times(totalOffenders)).getAllocationHistoryForPrisoner(anyString());
@@ -574,7 +574,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1))
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, times(1)).getAvailableKeyworkers(TEST_AGENCY_ID);
+        verify(keyworkerService, times(1)).getKeyworkersAvailableforAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(someKeyworkers);
 
         verify(keyworkerService, atLeast(totalCapacity)).getAllocationHistoryForPrisoner(anyString());
@@ -632,7 +632,7 @@ public class KeyworkerAutoAllocationServiceTest {
             mockKeyworkers = Collections.emptyList();
         }
 
-        when(keyworkerService.getAvailableKeyworkers(anyString())).thenReturn(mockKeyworkers);
+        when(keyworkerService.getKeyworkersAvailableforAutoAllocation(anyString())).thenReturn(mockKeyworkers);
 
         return mockKeyworkers;
     }
@@ -646,7 +646,7 @@ public class KeyworkerAutoAllocationServiceTest {
             mockKeyworkers = Collections.emptyList();
         }
 
-        when(keyworkerService.getAvailableKeyworkers(anyString())).thenReturn(mockKeyworkers);
+        when(keyworkerService.getKeyworkersAvailableforAutoAllocation(anyString())).thenReturn(mockKeyworkers);
 
         return mockKeyworkers;
     }

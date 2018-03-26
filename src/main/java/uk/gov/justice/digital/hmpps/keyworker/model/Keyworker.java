@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -26,4 +27,9 @@ public class Keyworker {
     @Column(name = "STATUS", nullable = false)
     @Convert(converter = KeyworkerStatusConvertor.class)
     private KeyworkerStatus status;
+
+    @Type(type = "yes_no")
+    @NotNull
+    @Column(name = "AUTO_ALLOCATION_FLAG", nullable = false)
+    private Boolean autoAllocationFlag;
 }
