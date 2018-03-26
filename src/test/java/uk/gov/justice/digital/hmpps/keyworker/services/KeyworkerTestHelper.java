@@ -4,7 +4,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderSummaryDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
 
@@ -108,25 +108,25 @@ public class KeyworkerTestHelper {
         assertThat(keyworkerDetails.getStatus()).isEqualTo(status);
     }
 
-    public static OffenderSummaryDto getOffender(long bookingId, String agencyId) {
+    public static OffenderLocationDto getOffender(long bookingId, String agencyId) {
         return getOffender(bookingId, agencyId, getNextOffenderNo(), true);
     }
 
-    public static OffenderSummaryDto getOffender(long bookingId, String agencyId, String offenderNo, boolean currentlyInPrison) {
-        return OffenderSummaryDto.builder()
+    public static OffenderLocationDto getOffender(long bookingId, String agencyId, String offenderNo, boolean currentlyInPrison) {
+        return OffenderLocationDto.builder()
                 .bookingId(bookingId)
                 .agencyId(agencyId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
-                .currentlyInPrison(currentlyInPrison ? "Y" : "N")
+               // .currentlyInPrison(currentlyInPrison ? "Y" : "N")
                 .build();
     }
 
-    public static List<OffenderSummaryDto> getOffenders(String agencyId, long total) {
+    public static List<OffenderLocationDto> getOffenders(String agencyId, long total) {
         Validate.notBlank(agencyId);
         Validate.isTrue(total > 0);
 
-        List<OffenderSummaryDto> dtos = new ArrayList<>();
+        List<OffenderLocationDto> dtos = new ArrayList<>();
 
         for (long i = 1; i <= total; i++) {
             dtos.add(getOffender(getNextBookingId(), agencyId));

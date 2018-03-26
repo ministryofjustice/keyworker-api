@@ -599,7 +599,7 @@ public class KeyworkerAutoAllocationServiceTest {
     private void mockUnallocatedOffenders(String agencyId, Set<String> offenderNos) {
         final String[] offNos = offenderNos.toArray(new String[0]);
 
-        List<OffenderSummaryDto> unallocatedOffenders = new ArrayList<>();
+        List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
 
         for (int i = 0; i < offNos.length; i++) {
             unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, agencyId, offNos[i], true));
@@ -609,10 +609,10 @@ public class KeyworkerAutoAllocationServiceTest {
     }
 
     // Provides page of unallocated offenders (consistent with supplied pagination parameters)
-    private Page<OffenderSummaryDto> pagedUnallocatedOffenders(String agencyId, Set<String> offenderNos, long total, long startId, long limit) {
+    private Page<OffenderLocationDto> pagedUnallocatedOffenders(String agencyId, Set<String> offenderNos, long total, long startId, long limit) {
         final String[] offNos = offenderNos.toArray(new String[0]);
 
-        List<OffenderSummaryDto> unallocatedOffenders = new ArrayList<>();
+        List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
 
         for (long i = 0; i < Math.min(total, limit); i++) {
             int idx = Long.valueOf(startId + i).intValue() - 1;

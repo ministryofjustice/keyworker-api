@@ -91,7 +91,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Rest request mock setup
         String expectedUri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDERS_BY_AGENCY, TEST_AGENCY);
-        List<OffenderSummaryDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
+        List<OffenderLocationDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
 
         String testJsonResponse = objectMapper.writeValueAsString(testDtos);
 
@@ -102,17 +102,17 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .headers(paginationHeaders(count, offset, TEST_PAGE_SIZE)));
 
         // Allocation processor mock setup - returning same DTOs
-        when(processor.filterByUnallocated(anyListOf(OffenderSummaryDto.class))).thenReturn(testDtos);
+        when(processor.filterByUnallocated(anyListOf(OffenderLocationDto.class))).thenReturn(testDtos);
 
         // Invoke service method
-        List<OffenderSummaryDto> response = service.getUnallocatedOffenders(TEST_AGENCY, null, null);
+        List<OffenderLocationDto> response = service.getUnallocatedOffenders(TEST_AGENCY, null, null);
 
         // Verify response
         assertThat(response.size()).isEqualTo(count.intValue());
 
         // Verify mocks
         verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
-        verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderSummaryDto.class));
+        verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderLocationDto.class));
 
         server.verify();
     }
@@ -124,7 +124,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Rest request mock setup
         String expectedUri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDERS_BY_AGENCY, TEST_AGENCY);
-        List<OffenderSummaryDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
+        List<OffenderLocationDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
 
         String testJsonResponse = objectMapper.writeValueAsString(testDtos);
 
@@ -135,17 +135,17 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .headers(paginationHeaders(count, offset, TEST_PAGE_SIZE)));
 
         // Allocation processor mock setup - return empty list
-        when(processor.filterByUnallocated(anyListOf(OffenderSummaryDto.class))).thenReturn(Collections.emptyList());
+        when(processor.filterByUnallocated(anyListOf(OffenderLocationDto.class))).thenReturn(Collections.emptyList());
 
         // Invoke service method
-        List<OffenderSummaryDto> response = service.getUnallocatedOffenders(TEST_AGENCY, null, null);
+        List<OffenderLocationDto> response = service.getUnallocatedOffenders(TEST_AGENCY, null, null);
 
         // Verify response
         assertThat(response).isEmpty();
 
         // Verify mocks
         verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
-        verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderSummaryDto.class));
+        verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderLocationDto.class));
 
         server.verify();
     }
@@ -309,7 +309,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final List<String> testOffenderNos = Arrays.asList("offender1", "offender2");
         List<OffenderKeyworker> results = Arrays.asList(offender1, offender2);
         when(repository.existsByAgencyId(TEST_AGENCY)).thenReturn(true);
-        when(repository.findByActiveAndAgencyIdAndOffenderNoIn(true, TEST_AGENCY, testOffenderNos)).thenReturn(results);
+        when(repository.findByActiveAndAgencyIdAndOffenderNoInAndAllocationTypeIsNot(true, TEST_AGENCY, testOffenderNos, AllocationType.PROVISIONAL)).thenReturn(results);
 
         final List<OffenderKeyworkerDto> offenders = service.getOffenders(TEST_AGENCY, testOffenderNos);
 
@@ -468,7 +468,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
         // Mock allocation lookup
-        when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
+        when(repository.findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
 
         server.expect(requestTo(offender1Uri))
                 .andRespond(withSuccess(testJsonResponseOffender1, MediaType.APPLICATION_JSON)
@@ -509,7 +509,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
         // Mock allocation lookup
-        when(repository.findByStaffIdAndAgencyIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
+        when(repository.findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
 
         server.expect(requestTo(offender1Uri))
                 .andRespond(withSuccess(testJsonResponseOffender1, MediaType.APPLICATION_JSON)

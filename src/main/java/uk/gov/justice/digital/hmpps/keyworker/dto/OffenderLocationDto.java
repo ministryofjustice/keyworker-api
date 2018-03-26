@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -12,9 +11,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @ApiModel(description = "Offender Summary")
 
@@ -25,29 +22,41 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OffenderLocationDto {
 
-        private String offenderNo;
+    @ApiModelProperty(required = true, value = "The offender's unique offender number (aka NOMS Number in the UK).")
+    @NotBlank
+    private String offenderNo;
 
-        private Long bookingId;
+    @ApiModelProperty(required = true, value = "A unique booking id.")
+    @NotNull
+    private Long bookingId;
 
-        private String firstName;
+    @ApiModelProperty(required = true, value = "The offender's first name.")
+    @NotBlank
+    private String firstName;
 
-        private String middleName;
+    @ApiModelProperty(value = "The offender's middle name(s).")
+    private String middleName;
 
-        private String lastName;
+    @ApiModelProperty(required = true, value = "The offender's last name.")
+    @NotBlank
+    private String lastName;
 
-        private LocalDate dateOfBirth;
+    private LocalDate dateOfBirth;
 
-        private String agencyId;
+    @ApiModelProperty(value = "Agency Id (if known)")
+    private String agencyId;
 
-        private Long assignedLivingUnitId;
+    @ApiModelProperty(value = "Internal location id (if known)")
+    private Long assignedLivingUnitId;
 
-        private String assignedLivingUnitDesc;
+    @ApiModelProperty(value = "Internal location description (if known)")
+    private String assignedLivingUnitDesc;
 
-        private Long facialImageId;
+    private Long facialImageId;
 
-        private String assignedOfficerUserId;
+    private String assignedOfficerUserId;
 
-        private List<String> aliases;
+    private List<String> aliases;
 
-        private String iepLevel;
+    private String iepLevel;
 }
