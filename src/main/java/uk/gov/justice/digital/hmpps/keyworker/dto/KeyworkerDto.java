@@ -58,7 +58,6 @@ public class KeyworkerDto {
     @ApiModelProperty(value = "Key worker's status.")
     private KeyworkerStatus status;
 
-
-
-
+    @ApiModelProperty(value = "Key worker is eligible for auto allocation.")
+    private Boolean autoAllocationAllowed;
 }
