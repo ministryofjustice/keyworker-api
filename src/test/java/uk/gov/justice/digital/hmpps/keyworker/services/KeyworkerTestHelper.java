@@ -118,7 +118,6 @@ public class KeyworkerTestHelper {
                 .agencyId(agencyId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
-               // .currentlyInPrison(currentlyInPrison ? "Y" : "N")
                 .build();
     }
 
