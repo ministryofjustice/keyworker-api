@@ -31,5 +31,5 @@ public class Keyworker {
     @Type(type = "yes_no")
     @NotNull
     @Column(name = "AUTO_ALLOCATION_FLAG", nullable = false)
-    private Boolean autoAllocationFlag;
+    private Boolean autoAllocationFlag = Boolean.TRUE;
 }
