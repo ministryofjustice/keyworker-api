@@ -52,6 +52,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     private static final String TEST_USER = "VANILLA";
     private static final Long TEST_STAFF_ID = 67L;
     private static final Long TEST_PAGE_SIZE = 50L;
+    private static final int TEST_CAPACITY = 5;
 
     @Autowired
     private KeyworkerService service;
@@ -627,48 +628,61 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
     @Test
     public void testThatKeyworkerRecordIsUpdated() {
-        final long staffId = 1;
-        final int capacity = 100;
-        final String agencyId = "LEI";
         final KeyworkerStatus status = KeyworkerStatus.UNAVAILABLE_SUSPENDED;
 
         final Keyworker existingKeyWorker = Keyworker.builder()
-                .staffId(staffId)
-                .capacity(10)
+                .staffId(TEST_STAFF_ID)
+                .capacity(TEST_CAPACITY)
                 .status(KeyworkerStatus.ACTIVE)
                 .build();
 
-        when(keyworkerRepository.findOne(staffId)).thenReturn(existingKeyWorker);
+        when(keyworkerRepository.findOne(TEST_STAFF_ID)).thenReturn(existingKeyWorker);
 
-        service.addOrUpdate(staffId,
-                agencyId, KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
+        service.addOrUpdate(TEST_STAFF_ID,
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(status).build());
 
-        assertThat(existingKeyWorker.getStaffId()).isEqualTo(staffId);
-        assertThat(existingKeyWorker.getCapacity()).isEqualTo(capacity);
+        assertThat(existingKeyWorker.getStaffId()).isEqualTo(TEST_STAFF_ID);
+        assertThat(existingKeyWorker.getCapacity()).isEqualTo(TEST_CAPACITY);
         assertThat(existingKeyWorker.getStatus()).isEqualTo(status);
     }
 
     @Test
     public void testThatKeyworkerRecordIsUpdated_activeStatusAutoAllocation() {
-        final long staffId = 1;
-        final int capacity = 100;
-        final String agencyId = "LEI";
 
         final Keyworker existingKeyWorker = Keyworker.builder()
-                .staffId(staffId)
-                .capacity(10)
+                .staffId(TEST_STAFF_ID)
+                .capacity(TEST_CAPACITY)
                 .status(KeyworkerStatus.ACTIVE)
                 .autoAllocationFlag(false)
                 .build();
 
-        when(keyworkerRepository.findOne(staffId)).thenReturn(existingKeyWorker);
+        when(keyworkerRepository.findOne(TEST_STAFF_ID)).thenReturn(existingKeyWorker);
 
-        service.addOrUpdate(staffId,
-                agencyId, KeyworkerUpdateDto.builder().capacity(capacity).status(KeyworkerStatus.ACTIVE).build());
+        service.addOrUpdate(TEST_STAFF_ID,
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.ACTIVE).build());
 
         assertThat(existingKeyWorker.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
         //auto allocation flag is updated to true for active status
         assertThat(existingKeyWorker.getAutoAllocationFlag()).isEqualTo(true);
+    }
+
+    @Test
+    public void testThatKeyworkerRecordIsUpdated_inactiveStatusAutoAllocation() {
+        final Keyworker existingKeyWorker = Keyworker.builder()
+                .staffId(TEST_STAFF_ID)
+                .capacity(TEST_CAPACITY)
+                .status(KeyworkerStatus.INACTIVE)
+                .autoAllocationFlag(false)
+                .build();
+
+        when(keyworkerRepository.findOne(TEST_STAFF_ID)).thenReturn(existingKeyWorker);
+
+        service.addOrUpdate(TEST_STAFF_ID,
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.INACTIVE).build());
+
+        assertThat(existingKeyWorker.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
+        //auto allocation flag remains false for inactive status
+        assertThat(existingKeyWorker.getAutoAllocationFlag()).isEqualTo(false);
     }
 
     @Test
