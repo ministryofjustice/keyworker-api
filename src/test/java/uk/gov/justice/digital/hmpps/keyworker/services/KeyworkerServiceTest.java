@@ -167,7 +167,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .agencyId(TEST_AGENCY)
                 .offenderNo(null)
                 .build();
-        thrown.expectMessage(String.format("Missing prisoner number."));
+        thrown.expectMessage("Missing prisoner number.");
 
         service.allocate(dto);
     }
@@ -189,7 +189,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testAllocateValidationStaffIdMissing() throws JsonProcessingException {
+    public void testAllocateValidationStaffIdMissing() {
         final String offenderNo = "A1111AA";
         final long staffId = -9999L;
         KeyworkerAllocationDto dto = KeyworkerAllocationDto.builder()
@@ -198,7 +198,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 //.staffId(staffId)
                 .build();
 
-        thrown.expectMessage(String.format("Missing staff id.", staffId, TEST_AGENCY));
+        thrown.expectMessage("Missing staff id");
 
         service.allocate(dto);
     }
@@ -288,7 +288,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testGetOffenders() throws Exception {
+    public void testGetOffenders() {
 
         final LocalDateTime time1 = LocalDateTime.of(2018, Month.FEBRUARY, 26, 6, 0);
         final LocalDateTime time2 = LocalDateTime.of(2018, Month.FEBRUARY, 27, 6, 0);
@@ -423,7 +423,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test(expected = HttpClientErrorException.class)
-    public void testGetKeyworkerDetails404() throws JsonProcessingException {
+    public void testGetKeyworkerDetails404() {
         final long staffId = 5L;
         server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId)))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
@@ -485,11 +485,33 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 );
 
         // Invoke service method
-        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID);
+        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
 
         // Verify response
         assertThat(allocationList).hasSize(3);
         assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L,62L,63L));
+
+        // Verify mocks
+        verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
+
+        server.verify();
+    }
+
+    @Test
+    public void testGetAllocationsForKeyworkerSkippingOffenderDetails() {
+
+        ImmutableSet<String> offenderNos = ImmutableSet.of("1", "2", "3");
+        final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offenderNos);
+
+        // Mock allocation lookup
+        when(repository.findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
+
+        // Invoke service method
+        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, true);
+
+        // Verify response
+        assertThat(allocationList).hasSize(3);
+        assertThat(allocationList).extracting("offenderNo").isEqualTo(offenderNos.asList());
 
         // Verify mocks
         verify(migrationService, times(1)).checkAndMigrateOffenderKeyWorker(eq(TEST_AGENCY));
@@ -526,7 +548,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 );
 
         // Invoke service method
-        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID);
+        List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
 
         // Verify response
         assertThat(allocationList).hasSize(2);
@@ -552,9 +574,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).autoAllocationFlag(true).build());
 
-        when(repository.countByStaffIdAndAgencyIdAndActive(1l, TEST_AGENCY, true)).thenReturn(2);
-        when(repository.countByStaffIdAndAgencyIdAndActive(2l, TEST_AGENCY, true)).thenReturn(3);
-        when(repository.countByStaffIdAndAgencyIdAndActive(3l, TEST_AGENCY, true)).thenReturn(1);
+        when(repository.countByStaffIdAndAgencyIdAndActive(1L, TEST_AGENCY, true)).thenReturn(2);
+        when(repository.countByStaffIdAndAgencyIdAndActive(2L, TEST_AGENCY, true)).thenReturn(3);
+        when(repository.countByStaffIdAndAgencyIdAndActive(3L, TEST_AGENCY, true)).thenReturn(1);
 
         server.expect(requestTo(availableKeyworkersUri))
                 .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)
