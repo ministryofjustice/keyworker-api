@@ -161,7 +161,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
 
         // No available Key workers
-        mockKeyworkers(0, 0, 0);
+        mockKeyworkers(0, 0, 0, CAPACITY_TIER_1);
 
         // Invoke auto-allocate (catching expected exception)
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
@@ -192,7 +192,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
 
         // Some available Key workers (at full capacity)
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(3, FULLY_ALLOCATED, FULLY_ALLOCATED);
+        List<KeyworkerDto> someKeyworkers = mockKeyworkers(3, FULLY_ALLOCATED, FULLY_ALLOCATED, CAPACITY_TIER_1);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -235,12 +235,12 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto previousKeyworker = getKeyworker(allocStaffId, highAllocCount);
+        KeyworkerDto previousKeyworker = getKeyworker(allocStaffId, highAllocCount, CAPACITY_TIER_1);
 
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(
-                getKeyworker(1, lowAllocCount),
+                getKeyworker(1, lowAllocCount, CAPACITY_TIER_1),
                 previousKeyworker,
-                getKeyworker(3, lowAllocCount));
+                getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -297,13 +297,13 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto earlierKeyworker = getKeyworker(allocEarlierStaffId, lowAllocCount);
-        KeyworkerDto laterKeyworker = getKeyworker(allocLaterStaffId, highAllocCount);
+        KeyworkerDto earlierKeyworker = getKeyworker(allocEarlierStaffId, lowAllocCount, CAPACITY_TIER_1);
+        KeyworkerDto laterKeyworker = getKeyworker(allocLaterStaffId, highAllocCount, CAPACITY_TIER_1);
 
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(
-                getKeyworker(1, lowAllocCount + 1),
+                getKeyworker(1, lowAllocCount + 1, CAPACITY_TIER_1),
                 laterKeyworker,
-                getKeyworker(3, lowAllocCount + 2),
+                getKeyworker(3, lowAllocCount + 2, CAPACITY_TIER_1),
                 earlierKeyworker);
 
         // A Key worker pool initialised with known capacity tier.
@@ -366,11 +366,11 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount);
+        KeyworkerDto leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
 
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(
-                getKeyworker(1, highAllocCount),
-                getKeyworker(2, highAllocCount),
+                getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
+                getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
                 leastAllocKeyworker);
 
         // A Key worker pool initialised with known capacity tier.
@@ -426,12 +426,12 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto recentLeastAllocKeyworker = getKeyworker(recentLeastAllocStaffId, lowAllocCount);
-        KeyworkerDto olderLeastAllocKeyworker = getKeyworker(olderLeastAllocStaffId, lowAllocCount);
+        KeyworkerDto recentLeastAllocKeyworker = getKeyworker(recentLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
+        KeyworkerDto olderLeastAllocKeyworker = getKeyworker(olderLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
 
         List<KeyworkerDto> someKeyworkers = mockKeyworkers(
-                getKeyworker(1, highAllocCount),
-                getKeyworker(2, highAllocCount),
+                getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
+                getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
                 recentLeastAllocKeyworker,
                 olderLeastAllocKeyworker);
 
@@ -495,7 +495,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
 
         // Enough available Key workers (with enough total capacity to allocate all offenders)
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers, 0, 0);
+        List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers, 0, 0, CAPACITY_TIER_1);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -552,7 +552,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
 
         // Some available Key workers with some capacity but not enough total capacity to allocate all offenders
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers,FULLY_ALLOCATED - 2, FULLY_ALLOCATED);
+        List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers,FULLY_ALLOCATED - 2, FULLY_ALLOCATED, CAPACITY_TIER_2);
 
         // Determine available capacity
         int totalCapacity = (totalKeyworkers * FULLY_ALLOCATED) -
@@ -623,11 +623,11 @@ public class KeyworkerAutoAllocationServiceTest {
         return new Page<>(unallocatedOffenders, total, 0L, limit);
     }
 
-    private List<KeyworkerDto> mockKeyworkers(long total, int minAllocations, int maxAllocations) {
+    private List<KeyworkerDto> mockKeyworkers(long total, int minAllocations, int maxAllocations, int capacity) {
         List<KeyworkerDto> mockKeyworkers;
 
         if (total > 0) {
-            mockKeyworkers = KeyworkerTestHelper.getKeyworkers(total, minAllocations, maxAllocations);
+            mockKeyworkers = KeyworkerTestHelper.getKeyworkers(total, minAllocations, maxAllocations, capacity);
         } else {
             mockKeyworkers = Collections.emptyList();
         }
@@ -683,6 +683,8 @@ public class KeyworkerAutoAllocationServiceTest {
             // simulated when an offender is allocated to a Key worker.
             final Map<Long, Integer> keyworkerAllocs =
                     keyworkers.stream().collect(Collectors.toMap(KeyworkerDto::getStaffId, KeyworkerDto::getNumberAllocated));
+            final Map<Long, Integer> keyworkerCapacities =
+                    keyworkers.stream().collect(Collectors.toMap(KeyworkerDto::getStaffId, KeyworkerDto::getCapacity));
 
             @Override
             public Object answer(InvocationOnMock invocation) {
@@ -690,7 +692,7 @@ public class KeyworkerAutoAllocationServiceTest {
                 int newAllocCount = keyworkerAllocs.get(staffId) + 1;
                 keyworkerAllocs.put(staffId, newAllocCount);
 
-                return getKeyworker(staffId, newAllocCount);
+                return getKeyworker(staffId, newAllocCount, keyworkerCapacities.get(staffId));
             }
         }).when(keyworkerService).getKeyworkerDetails(eq(TEST_AGENCY_ID), anyLong());
     }

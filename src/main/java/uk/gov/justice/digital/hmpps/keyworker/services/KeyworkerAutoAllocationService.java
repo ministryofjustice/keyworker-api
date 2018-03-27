@@ -75,8 +75,9 @@ public class KeyworkerAutoAllocationService {
         log.info("Key worker auto-allocation process initiated for agency [{}].", agencyId);
 
         // Tidy up any abandoned previous run
-        if (clearExistingProvisionals(agencyId) > 0) {
-            log.info("Cleared {} pre-existing provisional allocations.", agencyId);
+        final int rows = clearExistingProvisionals(agencyId);
+        if (rows > 0) {
+            log.info("Cleared {} pre-existing provisional allocations at agency {}.", rows, agencyId);
         }
 
         // Get initial counter metric
@@ -155,7 +156,7 @@ public class KeyworkerAutoAllocationService {
         KeyworkerDto keyworker = keyworkerPool.getKeyworker(offender.getOffenderNo());
 
         // At this point, Key worker to which offender will be allocated has been identified - create provisional allocation
-        confirmAllocation(offender, keyworker);
+        storeAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
         KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(offender.getAgencyId(), keyworker.getStaffId());
@@ -167,7 +168,7 @@ public class KeyworkerAutoAllocationService {
         return keyworkerService.getUnallocatedOffenders(agencyId, null,null);
     }
 
-    private void confirmAllocation(OffenderLocationDto offender, KeyworkerDto keyworker) {
+    private void storeAllocation(OffenderLocationDto offender, KeyworkerDto keyworker) {
         OffenderKeyworker keyWorkerAllocation = buildKeyWorkerAllocation(offender, keyworker);
 
         keyworkerService.allocate(keyWorkerAllocation);
