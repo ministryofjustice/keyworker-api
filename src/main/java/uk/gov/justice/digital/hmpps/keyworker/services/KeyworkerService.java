@@ -43,10 +43,6 @@ public class KeyworkerService extends Elite2ApiSource {
     public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     public static final String URI_STAFF = "/staff/{staffId}";
 
-    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> KEYWORKER_ALLOCATION_LIST =
-            new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {
-            };
-
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
             new ParameterizedTypeReference<List<KeyworkerDto>>() {
             };
@@ -347,7 +343,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
         final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true);
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
 
         keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
         keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
