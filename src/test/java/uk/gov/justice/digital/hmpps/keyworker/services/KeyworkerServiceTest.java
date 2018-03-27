@@ -41,6 +41,7 @@ import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
 
 /**
  * Test class for {@link KeyworkerService}.
@@ -381,7 +382,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
             return null;
 
         } else {
-            KeyworkerDto keyworkerDto = KeyworkerTestHelper.getKeyworker(staffId, 1);
+            KeyworkerDto keyworkerDto = KeyworkerTestHelper.getKeyworker(staffId, 1, CAPACITY_TIER_1);
             String testJsonResponse = objectMapper.writeValueAsString(keyworkerDto);
 
             server.expect(once(), requestTo(String.format("/bookings/offenderNo/%s/key-worker", offenderNo)))
@@ -543,9 +544,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testGetAvailableKeyworkers() throws Exception {
         String availableKeyworkersUri = expandUriTemplate(KeyworkerService.URI_AVAILABLE_KEYWORKERS, TEST_AGENCY);
 
-        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0),
-                KeyworkerTestHelper.getKeyworker(2, 0),
-                KeyworkerTestHelper.getKeyworker(3, 0)));
+        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
+                KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
+                KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1)));
 
 
         when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).autoAllocationFlag(true).build());
@@ -574,11 +575,11 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testGetKeyworkersAvailableforAutoAllocation() throws Exception {
         String availableKeyworkersUri = expandUriTemplate(KeyworkerService.URI_AVAILABLE_KEYWORKERS, TEST_AGENCY);
 
-        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0),
-                KeyworkerTestHelper.getKeyworker(2, 0),
-                KeyworkerTestHelper.getKeyworker(3, 0),
-                KeyworkerTestHelper.getKeyworker(4, 0)));
-
+        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(
+                KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
+                KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
+                KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1),
+                KeyworkerTestHelper.getKeyworker(4, 0, CAPACITY_TIER_1)));
 
         when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
