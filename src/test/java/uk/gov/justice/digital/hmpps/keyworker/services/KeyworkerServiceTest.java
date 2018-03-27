@@ -649,6 +649,29 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void testThatKeyworkerRecordIsUpdated_activeStatusAutoAllocation() {
+        final long staffId = 1;
+        final int capacity = 100;
+        final String agencyId = "LEI";
+
+        final Keyworker existingKeyWorker = Keyworker.builder()
+                .staffId(staffId)
+                .capacity(10)
+                .status(KeyworkerStatus.ACTIVE)
+                .autoAllocationFlag(false)
+                .build();
+
+        when(keyworkerRepository.findOne(staffId)).thenReturn(existingKeyWorker);
+
+        service.addOrUpdate(staffId,
+                agencyId, KeyworkerUpdateDto.builder().capacity(capacity).status(KeyworkerStatus.ACTIVE).build());
+
+        assertThat(existingKeyWorker.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        //auto allocation flag is updated to true for active status
+        assertThat(existingKeyWorker.getAutoAllocationFlag()).isEqualTo(true);
+    }
+
+    @Test
     public void testkeyworkerStatusChangeBehaviour_removeAllocations() {
         final Keyworker existingKeyWorker = Keyworker.builder()
                 .staffId(TEST_STAFF_ID)

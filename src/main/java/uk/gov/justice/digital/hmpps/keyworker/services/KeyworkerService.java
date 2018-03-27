@@ -376,6 +376,9 @@ public class KeyworkerService extends Elite2ApiSource {
         } else {
             keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
             keyworker.setStatus(keyworkerUpdateDto.getStatus());
+            if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE){
+                keyworker.setAutoAllocationFlag(true);
+            }
         }
 
         final KeyworkerStatusBehaviour behaviour = keyworkerUpdateDto.getBehaviour();
