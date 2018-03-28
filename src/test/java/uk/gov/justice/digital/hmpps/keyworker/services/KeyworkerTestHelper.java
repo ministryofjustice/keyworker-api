@@ -40,7 +40,7 @@ public class KeyworkerTestHelper {
         return offNos;
     }
 
-    public static long getNextBookingId() {
+    private static long getNextBookingId() {
         return ++bookingId;
     }
 
@@ -49,10 +49,11 @@ public class KeyworkerTestHelper {
     }
 
     // Provides a Key worker with specified staff id and number of allocations
-    public static KeyworkerDto getKeyworker(long staffId, int numberOfAllocations) {
+    public static KeyworkerDto getKeyworker(long staffId, int numberOfAllocations, int capacity) {
         return KeyworkerDto.builder()
                 .staffId(staffId)
                 .numberAllocated(numberOfAllocations)
+                .capacity(capacity)
                 .firstName(RandomStringUtils.randomAscii(35))
                 .lastName(RandomStringUtils.randomAscii(35))
                 .autoAllocationAllowed(true)
@@ -60,13 +61,14 @@ public class KeyworkerTestHelper {
     }
 
     // Provides list of Key workers with varying number of allocations (within specified range)
-    public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations) {
+    public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations, int capacity) {
         List<KeyworkerDto> keyworkers = new ArrayList<>();
 
         for (long i = 1; i <= total; i++) {
             keyworkers.add(KeyworkerDto.builder()
                     .staffId(i)
                     .numberAllocated(RandomUtils.nextInt(minAllocations, maxAllocations + 1))
+                    .capacity(capacity)
                     .build());
         }
 
@@ -108,7 +110,7 @@ public class KeyworkerTestHelper {
         assertThat(keyworkerDetails.getStatus()).isEqualTo(status);
     }
 
-    public static OffenderLocationDto getOffender(long bookingId, String agencyId) {
+    private static OffenderLocationDto getOffender(long bookingId, String agencyId) {
         return getOffender(bookingId, agencyId, getNextOffenderNo(), true);
     }
 

@@ -43,6 +43,7 @@ public class KeyworkerService extends Elite2ApiSource {
     public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     public static final String URI_STAFF = "/staff/{staffId}";
 
+
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
             new ParameterizedTypeReference<List<KeyworkerDto>>() {
             };
@@ -282,18 +283,31 @@ public class KeyworkerService extends Elite2ApiSource {
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
-    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String agencyId, Long staffId) {
+    public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String agencyId, Long staffId, boolean skipOffenderDetails) {
 
         migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
 
         final List<OffenderKeyworker> allocations = repository.findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(staffId, agencyId, true, AllocationType.PROVISIONAL);
 
-        final List<KeyworkerAllocationDetailsDto> detailsDtoList = allocations.stream()
-                .map(allocation -> decorateWithOffenderDetails(agencyId, allocation))
-                //remove allocations from returned list that do not have associated booking records
-                .filter(dto -> dto.getBookingId() != null)
-                .sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName))
-                .collect(Collectors.toList());
+        final List<KeyworkerAllocationDetailsDto> detailsDtoList;
+        if (skipOffenderDetails) {
+            detailsDtoList = allocations.stream()
+                    .map(allocation ->  KeyworkerAllocationDetailsDto.builder()
+                            .offenderNo(allocation.getOffenderNo())
+                            .staffId(allocation.getStaffId())
+                            .agencyId(allocation.getAgencyId())
+                            .assigned(allocation.getAssignedDateTime())
+                            .allocationType(allocation.getAllocationType())
+                            .build())
+                    .collect(Collectors.toList());
+        } else {
+            detailsDtoList = allocations.stream()
+                    .map(allocation -> decorateWithOffenderDetails(agencyId, allocation))
+                    //remove allocations from returned list that do not have associated booking records
+                    .filter(dto -> dto.getBookingId() != null)
+                    .sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName))
+                    .collect(Collectors.toList());
+        }
 
         log.debug("Retrieved allocations for keyworker {}:\n{}", staffId, detailsDtoList);
 

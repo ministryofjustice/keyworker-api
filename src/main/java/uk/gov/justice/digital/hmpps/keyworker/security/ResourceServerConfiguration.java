@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.security;
 
 
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +31,8 @@ import uk.gov.justice.digital.hmpps.keyworker.controllers.KeyworkerServiceContro
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
-    @Value("${jwt.signing.key}")
-    private String jwtSigningKey;
+    @Value("${jwt.public.key}")
+    private String jwtPublicKey;
 
     @Override
     public void configure(HttpSecurity http) throws Exception{
@@ -60,7 +61,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey(jwtSigningKey);
+        converter.setVerifierKey(new String(Base64.decodeBase64(jwtPublicKey)));
         return converter;
     }
 

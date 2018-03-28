@@ -390,8 +390,6 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
 
     @GetMapping(path="/{staffId}/agencyId/{agencyId}/offenders")
-
-
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
@@ -401,9 +399,12 @@ public class KeyworkerServiceController {
             @ApiParam(value = "agencyId", required = true)
             @NotEmpty
             @PathVariable("agencyId")
-                    String agencyId){
+                    String agencyId,
+            @ApiParam(value = "skipOffenderDetails", defaultValue = "false")
+            @RequestParam(value = "skipOffenderDetails", required = false)
+                    boolean skipOffenderDetails){
 
-        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(agencyId, staffId);
+        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(agencyId, staffId, skipOffenderDetails);
     }
 
     @PostMapping(path="/migrate/{agencyId}")

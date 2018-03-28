@@ -60,9 +60,9 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, an offender will not be allocated to a Key worker.
     @Test
-    public void testSingleKeyworkerWithCapacity() {
+    public void testSingleKeyworkerWithSpareCapacity() {
         // Single KW, with capacity, in KWP
-        KeyworkerDto keyworker = getKeyworker(1, CAPACITY_TIER_1);
+        KeyworkerDto keyworker = getKeyworker(1, CAPACITY_TIER_1, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, Collections.singleton(keyworker), capacityTiers);
 
         // Request KW from pool for offender
@@ -84,7 +84,7 @@ public class KeyworkerPoolTest {
     @Test
     public void testPoolErrorsWhenSingleKeyworkerIsFullyAllocated() {
         // Single KW, fully allocated, in KWP
-        KeyworkerDto keyworker = getKeyworker(1, FULLY_ALLOCATED);
+        KeyworkerDto keyworker = getKeyworker(1, FULLY_ALLOCATED, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, Collections.singleton(keyworker), capacityTiers);
 
         // Request KW from pool (catching expected exception)
@@ -98,17 +98,17 @@ public class KeyworkerPoolTest {
     // Given an offender is seeking KW allocation
     // And offender has never previously been allocated to a KW
     // And there are multiple KWs in the KWP
-    // And all KWs have differing capacity (but none are fully allocated)
+    // And all KWs have differing allocation numbers (but none are fully allocated)
     // When KWP requested for KW offender
     // Then KW with most capacity is returned
     //
     // If this test fails, offenders may not be allocated evenly across Key workers.
     @Test
-    public void testKeyworkerWithMostCapacityIsReturned() {
+    public void testKeyworkerWithMostSpareCapacityIsReturned() {
         // Multiple KWs, all with capacity, in KWP
         final int lowAllocCount = 1;
         final int highAllocCount = FULLY_ALLOCATED - 1;
-        List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount);
+        List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
 
         // Request KW from pool for offender
@@ -118,6 +118,31 @@ public class KeyworkerPoolTest {
         OptionalInt fewestAllocs = keyworkers.stream().mapToInt(KeyworkerDto::getNumberAllocated).min();
 
         assertThat(allocatedKeyworker.getNumberAllocated()).isEqualTo(fewestAllocs.orElse(-1));
+    }
+
+    // Given an offender is seeking KW allocation
+    // And offender has never previously been allocated to a KW
+    // And there are multiple KWs in the KWP
+    // And one KW is fully allocated but with a lower capacity and the fewest allocations
+    // When KWP requested for KW offender
+    // Then the KW with lower capacity is NOT returned
+    //
+    // If this test fails, offenders may be wrongly allocated to a PT or otherwise low-capacity Key worker.
+    @Test
+    public void testKeyworkerWithLowerCapacityIsNotReturned() {
+        // Multiple KWs, all with capacity, in KWP
+        final int lowAllocCount = 6;
+        final int highAllocCount = FULLY_ALLOCATED - 1;
+        List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
+        keyworkers.get(0).setCapacity(3);
+        keyworkers.get(0).setNumberAllocated(4);
+        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+
+        // Request KW from pool for offender
+        KeyworkerDto allocatedKeyworker = keyworkerPool.getKeyworker("A1111AA");
+
+        // Verify the low-capacity KW was not chosen despite having the fewest allocations
+        assertThat(allocatedKeyworker.getStaffId()).isNotEqualTo(keyworkers.get(0).getStaffId());
     }
 
     // Given an offender is seeking KW allocation
@@ -139,9 +164,9 @@ public class KeyworkerPoolTest {
         final long staffId3 = 3L;
 
         List<KeyworkerDto> keyworkers = Arrays.asList(
-                getKeyworker(1, lowAllocCount),
-                getKeyworker(2, highAllocCount),
-                getKeyworker(3, lowAllocCount));
+                getKeyworker(1, lowAllocCount, CAPACITY_TIER_1),
+                getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
+                getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
 
         keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
 
@@ -186,7 +211,7 @@ public class KeyworkerPoolTest {
         final String allocOffenderNo = "A1111AA";
         final long allocStaffId = 2;
 
-        List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount);
+        List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
 
         // A previous allocation between the unallocated offender and Key worker with staffId = 2
@@ -220,7 +245,7 @@ public class KeyworkerPoolTest {
         final LocalDateTime ldtOther = ldtMostRecent.minusDays(7);
         final LocalDateTime ldtLeastRecent = ldtOther.minusDays(7);
 
-        List<KeyworkerDto> keyworkers = getKeyworkers(7, lowAllocCount, highAllocCount);
+        List<KeyworkerDto> keyworkers = getKeyworkers(7, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
 
         // Previous allocations between the unallocated offender and previous KWs
@@ -247,11 +272,11 @@ public class KeyworkerPoolTest {
         final int lowAllocCount = 1;
         final int highAllocCount = FULLY_ALLOCATED - 1;
 
-        List<KeyworkerDto> keyworkers = getKeyworkers(7, lowAllocCount, highAllocCount);
+        List<KeyworkerDto> keyworkers = getKeyworkers(7, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
 
         // A KW who is not a member of KWP
-        KeyworkerDto otherKeyworker = getKeyworker(8, 5);
+        KeyworkerDto otherKeyworker = getKeyworker(8, 5, CAPACITY_TIER_1);
 
         // Attempt refresh
         keyworkerPool.refreshKeyworker(otherKeyworker);
@@ -270,11 +295,11 @@ public class KeyworkerPoolTest {
         final int highAllocCount = FULLY_ALLOCATED - 1;
         final long refreshKeyworkerStaffId = 27;
 
-        List<KeyworkerDto> keyworkers = getKeyworkers(5, lowAllocCount, highAllocCount);
+        List<KeyworkerDto> keyworkers = getKeyworkers(5, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
 
         // Add another couple of KWs with known allocation counts (one high, one low)
-        KeyworkerDto lowAllocKeyworker = getKeyworker(refreshKeyworkerStaffId - 1, lowAllocCount);
-        KeyworkerDto highAllocKeyworker = getKeyworker(refreshKeyworkerStaffId, highAllocCount);
+        KeyworkerDto lowAllocKeyworker = getKeyworker(refreshKeyworkerStaffId - 1, lowAllocCount, CAPACITY_TIER_1);
+        KeyworkerDto highAllocKeyworker = getKeyworker(refreshKeyworkerStaffId, highAllocCount, CAPACITY_TIER_1);
 
         keyworkers.add(lowAllocKeyworker);
         keyworkers.add(highAllocKeyworker);
@@ -287,7 +312,7 @@ public class KeyworkerPoolTest {
         assertThat(priorityKeyworker).isNotSameAs(highAllocKeyworker);
 
         // Simulate refreshed high alloc KW (now having zero allocations).
-        KeyworkerDto refreshedHighAllocKeyworker = getKeyworker(refreshKeyworkerStaffId, 0);
+        KeyworkerDto refreshedHighAllocKeyworker = getKeyworker(refreshKeyworkerStaffId, 0, CAPACITY_TIER_1);
 
         // Attempt refresh
         keyworkerPool.refreshKeyworker(refreshedHighAllocKeyworker);

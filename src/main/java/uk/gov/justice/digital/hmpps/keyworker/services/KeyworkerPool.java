@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -70,35 +71,74 @@ public class KeyworkerPool {
     // Constructs Key worker comparator which, effectively, implements Key worker allocation prioritisation algorithm.
     // Comparator function ensures that highest priority Key worker is at head of Key worker pool.
     private Comparator<KeyworkerDto> buildKeyworkerComparator() {
-        return Comparator.comparingInt(KeyworkerDto::getNumberAllocated)
-                .thenComparing(KeyworkerDto::getStaffId, (id1, id2) -> {
-                    Comparator<OffenderKeyworker> keyWorkerAllocationComparator =
-                            Comparator.comparing(OffenderKeyworker::getAssignedDateTime);
 
-                    SortedSet<OffenderKeyworker> id1Allocations = new TreeSet<>(keyWorkerAllocationComparator);
-                    SortedSet<OffenderKeyworker> id2Allocations = new TreeSet<>(keyWorkerAllocationComparator);
+        // If a KW is full, kick it to last place
+        Comparator<KeyworkerDto> isFullComparator = (kw1, kw2) -> {
+            int enhancedCapacityKw1 = calculateEnhancedCapacity(kw1);
+            int enhancedCapacityKw2 = calculateEnhancedCapacity(kw2);
+            if (kw1.getNumberAllocated() >= enhancedCapacityKw1) {
+                if (kw2.getNumberAllocated() >= enhancedCapacityKw2) {
+                    return 0;
+                }
+                return 1;
+            }
+            if (kw2.getNumberAllocated() >= enhancedCapacityKw2) {
+                return -1;
+            }
+            return 0;
+        };
 
-                    Optional.ofNullable(keyworkerAllocations.get(id1)).ifPresent(id1Allocations::addAll);
-                    Optional.ofNullable(keyworkerAllocations.get(id2)).ifPresent(id2Allocations::addAll);
+        final Comparator<KeyworkerDto> numberAllocatedComparator = Comparator.comparingInt(KeyworkerDto::getNumberAllocated);
 
-                    int result;
+        final Comparator<Long> staffIdComparator = (id1, id2) -> {
+            Comparator<OffenderKeyworker> keyWorkerAllocationComparator = Comparator.comparing(OffenderKeyworker::getAssignedDateTime);
 
-                    // If neither Key worker has any auto-allocations, or both have auto-allocations and an identical
-                    // assigned datetime for most recent allocation, arbitrarily sort by staffId (to ensure uniqueness).
-                    if (id1Allocations.isEmpty()) {
-                        result = id2Allocations.isEmpty() ? (id1.compareTo(id2)) : -1;
-                    } else if (id2Allocations.isEmpty()) {
-                        result = 1;
-                    } else {
-                        result = id1Allocations.first().getAssignedDateTime().compareTo(id2Allocations.first().getAssignedDateTime());
+            SortedSet<OffenderKeyworker> id1Allocations = new TreeSet<>(keyWorkerAllocationComparator);
+            SortedSet<OffenderKeyworker> id2Allocations = new TreeSet<>(keyWorkerAllocationComparator);
 
-                        if (result == 0) {
-                            result = id1.compareTo(id2);
-                        }
-                    }
+            Optional.ofNullable(keyworkerAllocations.get(id1)).ifPresent(id1Allocations::addAll);
+            Optional.ofNullable(keyworkerAllocations.get(id2)).ifPresent(id2Allocations::addAll);
 
-                    return result;
-        });
+            int result;
+
+            // If neither Key worker has any auto-allocations, or both have auto-allocations and an identical
+            // assigned datetime for most recent allocation, arbitrarily sort by staffId (to ensure uniqueness).
+            if (id1Allocations.isEmpty()) {
+                result = id2Allocations.isEmpty() ? (id1.compareTo(id2)) : -1;
+            } else if (id2Allocations.isEmpty()) {
+                result = 1;
+            } else {
+                result = id1Allocations.first().getAssignedDateTime().compareTo(id2Allocations.first().getAssignedDateTime());
+
+                if (result == 0) {
+                    result = id1.compareTo(id2);
+                }
+            }
+            return result;
+        };
+
+        Comparator<KeyworkerDto> comparator = isFullComparator
+                .thenComparing(numberAllocatedComparator)
+                .thenComparing(KeyworkerDto::getStaffId, staffIdComparator);
+
+        return (kw1, kw2) -> {
+            if (kw1 == kw2) {
+                return 0;
+            }
+            return comparator.compare(kw1, kw2);
+        };
+    }
+
+    private int calculateEnhancedCapacity(KeyworkerDto kw1) {
+        final Integer capacity = kw1.getCapacity();
+        if (capacityTiers.size() == 1) {
+            return capacity;
+        }
+        final Iterator<Integer> iterator = capacityTiers.iterator();
+        Integer first = iterator.next();
+        Integer second = iterator.next();
+
+        return capacity * second / first;
     }
 
     /**
@@ -224,7 +264,8 @@ public class KeyworkerPool {
     }
 
     private void checkMaxCapacity() {
-        if (keyworkerPool.first().getNumberAllocated() >= maxCapacity) {
+        final KeyworkerDto first = keyworkerPool.first();
+        if (first.getNumberAllocated() >= calculateEnhancedCapacity(first)) {
             log.error(OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
 
             throw AllocationException.withMessage(OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
