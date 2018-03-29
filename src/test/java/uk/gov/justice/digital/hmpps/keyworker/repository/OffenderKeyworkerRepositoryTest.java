@@ -106,12 +106,19 @@ public class OffenderKeyworkerRepositoryTest {
         final long nextId = nextId();
         repository.save(buildEntity(nextId));
 
+        final long nextIdProvisional = nextId();
+        final OffenderKeyworker provisionalAllocation = buildEntity(nextIdProvisional);
+        provisionalAllocation.setAllocationType(AllocationType.PROVISIONAL);
+        repository.save(provisionalAllocation);
+
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        assertThat(repository.countByStaffIdAndAgencyIdAndActive(nextId, AGENCY_ID_LEI, true)).isEqualTo(1);
-        assertThat(repository.countByStaffIdAndAgencyIdAndActive(nextId, AGENCY_ID_LEI, false)).isEqualTo(0);
-        assertThat(repository.countByStaffIdAndAgencyIdAndActive(UNKNOWN_STAFFID, AGENCY_ID_LEI, true)).isEqualTo(0);
+        assertThat(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(nextId, AGENCY_ID_LEI, true, AllocationType.PROVISIONAL)).isEqualTo(1);
+        assertThat(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(nextId, AGENCY_ID_LEI, false, AllocationType.PROVISIONAL)).isEqualTo(0);
+        assertThat(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(UNKNOWN_STAFFID, AGENCY_ID_LEI, true, AllocationType.PROVISIONAL)).isEqualTo(0);
+
+        repository.deleteAll();
     }
 
     @Test

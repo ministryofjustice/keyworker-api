@@ -402,7 +402,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .autoAllocationFlag(true)
                 .build()
         );
-        when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(ALLOCATIONS);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(ALLOCATIONS);
     }
 
     private void expectStaffRoleApiCall(long staffId) throws JsonProcessingException {
@@ -449,7 +449,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         expectStaffRoleApiCall(staffId);
 
         when(keyworkerRepository.findOne(staffId)).thenReturn(null);
-        when(repository.countByStaffIdAndAgencyIdAndActive(staffId, TEST_AGENCY, true)).thenReturn(null);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(null);
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
@@ -575,9 +575,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).autoAllocationFlag(true).build());
 
-        when(repository.countByStaffIdAndAgencyIdAndActive(1L, TEST_AGENCY, true)).thenReturn(2);
-        when(repository.countByStaffIdAndAgencyIdAndActive(2L, TEST_AGENCY, true)).thenReturn(3);
-        when(repository.countByStaffIdAndAgencyIdAndActive(3L, TEST_AGENCY, true)).thenReturn(1);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(1l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(2);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(2l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(3l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
 
         server.expect(requestTo(availableKeyworkersUri))
                 .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)
@@ -608,9 +608,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(4l)).thenReturn(Keyworker.builder().staffId(4l).autoAllocationFlag(false).build());
 
-        when(repository.countByStaffIdAndAgencyIdAndActive(1l, TEST_AGENCY, true)).thenReturn(2);
-        when(repository.countByStaffIdAndAgencyIdAndActive(2l, TEST_AGENCY, true)).thenReturn(3);
-        when(repository.countByStaffIdAndAgencyIdAndActive(3l, TEST_AGENCY, true)).thenReturn(1);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(1l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(2);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(2l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
+        when(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(3l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
 
         server.expect(requestTo(availableKeyworkersUri))
                 .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)

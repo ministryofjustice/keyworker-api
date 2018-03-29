@@ -29,7 +29,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     List<OffenderKeyworker> findByActiveAndAgencyIdAndAllocationTypeIsNot(boolean isActive, String agencyId, AllocationType type);
     List<OffenderKeyworker> findByActiveAndAgencyIdAndAllocationType(boolean isActive, String agencyId, AllocationType type);
 
-    Integer countByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
+    Integer countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(Long staffId, String agencyId, boolean active, AllocationType allocationType);
 
     @Modifying
     @Query("delete from OffenderKeyworker ok where ok.agencyId = :agencyId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")

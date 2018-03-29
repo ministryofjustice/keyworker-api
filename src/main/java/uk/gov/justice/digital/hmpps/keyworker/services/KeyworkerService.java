@@ -357,7 +357,7 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
         final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActive(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true);
+        final Integer allocationsCount = repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
 
         keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
         keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
