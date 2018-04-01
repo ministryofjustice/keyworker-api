@@ -18,24 +18,24 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
-    List<OffenderKeyworker> findByStaffIdAndAgencyIdAndActive(Long staffId, String agencyId, boolean active);
-    List<OffenderKeyworker> findByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(Long staffId, String agencyId, boolean active, AllocationType type);
+    List<OffenderKeyworker> findByStaffIdAndPrisonIdAndActive(Long staffId, String prisonId, boolean active);
+    List<OffenderKeyworker> findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Long staffId, String prisonId, boolean active, AllocationType type);
 
-    boolean existsByAgencyId(String agencyId);
+    boolean existsByPrisonId(String prisonId);
 
     List<OffenderKeyworker> findByActiveAndOffenderNoIn(boolean isActive, Collection<String> offenderNo);
     List<OffenderKeyworker> findByActiveAndOffenderNo(boolean isActive, String offenderNo);
-    List<OffenderKeyworker> findByActiveAndAgencyIdAndOffenderNoInAndAllocationTypeIsNot(boolean isActive, String agencyId, Collection<String> offenderNo, AllocationType type);
-    List<OffenderKeyworker> findByActiveAndAgencyIdAndAllocationTypeIsNot(boolean isActive, String agencyId, AllocationType type);
-    List<OffenderKeyworker> findByActiveAndAgencyIdAndAllocationType(boolean isActive, String agencyId, AllocationType type);
+    List<OffenderKeyworker> findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(boolean isActive, String prisonId, Collection<String> offenderNo, AllocationType type);
+    List<OffenderKeyworker> findByActiveAndPrisonIdAndAllocationTypeIsNot(boolean isActive, String prisonId, AllocationType type);
+    List<OffenderKeyworker> findByActiveAndPrisonIdAndAllocationType(boolean isActive, String prisonId, AllocationType type);
 
-    Integer countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(Long staffId, String agencyId, boolean active, AllocationType allocationType);
-
-    @Modifying
-    @Query("delete from OffenderKeyworker ok where ok.agencyId = :agencyId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")
-    Integer deleteExistingProvisionals(@Param("agencyId") String agencyId);
+    Integer countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Long staffId, String prisonId, boolean active, AllocationType allocationType);
 
     @Modifying
-    @Query("update OffenderKeyworker ok set ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.AUTO where ok.agencyId = :agencyId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")
-    Integer confirmProvisionals(@Param("agencyId") String agencyId);
+    @Query("delete from OffenderKeyworker ok where ok.prisonId = :prisonId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")
+    Integer deleteExistingProvisionals(@Param("prisonId") String prisonId);
+
+    @Modifying
+    @Query("update OffenderKeyworker ok set ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.AUTO where ok.prisonId = :prisonId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")
+    Integer confirmProvisionals(@Param("prisonId") String prisonId);
 }

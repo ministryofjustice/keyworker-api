@@ -83,15 +83,6 @@ public abstract class Elite2ApiSource {
                 responseType);
     }
 
-    protected <T> ResponseEntity<T> getWithSorting(URI uri, PagingAndSortingDto pagingAndSorting,
-                                                   ParameterizedTypeReference<T> responseType) {
-        return restTemplate.exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                withSorting(pagingAndSorting),
-                responseType);
-    }
-
     protected <T> List<T> getAllWithSorting(URI uri, String sortFields, SortOrder sortOrder,
                                             ParameterizedTypeReference<List<T>> responseType) {
         final long initialPageSize = 50;

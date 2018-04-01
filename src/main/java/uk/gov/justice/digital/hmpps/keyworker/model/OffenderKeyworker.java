@@ -13,8 +13,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-import static javax.persistence.TemporalType.TIMESTAMP;
-
 @Entity
 @Table(name = "OFFENDER_KEY_WORKER")
 @Data()
@@ -64,8 +62,8 @@ public class OffenderKeyworker {
 
     @NotNull
     @Length(max = 6)
-    @Column(name = "AGY_LOC_ID", nullable = false)
-    private String agencyId;
+    @Column(name = "PRISON_ID", nullable = false)
+    private String prisonId;
 
     @Column(name = "EXPIRY_DATE_TIME")
     LocalDateTime expiryDateTime;
@@ -83,17 +81,17 @@ public class OffenderKeyworker {
 
     @CreatedDate
     @Column(name = "CREATE_DATETIME", nullable = false)
-    LocalDateTime creationDateTime;
+    private LocalDateTime creationDateTime;
 
     @CreatedBy
     @Column(name = "CREATE_USER_ID", nullable = false)
-    String createUserId;
+    private String createUserId;
 
     @LastModifiedDate
     @Column(name = "MODIFY_DATETIME")
-    LocalDateTime modifyDateTime;
+    private LocalDateTime modifyDateTime;
 
     @LastModifiedBy
     @Column(name = "MODIFY_USER_ID")
-    String modifyUserId;
+    private String modifyUserId;
 }

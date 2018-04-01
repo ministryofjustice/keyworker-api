@@ -3,15 +3,18 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
+import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.BulkOffenderKeyworkerImporter;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,18 +29,21 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
     @Value("${svc.kw.migration.page.limit:10}")
     private long migrationPageSize;
 
-    private final OffenderKeyworkerRepository repository;
+    private final PrisonSupportedRepository repository;
     private final BulkOffenderKeyworkerImporter importer;
-    private final AgencyValidation agencyValidation;
+    private final PrisonSupportedService prisonSupportedService;
 
-    public KeyworkerMigrationService(OffenderKeyworkerRepository repository, BulkOffenderKeyworkerImporter importer, AgencyValidation agencyValidation) {
+    public KeyworkerMigrationService(PrisonSupportedRepository repository,
+                                     BulkOffenderKeyworkerImporter importer,
+                                     PrisonSupportedService prisonSupportedService) {
         this.repository = repository;
         this.importer = importer;
-        this.agencyValidation = agencyValidation;
+        this.prisonSupportedService = prisonSupportedService;
     }
 
-    public void checkAndMigrateOffenderKeyWorker(String agencyId) {
-        if (isMigrated(agencyId)) return;
+    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    public void migrateKeyworkerByPrison(String prisonId) {
+        if (isMigrated(prisonId)) return;
 
         // If we get here, agency is eligible for migration and has not yet been migrated.
 
@@ -47,9 +53,9 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
         long offset = 0;
 
         do {
-            allocations = getOffenderKeyWorkerPage(agencyId, offset, migrationPageSize);
+            allocations = getOffenderKeyWorkerPage(prisonId, offset, migrationPageSize);
 
-            log.debug("[{}] allocations retrieved for agency [{}]", allocations.size(), agencyId);
+            log.debug("[{}] allocations retrieved for agency [{}]", allocations.size(), prisonId);
 
             importer.translateAndStore(allocations);
 
@@ -58,19 +64,22 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
 
         // Finally, persist all allocations
         importer.importAll();
+
+        // Mark prison as migrated
+        PrisonSupported prison = repository.findOne(prisonId);
+        prison.setMigrated(true);
+        prison.setMigratedDateTime(LocalDateTime.now());
     }
 
-    private boolean isMigrated(String agencyId) {
-        agencyValidation.verifyAgencySupport(agencyId);
-
-        // Check repository to determine if agency already migrated
-        return repository.existsByAgencyId(agencyId);
+    private boolean isMigrated(String prisonId) {
+        prisonSupportedService.verifyPrisonSupported(prisonId);
+        return prisonSupportedService.isMigrated(prisonId);
     }
 
-    private List<OffenderKeyworkerDto> getOffenderKeyWorkerPage(String agencyId, long offset, long limit) {
-        log.debug("Retrieving allocation history for agency [{}] using offset [{}] and limit [{}].", agencyId, offset, limit);
+    private List<OffenderKeyworkerDto> getOffenderKeyWorkerPage(String prisonId, long offset, long limit) {
+        log.debug("Retrieving allocation history for agency [{}] using offset [{}] and limit [{}].", prisonId, offset, limit);
 
-        URI uri = new UriTemplate(URI_KEY_WORKER_GET_ALLOCATION_HISTORY).expand(agencyId);
+        URI uri = new UriTemplate(URI_KEY_WORKER_GET_ALLOCATION_HISTORY).expand(prisonId);
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageOffset(offset).pageLimit(limit).build();
 
         return getWithPaging(uri, pagingAndSorting, PARAM_TYPE_REF_OFF_KEY_WORKER).getBody();

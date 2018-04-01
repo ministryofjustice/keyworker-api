@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-
 public class KeyworkerAllocationDetailsDto {
 
     @ApiModelProperty(required = true, value = "Offender Booking Id")
@@ -47,9 +46,14 @@ public class KeyworkerAllocationDetailsDto {
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Agency Id")
+    @ApiModelProperty(required = true, value = "Agency Id - will be removed - use prisonId")
     @NotBlank
+    @Deprecated
     private String agencyId;
+
+    @ApiModelProperty(required = true, value = "Prison Id")
+    @NotBlank
+    private String prisonId;
 
     @ApiModelProperty(required = true, value = "Date and time of the allocation")
     @NotNull

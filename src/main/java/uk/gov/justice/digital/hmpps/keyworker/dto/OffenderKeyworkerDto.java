@@ -31,7 +31,7 @@ public class OffenderKeyworkerDto {
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Agency where allocation is effective.")
+    @ApiModelProperty(required = true, value = "Prison Id where allocation is effective.")
     @NotBlank
     private String agencyId;
 

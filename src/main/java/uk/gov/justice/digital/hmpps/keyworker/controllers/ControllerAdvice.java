@@ -8,6 +8,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
+import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
+import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
+import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -74,6 +77,39 @@ public class ControllerAdvice {
                 .body(ErrorResponse
                         .builder()
                         .status(HttpStatus.NOT_FOUND.value())
+                        .developerMessage(e.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(PrisonNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleNotSupportedException(Exception e) {
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ErrorResponse
+                        .builder()
+                        .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                        .developerMessage(e.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(PrisonNotSupportAutoAllocationException.class)
+    public ResponseEntity<ErrorResponse> handleNotSupportedAutoAllocationException(Exception e) {
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ErrorResponse
+                        .builder()
+                        .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                        .developerMessage(e.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(PrisonNotMigratedException.class)
+    public ResponseEntity<ErrorResponse> handleNotMigratedException(Exception e) {
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ErrorResponse
+                        .builder()
+                        .status(HttpStatus.METHOD_NOT_ALLOWED.value())
                         .developerMessage(e.getMessage())
                         .build());
     }

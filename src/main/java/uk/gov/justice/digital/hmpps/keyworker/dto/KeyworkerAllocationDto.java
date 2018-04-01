@@ -30,9 +30,9 @@ public class KeyworkerAllocationDto {
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Agency where allocation is effective.")
+    @ApiModelProperty(required = true, value = "Prison where allocation is effective.")
     @NotBlank
-    private String agencyId;
+    private String prisonId;
 
     @ApiModelProperty(required = true, value = "Type of allocation - auto or manual.")
     @NotNull

@@ -11,7 +11,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
+import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -61,7 +64,7 @@ public class OffenderKeyworkerRepositoryTest {
         assertThat(retrievedEntity.isActive()).isEqualTo(transientEntity.isActive());
         assertThat(retrievedEntity.getAllocationType()).isEqualTo(transientEntity.getAllocationType());
         assertThat(retrievedEntity.getUserId()).isEqualTo(transientEntity.getUserId());
-        assertThat(retrievedEntity.getAgencyId()).isEqualTo(transientEntity.getAgencyId());
+        assertThat(retrievedEntity.getPrisonId()).isEqualTo(transientEntity.getPrisonId());
         assertThat(retrievedEntity.getExpiryDateTime()).isEqualTo(transientEntity.getExpiryDateTime());
         assertThat(retrievedEntity.getDeallocationReason()).isEqualTo(transientEntity.getDeallocationReason());
         assertThat(retrievedEntity.getCreateUserId()).isEqualTo("user");
@@ -100,7 +103,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void shouldReturnCountByStaffIdAndAgencyIdAndActive() {
+    public void shouldReturnCountByStaffIdAndPrisonIdAndActive() {
         long UNKNOWN_STAFFID = 98765L;
 
         final long nextId = nextId();
@@ -114,9 +117,9 @@ public class OffenderKeyworkerRepositoryTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
-        assertThat(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(nextId, AGENCY_ID_LEI, true, AllocationType.PROVISIONAL)).isEqualTo(1);
-        assertThat(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(nextId, AGENCY_ID_LEI, false, AllocationType.PROVISIONAL)).isEqualTo(0);
-        assertThat(repository.countByStaffIdAndAgencyIdAndActiveAndAllocationTypeIsNot(UNKNOWN_STAFFID, AGENCY_ID_LEI, true, AllocationType.PROVISIONAL)).isEqualTo(0);
+        assertThat(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(nextId, AGENCY_ID_LEI, true, AllocationType.PROVISIONAL)).isEqualTo(1);
+        assertThat(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(nextId, AGENCY_ID_LEI, false, AllocationType.PROVISIONAL)).isEqualTo(0);
+        assertThat(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(UNKNOWN_STAFFID, AGENCY_ID_LEI, true, AllocationType.PROVISIONAL)).isEqualTo(0);
 
         repository.deleteAll();
     }
@@ -178,7 +181,7 @@ public class OffenderKeyworkerRepositoryTest {
                 .allocationReason(AllocationReason.MANUAL)
                 .allocationType(AllocationType.AUTO)
                 .userId("The Assigning User")
-                .agencyId(AGENCY_ID_LEI)
+                .prisonId(AGENCY_ID_LEI)
                 .expiryDateTime(EXPIRY_DATE_TIME)
                 .deallocationReason(DeallocationReason.OVERRIDE)
                 //.createUpdate(creationTimeInfo())

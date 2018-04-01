@@ -7,13 +7,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -35,20 +35,23 @@ public class KeyworkerServiceController {
     private final KeyworkerService keyworkerService;
     private final KeyworkerMigrationService migrationService;
     private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
+    private final PrisonSupportedService prisonSupportedService;
 
     public KeyworkerServiceController(KeyworkerService keyworkerService,
                                       KeyworkerMigrationService migrationService,
-                                      KeyworkerAutoAllocationService keyworkerAutoAllocationService) {
+                                      KeyworkerAutoAllocationService keyworkerAutoAllocationService,
+                                      PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.migrationService = migrationService;
         this.keyworkerAutoAllocationService = keyworkerAutoAllocationService;
+        this.prisonSupportedService = prisonSupportedService;
     }
 
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Key workers available for allocation at specified agency.",
-            notes = "Key workers available for allocation at specified agency.",
+            value = "Key workers available for allocation at specified prison.",
+            notes = "Key workers available for allocation at specified prison.",
             nickname="getAvailableKeyworkers")
 
     @ApiResponses(value = {
@@ -57,24 +60,24 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
-    @GetMapping(path = "/{agencyId}/available")
+    @GetMapping(path = "/{prisonId}/available")
     public List<KeyworkerDto> getAvailableKeyworkers(
 
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable(name = "agencyId")
-                    String agencyId) {
+            @PathVariable(name = "prisonId")
+                    String prisonId) {
 
-        log.debug("finding available keyworkers for agency {}", agencyId);
+        log.debug("finding available key-workers for prison Id {}", prisonId);
 
-        return keyworkerService.getAvailableKeyworkers(agencyId);
+        return keyworkerService.getAvailableKeyworkers(prisonId);
     }
 
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Allocations in specified agency.",
-            notes = "Allocations in specified agency.",
+            value = "Allocations in specified prison.",
+            notes = "Allocations in specified prison.",
             nickname="getAllocations")
 
     @ApiResponses(value = {
@@ -83,12 +86,12 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
-    @GetMapping(path = "/{agencyId}/allocations")
+    @GetMapping(path = "/{prisonId}/allocations")
     public ResponseEntity<List<KeyworkerAllocationDetailsDto>> getKeyworkerAllocations(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
 
             @ApiParam(value = "Optional filter by type of allocation. A for auto allocations, M for manual allocations.")
             @RequestParam(value = "allocationType", required = false)
@@ -123,7 +126,7 @@ public class KeyworkerServiceController {
         Page<KeyworkerAllocationDetailsDto> page = keyworkerService.getAllocations(
                 AllocationsFilterDto
                         .builder()
-                        .agencyId(agencyId)
+                        .prisonId(prisonId)
                         .allocationType(Optional.ofNullable(AllocationType.get(allocationType)))
                         .fromDate(fromDate)
                         .toDate(toDate.orElse(LocalDate.now()))
@@ -142,8 +145,8 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Keyworker details for specified offenders in the given agency.",
-            notes = "Keyworker details for specified offenders in the given agency, where the offender and details exist.",
+            value = "Keyworker details for specified offenders in the given prison.",
+            notes = "Keyworker details for specified offenders in the given prison, where the offender and details exist.",
             nickname="getOffenders")
 
     @ApiResponses(value = {
@@ -152,25 +155,25 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @GetMapping(path = "/{agencyId}/offenders")
+    @GetMapping(path = "/{prisonId}/offenders")
     public List<OffenderKeyworkerDto> getOffenders(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
 
             @ApiParam(value = "Offenders for which details are required, or get all.")
             @RequestParam(value = "offenderNo", required = false)
                     List<String> offenderNos
     ) {
-        return keyworkerService.getOffenders(agencyId, offenderNos);
+        return keyworkerService.getOffenders(prisonId, offenderNos);
     }
 
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "All unallocated offenders in specified agency.",
-            notes = "All unallocated offenders in specified agency.",
+            value = "All unallocated offenders in specified prison.",
+            notes = "All unallocated offenders in specified prison.",
             nickname="getUnallocatedOffenders")
 
     @ApiResponses(value = {
@@ -179,12 +182,12 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class, responseContainer = "List") })
 
-    @GetMapping(path = "/{agencyId}/offenders/unallocated")
+    @GetMapping(path = "/{prisonId}/offenders/unallocated")
     public List<OffenderLocationDto> getUnallocatedOffenders(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
             @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
@@ -194,7 +197,7 @@ public class KeyworkerServiceController {
             @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
                     SortOrder sortOrder
     ) {
-        return keyworkerService.getUnallocatedOffenders(agencyId, sortFields, sortOrder);
+        return keyworkerService.getUnallocatedOffenders(prisonId, sortFields, sortOrder);
     }
 
 
@@ -211,20 +214,19 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @GetMapping(path="/{staffId}/agencyId/{agencyId}")
-
+    @GetMapping(path="/{staffId}/prison/{prisonId}")
     public KeyworkerDto getKeyworkerDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
                     Long staffId,
 
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId) {
+            @PathVariable("prisonId")
+                    String prisonId) {
 
-        return keyworkerService.getKeyworkerDetails(agencyId, staffId);
+        return keyworkerService.getKeyworkerDetails(prisonId, staffId);
     }
 
     /* --------------------------------------------------------------------------------*/
@@ -240,41 +242,41 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @GetMapping(path="/{agencyId}/offender/{offenderNo}")
+    @GetMapping(path="/{prisonId}/offender/{offenderNo}")
 
     public KeyworkerDto getOffendersKeyworker(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
             @ApiParam(value = "offenderNo", required = true)
             @NotEmpty
             @PathVariable("offenderNo")
                     String offenderNo) {
 
-        return keyworkerService.getCurrentKeyworkerForPrisoner(agencyId, offenderNo).orElseThrow(EntityNotFoundException::new);
+        return keyworkerService.getCurrentKeyworkerForPrisoner(prisonId, offenderNo).orElseThrow(EntityNotFoundException::new);
     }
 
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Initiate auto-allocation process for specified agency.",
-            notes = "Initiate auto-allocation process for specified agency.",
+            value = "Initiate auto-allocation process for specified prison.",
+            notes = "Initiate auto-allocation process for specified prison.",
             nickname="autoAllocate")
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Request to initiate auto-allocation process has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)", response = String.class),
-            @ApiResponse(code = 404, message = "Agency id provided is not valid or is not accessible to user.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Prison id provided is not valid or is not accessible to user.", response = ErrorResponse.class),
             @ApiResponse(code = 409, message = "Auto-allocation processing not able to proceed or halted due to state of dependent resources.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PostMapping(path = "/{agencyId}/allocate/start")
+    @PostMapping(path = "/{prisonId}/allocate/start")
 
     public Long startAutoAllocation(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId") String agencyId) {
-        return keyworkerAutoAllocationService.autoAllocate(agencyId);
+            @PathVariable("prisonId") String prisonId) {
+        return keyworkerAutoAllocationService.autoAllocate(prisonId);
     }
     /* --------------------------------------------------------------------------------*/
 
@@ -285,16 +287,16 @@ public class KeyworkerServiceController {
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Request to confirm allocations has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)", response = String.class),
-            @ApiResponse(code = 404, message = "Agency id provided is not valid or is not accessible to user.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Prison id provided is not valid or is not accessible to user.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PostMapping(path = "/{agencyId}/allocate/confirm")
+    @PostMapping(path = "/{prisonId}/allocate/confirm")
 
     public Long confirmAutoAllocation(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId") String agencyId) {
-        return keyworkerAutoAllocationService.confirmAllocations(agencyId);
+            @PathVariable("prisonId") String prisonId) {
+        return keyworkerAutoAllocationService.confirmAllocations(prisonId);
     }
     /* --------------------------------------------------------------------------------*/
 
@@ -324,7 +326,7 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Search for key workers within agency.",
+            value = "Search for key workers within prison.",
             notes = "Search for key workers using firstname or lastname",
             nickname="keyworkersearch")
 
@@ -334,14 +336,14 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
 
-    @GetMapping(path="/{agencyId}/members")
+    @GetMapping(path="/{prisonId}/members")
 
 
     public ResponseEntity keyworkerSearch(
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
 
             @ApiParam(value = "Filter results by first name and/or last name of key worker. Supplied filter term is matched to start of key worker's first and last name.")
             @RequestParam(value = "nameFilter", required = false)
@@ -371,7 +373,7 @@ public class KeyworkerServiceController {
                 .sortOrder(sortOrder)
                 .build();
 
-        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(agencyId, nameFilter, pageDto);
+        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(prisonId, nameFilter, pageDto);
         return new ResponseEntity<>(activeKeyworkerPage.getItems(), activeKeyworkerPage.toHeaders(), HttpStatus.OK);
 
     }
@@ -379,8 +381,8 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Specified key worker’s currently assigned offenders for given agency.",
-            notes = "Specified key worker’s currently assigned offenders for given agency.",
+            value = "Specified key worker’s currently assigned offenders for given prison.",
+            notes = "Specified key worker’s currently assigned offenders for given prison.",
             nickname="keyworkerallocations")
 
     @ApiResponses(value = {
@@ -389,28 +391,22 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
 
-    @GetMapping(path="/{staffId}/agencyId/{agencyId}/offenders")
+    @GetMapping(path="/{staffId}/prison/{prisonId}/offenders")
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
                     Long staffId,
 
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
             @ApiParam(value = "skipOffenderDetails", defaultValue = "false")
             @RequestParam(value = "skipOffenderDetails", required = false)
                     boolean skipOffenderDetails){
 
-        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(agencyId, staffId, skipOffenderDetails);
-    }
-
-    @PostMapping(path="/migrate/{agencyId}")
-    @PreAuthorize("#oauth2.hasScope('admin')")
-    public void migrate(@PathVariable("agencyId") String agencyId) {
-        migrationService.checkAndMigrateOffenderKeyWorker(agencyId);
+        return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(prisonId, staffId, skipOffenderDetails);
     }
 
     @ApiOperation(
@@ -423,17 +419,17 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PostMapping(path = "/{staffId}/agencyId/{agencyId}")
+    @PostMapping(path = "/{staffId}/prison/{prisonId}")
     public void addOrUpdateKeyworker(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
             @PathVariable("staffId")
                     Long staffId,
 
-            @ApiParam(value = "agencyId", required = true)
+            @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("agencyId")
-                    String agencyId,
+            @PathVariable("prisonId")
+                    String prisonId,
 
 
             @ApiParam(value = "New keyworker details." , required=true )
@@ -442,6 +438,55 @@ public class KeyworkerServiceController {
                     KeyworkerUpdateDto keyworkerUpdateDto
 
     ) {
-        keyworkerService.addOrUpdate(staffId, agencyId, keyworkerUpdateDto);
+        keyworkerService.addOrUpdate(staffId, prisonId, keyworkerUpdateDto);
     }
+
+    @ApiOperation(value = "Get Prison Migration Status")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = Prison.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping(path="/prison/{prisonId}")
+    public Prison getPrisonMigrationStatus(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
+        Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
+        return prisonDetail != null ? prisonDetail : Prison.builder().prisonId(prisonId).supported(false).build();
+    }
+
+    @ApiOperation(value = "Migrate Key-worker Data from NOMIS DB", notes = "This is a one way process, Role Required: KW_MIGRATION")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PutMapping(path="/migrate/{prisonId}")
+    public void migrate(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
+        migrationService.migrateKeyworkerByPrison(prisonId);
+    }
+
+    @ApiOperation(value = "Enable Manual Allocation", notes = "Role Required: KW_MIGRATION. This will also enable migration from NOMIS DB")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PutMapping(path="/enable/{prisonId}/manual")
+    public void addSupportedPrisonForManualAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
+        prisonSupportedService.updateSupportedPrison(prisonId, false);
+    }
+
+    @ApiOperation(value = "Enable Auto Allocation for specified prison", notes = "Role Required: KW_MIGRATION. This will also enable migration from NOMIS DB")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PutMapping(path="/enable/{prisonId}/auto-allocate")
+    public void addSupportedPrisonForAutoAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
+        prisonSupportedService.updateSupportedPrison(prisonId, true);
+    }
+
+
 }
