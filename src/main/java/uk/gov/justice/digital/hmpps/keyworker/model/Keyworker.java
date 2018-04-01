@@ -31,5 +31,6 @@ public class Keyworker {
     @Type(type = "yes_no")
     @NotNull
     @Column(name = "AUTO_ALLOCATION_FLAG", nullable = false)
+    @Builder.Default
     private Boolean autoAllocationFlag = Boolean.TRUE;
 }

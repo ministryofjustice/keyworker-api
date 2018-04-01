@@ -30,18 +30,17 @@ import java.util.List;
 @Transactional(noRollbackFor = {AllocationException.class})
 @Slf4j
 public class KeyworkerAutoAllocationService {
-    public static final String COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS = "counter.keyworker.allocations.auto";
-    public static final String OUTCOME_NO_UNALLOCATED_OFFENDERS = "No unallocated offenders.";
+    static final String COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS = "counter.keyworker.allocations.auto";
+    private static final String OUTCOME_NO_UNALLOCATED_OFFENDERS = "No unallocated offenders.";
     public static final String OUTCOME_NO_AVAILABLE_KEY_WORKERS = "No Key workers available for allocation.";
-    public static final String OUTCOME_AUTO_ALLOCATION_SUCCESS = "Offender with bookingId [{}] successfully auto-allocated to Key worker with staffId [{}].";
+    private static final String OUTCOME_AUTO_ALLOCATION_SUCCESS = "Offender with bookingId [{}] successfully auto-allocated to Key worker with staffId [{}].";
 
     private final KeyworkerService keyworkerService;
     private final KeyworkerPoolFactory keyworkerPoolFactory;
     private final CounterService counterService;
     private final BufferMetricReader metricReader;
-    private final long offenderPageLimit;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
-    private final AgencyValidation agencyValidation;
+    private final PrisonSupportedService prisonSupportedService;
 
     /**
      * Constructor.
@@ -54,43 +53,41 @@ public class KeyworkerAutoAllocationService {
                                           CounterService counterService,
                                           BufferMetricReader metricReader,
                                           OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                          AgencyValidation agencyValidation) {
+                                          PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.counterService = counterService;
         this.metricReader = metricReader;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
-        this.agencyValidation = agencyValidation;
-
-        this.offenderPageLimit = 10L;
+        this.prisonSupportedService = prisonSupportedService;
     }
 
-    @PreAuthorize("#oauth2.hasScope('write')")
-    public Long autoAllocate(String agencyId) throws AllocationException {
-        // Confirm a valid agency has been supplied.
-        Validate.isTrue(StringUtils.isNotBlank(agencyId), "Agency id must be provided.");
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public Long autoAllocate(String prisonId) throws AllocationException {
+        // Confirm a valid prison has been supplied.
+        Validate.isTrue(StringUtils.isNotBlank(prisonId), "Prison id must be provided.");
 
-        agencyValidation.verifyAgencySupport(agencyId);
+        prisonSupportedService.verifyPrisonSupportsAutoAllocation(prisonId);
 
-        log.info("Key worker auto-allocation process initiated for agency [{}].", agencyId);
+        log.info("Key worker auto-allocation process initiated for agency [{}].", prisonId);
 
         // Tidy up any abandoned previous run
-        final int rows = clearExistingProvisionals(agencyId);
+        final int rows = clearExistingProvisionals(prisonId);
         if (rows > 0) {
-            log.info("Cleared {} pre-existing provisional allocations at agency {}.", rows, agencyId);
+            log.info("Cleared {} pre-existing provisional allocations at agency {}.", rows, prisonId);
         }
 
         // Get initial counter metric
         long startAllocCount = getCurrentAllocationCount();
 
         // Get all unallocated offenders for agency
-        List<OffenderLocationDto> unallocatedOffenders = getUnallocatedOffenders(agencyId);
+        List<OffenderLocationDto> unallocatedOffenders = getUnallocatedOffenders(prisonId);
 
         // Are there any unallocated offenders? If not, log and exit, otherwise proceed.
         if (unallocatedOffenders.isEmpty()) {
             log.info(OUTCOME_NO_UNALLOCATED_OFFENDERS);
         } else {
-            List<KeyworkerDto> availableKeyworkers = keyworkerService.getKeyworkersAvailableforAutoAllocation(agencyId);
+            List<KeyworkerDto> availableKeyworkers = keyworkerService.getKeyworkersAvailableforAutoAllocation(prisonId);
 
             if (availableKeyworkers.isEmpty()) {
                 log.error(OUTCOME_NO_AVAILABLE_KEY_WORKERS);
@@ -99,7 +96,7 @@ public class KeyworkerAutoAllocationService {
             }
 
             log.info("Proceeding with auto-allocation for {} unallocated offenders and {} available Key workers at agency [{}].",
-                    unallocatedOffenders.size(), availableKeyworkers.size(), agencyId);
+                    unallocatedOffenders.size(), availableKeyworkers.size(), prisonId);
 
             // At this point, we have some unallocated offenders and some available Key workers. Let's put the Key
             // workers into a pool then start processing allocations.
@@ -110,7 +107,7 @@ public class KeyworkerAutoAllocationService {
             try {
                 processAllocations(unallocatedOffenders, keyworkerPool);
             } catch(AllocationException aex) {
-                long allocCount = calcAndLogAllocationsProcessed(agencyId, startAllocCount);
+                long allocCount = calcAndLogAllocationsProcessed(prisonId, startAllocCount);
 
                 log.info("Key worker auto-allocation terminated after processing {} allocations.", allocCount);
                 log.error("Reason for termination: {}", aex.getMessage());
@@ -119,12 +116,12 @@ public class KeyworkerAutoAllocationService {
             }
         }
 
-        return calcAndLogAllocationsProcessed(agencyId, startAllocCount);
+        return calcAndLogAllocationsProcessed(prisonId, startAllocCount);
     }
 
-    @PreAuthorize("#oauth2.hasScope('write')")
-    public Long confirmAllocations(String agencyId) {
-        agencyValidation.verifyAgencySupport(agencyId);
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public Long confirmAllocations(String prisonId) {
+        prisonSupportedService.verifyPrisonSupported(prisonId);
             /* TODO not *entirely sure this isnt needed ...
         (List<KeyworkerAllocationDto> allocations) {
         final AtomicInteger numberConfirmed = new AtomicInteger(0);
@@ -138,11 +135,11 @@ public class KeyworkerAutoAllocationService {
             // else ... Not found, or more than one. Either way leave alone and emit warning
         });
         return numberConfirmed.get();*/
-        return (long)offenderKeyworkerRepository.confirmProvisionals(agencyId);
+        return (long)offenderKeyworkerRepository.confirmProvisionals(prisonId);
     }
 
-    private int clearExistingProvisionals(String agencyId) {
-        return offenderKeyworkerRepository.deleteExistingProvisionals(agencyId);
+    private int clearExistingProvisionals(String prisonId) {
+        return offenderKeyworkerRepository.deleteExistingProvisionals(prisonId);
     }
 
     private void processAllocations(List<OffenderLocationDto> offenders, KeyworkerPool keyworkerPool) {
@@ -164,8 +161,8 @@ public class KeyworkerAutoAllocationService {
         keyworkerPool.refreshKeyworker(refreshedKeyworker);
     }
 
-    private List<OffenderLocationDto> getUnallocatedOffenders(String agencyId) {
-        return keyworkerService.getUnallocatedOffenders(agencyId, null,null);
+    private List<OffenderLocationDto> getUnallocatedOffenders(String prisonId) {
+        return keyworkerService.getUnallocatedOffenders(prisonId, null,null);
     }
 
     private void storeAllocation(OffenderLocationDto offender, KeyworkerDto keyworker) {
@@ -182,7 +179,7 @@ public class KeyworkerAutoAllocationService {
         return OffenderKeyworker.builder()
                 .offenderNo(offender.getOffenderNo())
                 .staffId(keyworker.getStaffId())
-                .agencyId(offender.getAgencyId())
+                .prisonId(offender.getAgencyId())
                 .allocationReason(AllocationReason.AUTO)
                 .active(true)
                 .assignedDateTime(LocalDateTime.now())
@@ -190,11 +187,11 @@ public class KeyworkerAutoAllocationService {
                 .build();
     }
 
-    private Long calcAndLogAllocationsProcessed(String agencyId, long startAllocCount) {
+    private Long calcAndLogAllocationsProcessed(String prisonId, long startAllocCount) {
         // Determine total allocations for this execution of auto-allocation process.
         long allocCount = getCurrentAllocationCount() - startAllocCount;
 
-        log.info("Processed {} allocations for agency [{}].", allocCount, agencyId);
+        log.info("Processed {} allocations for agency [{}].", allocCount, prisonId);
 
         return allocCount;
     }

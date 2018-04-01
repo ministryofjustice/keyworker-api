@@ -81,7 +81,7 @@ public class ConversionHelperTest {
         assertThat(okw.getOffenderNo()).isEqualTo(dto.getOffenderNo());
         assertThat(okw.getStaffId()).isEqualTo(dto.getStaffId());
         assertThat(okw.isActive()).isEqualTo(StringUtils.equals("Y", dto.getActive()));
-        assertThat(okw.getAgencyId()).isEqualTo(dto.getAgencyId());
+        assertThat(okw.getPrisonId()).isEqualTo(dto.getAgencyId());
         assertThat(okw.getAssignedDateTime()).isEqualTo(dto.getAssigned());
         assertThat(okw.getUserId()).isEqualTo(dto.getUserId());
         assertThat(okw.getExpiryDateTime()).isEqualTo(dto.getExpired());

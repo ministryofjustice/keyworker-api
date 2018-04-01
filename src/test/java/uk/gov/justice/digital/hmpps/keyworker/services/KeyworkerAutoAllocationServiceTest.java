@@ -13,9 +13,12 @@ import org.mockito.stubbing.Answer;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
+import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
+import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -57,7 +60,7 @@ public class KeyworkerAutoAllocationServiceTest {
     private BufferMetricReader metricReader;
 
     @Mock
-    private AgencyValidation agencyValidation;
+    private PrisonSupportedService prisonSupportedService;
 
     @Mock
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
@@ -96,7 +99,7 @@ public class KeyworkerAutoAllocationServiceTest {
         // Construct service under test (using mock collaborators)
         Set<String> aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
         keyworkerAutoAllocationService =
-                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader, offenderKeyworkerRepository, agencyValidation);
+                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader, offenderKeyworkerRepository, prisonSupportedService);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -112,7 +115,7 @@ public class KeyworkerAutoAllocationServiceTest {
     // And auto-allocation process throws an AgencyNotSupported exception
     @Test
     public void testServicePerformsNoAllocationsForUnsupportedAgency() {
-        doThrow(new AgencyNotSupportedException(format("Agency [%s] is not supported by this service.", TEST_AGENCY_ID))).when(agencyValidation).verifyAgencySupport(eq(TEST_AGENCY_ID));
+        doThrow(new PrisonNotSupportedException(format("Agency [%s] is not supported by this service.", TEST_AGENCY_ID))).when(prisonSupportedService).verifyPrisonSupportsAutoAllocation(eq(TEST_AGENCY_ID));
 
         // Invoke auto-allocate for unsupported agency (catching expected exception)
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
@@ -122,7 +125,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString());
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
 
-        assertThat(thrown).isInstanceOf(AgencyNotSupportedException.class);
+        assertThat(thrown).isInstanceOf(PrisonNotSupportedException.class);
     }
 
     // Given that all offenders at an agency are allocated to a KW
@@ -596,20 +599,20 @@ public class KeyworkerAutoAllocationServiceTest {
         verifyException(thrown, AllocationException.class, KeyworkerPool.OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
     }
 
-    private void mockUnallocatedOffenders(String agencyId, Set<String> offenderNos) {
+    private void mockUnallocatedOffenders(String prisonId, Set<String> offenderNos) {
         final String[] offNos = offenderNos.toArray(new String[0]);
 
         List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
 
         for (int i = 0; i < offNos.length; i++) {
-            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, agencyId, offNos[i], true));
+            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, prisonId, offNos[i], true));
         }
 
-        when(keyworkerService.getUnallocatedOffenders(eq(agencyId), anyString(), any(SortOrder.class))).thenReturn(unallocatedOffenders);
+        when(keyworkerService.getUnallocatedOffenders(eq(prisonId), anyString(), any(SortOrder.class))).thenReturn(unallocatedOffenders);
     }
 
     // Provides page of unallocated offenders (consistent with supplied pagination parameters)
-    private Page<OffenderLocationDto> pagedUnallocatedOffenders(String agencyId, Set<String> offenderNos, long total, long startId, long limit) {
+    private Page<OffenderLocationDto> pagedUnallocatedOffenders(String prisonId, Set<String> offenderNos, long total, long startId, long limit) {
         final String[] offNos = offenderNos.toArray(new String[0]);
 
         List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
@@ -617,7 +620,7 @@ public class KeyworkerAutoAllocationServiceTest {
         for (long i = 0; i < Math.min(total, limit); i++) {
             int idx = Long.valueOf(startId + i).intValue() - 1;
 
-            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(startId + i, agencyId, offNos[idx], true));
+            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(startId + i, prisonId, offNos[idx], true));
         }
 
         return new Page<>(unallocatedOffenders, total, 0L, limit);

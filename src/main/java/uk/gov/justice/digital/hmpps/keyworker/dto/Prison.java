@@ -1,23 +1,21 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
+@ApiModel(description = "Prison")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AllocationsFilterDto {
+public class Prison {
     private String prisonId;
-    private Optional<AllocationType> allocationType;
-    private Optional<LocalDate> fromDate;
-    private LocalDate toDate;
+    private boolean supported;
+    private boolean migrated;
+    private boolean autoAllocatedSupported;
 }

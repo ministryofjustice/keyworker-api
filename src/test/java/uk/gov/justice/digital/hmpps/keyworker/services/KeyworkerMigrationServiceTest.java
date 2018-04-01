@@ -14,11 +14,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
-import uk.gov.justice.digital.hmpps.keyworker.exception.AgencyNotSupportedException;
+import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
+import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.BulkOffenderKeyworkerImporter;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,22 +49,25 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private OffenderKeyworkerRepository repository;
 
     @MockBean
+    private PrisonSupportedRepository prisonSupportedRepository;
+
+    @MockBean
     private BulkOffenderKeyworkerImporter importer;
 
     @MockBean
-    private AgencyValidation agencyValidation;
+    private PrisonSupportedService prisonSupportedService;
 
     @Before
     public void setUp() throws Exception {
         ReflectionTestUtils.setField(service, "migrationPageSize", TEST_PAGE_SIZE);
-        doThrow(new AgencyNotSupportedException(INVALID_AGENCY_ID)).when(agencyValidation).verifyAgencySupport(eq(INVALID_AGENCY_ID));
+        doThrow(new PrisonNotSupportedException(INVALID_AGENCY_ID)).when(prisonSupportedService).verifyPrisonSupported(eq(INVALID_AGENCY_ID));
     }
 
     // When request made to check and migrate agency that is not eligible for migration
-    // Then migration does not start and AgencyNotSupportedException is thrown
-    @Test(expected = AgencyNotSupportedException.class)
+    // Then migration does not start and PrisonNotSupportedException is thrown
+    @Test(expected = PrisonNotSupportedException.class)
     public void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() throws Exception {
-        service.checkAndMigrateOffenderKeyWorker(INVALID_AGENCY_ID);
+        service.migrateKeyworkerByPrison(INVALID_AGENCY_ID);
 
         server.verify();
     }
@@ -72,11 +76,11 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     // Then migration does not start but no error is thrown
     @Test
     public void testCheckAndMigrateOffenderKeyWorkerAgencyAlreadyMigrated() throws Exception {
-        when(repository.existsByAgencyId(TEST_AGENCY)).thenReturn(Boolean.TRUE);
+        when(prisonSupportedService.isMigrated(eq(TEST_AGENCY))).thenReturn(true);
 
-        service.checkAndMigrateOffenderKeyWorker(TEST_AGENCY);
+        service.migrateKeyworkerByPrison(TEST_AGENCY);
 
-        verify(repository, times(1)).existsByAgencyId(eq(TEST_AGENCY));
+        verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
         server.verify();
     }
 
@@ -105,21 +109,22 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
             pageCount++;
         } while (offset <= count);
 
-        service.checkAndMigrateOffenderKeyWorker(TEST_AGENCY);
+        when(prisonSupportedRepository.findOne(eq(TEST_AGENCY))).thenReturn(PrisonSupported.builder().prisonId(TEST_AGENCY).build());
+        service.migrateKeyworkerByPrison(TEST_AGENCY);
 
-        verify(repository, times(1)).existsByAgencyId(eq(TEST_AGENCY));
+        verify(prisonSupportedRepository, times(1)).findOne(eq(TEST_AGENCY));
         verify(importer, times(pageCount)).translateAndStore(anyListOf(OffenderKeyworkerDto.class));
         verify(importer, times(1)).importAll();
 
         server.verify();
     }
 
-    private List<OffenderKeyworkerDto> getTestOffenderKeyworkerDtos(String agencyId, long count) {
+    private List<OffenderKeyworkerDto> getTestOffenderKeyworkerDtos(String prisonId, long count) {
         List<OffenderKeyworkerDto> dtoList = new ArrayList<>();
 
         for (long i = 1; i <= count; i++) {
             dtoList.add(OffenderKeyworkerDto.builder()
-                    .agencyId(agencyId)
+                    .agencyId(prisonId)
                     .staffId(i)
                     .offenderNo("A" + (1000 + i) + "AA")
                     .active(RandomStringUtils.random(1, "YN"))
