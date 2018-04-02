@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -454,39 +455,37 @@ public class KeyworkerServiceController {
         return prisonDetail != null ? prisonDetail : Prison.builder().prisonId(prisonId).supported(false).build();
     }
 
-    @ApiOperation(value = "Migrate Key-worker Data from NOMIS DB", notes = "This is a one way process, Role Required: KW_MIGRATION")
+    @ApiOperation(value = "Enable Manual Allocation and Migrate", notes = "Role Required: KW_MIGRATION. This will invoke migration from NOMIS DB")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
-            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
-
-    @PutMapping(path="/migrate/{prisonId}")
-    public void migrate(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
-        migrationService.migrateKeyworkerByPrison(prisonId);
-    }
-
-    @ApiOperation(value = "Enable Manual Allocation", notes = "Role Required: KW_MIGRATION. This will also enable migration from NOMIS DB")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 200, message = "OK", response = Prison.class),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PutMapping(path="/enable/{prisonId}/manual")
-    public void addSupportedPrisonForManualAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
-        prisonSupportedService.updateSupportedPrison(prisonId, false);
+    @PostMapping(path="/enable/{prisonId}/manual")
+    public Prison addSupportedPrisonForManualAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId,
+                                                      @ApiParam("migrate") @Param("migrate") boolean migrate) {
+        return updateAndMigrate(prisonId, migrate, false);
     }
 
-    @ApiOperation(value = "Enable Auto Allocation for specified prison", notes = "Role Required: KW_MIGRATION. This will also enable migration from NOMIS DB")
+    @ApiOperation(value = "Enable Auto Allocation for specified prison and Migrate", notes = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 200, message = "OK", response = Prison.class),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PutMapping(path="/enable/{prisonId}/auto-allocate")
-    public void addSupportedPrisonForAutoAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
-        prisonSupportedService.updateSupportedPrison(prisonId, true);
+    @PostMapping(path="/enable/{prisonId}/auto-allocate")
+    public Prison addSupportedPrisonForAutoAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId,
+                                                    @ApiParam("migrate") @Param("migrate") boolean migrate) {
+        return updateAndMigrate(prisonId, migrate, true);
     }
 
+    private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate) {
+        prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate);
 
+        if (migrate) {
+            migrationService.migrateKeyworkerByPrison(prisonId);
+        }
+
+        return prisonSupportedService.getPrisonDetail(prisonId);
+    }
 }
