@@ -60,13 +60,14 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     @Before
     public void setUp() throws Exception {
         ReflectionTestUtils.setField(service, "migrationPageSize", TEST_PAGE_SIZE);
-        doThrow(new PrisonNotSupportedException(INVALID_AGENCY_ID)).when(prisonSupportedService).verifyPrisonSupported(eq(INVALID_AGENCY_ID));
+        doThrow(new PrisonNotSupportedException(INVALID_AGENCY_ID)).when(prisonSupportedService).verifyPrisonMigrated(eq(INVALID_AGENCY_ID));
     }
 
     // When request made to check and migrate agency that is not eligible for migration
     // Then migration does not start and PrisonNotSupportedException is thrown
     @Test(expected = PrisonNotSupportedException.class)
     public void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() throws Exception {
+        when(prisonSupportedService.isMigrated(eq(INVALID_AGENCY_ID))).thenThrow(PrisonNotSupportedException.class);
         service.migrateKeyworkerByPrison(INVALID_AGENCY_ID);
 
         server.verify();

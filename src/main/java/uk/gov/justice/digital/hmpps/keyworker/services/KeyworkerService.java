@@ -210,13 +210,12 @@ public class KeyworkerService extends Elite2ApiSource {
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public void allocate(@Valid @NotNull KeyworkerAllocationDto keyworkerAllocation) {
-
+        prisonSupportedService.verifyPrisonMigrated(keyworkerAllocation.getPrisonId());
         doAllocateValidation(keyworkerAllocation);
         doAllocate(keyworkerAllocation);
     }
 
     private void doAllocateValidation(KeyworkerAllocationDto keyworkerAllocation) {
-        prisonSupportedService.verifyPrisonSupported(keyworkerAllocation.getPrisonId());
         Validate.notBlank(keyworkerAllocation.getOffenderNo(), "Missing prisoner number.");
         Validate.notNull(keyworkerAllocation.getStaffId(), "Missing staff id.");
 

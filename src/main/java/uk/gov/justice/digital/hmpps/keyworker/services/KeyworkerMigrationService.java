@@ -43,7 +43,7 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
 
     @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
     public void migrateKeyworkerByPrison(String prisonId) {
-        if (isMigrated(prisonId)) return;
+        if (prisonSupportedService.isMigrated(prisonId)) return;
 
         // If we get here, agency is eligible for migration and has not yet been migrated.
 
@@ -69,11 +69,6 @@ public class KeyworkerMigrationService extends Elite2ApiSource {
         PrisonSupported prison = repository.findOne(prisonId);
         prison.setMigrated(true);
         prison.setMigratedDateTime(LocalDateTime.now());
-    }
-
-    private boolean isMigrated(String prisonId) {
-        prisonSupportedService.verifyPrisonSupported(prisonId);
-        return prisonSupportedService.isMigrated(prisonId);
     }
 
     private List<OffenderKeyworkerDto> getOffenderKeyWorkerPage(String prisonId, long offset, long limit) {
