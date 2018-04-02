@@ -121,7 +121,7 @@ public class KeyworkerAutoAllocationService {
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Long confirmAllocations(String prisonId) {
-        prisonSupportedService.verifyPrisonSupported(prisonId);
+        prisonSupportedService.verifyPrisonMigrated(prisonId);
             /* TODO not *entirely sure this isnt needed ...
         (List<KeyworkerAllocationDto> allocations) {
         final AtomicInteger numberConfirmed = new AtomicInteger(0);

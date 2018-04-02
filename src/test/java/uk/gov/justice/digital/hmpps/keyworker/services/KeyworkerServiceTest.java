@@ -84,7 +84,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
     @Before
     public void setup() {
-        doThrow(new PrisonNotSupportedException("Agency [MDI] is not supported by this service.")).when(prisonSupportedService).verifyPrisonSupported(eq("MDI"));
+        doThrow(new PrisonNotSupportedException("Agency [MDI] is not supported by this service.")).when(prisonSupportedService).verifyPrisonMigrated(eq("MDI"));
     }
     @Test
     public void testGetUnallocatedOffendersForSupportedAgencyNoneAllocated() throws Exception {

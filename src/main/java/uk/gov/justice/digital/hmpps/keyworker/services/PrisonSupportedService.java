@@ -23,7 +23,7 @@ public class PrisonSupportedService {
         this.repository = repository;
     }
 
-    public void verifyPrisonSupported(String prisonId) {
+    private void verifyPrisonSupported(String prisonId) {
         Validate.notBlank(prisonId, "Prison id is required.");
 
         // Check configuration to verify that prison is eligible for migration.
@@ -34,6 +34,7 @@ public class PrisonSupportedService {
 
     public void verifyPrisonMigrated(String prisonId) {
         Validate.notBlank(prisonId, "Prison id is required.");
+        verifyPrisonSupported(prisonId);
 
         // Check configuration to verify that prison has been migrated
         if (!isMigrated(prisonId)) {
