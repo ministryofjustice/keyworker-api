@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -144,7 +143,7 @@ public class KeyworkerPool {
     /**
      * Identifies and returns Key worker to whom offender should be allocated, as determined by allocation rules. Note
      * that if the returned Key worker is used for allocation of an offender, the pool must be updated with refreshed
-     * Key worker details (via {@link #refreshKeyworker(KeyworkerDto)}).
+     * Key worker details (via {@link #incrementAndRefreshKeyworker(KeyworkerDto)}).
      *
      * @param offenderNo offender number of offender for whom key worker allocation is required.
      * @return the priority {@code Keyworker}.
@@ -184,13 +183,14 @@ public class KeyworkerPool {
     }
 
     /**
-     * Refreshes pool with provided Key worker. If provided Key worker does not already exist in the pool, an
-     * {@code IllegalStateException} is throwm.
+     * Increments allocation count of provided Key worker and Refreshes pool (to recalculate its position in pool).
+     * If provided Key worker does not already exist in the pool, an
+     * {@code IllegalStateException} is thrown.
      *
-     * @param keyworker Key worker to refresh.
+     * @param keyworker Key worker to process.
      * @throws IllegalStateException if Key worker is not already present in the pool.
      */
-    public void refreshKeyworker(KeyworkerDto keyworker) {
+    public void incrementAndRefreshKeyworker(KeyworkerDto keyworker) {
         Validate.notNull(keyworker, "Key worker to refresh must be specified.");
 
         // Remove Key worker from pool (throwing exception if Key worker not in pool)
@@ -199,6 +199,7 @@ public class KeyworkerPool {
 
             throw new IllegalStateException("Key worker to refresh is not in Key worker pool.");
         }
+        keyworker.setNumberAllocated(keyworker.getNumberAllocated() + 1);
 
         // Add Key worker back to pool
         reinstateKeyworker(keyworker, null);
