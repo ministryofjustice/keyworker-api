@@ -254,9 +254,6 @@ public class KeyworkerAutoAllocationServiceTest {
 
         mockPrisonerAllocationHistory(allocOffenderNo, previousAllocation);
 
-        // Mock KW refresh following allocation
-        mockKeyworkerRefresh(someKeyworkers);
-
         // Invoke auto-allocate
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
@@ -275,8 +272,6 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
         verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, allocStaffId);
-
-        verify(keyworkerService, times(1)).getKeyworkerDetails(TEST_AGENCY_ID, allocStaffId);
     }
 
     // Given an offender at an agency is not allocated to a KW
@@ -324,9 +319,6 @@ public class KeyworkerAutoAllocationServiceTest {
 
         mockPrisonerAllocationHistory(allocOffenderNo, prevEarlierAllocation, prevLaterAllocation);
 
-        // Mock KW refresh following allocation
-        mockKeyworkerRefresh(someKeyworkers);
-
         // Invoke auto-allocate
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
@@ -345,8 +337,6 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
         verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, allocLaterStaffId);
-
-        verify(keyworkerService, times(1)).getKeyworkerDetails(TEST_AGENCY_ID, allocLaterStaffId);
     }
 
     // Given an offender at an agency is not allocated to a KW
@@ -381,9 +371,6 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // No previous allocations between unallocated offender and available Key workers
 
-        // Mock KW refresh following allocation
-        mockKeyworkerRefresh(someKeyworkers);
-
         // Invoke auto-allocate
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
@@ -401,8 +388,6 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
         verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, leastAllocStaffId);
-
-        verify(keyworkerService, times(1)).getKeyworkerDetails(eq(TEST_AGENCY_ID), eq(leastAllocStaffId));
     }
 
     // Given an offender at an agency is not allocated to a KW
@@ -456,9 +441,6 @@ public class KeyworkerAutoAllocationServiceTest {
         mockKeyworkerAllocationHistory(recentLeastAllocStaffId, recentAllocation);
         mockKeyworkerAllocationHistory(olderLeastAllocStaffId, olderAllocation);
 
-        // Mock KW refresh following allocation
-        mockKeyworkerRefresh(someKeyworkers);
-
         // Invoke auto-allocate
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
@@ -477,8 +459,6 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
         KeyworkerTestHelper.verifyAutoAllocation(kwaArg.getValue(), TEST_AGENCY_ID, allocOffenderNo, olderLeastAllocStaffId);
-
-        verify(keyworkerService, times(1)).getKeyworkerDetails(eq(TEST_AGENCY_ID), eq(olderLeastAllocStaffId));
     }
 
     // Given multiple pages (page size = 10) of offenders at an agency are not allocated to a KW
@@ -506,9 +486,6 @@ public class KeyworkerAutoAllocationServiceTest {
         // No previous allocations between any offender and available Key workers
         mockPrisonerAllocationHistory(null);
 
-        // Mock KW refresh following allocation
-        mockKeyworkerRefresh(someKeyworkers);
-
         // Invoke auto-allocate
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
@@ -532,8 +509,6 @@ public class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
-
-        verify(keyworkerService, times(totalOffenders)).getKeyworkerDetails(eq(TEST_AGENCY_ID), isLongBetween(1L, totalKeyworkers));
     }
 
     // Given multiple pages (page size = 10) of offenders at an agency are not allocated to a KW
@@ -567,9 +542,6 @@ public class KeyworkerAutoAllocationServiceTest {
         // No previous allocations between any offender and available Key workers
         mockPrisonerAllocationHistory(null);
 
-        // Mock KW refresh following allocation
-        mockKeyworkerRefresh(someKeyworkers);
-
         // Invoke auto-allocate (catching expected exception)
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
@@ -593,8 +565,6 @@ public class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
-
-        verify(keyworkerService, times(totalCapacity)).getKeyworkerDetails(eq(TEST_AGENCY_ID), isLongBetween(1L, totalKeyworkers));
 
         verifyException(thrown, AllocationException.class, KeyworkerPool.OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
     }
@@ -678,26 +648,6 @@ public class KeyworkerAutoAllocationServiceTest {
                 (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId))).thenReturn(allocationHistory);
-    }
-
-    private void mockKeyworkerRefresh(List<KeyworkerDto> keyworkers) {
-        doAnswer(new Answer() {
-            // Tracks initial set of Key workers and their allocation counts so increase in allocation count can be
-            // simulated when an offender is allocated to a Key worker.
-            final Map<Long, Integer> keyworkerAllocs =
-                    keyworkers.stream().collect(Collectors.toMap(KeyworkerDto::getStaffId, KeyworkerDto::getNumberAllocated));
-            final Map<Long, Integer> keyworkerCapacities =
-                    keyworkers.stream().collect(Collectors.toMap(KeyworkerDto::getStaffId, KeyworkerDto::getCapacity));
-
-            @Override
-            public Object answer(InvocationOnMock invocation) {
-                Long staffId = (Long) invocation.getArguments()[1];
-                int newAllocCount = keyworkerAllocs.get(staffId) + 1;
-                keyworkerAllocs.put(staffId, newAllocCount);
-
-                return getKeyworker(staffId, newAllocCount, keyworkerCapacities.get(staffId));
-            }
-        }).when(keyworkerService).getKeyworkerDetails(eq(TEST_AGENCY_ID), anyLong());
     }
 
     class IsLongBetween extends ArgumentMatcher<Long> {

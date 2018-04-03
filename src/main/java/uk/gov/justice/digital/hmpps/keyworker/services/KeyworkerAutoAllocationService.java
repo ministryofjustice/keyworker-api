@@ -156,9 +156,8 @@ public class KeyworkerAutoAllocationService {
         storeAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
-        KeyworkerDto refreshedKeyworker = keyworkerService.getKeyworkerDetails(offender.getAgencyId(), keyworker.getStaffId());
 
-        keyworkerPool.refreshKeyworker(refreshedKeyworker);
+        keyworkerPool.incrementAndRefreshKeyworker(keyworker); //refreshedKeyworker);
     }
 
     private List<OffenderLocationDto> getUnallocatedOffenders(String prisonId) {

@@ -279,17 +279,17 @@ public class KeyworkerPoolTest {
         KeyworkerDto otherKeyworker = getKeyworker(8, 5, CAPACITY_TIER_1);
 
         // Attempt refresh
-        keyworkerPool.refreshKeyworker(otherKeyworker);
+        keyworkerPool.incrementAndRefreshKeyworker(otherKeyworker);
     }
 
     // Given a KW is in the KWP
-    // When attempt is made to refresh KW in the KWP
-    // Then attempt is successful and KWP is updated with refreshed KW
+    // When attempt is made to increment the KW's allocations
+    // Then attempt is successful and KWP is updated with KW in new position in pool
     //
     // If this test fails, a KW who is a member of the KWP may not be refreshed correctly in KWP and this may result in
     // incorrect allocations taking place for the KW due to KWP having an out-of-date KW entry.
     @Test
-    public void testKeyworkerRefreshedWhentMemberOfKeyworkerPool() {
+    public void testKeyworkerRefreshedWhenMemberOfKeyworkerPool() {
         // KWP initialised with an initial set of KWs
         final int lowAllocCount = 1;
         final int highAllocCount = FULLY_ALLOCATED - 1;
@@ -298,28 +298,25 @@ public class KeyworkerPoolTest {
         List<KeyworkerDto> keyworkers = getKeyworkers(5, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
 
         // Add another couple of KWs with known allocation counts (one high, one low)
-        KeyworkerDto lowAllocKeyworker = getKeyworker(refreshKeyworkerStaffId - 1, lowAllocCount, CAPACITY_TIER_1);
-        KeyworkerDto highAllocKeyworker = getKeyworker(refreshKeyworkerStaffId, highAllocCount, CAPACITY_TIER_1);
+        KeyworkerDto firstKeyworker = getKeyworker(refreshKeyworkerStaffId - 1, 0, CAPACITY_TIER_1);
+        KeyworkerDto secondKeyworker = getKeyworker(refreshKeyworkerStaffId, 0, CAPACITY_TIER_1);
 
-        keyworkers.add(lowAllocKeyworker);
-        keyworkers.add(highAllocKeyworker);
+        keyworkers.add(firstKeyworker);
+        keyworkers.add(secondKeyworker);
 
         keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
 
-        // Verify that priority KW is not the one with known high alloc count
+        // Verify that priority KW is the one with known low alloc count and lowest staff id
         KeyworkerDto priorityKeyworker = keyworkerPool.getKeyworker("A1111AA");
 
-        assertThat(priorityKeyworker).isNotSameAs(highAllocKeyworker);
-
-        // Simulate refreshed high alloc KW (now having zero allocations).
-        KeyworkerDto refreshedHighAllocKeyworker = getKeyworker(refreshKeyworkerStaffId, 0, CAPACITY_TIER_1);
+        assertThat(priorityKeyworker).isSameAs(firstKeyworker);
 
         // Attempt refresh
-        keyworkerPool.refreshKeyworker(refreshedHighAllocKeyworker);
+        keyworkerPool.incrementAndRefreshKeyworker(firstKeyworker);
 
-        // Verify that priority KW is our refreshed high-alloc Key worker (that now has zero allocations)
+        // Verify that priority KW is now the second one (that still has zero allocations)
         priorityKeyworker = keyworkerPool.getKeyworker("A2222AA");
 
-        assertThat(priorityKeyworker).isSameAs(refreshedHighAllocKeyworker);
+        assertThat(priorityKeyworker).isSameAs(secondKeyworker);
     }
 }
