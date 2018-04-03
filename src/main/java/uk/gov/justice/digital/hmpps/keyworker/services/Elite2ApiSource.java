@@ -147,15 +147,6 @@ public abstract class Elite2ApiSource {
         return new HttpEntity<>(null, headers);
     }
 
-    protected HttpEntity<?> withSorting(PagingAndSortingDto pagingAndSorting) {
-        HttpHeaders headers = new HttpHeaders();
-
-        headers.add(HEADER_SORT_FIELDS, pagingAndSorting.getSortFields());
-        headers.add(HEADER_SORT_ORDER, pagingAndSorting.getSortOrder().name());
-
-        return new HttpEntity<>(null, headers);
-    }
-
     private long extractTotalRecords(HttpHeaders headers) {
         long totalRecords = 0;
 
