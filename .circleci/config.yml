@@ -27,7 +27,7 @@ jobs:
   build_docker:
     <<: *defaults
     docker:
-      - image: circleci/python:latest-browsers
+      - image: circleci/node:8.11.1-browsers
     steps:
       - checkout
       - attach_workspace:
@@ -57,6 +57,7 @@ jobs:
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
               docker tag mojdigitalstudio/keyworker-service:$TAG mojdigitalstudio/keyworker-service:latest
               docker push mojdigitalstudio/keyworker-service:latest
+              node scripts/plant-beanstalk.js $TAG
               git tag $TAG
               git push --tags
             fi
