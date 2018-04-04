@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,10 +19,12 @@ import javax.persistence.EntityNotFoundException;
 @org.springframework.web.bind.annotation.RestControllerAdvice(
         basePackageClasses = KeyworkerServiceController.class
 )
+@Slf4j
 public class ControllerAdvice {
 
     @ExceptionHandler(RestClientResponseException.class)
     public ResponseEntity<byte[]> handleException(RestClientResponseException e) {
+        log.error("Unexpected exception", e);
         return ResponseEntity
                 .status(e.getRawStatusCode())
                 .body(e.getResponseBodyAsByteArray());
@@ -29,6 +32,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<ErrorResponse> handleException(RestClientException e) {
+        log.error("Unexpected exception", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse
@@ -61,6 +65,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.error("Unexpected exception", e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse
