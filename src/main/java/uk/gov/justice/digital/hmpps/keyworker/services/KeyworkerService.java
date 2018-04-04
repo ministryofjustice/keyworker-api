@@ -159,12 +159,20 @@ public class KeyworkerService extends Elite2ApiSource {
         return ConversionHelper.convertOffenderKeyworkerModel2Dto(results);
     }
 
-    public Optional<KeyworkerDto> getCurrentKeyworkerForPrisoner(String prisonId, String offenderNo) {
-        KeyworkerDto currentKeyworker = null;
-        if (repository.existsByPrisonId(prisonId)) {
+    public Optional<BasicKeyworkerDto> getCurrentKeyworkerForPrisoner(String prisonId, String offenderNo) {
+         BasicKeyworkerDto currentKeyworker = null;
+        if (prisonSupportedService.isMigrated(prisonId)) {
             OffenderKeyworker activeOffenderKeyworker = repository.findByOffenderNoAndActive(offenderNo, true);
             if (activeOffenderKeyworker != null) {
-                currentKeyworker = getBasicKeyworkerDto(activeOffenderKeyworker.getStaffId());
+                KeyworkerDto basicKeyworkerDto = getBasicKeyworkerDto(activeOffenderKeyworker.getStaffId());
+                if (basicKeyworkerDto != null) {
+                    currentKeyworker = BasicKeyworkerDto.builder()
+                            .firstName(basicKeyworkerDto.getFirstName())
+                            .lastName(basicKeyworkerDto.getLastName())
+                            .staffId(basicKeyworkerDto.getStaffId())
+                            .email(basicKeyworkerDto.getEmail())
+                            .build();
+                }
             }
         } else {
             URI uri = new UriTemplate("/bookings/offenderNo/{offenderNo}/key-worker").expand(offenderNo);
@@ -172,7 +180,7 @@ public class KeyworkerService extends Elite2ApiSource {
                     uri.toString(),
                     HttpMethod.GET,
                     new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
-                    KeyworkerDto.class).getBody();
+                    BasicKeyworkerDto.class).getBody();
         }
         return Optional.ofNullable(currentKeyworker);
     }

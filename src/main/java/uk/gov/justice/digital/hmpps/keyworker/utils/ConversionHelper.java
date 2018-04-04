@@ -70,12 +70,6 @@ public final class ConversionHelper {
                 .build();
     }
 
-    public static List<KeyworkerAllocationDetailsDto> convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(List<OffenderKeyworker> models) {
-        Validate.notNull(models);
-
-        return models.stream().map(ConversionHelper::convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto).collect(Collectors.toList());
-    }
-
     public static KeyworkerAllocationDetailsDto convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(OffenderKeyworker model) {
         Validate.notNull(model);
 
@@ -86,6 +80,14 @@ public final class ConversionHelper {
                 .prisonId(model.getPrisonId())
                 .assigned(model.getAssignedDateTime())
                 .allocationType(model.getAllocationType())
+                .build();
+    }
+
+    public static BasicKeyworkerDto getBasicKeyworkerDto(StaffLocationRoleDto dto) {
+        return BasicKeyworkerDto.builder()
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .email(dto.getEmail())
                 .build();
     }
 

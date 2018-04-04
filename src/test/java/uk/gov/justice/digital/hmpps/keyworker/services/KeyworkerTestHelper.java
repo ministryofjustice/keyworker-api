@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
+import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
@@ -91,7 +92,7 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static void verifyBasicKeyworkerDto(KeyworkerDto keyworkerDetails, long staffId, String firstName, String lastName) {
+    public static void verifyBasicKeyworkerDto(BasicKeyworkerDto keyworkerDetails, long staffId, String firstName, String lastName) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getFirstName()).isEqualTo(firstName);
         assertThat(keyworkerDetails.getLastName()).isEqualTo(lastName);
