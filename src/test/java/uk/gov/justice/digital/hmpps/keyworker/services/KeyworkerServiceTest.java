@@ -310,7 +310,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .build();
         final List<String> testOffenderNos = Arrays.asList("offender1", "offender2");
         List<OffenderKeyworker> results = Arrays.asList(offender1, offender2);
-        when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(true);
         when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, TEST_AGENCY, testOffenderNos, AllocationType.PROVISIONAL)).thenReturn(results);
 
         final List<OffenderKeyworkerDto> offenders = service.getOffenders(TEST_AGENCY, testOffenderNos);
@@ -352,7 +351,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final long staffId = 5L;
         expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, true);
 
-        Optional<KeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
+        Optional<BasicKeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
 
         server.verify();
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, "First", "Last");
@@ -364,7 +363,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final long staffId = 6L;
         KeyworkerDto expectedKeyworkerDto = expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, false);
 
-        Optional<KeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
+        Optional<BasicKeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
 
         server.verify();
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, expectedKeyworkerDto.getFirstName(), expectedKeyworkerDto.getLastName());
@@ -372,7 +371,8 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
     private KeyworkerDto expectGetActiveKeyworkerForOffenderCall(String offenderNo, long staffId, boolean agencyMigrated) throws JsonProcessingException {
 
-        when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(agencyMigrated);
+        when(prisonSupportedService.isMigrated(isA(String.class))).thenReturn(agencyMigrated);
+
         if (agencyMigrated) {
             when(repository.findByOffenderNoAndActive(offenderNo, true)).thenReturn(OffenderKeyworker.builder()
                     .staffId(staffId)
