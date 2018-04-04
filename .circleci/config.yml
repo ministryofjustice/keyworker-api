@@ -61,6 +61,10 @@ jobs:
               git tag $TAG
               git push --tags
             fi
+      - persist_to_workspace:
+          root: .
+          paths:
+            - Dockerrun.aws.json
 
   deploy_release:
     <<: *defaults
