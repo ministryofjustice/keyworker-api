@@ -61,7 +61,7 @@ public class RemoteRoleServiceTest {
 
 
     @Test
-    public void givenRoleService_when() throws JsonProcessingException {
+    public void givenRoleService_whenFindStaffMatchingCaseloadAndRoleInvoked_thenExpectedHttpExchangeOccursAndResultsAreCorrect() throws JsonProcessingException {
         server
         .expect(requestTo("/staff/access-roles/caseload/CL/access-role/RC"))
         .andExpect(method(HttpMethod.GET))

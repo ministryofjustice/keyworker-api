@@ -54,7 +54,7 @@ public class RemoteRoleService implements RoleService {
                 "/staff/{staffId}/access-roles/",
                 HttpMethod.POST,
                 entity,
-                StaffUserRoleDto.class,
+                String.class,
                 staffId);
     }
 }
