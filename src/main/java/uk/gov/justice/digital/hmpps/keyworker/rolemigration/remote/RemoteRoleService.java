@@ -2,24 +2,19 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Service;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
+import uk.gov.justice.digital.hmpps.keyworker.services.Elite2ApiSource;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class RemoteRoleService implements RoleService {
+@Service
+public class RemoteRoleService extends Elite2ApiSource implements RoleService {
 
     private static final ParameterizedTypeReference<List<StaffUserRoleDto>> LIST_OF_STAFF_USER_ROLE = new ParameterizedTypeReference<List<StaffUserRoleDto>>() {
     };
-
-    private final RestTemplate restTemplate;
-
-    public RemoteRoleService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
 
     @Override
     public Set<Long> findStaffForPrisonHavingRole(String prisonId, String roleCode) {

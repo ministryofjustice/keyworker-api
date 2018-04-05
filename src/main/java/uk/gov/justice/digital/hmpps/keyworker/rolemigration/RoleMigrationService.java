@@ -2,12 +2,14 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
 @Slf4j
+@Service
 public class RoleMigrationService {
 
     private static final Set<String> SOURCE_ROLE_CODES;

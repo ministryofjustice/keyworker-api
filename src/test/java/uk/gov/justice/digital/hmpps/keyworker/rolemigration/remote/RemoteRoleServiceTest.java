@@ -2,36 +2,35 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
+import uk.gov.justice.digital.hmpps.keyworker.services.AbstractServiceTest;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
-public class RemoteRoleServiceTest {
+@RunWith(SpringRunner.class)
+@RestClientTest(RemoteRoleService.class)
+public class RemoteRoleServiceTest extends AbstractServiceTest {
 
+    @Autowired
     private MockRestServiceServer server;
 
+    @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
     private RoleService service;
-
-    @Before
-    public void setUp() {
-        objectMapper = new ObjectMapper().findAndRegisterModules();
-
-        RestTemplate restTemplate = new RestTemplate();
-        server = MockRestServiceServer.bindTo(restTemplate).build();
-        service = new RemoteRoleService(restTemplate);
-    }
 
     @Test
     public void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() throws JsonProcessingException {
@@ -63,11 +62,11 @@ public class RemoteRoleServiceTest {
     @Test
     public void givenRoleService_whenFindStaffMatchingCaseloadAndRoleInvoked_thenExpectedHttpExchangeOccursAndResultsAreCorrect() throws JsonProcessingException {
         server
-        .expect(requestTo("/staff/access-roles/caseload/CL/access-role/RC"))
-        .andExpect(method(HttpMethod.GET))
+                .expect(requestTo("/staff/access-roles/caseload/CL/access-role/RC"))
+                .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(staffUserRoles(), MediaType.APPLICATION_JSON));
 
-        Set<Long> staffIds = service.findStaffForPrisonHavingRole("CL","RC");
+        Set<Long> staffIds = service.findStaffForPrisonHavingRole("CL", "RC");
 
         server.verify();
 

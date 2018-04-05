@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayTokenGenerator;
 
 @ContextConfiguration
 public abstract class AbstractServiceTest {
+
     @TestConfiguration
     static class Config {
         @Bean

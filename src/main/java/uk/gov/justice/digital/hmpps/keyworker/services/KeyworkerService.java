@@ -74,8 +74,10 @@ public class KeyworkerService extends Elite2ApiSource {
     private int capacityDefault;
 
     public KeyworkerService(AuthenticationFacade authenticationFacade,
-                            OffenderKeyworkerRepository repository, KeyworkerRepository keyworkerRepository,
-                            KeyworkerAllocationProcessor processor, PrisonSupportedService prisonSupportedService) {
+                            OffenderKeyworkerRepository repository,
+                            KeyworkerRepository keyworkerRepository,
+                            KeyworkerAllocationProcessor processor,
+                            PrisonSupportedService prisonSupportedService) {
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
