@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class RemoteRoleService extends Elite2ApiSource implements RoleService {
 
@@ -27,11 +29,14 @@ public class RemoteRoleService extends Elite2ApiSource implements RoleService {
                 prisonId,
                 roleCode);
 
-        return responseEntity.getBody().stream().map(StaffUserRoleDto::getStaffId).collect(Collectors.toSet());
+        Set<Long> staffIds = responseEntity.getBody().stream().map(StaffUserRoleDto::getStaffId).collect(Collectors.toSet());
+        log.info("(prison {}, role {}) -> staffIds {}", prisonId, roleCode, staffIds);
+        return staffIds;
     }
 
     @Override
     public void removeRole(long staffId, String prisonId, String roleCode) {
+        log.info("Delete association (staffId {}, prison {}, role {})", staffId, prisonId, roleCode);
         restTemplate.delete(
                 "/staff/{staffId}/access-roles/caseload/{caseload}/access-role/{roleCode}",
                 staffId,
@@ -41,6 +46,7 @@ public class RemoteRoleService extends Elite2ApiSource implements RoleService {
 
     @Override
     public void assignRoleToApiCaseload(long staffId, String roleCode){
+        log.info("Assign (staffId {}, role {}) to the API caseload", staffId, roleCode);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(roleCode, headers);
