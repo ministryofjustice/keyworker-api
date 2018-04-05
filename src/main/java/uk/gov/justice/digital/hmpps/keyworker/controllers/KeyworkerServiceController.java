@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
@@ -34,17 +35,20 @@ import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 public class KeyworkerServiceController {
 
     private final KeyworkerService keyworkerService;
-    private final KeyworkerMigrationService migrationService;
+    private final KeyworkerMigrationService keyworkerMigrationService;
+    private final RoleMigrationService roleMigrationService;
     private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
     private final PrisonSupportedService prisonSupportedService;
 
     public KeyworkerServiceController(KeyworkerService keyworkerService,
-                                      KeyworkerMigrationService migrationService,
+                                      KeyworkerMigrationService keyworkerMigrationService,
                                       KeyworkerAutoAllocationService keyworkerAutoAllocationService,
+                                      RoleMigrationService roleMigrationService,
                                       PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
-        this.migrationService = migrationService;
+        this.keyworkerMigrationService = keyworkerMigrationService;
         this.keyworkerAutoAllocationService = keyworkerAutoAllocationService;
+        this.roleMigrationService = roleMigrationService;
         this.prisonSupportedService = prisonSupportedService;
     }
 
@@ -483,7 +487,8 @@ public class KeyworkerServiceController {
         prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate);
 
         if (migrate) {
-            migrationService.migrateKeyworkerByPrison(prisonId);
+            keyworkerMigrationService.migrateKeyworkerByPrison(prisonId);
+            roleMigrationService.migrate(prisonId);
         }
 
         return prisonSupportedService.getPrisonDetail(prisonId);

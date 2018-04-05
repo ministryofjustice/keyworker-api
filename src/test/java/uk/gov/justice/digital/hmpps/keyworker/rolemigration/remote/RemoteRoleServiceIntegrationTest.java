@@ -61,6 +61,6 @@ public class RemoteRoleServiceIntegrationTest {
                         .withHeader(HttpHeaders.AUTHORIZATION, equalToIgnoreCase("bearer " + TOKEN))
                 .willReturn(okJson("[]")));
 
-        roleService.findStaffMatchingCaseloadAndRole("CL", "R");
+        roleService.findStaffForPrisonHavingRole("CL", "R");
     }
 }

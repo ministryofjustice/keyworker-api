@@ -22,25 +22,25 @@ public class RemoteRoleService implements RoleService {
     }
 
     @Override
-    public Set<Long> findStaffMatchingCaseloadAndRole(String caseloadId, String roleCode) {
+    public Set<Long> findStaffForPrisonHavingRole(String prisonId, String roleCode) {
 
         ResponseEntity<List<StaffUserRoleDto>> responseEntity = restTemplate.exchange(
                 "/staff/access-roles/caseload/{caseload}/access-role/{roleCode}",
                 HttpMethod.GET,
                 null,
                 LIST_OF_STAFF_USER_ROLE,
-                caseloadId,
+                prisonId,
                 roleCode);
 
         return responseEntity.getBody().stream().map(StaffUserRoleDto::getStaffId).collect(Collectors.toSet());
     }
 
     @Override
-    public void removeRole(long staffId, String caseload, String roleCode) {
+    public void removeRole(long staffId, String prisonId, String roleCode) {
         restTemplate.delete(
                 "/staff/{staffId}/access-roles/caseload/{caseload}/access-role/{roleCode}",
                 staffId,
-                caseload,
+                prisonId,
                 roleCode);
     }
 

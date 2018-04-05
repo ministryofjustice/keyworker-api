@@ -67,7 +67,7 @@ public class RemoteRoleServiceTest {
         .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(staffUserRoles(), MediaType.APPLICATION_JSON));
 
-        Set<Long> staffIds = service.findStaffMatchingCaseloadAndRole("CL","RC");
+        Set<Long> staffIds = service.findStaffForPrisonHavingRole("CL","RC");
 
         server.verify();
 

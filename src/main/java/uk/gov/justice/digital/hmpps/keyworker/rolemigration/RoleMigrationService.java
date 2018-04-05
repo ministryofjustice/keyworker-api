@@ -30,29 +30,30 @@ public class RoleMigrationService {
         this.roleService = roleService;
     }
 
-    public void migrate(String caseload) {
-        migrateRoles(caseload, SOURCE_ROLE_CODES, TARGET_ROLE_CODES);
+    public void migrate(String prisonId) {
+        migrateRoles(prisonId, SOURCE_ROLE_CODES, TARGET_ROLE_CODES);
     }
     
-    void migrateRoles(String sourceCaseload, Set<String> sourceRoleCodes, Set<String> targetRoleCodes) {
+    void migrateRoles(String prisonId, Set<String> sourceRoleCodes, Set<String> targetRoleCodes) {
 
-        Set<Long> staffToMigrate = findStaffMatchingCaseloadAndRoles(sourceCaseload, sourceRoleCodes);
+        Set<Long> staffToMigrate = findStaffForPrisonHavingRoles(prisonId, sourceRoleCodes);
 
-        log.info("Migrating {} staff for caseload {}", staffToMigrate.size(), sourceCaseload);
+        log.info("Migrating {} staff for caseload {}", staffToMigrate.size(), prisonId);
 
-        migrateRolesForStaffMembers(staffToMigrate, sourceCaseload, sourceRoleCodes, targetRoleCodes);
+        migrateRolesForStaffMembers(staffToMigrate, prisonId, sourceRoleCodes, targetRoleCodes);
     }
 
-    private Set<Long> findStaffMatchingCaseloadAndRoles(String caseloadId, Set<String> roleCodes) {
-        Stream<Set<Long>> staffIdSets = roleCodes.stream().map(roleCode -> roleService.findStaffMatchingCaseloadAndRole(caseloadId, roleCode));
+    private Set<Long> findStaffForPrisonHavingRoles(String prisonId, Set<String> roleCodes) {
+        Stream<Set<Long>> staffIdSets = roleCodes.stream().map(roleCode -> roleService.findStaffForPrisonHavingRole(prisonId, roleCode));
         Optional<Set<Long>> staffIds = staffIdSets.reduce(SET_INTERSECTION);
         return staffIds.orElse(Collections.emptySet());
     }
 
-    private void migrateRolesForStaffMembers(Set<Long> staffIds, String sourceCaseload, Set<String> sourceRoleCodes, Set<String> targetRoleCodes) {
+    // TODO: If the there is a failure when sourceRoleCodes are partially removed a subsequent query for staff matching the set of roles will no longer match. Is this a problem?
+    private void migrateRolesForStaffMembers(Set<Long> staffIds, String prisonId, Set<String> sourceRoleCodes, Set<String> targetRoleCodes) {
         staffIds.forEach(staffId -> {
             targetRoleCodes.forEach(roleCode -> roleService.assignRoleToApiCaseload(staffId, roleCode));
-            sourceRoleCodes.forEach(roleCode -> roleService.removeRole(staffId, sourceCaseload, roleCode));
+            sourceRoleCodes.forEach(roleCode -> roleService.removeRole(staffId, prisonId, roleCode));
         });
     }
 }

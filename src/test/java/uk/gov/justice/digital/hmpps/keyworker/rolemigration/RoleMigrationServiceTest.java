@@ -45,30 +45,30 @@ public class RoleMigrationServiceTest {
 
     @Test
     public void givenNoStaffToMigrateThenOnlySearchForStaff() {
-        when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf());
+        when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf());
 
         service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE,SINGLE_TARGET_ROLE);
 
-        verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
+        verify(roleService).findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
         verifyNoMoreInteractions(roleService);
     }
 
     @Test
     public void givenDisjointStaffPerRoleThenNoRolesAreMigrated() {
-        when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L, 3L));
-        when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2)).thenReturn(setOf(4L, 5L, 6L));
+        when(roleService.findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L, 3L));
+        when(roleService.findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2)).thenReturn(setOf(4L, 5L, 6L));
 
         service.migrateRoles(SOURCE_CASELOAD_ID, TWO_SOURCE_ROLES, SINGLE_TARGET_ROLE);
 
-        verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
-        verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
+        verify(roleService).findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
+        verify(roleService).findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
 
         verifyNoMoreInteractions(roleService);
     }
 
     @Test
     public void givenMatchingStaffThenSingleSourceRoleIsRemoved() {
-        when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf(1L));
+        when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf(1L));
 
         service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, NO_ROLES);
 
@@ -77,7 +77,7 @@ public class RoleMigrationServiceTest {
 
     @Test
     public void givenMatchingStaffThenSingleSourceRolesAreRemoved() {
-        when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf(1L));
+        when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf(1L));
 
         service.migrateRoles(SOURCE_CASELOAD_ID, TWO_SOURCE_ROLES, NO_ROLES);
 
@@ -87,9 +87,9 @@ public class RoleMigrationServiceTest {
 
     @Test
     public void givenOverlappingStaffPerRoleThenIntersectionIsMigrated() {
-        when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L, 3L, 4L, 5L, 6L));
-        when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2)).thenReturn(setOf(1L,     3L,     5L,     7L));
-        when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_3)).thenReturn(setOf(        3L, 4L, 5L));
+        when(roleService.findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L, 3L, 4L, 5L, 6L));
+        when(roleService.findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2)).thenReturn(setOf(1L,     3L,     5L,     7L));
+        when(roleService.findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_3)).thenReturn(setOf(        3L, 4L, 5L));
 
         service.migrateRoles(SOURCE_CASELOAD_ID, THREE_SOURCE_ROLES, NO_ROLES);
 
@@ -101,16 +101,16 @@ public class RoleMigrationServiceTest {
         verify(roleService).removeRole(5L, SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
         verify(roleService).removeRole(5L, SOURCE_CASELOAD_ID, SOURCE_ROLE_3);
 
-        verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
-        verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
-        verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_3);
+        verify(roleService).findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
+        verify(roleService).findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
+        verify(roleService).findStaffForPrisonHavingRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_3);
 
         verifyNoMoreInteractions(roleService);
     }
 
     @Test
     public void givenMatchingStaffThenSingleTargetRolesAreAdded() {
-        when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf(1L));
+        when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf(1L));
 
         service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, SINGLE_TARGET_ROLE);
 
