@@ -8,5 +8,5 @@ public interface RoleService {
 
     void removeRole(long staffId, String caseload, String roleCode);
 
-    void assignRole(long staffId, String caseload, String roleCode);
+    void assignRoleToApiCaseload(long staffId, String roleCode);
 }

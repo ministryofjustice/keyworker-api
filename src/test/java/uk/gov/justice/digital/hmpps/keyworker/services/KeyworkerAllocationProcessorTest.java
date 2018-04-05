@@ -58,7 +58,7 @@ public class KeyworkerAllocationProcessorTest {
 
         Set<String> offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
-        // Mock repository to return no active allocations for specified offender numbers.
+        // Mock remote to return no active allocations for specified offender numbers.
         final OffenderKeyworker ok = OffenderKeyworker.builder()
                 .offenderNo(offNos.iterator().next())
                 .allocationType(AllocationType.PROVISIONAL)
@@ -84,7 +84,7 @@ public class KeyworkerAllocationProcessorTest {
 
         Set<String> offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
-        // Mock repository to return active allocations for all offender numbers.
+        // Mock remote to return active allocations for all offender numbers.
         List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
 
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(allocs);
@@ -112,7 +112,7 @@ public class KeyworkerAllocationProcessorTest {
         // So offenders with even booking ids are unallocated
         Set<String> unallocatedOffNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).filter(offNo -> !allocatedOffNos.contains(offNo)).collect(Collectors.toSet());
 
-        // Mock repository to return active allocations for 3 offender numbers.
+        // Mock remote to return active allocations for 3 offender numbers.
         List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, allocatedOffNos);
 
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(allocs);

@@ -22,13 +22,14 @@ public class RoleMigrationServiceTest {
     private static final String TARGET_ROLE_1 = "TR1";
 
     private static final String SOURCE_CASELOAD_ID = "TC1";
-    private static final String TARGET_CASELOAD_ID = "TC1";
 
     private static final Set<String> SINGLE_SOURCE_ROLE = Collections.singleton(SOURCE_ROLE_1);
     private static final Set<String> TWO_SOURCE_ROLES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SOURCE_ROLE_1, SOURCE_ROLE_2)));
     private static final Set<String> THREE_SOURCE_ROLES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SOURCE_ROLE_1, SOURCE_ROLE_2, SOURCE_ROLE_3)));
 
     private static final Set<String> SINGLE_TARGET_ROLE = Collections.singleton(TARGET_ROLE_1);
+
+    private static final Set<String> NO_ROLES = Collections.emptySet();
 
     @Mock
     private RoleService roleService;
@@ -38,7 +39,7 @@ public class RoleMigrationServiceTest {
 
     @Test
     public void givenNoRolesToMigrateThenDoNothing() {
-        service.migrateRoles(SOURCE_CASELOAD_ID, Collections.emptySet(), TARGET_CASELOAD_ID, Collections.emptySet());
+        service.migrateRoles(SOURCE_CASELOAD_ID, NO_ROLES, NO_ROLES);
         verifyZeroInteractions(roleService);
     }
 
@@ -46,7 +47,7 @@ public class RoleMigrationServiceTest {
     public void givenNoStaffToMigrateThenOnlySearchForStaff() {
         when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf());
 
-        service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, TARGET_CASELOAD_ID, SINGLE_TARGET_ROLE);
+        service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE,SINGLE_TARGET_ROLE);
 
         verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
         verifyNoMoreInteractions(roleService);
@@ -57,7 +58,7 @@ public class RoleMigrationServiceTest {
         when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L, 3L));
         when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2)).thenReturn(setOf(4L, 5L, 6L));
 
-        service.migrateRoles(SOURCE_CASELOAD_ID, TWO_SOURCE_ROLES, TARGET_CASELOAD_ID, SINGLE_TARGET_ROLE);
+        service.migrateRoles(SOURCE_CASELOAD_ID, TWO_SOURCE_ROLES, SINGLE_TARGET_ROLE);
 
         verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
         verify(roleService).findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
@@ -69,7 +70,7 @@ public class RoleMigrationServiceTest {
     public void givenMatchingStaffThenSingleSourceRoleIsRemoved() {
         when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf(1L));
 
-        service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, TARGET_CASELOAD_ID, Collections.emptySet());
+        service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, NO_ROLES);
 
         verify(roleService).removeRole(1L, SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
     }
@@ -78,7 +79,7 @@ public class RoleMigrationServiceTest {
     public void givenMatchingStaffThenSingleSourceRolesAreRemoved() {
         when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf(1L));
 
-        service.migrateRoles(SOURCE_CASELOAD_ID, TWO_SOURCE_ROLES, TARGET_CASELOAD_ID, Collections.emptySet());
+        service.migrateRoles(SOURCE_CASELOAD_ID, TWO_SOURCE_ROLES, NO_ROLES);
 
         verify(roleService).removeRole(1L, SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
         verify(roleService).removeRole(1L, SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
@@ -90,7 +91,7 @@ public class RoleMigrationServiceTest {
         when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_2)).thenReturn(setOf(1L,     3L,     5L,     7L));
         when(roleService.findStaffMatchingCaseloadAndRole(SOURCE_CASELOAD_ID, SOURCE_ROLE_3)).thenReturn(setOf(        3L, 4L, 5L));
 
-        service.migrateRoles(SOURCE_CASELOAD_ID, THREE_SOURCE_ROLES, TARGET_CASELOAD_ID, Collections.emptySet());
+        service.migrateRoles(SOURCE_CASELOAD_ID, THREE_SOURCE_ROLES, NO_ROLES);
 
         verify(roleService).removeRole(3L, SOURCE_CASELOAD_ID, SOURCE_ROLE_1);
         verify(roleService).removeRole(3L, SOURCE_CASELOAD_ID, SOURCE_ROLE_2);
@@ -111,12 +112,10 @@ public class RoleMigrationServiceTest {
     public void givenMatchingStaffThenSingleTargetRolesAreAdded() {
         when(roleService.findStaffMatchingCaseloadAndRole(any(), any())).thenReturn(setOf(1L));
 
-        service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, TARGET_CASELOAD_ID, SINGLE_TARGET_ROLE);
+        service.migrateRoles(SOURCE_CASELOAD_ID, SINGLE_SOURCE_ROLE, SINGLE_TARGET_ROLE);
 
-        verify(roleService).assignRole(1L, TARGET_CASELOAD_ID, TARGET_ROLE_1);
+        verify(roleService).assignRoleToApiCaseload(1L, TARGET_ROLE_1);
     }
-
-
 
     private Set<Long> setOf(Long... ids) {
         return new HashSet<>(Arrays.asList(ids));

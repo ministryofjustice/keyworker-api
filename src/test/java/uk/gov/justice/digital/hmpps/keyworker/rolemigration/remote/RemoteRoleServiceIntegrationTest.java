@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.rolemigration.repository;
+package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Rule;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class RemoteRoleServiceTest {
+public class RemoteRoleServiceIntegrationTest {
 
     private static final String TOKEN = "A_TOKEN";
 
@@ -62,6 +62,5 @@ public class RemoteRoleServiceTest {
                 .willReturn(okJson("[]")));
 
         roleService.findStaffMatchingCaseloadAndRole("CL", "R");
-
     }
 }
