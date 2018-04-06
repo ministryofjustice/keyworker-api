@@ -99,3 +99,4 @@ dependencies {
     testCompile("org.assertj:assertj-core:3.8.0")
     testCompile("com.github.tomakehurst:wiremock:2.14.0")
 }
+
