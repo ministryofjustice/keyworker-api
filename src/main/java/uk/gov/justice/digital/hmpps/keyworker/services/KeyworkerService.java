@@ -38,8 +38,8 @@ import static java.lang.String.format;
 @Validated
 @Slf4j
 public class KeyworkerService extends Elite2ApiSource {
-    public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/locations/description/{agencyId}/inmates";
-    public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "?keywords={offenderNo}";
+    public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
+    public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
     public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     public static final String URI_STAFF = "/staff/{staffId}";
 

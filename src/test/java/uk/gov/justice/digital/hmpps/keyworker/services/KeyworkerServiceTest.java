@@ -181,10 +181,10 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .offenderNo(offenderNo)
                 .staffId(5L)
                 .build();
-        server.expect(once(), requestTo(String.format("/locations/description/%s/inmates?keywords=%s", TEST_AGENCY, offenderNo)))
+        server.expect(once(), requestTo(String.format("/bookings?query=agencyId:eq:'%s'&offenderNo=%s&iepLevel=true", TEST_AGENCY, offenderNo)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
-        thrown.expectMessage(String.format("Prisoner %s not found at agencyId %s using endpoint /locations/description/LEI/inmates?keywords=xxx.", offenderNo, TEST_AGENCY));
+        thrown.expectMessage(String.format("Prisoner %s not found at agencyId %s using endpoint /bookings?query=agencyId:eq:'LEI'&offenderNo=xxx&iepLevel=true.", offenderNo, TEST_AGENCY));
 
         service.allocate(dto);
     }
