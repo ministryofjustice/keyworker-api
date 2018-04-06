@@ -64,7 +64,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - Dockerrun.aws.json
+            - Dockerrun.aws.json*
 
   deploy_release:
     <<: *defaults
