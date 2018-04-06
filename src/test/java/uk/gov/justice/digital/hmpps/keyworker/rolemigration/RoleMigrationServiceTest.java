@@ -2,14 +2,10 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 
@@ -22,22 +18,23 @@ public class RoleMigrationServiceTest {
 
     private static final String PRISON_ID = "TC1";
 
-    private static final Set<String> SINGLE_SOURCE_ROLE = Collections.singleton(SOURCE_ROLE_1);
-    private static final Set<String> TWO_SOURCE_ROLES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SOURCE_ROLE_1, SOURCE_ROLE_2)));
+    private static final List<String> SINGLE_SOURCE_ROLE = Collections.singletonList(SOURCE_ROLE_1);
+    private static final List<String> TWO_SOURCE_ROLES = Arrays.asList(SOURCE_ROLE_1, SOURCE_ROLE_2);
 
-    private static final Set<String> SINGLE_TARGET_ROLE = Collections.singleton(TARGET_ROLE_1);
+    private static final List<String> SINGLE_TARGET_ROLE = Collections.singletonList(TARGET_ROLE_1);
 
-    private static final Set<String> NO_ROLES = Collections.emptySet();
+    private static final List<String> NO_ROLES = Collections.emptyList();
 
     @Mock
     private RoleService roleService;
 
-    @InjectMocks
+//    @InjectMocks
     private RoleMigrationService service;
 
     @Test
     public void givenNoRolesToMigrateThenDoNothing() {
-        service.migrateRoles(PRISON_ID, NO_ROLES, NO_ROLES);
+        initialiseService(NO_ROLES, NO_ROLES);
+        service.migrate(PRISON_ID);
         verifyZeroInteractions(roleService);
     }
 
@@ -45,7 +42,8 @@ public class RoleMigrationServiceTest {
     public void givenNoStaffToMigrateThenOnlySearchForStaff() {
         when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf());
 
-        service.migrateRoles(PRISON_ID, SINGLE_SOURCE_ROLE,SINGLE_TARGET_ROLE);
+        initialiseService( SINGLE_SOURCE_ROLE,SINGLE_TARGET_ROLE);
+        service.migrate(PRISON_ID);
 
         verify(roleService).findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_1);
         verifyNoMoreInteractions(roleService);
@@ -55,7 +53,8 @@ public class RoleMigrationServiceTest {
     public void givenMatchingStaffThenSingleSourceRoleIsRemoved() {
         when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf(1L));
 
-        service.migrateRoles(PRISON_ID, SINGLE_SOURCE_ROLE, NO_ROLES);
+        initialiseService(SINGLE_SOURCE_ROLE, NO_ROLES);
+        service.migrate(PRISON_ID);
 
         verify(roleService).removeRole(1L, PRISON_ID, SOURCE_ROLE_1);
     }
@@ -64,7 +63,8 @@ public class RoleMigrationServiceTest {
     public void givenMatchingStaffThenSingleSourceRolesAreRemoved() {
         when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf(1L));
 
-        service.migrateRoles(PRISON_ID, TWO_SOURCE_ROLES, NO_ROLES);
+        initialiseService(TWO_SOURCE_ROLES, NO_ROLES);
+        service.migrate(PRISON_ID);
 
         verify(roleService).removeRole(1L, PRISON_ID, SOURCE_ROLE_1);
         verify(roleService).removeRole(1L, PRISON_ID, SOURCE_ROLE_2);
@@ -75,7 +75,8 @@ public class RoleMigrationServiceTest {
         when(roleService.findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L));
         when(roleService.findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_2)).thenReturn(setOf(2L ,3L));
 
-        service.migrateRoles(PRISON_ID, TWO_SOURCE_ROLES, NO_ROLES);
+        initialiseService(TWO_SOURCE_ROLES, NO_ROLES);
+        service.migrate(PRISON_ID);
 
         verify(roleService).findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_1);
         verify(roleService).findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_2);
@@ -94,7 +95,8 @@ public class RoleMigrationServiceTest {
         when(roleService.findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_1)).thenReturn(setOf(1L, 2L));
         when(roleService.findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_2)).thenReturn(setOf(2L ,3L));
 
-        service.migrateRoles(PRISON_ID, TWO_SOURCE_ROLES, SINGLE_TARGET_ROLE);
+        initialiseService(TWO_SOURCE_ROLES, SINGLE_TARGET_ROLE);
+        service.migrate(PRISON_ID);
 
         verify(roleService).findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_1);
         verify(roleService).findStaffForPrisonHavingRole(PRISON_ID, SOURCE_ROLE_2);
@@ -115,12 +117,24 @@ public class RoleMigrationServiceTest {
     public void givenMatchingStaffThenSingleTargetRolesAreAdded() {
         when(roleService.findStaffForPrisonHavingRole(any(), any())).thenReturn(setOf(1L));
 
-        service.migrateRoles(PRISON_ID, SINGLE_SOURCE_ROLE, SINGLE_TARGET_ROLE);
+        initialiseService(SINGLE_SOURCE_ROLE, SINGLE_TARGET_ROLE);
+        service.migrate(PRISON_ID);
 
         verify(roleService).assignRoleToApiCaseload(1L, TARGET_ROLE_1);
     }
 
     private Set<Long> setOf(Long... ids) {
         return new HashSet<>(Arrays.asList(ids));
+    }
+
+    private void initialiseService(List<String> sourceRoles, List<String> targetRoles) {
+        service = new RoleMigrationService(roleService, configuration(sourceRoles, targetRoles));
+    }
+
+    private RoleMigrationConfiguration configuration(List<String> sourceRoles, List<String> targetRoles) {
+        RoleMigrationConfiguration configuration = new RoleMigrationConfiguration();
+        configuration.setSourceRoles(sourceRoles);
+        configuration.setTargetRoles(targetRoles);
+        return configuration;
     }
 }

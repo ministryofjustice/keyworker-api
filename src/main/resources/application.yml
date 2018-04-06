@@ -31,3 +31,10 @@ logging:
     org.springframework: INFO
     org.springframework.security: INFO
     uk.gov.justice.digital: DEBUG
+
+roleMigration:
+  sourceRoles:
+    - KW_ADMIN
+    - KEY_ROLE
+  targetRoles:
+    - KW_ADMIN
