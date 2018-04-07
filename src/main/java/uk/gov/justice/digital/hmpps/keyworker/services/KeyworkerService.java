@@ -4,16 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
@@ -23,7 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,74 +32,44 @@ import static java.lang.String.format;
 @Transactional
 @Validated
 @Slf4j
-public class KeyworkerService extends Elite2ApiSource {
-    public static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
-    public static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
-    public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
-    public static final String URI_STAFF = "/staff/{staffId}";
-
-
-    private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
-            new ParameterizedTypeReference<List<KeyworkerDto>>() {
-            };
-
-    private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {
-            };
-
-    private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<List<OffenderLocationDto>>() {
-            };
-
-    private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
-
-    private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(contentType);
-        return httpHeaders;
-    }
-
+public class KeyworkerService  {
     private final AuthenticationFacade authenticationFacade;
     private final OffenderKeyworkerRepository repository;
     private final KeyworkerRepository keyworkerRepository;
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
+    private final NomisService nomisService;
 
     @Value("${svc.kw.allocation.capacity.default}")
     private int capacityDefault;
 
     public KeyworkerService(AuthenticationFacade authenticationFacade,
                             OffenderKeyworkerRepository repository, KeyworkerRepository keyworkerRepository,
-                            KeyworkerAllocationProcessor processor, PrisonSupportedService prisonSupportedService) {
+                            KeyworkerAllocationProcessor processor, PrisonSupportedService prisonSupportedService,
+                            NomisService nomisService) {
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
         this.processor = processor;
         this.prisonSupportedService = prisonSupportedService;
+        this.nomisService = nomisService;
     }
 
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String prisonId) {
 
-        ResponseEntity<List<KeyworkerDto>> responseEntity = doAvailableKeyworkersRequest(prisonId);
+        ResponseEntity<List<KeyworkerDto>> responseEntity = nomisService.getAvailableKeyworkers(prisonId);
 
         final List<KeyworkerDto> returnedList = responseEntity.getBody();
 
         returnedList.forEach(keyworkerDto -> keyworkerDto.setAgencyId(prisonId));
 
-        final List<KeyworkerDto> decoratedList = returnedList.stream().map(this::decorateWithKeyworkerData)
+        return returnedList.stream().map(this::decorateWithKeyworkerData)
                 .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
                 ).collect(Collectors.toList());
-
-        return decoratedList;
     }
 
-    private ResponseEntity<List<KeyworkerDto>> doAvailableKeyworkersRequest(String prisonId) {
-        URI uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(prisonId);
-
-        return getForList(uri, KEYWORKER_DTO_LIST);
-    }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getKeyworkersAvailableforAutoAllocation(String prisonId) {
@@ -121,32 +86,20 @@ public class KeyworkerService extends Elite2ApiSource {
                         repository.findByActiveAndPrisonIdAndAllocationType(true, prisonId, allocationFilter.getAllocationType().get())
                         :
                         repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL);
-// TODO implement date filters
-
-        // Add offender names and locations
-        URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(prisonId);
-
-        List<OffenderLocationDto> allOffenders = getAllWithSorting(
-                uri, pagingAndSorting.getSortFields(), pagingAndSorting.getSortOrder(),
-                new ParameterizedTypeReference<List<OffenderLocationDto>>() {
-                });
+        List<OffenderLocationDto> allOffenders = nomisService.getOffendersAtLocation(prisonId, pagingAndSorting.getSortFields(), pagingAndSorting.getSortOrder());
 
         final List<KeyworkerAllocationDetailsDto> results = processor.decorateAllocated(allocations, allOffenders);
 
         return new Page<>(results, (long) allocations.size(), 0L, (long) allocations.size());
     }
 
+
+
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<OffenderLocationDto> getUnallocatedOffenders(String prisonId, String sortFields, SortOrder sortOrder) {
 
         prisonSupportedService.verifyPrisonMigrated(prisonId);
-
-        URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(prisonId);
-
-        List<OffenderLocationDto> allOffenders = getAllWithSorting(
-                uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderLocationDto>>() {
-                });
-
+        List<OffenderLocationDto> allOffenders = nomisService.getOffendersAtLocation(prisonId, sortFields, sortOrder);
         return processor.filterByUnallocated(allOffenders);
     }
 
@@ -164,56 +117,27 @@ public class KeyworkerService extends Elite2ApiSource {
         if (prisonSupportedService.isMigrated(prisonId)) {
             OffenderKeyworker activeOffenderKeyworker = repository.findByOffenderNoAndActive(offenderNo, true);
             if (activeOffenderKeyworker != null) {
-                KeyworkerDto basicKeyworkerDto = getBasicKeyworkerDto(activeOffenderKeyworker.getStaffId());
-                if (basicKeyworkerDto != null) {
+                StaffLocationRoleDto staffDetail = nomisService.getBasicKeyworkerDto(activeOffenderKeyworker.getStaffId());
+                if (staffDetail != null) {
                     currentKeyworker = BasicKeyworkerDto.builder()
-                            .firstName(basicKeyworkerDto.getFirstName())
-                            .lastName(basicKeyworkerDto.getLastName())
-                            .staffId(basicKeyworkerDto.getStaffId())
-                            .email(basicKeyworkerDto.getEmail())
+                            .firstName(staffDetail.getFirstName())
+                            .lastName(staffDetail.getLastName())
+                            .staffId(staffDetail.getStaffId())
+                            .email(staffDetail.getEmail())
                             .build();
                 }
             }
         } else {
-            URI uri = new UriTemplate("/bookings/offenderNo/{offenderNo}/key-worker").expand(offenderNo);
-            currentKeyworker = restTemplate.exchange(
-                    uri.toString(),
-                    HttpMethod.GET,
-                    new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
-                    BasicKeyworkerDto.class).getBody();
+            currentKeyworker = nomisService.getBasicKeyworkerDto(offenderNo);
         }
         return Optional.ofNullable(currentKeyworker);
     }
 
+
+
     public KeyworkerDto getKeyworkerDetails(String prisonId, Long staffId) {
-
-        URI uri = new UriTemplate("/staff/roles/{agencyId}/role/KW?staffId={staffId}").expand(prisonId, staffId);
-
-        // We only expect one row. Allow 2 to detect unexpected extras
-        PagingAndSortingDto paging = PagingAndSortingDto.builder().pageLimit(2L).pageOffset(0L).build();
-        ResponseEntity<List<StaffLocationRoleDto>> response = getWithPaging(uri, paging, ELITE_STAFF_LOCATION_DTO_LIST);
-
-        if (response.getBody().isEmpty()) {
-            return getBasicKeyworkerDto(staffId);
-        }
-        Assert.isTrue(response.getBody().size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, prisonId));
-        final StaffLocationRoleDto dto = response.getBody().get(0);
-        return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto));
-    }
-
-    /**
-     * As a fallback, just get basic staff details (i.e. name)
-     * @param staffId staff ID
-     * @return KeyworkerDto Basic Key-worker Details
-     */
-    private KeyworkerDto getBasicKeyworkerDto(Long staffId) {
-        URI uri = new UriTemplate("/staff/{staffId}").expand(staffId);
-        StaffLocationRoleDto basicStaffDetails = restTemplate.exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
-                StaffLocationRoleDto.class).getBody();
-        return basicStaffDetails == null ? null : ConversionHelper.getKeyworkerDto(basicStaffDetails);
+        StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElse(nomisService.getBasicKeyworkerDto(staffId));
+        return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(staffKeyWorker));
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
@@ -227,10 +151,10 @@ public class KeyworkerService extends Elite2ApiSource {
         Validate.notBlank(keyworkerAllocation.getOffenderNo(), "Missing prisoner number.");
         Validate.notNull(keyworkerAllocation.getStaffId(), "Missing staff id.");
 
-        final URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(keyworkerAllocation.getPrisonId(), keyworkerAllocation.getOffenderNo());
-        final List<OffenderLocationDto> list = getForList(uri, OFFENDER_LOCATION_DTO_LIST).getBody();
-        Validate.notEmpty(list, format("Prisoner %s not found at agencyId %s using endpoint %s.",
-                keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getPrisonId(), uri));
+        Optional<OffenderLocationDto> offender = nomisService.getOffenderForPrison(keyworkerAllocation.getPrisonId(), keyworkerAllocation.getOffenderNo());
+
+        Validate.isTrue(offender.isPresent(), format("Prisoner %s not found at agencyId %s",
+                keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getPrisonId()));
 
         KeyworkerDto keyworkerDetails = getKeyworkerDetails(keyworkerAllocation.getPrisonId(), keyworkerAllocation.getStaffId());
         Validate.notNull(keyworkerDetails, format("Keyworker %d not found at agencyId %s.",
@@ -321,12 +245,11 @@ public class KeyworkerService extends Elite2ApiSource {
 
     private KeyworkerAllocationDetailsDto decorateWithOffenderDetails(String prisonId, OffenderKeyworker allocation) {
         KeyworkerAllocationDetailsDto dto;
-        URI uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(prisonId, allocation.getOffenderNo());
 
-        final ResponseEntity<List<OffenderLocationDto>> listOfOne = getForList(uri, OFFENDER_LOCATION_DTO_LIST);
+        Optional<OffenderLocationDto> offender = nomisService.getOffenderForPrison(prisonId, allocation.getOffenderNo());
 
-        if (listOfOne.getBody().size() > 0) {
-            final OffenderLocationDto offenderSummaryDto = listOfOne.getBody().get(0);
+        if (offender.isPresent()) {
+            final OffenderLocationDto offenderSummaryDto = offender.get();
             dto = KeyworkerAllocationDetailsDto.builder()
                     .bookingId(offenderSummaryDto.getBookingId())
                     .offenderNo(allocation.getOffenderNo())
@@ -341,7 +264,7 @@ public class KeyworkerService extends Elite2ApiSource {
                     .internalLocationDesc(offenderSummaryDto.getAssignedLivingUnitDesc())
                     .build();
         } else {
-            log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using elite endpoint %s", allocation.getOffenderNo(), prisonId, uri));
+            log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using nomis service", allocation.getOffenderNo(), prisonId));
             dto =  KeyworkerAllocationDetailsDto.builder().build();
         }
         return dto;
@@ -350,11 +273,7 @@ public class KeyworkerService extends Elite2ApiSource {
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString("/staff/roles/{agencyId}/role/KW");
-        nameFilter.ifPresent(filter -> uriBuilder.queryParam("nameFilter", filter));
-        URI uri = uriBuilder.buildAndExpand(prisonId).toUri();
-
-        ResponseEntity<List<StaffLocationRoleDto>> response = getWithPagingAndSorting(uri, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST);
+        ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream()
                 .map(dto -> decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto))).collect(Collectors.toList());
@@ -362,17 +281,19 @@ public class KeyworkerService extends Elite2ApiSource {
     }
 
     private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
-        final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-        final Integer allocationsCount = repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
+        if (keyworkerDto != null) {
+            final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
+            final Integer allocationsCount = repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
 
-        keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
-        keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
-        keyworkerDto.setNumberAllocated(allocationsCount);
-        keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
-        keyworkerDto.setAutoAllocationAllowed(keyworker != null ? keyworker.getAutoAllocationFlag() : true);
+            keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
+            keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
+            keyworkerDto.setNumberAllocated(allocationsCount);
+            keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
+            keyworkerDto.setAutoAllocationAllowed(keyworker != null ? keyworker.getAutoAllocationFlag() : true);
+        }
+
         return keyworkerDto;
     }
-
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public void addOrUpdate(Long staffId, String prisonId, KeyworkerUpdateDto keyworkerUpdateDto) {

@@ -83,24 +83,19 @@ public final class ConversionHelper {
                 .build();
     }
 
-    public static BasicKeyworkerDto getBasicKeyworkerDto(StaffLocationRoleDto dto) {
-        return BasicKeyworkerDto.builder()
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .email(dto.getEmail())
-                .build();
-    }
-
     public static KeyworkerDto getKeyworkerDto(StaffLocationRoleDto dto) {
-        return KeyworkerDto.builder()
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .email(dto.getEmail())
-                .staffId(dto.getStaffId())
-                .thumbnailId(dto.getThumbnailId())
-                .scheduleType(dto.getScheduleTypeDescription())
-                .agencyDescription(dto.getAgencyDescription())
-                .agencyId(dto.getAgencyId())
-                .build();
+        if (dto != null) {
+            return KeyworkerDto.builder()
+                    .firstName(dto.getFirstName())
+                    .lastName(dto.getLastName())
+                    .email(dto.getEmail())
+                    .staffId(dto.getStaffId())
+                    .thumbnailId(dto.getThumbnailId())
+                    .scheduleType(dto.getScheduleTypeDescription())
+                    .agencyDescription(dto.getAgencyDescription())
+                    .agencyId(dto.getAgencyId())
+                    .build();
+        }
+        return null;
     }
 }
