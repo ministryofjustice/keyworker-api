@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -20,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayTokenGenerator;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
 import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
 
-import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,26 +24,20 @@ import java.util.List;
 import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 
 /**
- * Abstract base class that takes care of setting up rest template with base API url and request headers.
+ * Helper class that takes care of setting up rest template with base API url and request headers.
  */
 @Component
-public abstract class Elite2ApiSource {
-    protected RestTemplate restTemplate;
+public class RestCallHelper {
 
-    @Value("${elite2.api.uri.root:http://localhost:8080/api}")
-    private String apiRootUri;
+    private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
 
-    @Value("${use.api.gateway.auth}")
-    private boolean useApiGateway;
+    private final RestTemplate restTemplate;
 
     @Autowired
-    private ApiGatewayTokenGenerator apiGatewayTokenGenerator;
+    public RestCallHelper(ApiGatewayTokenGenerator apiGatewayTokenGenerator, RestTemplateBuilder restTemplateBuilder,
+                          @Value("${elite2.api.uri.root:http://localhost:8080/api}") String apiRootUri,
+                          @Value("${use.api.gateway.auth}") boolean useApiGateway) {
 
-    @Autowired
-    RestTemplateBuilder restTemplateBuilder;
-
-    @PostConstruct
-    public void init() {
         List<ClientHttpRequestInterceptor> additionalInterceptors = new ArrayList<>();
 
         additionalInterceptors.add(new UserContextInterceptor());
@@ -63,6 +53,15 @@ public abstract class Elite2ApiSource {
                 .rootUri(apiRootUri)
                 .additionalInterceptors(additionalInterceptors)
                 .build();
+    }
+
+    protected <T> T get(URI uri, Class<T> responseType) {
+        ResponseEntity<T> exchange = restTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
+                responseType);
+        return exchange.getBody();
     }
 
     protected <T> ResponseEntity<T> getWithPagingAndSorting(URI uri, PagingAndSortingDto pagingAndSorting,
@@ -124,7 +123,7 @@ public abstract class Elite2ApiSource {
                 responseType);
     }
 
-    protected HttpEntity<?> withPagingAndSorting(PagingAndSortingDto pagingAndSorting) {
+    private HttpEntity<?> withPagingAndSorting(PagingAndSortingDto pagingAndSorting) {
         HttpHeaders headers = new HttpHeaders();
 
         headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
@@ -138,7 +137,7 @@ public abstract class Elite2ApiSource {
         return new HttpEntity<>(null, headers);
     }
 
-    protected HttpEntity<?> withPaging(PagingAndSortingDto pagingAndSorting) {
+    private HttpEntity<?> withPaging(PagingAndSortingDto pagingAndSorting) {
         HttpHeaders headers = new HttpHeaders();
 
         headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
@@ -157,5 +156,11 @@ public abstract class Elite2ApiSource {
         }
 
         return totalRecords;
+    }
+
+    private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(contentType);
+        return httpHeaders;
     }
 }

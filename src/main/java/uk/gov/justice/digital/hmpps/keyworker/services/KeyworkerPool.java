@@ -290,7 +290,7 @@ public class KeyworkerPool {
     private void reinstateKeyworker(KeyworkerDto keyworker, List<OffenderKeyworker> allocations) {
         Long staffId = keyworker.getStaffId();
 
-        log.debug("Reinstating Key worker with staffIf [{}], and having [{}] allocations, to pool.",
+        log.debug("Reinstating Key worker with staffId [{}], and having [{}] allocations, to pool.",
                 staffId, keyworker.getNumberAllocated());
 
         // Filter out manual allocations (only interested in auto-allocations)

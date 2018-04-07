@@ -60,6 +60,15 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
+    // Provides a Key worker with specified staff id and number of allocations
+    public static BasicKeyworkerDto getKeyworker(long staffId) {
+        return BasicKeyworkerDto.builder()
+                .staffId(staffId)
+                .firstName(RandomStringUtils.randomAscii(35))
+                .lastName(RandomStringUtils.randomAscii(35))
+                .build();
+    }
+
     // Provides list of Key workers with varying number of allocations (within specified range)
     public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations, int capacity) {
         List<KeyworkerDto> keyworkers = new ArrayList<>();
