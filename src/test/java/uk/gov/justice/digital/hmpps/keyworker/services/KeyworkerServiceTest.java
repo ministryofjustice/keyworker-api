@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
@@ -13,12 +12,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
@@ -37,10 +33,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.client.ExpectedCount.once;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
 
 /**
@@ -52,20 +44,10 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     private static final String TEST_AGENCY = "LEI";
     private static final String TEST_USER = "VANILLA";
     private static final Long TEST_STAFF_ID = 67L;
-    private static final Long TEST_PAGE_SIZE = 50L;
     private static final int TEST_CAPACITY = 5;
 
     @Autowired
     private KeyworkerService service;
-
-    @Autowired
-    private MockRestServiceServer server;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private KeyworkerMigrationService migrationService;
 
     @MockBean
     private AuthenticationFacade authenticationFacade;
@@ -82,6 +64,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @MockBean
     private PrisonSupportedService prisonSupportedService;
 
+    @MockBean
+    private NomisService nomisService;
+
     @Before
     public void setup() {
         doThrow(new PrisonNotSupportedException("Agency [MDI] is not supported by this service.")).when(prisonSupportedService).verifyPrisonMigrated(eq("MDI"));
@@ -89,22 +74,13 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     public void testGetUnallocatedOffendersForSupportedAgencyNoneAllocated() throws Exception {
         Long count = 10L;
-        Long offset = 0L;
 
-        // Rest request mock setup
-        String expectedUri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDERS_BY_AGENCY, TEST_AGENCY);
         List<OffenderLocationDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
 
-        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
-
-        server.expect(requestTo(expectedUri))
-                .andExpect(header(PagingAndSortingDto.HEADER_PAGE_OFFSET, offset.toString()))
-                .andExpect(header(PagingAndSortingDto.HEADER_PAGE_LIMIT, TEST_PAGE_SIZE.toString()))
-                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON)
-                        .headers(paginationHeaders(count, offset, TEST_PAGE_SIZE)));
+        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, null)).thenReturn(testDtos);
 
         // Allocation processor mock setup - returning same DTOs
-        when(processor.filterByUnallocated(anyListOf(OffenderLocationDto.class))).thenReturn(testDtos);
+        when(processor.filterByUnallocated(eq(testDtos))).thenReturn(testDtos);
 
         // Invoke service method
         List<OffenderLocationDto> response = service.getUnallocatedOffenders(TEST_AGENCY, null, null);
@@ -116,7 +92,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
         verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderLocationDto.class));
 
-        server.verify();
     }
 
     @Test
@@ -124,20 +99,11 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         Long count = 10L;
         Long offset = 0L;
 
-        // Rest request mock setup
-        String expectedUri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDERS_BY_AGENCY, TEST_AGENCY);
         List<OffenderLocationDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
-
-        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
-
-        server.expect(requestTo(expectedUri))
-                .andExpect(header(PagingAndSortingDto.HEADER_PAGE_OFFSET, offset.toString()))
-                .andExpect(header(PagingAndSortingDto.HEADER_PAGE_LIMIT, TEST_PAGE_SIZE.toString()))
-                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON)
-                        .headers(paginationHeaders(count, offset, TEST_PAGE_SIZE)));
+        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, SortOrder.ASC)).thenReturn(testDtos);
 
         // Allocation processor mock setup - return empty list
-        when(processor.filterByUnallocated(anyListOf(OffenderLocationDto.class))).thenReturn(Collections.emptyList());
+        when(processor.filterByUnallocated(eq(testDtos))).thenReturn(Collections.emptyList());
 
         // Invoke service method
         List<OffenderLocationDto> response = service.getUnallocatedOffenders(TEST_AGENCY, null, null);
@@ -149,7 +115,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
         verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderLocationDto.class));
 
-        server.verify();
     }
 
     @Rule
@@ -181,22 +146,19 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .offenderNo(offenderNo)
                 .staffId(5L)
                 .build();
-        server.expect(once(), requestTo(String.format("/bookings?query=agencyId:eq:'%s'&offenderNo=%s&iepLevel=true", TEST_AGENCY, offenderNo)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
-        thrown.expectMessage(String.format("Prisoner %s not found at agencyId %s using endpoint /bookings?query=agencyId:eq:'LEI'&offenderNo=xxx&iepLevel=true.", offenderNo, TEST_AGENCY));
 
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offenderNo)).thenReturn(Optional.empty());
+
+        thrown.expectMessage(String.format("Prisoner %s not found at agencyId %s", offenderNo, TEST_AGENCY));
         service.allocate(dto);
     }
 
     @Test
     public void testAllocateValidationStaffIdMissing() {
         final String offenderNo = "A1111AA";
-        final long staffId = -9999L;
         KeyworkerAllocationDto dto = KeyworkerAllocationDto.builder()
                 .prisonId(TEST_AGENCY)
                 .offenderNo(offenderNo)
-                //.staffId(staffId)
                 .build();
 
         thrown.expectMessage("Missing staff id");
@@ -208,21 +170,18 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testAllocateValidationStaffDoesNotExist() throws JsonProcessingException {
         final String offenderNo = "A1111AA";
         final long staffId = -9999L;
+
         KeyworkerAllocationDto dto = KeyworkerAllocationDto.builder()
                 .prisonId(TEST_AGENCY)
                 .offenderNo(offenderNo)
                 .staffId(staffId)
                 .build();
 
-        String offender1Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, offenderNo);
-        String response = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo, true)));
-        server.expect(requestTo(offender1Uri)).andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo, true);
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
 
-        final String kwUri = String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId);
-        server.expect(once(), requestTo(kwUri)).andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
-
-        String staffUri = expandUriTemplate(KeyworkerService.URI_STAFF, staffId);
-        server.expect(requestTo(staffUri)).andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+        when(nomisService.getStaffKeyWorkerForPrison(TEST_AGENCY, staffId)).thenReturn(Optional.empty());
+        when(nomisService.getBasicKeyworkerDto(staffId)).thenReturn(null);
 
         thrown.expectMessage(String.format("Keyworker %d not found at agencyId %s.", staffId, TEST_AGENCY));
 
@@ -233,6 +192,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testAllocateKeyworkerAllocationDto() throws JsonProcessingException {
         final String offenderNo = "A1111AA";
         final long staffId = 5;
+
         KeyworkerAllocationDto dto = KeyworkerAllocationDto.builder()
                 .prisonId(TEST_AGENCY)
                 .offenderNo(offenderNo)
@@ -240,12 +200,13 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .deallocationReason(DeallocationReason.RELEASED)
                 .build();
 
-        String offender1Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, offenderNo);
-        String response = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo, true)));
-        server.expect(requestTo(offender1Uri)).andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+        OffenderLocationDto offender = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo, true);
 
-        final String kwUri = String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId);
-        server.expect(requestTo(kwUri)).andRespond(withSuccess("[{}]", MediaType.APPLICATION_JSON));
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender.getOffenderNo())).thenReturn(Optional.of(offender));
+
+        StaffLocationRoleDto staffLocationRoleDto = StaffLocationRoleDto.builder().build();
+        when(nomisService.getStaffKeyWorkerForPrison(TEST_AGENCY, staffId)).thenReturn(Optional.of(staffLocationRoleDto));
+        when(nomisService.getBasicKeyworkerDto(staffId)).thenReturn(staffLocationRoleDto);
 
         final List<OffenderKeyworker> list = Arrays.asList(
                 OffenderKeyworker.builder()
@@ -257,6 +218,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .active(true)
                         .build()
         );
+
         when(repository.findByActiveAndOffenderNo(true, offenderNo)).thenReturn(list);
 
         service.allocate(dto);
@@ -341,7 +303,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        server.verify();
         KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
     }
 
@@ -353,7 +314,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         Optional<BasicKeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
 
-        server.verify();
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, "First", "Last");
     }
 
@@ -361,15 +321,14 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testGetActiveKeyworkerForOffenderNonYetMigrated() throws JsonProcessingException {
         final String offenderNo = "X5555YY";
         final long staffId = 6L;
-        KeyworkerDto expectedKeyworkerDto = expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, false);
+        BasicKeyworkerDto expectedKeyworkerDto = expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, false);
 
         Optional<BasicKeyworkerDto> keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
 
-        server.verify();
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, expectedKeyworkerDto.getFirstName(), expectedKeyworkerDto.getLastName());
     }
 
-    private KeyworkerDto expectGetActiveKeyworkerForOffenderCall(String offenderNo, long staffId, boolean agencyMigrated) throws JsonProcessingException {
+    private BasicKeyworkerDto expectGetActiveKeyworkerForOffenderCall(String offenderNo, long staffId, boolean agencyMigrated) throws JsonProcessingException {
 
         when(prisonSupportedService.isMigrated(isA(String.class))).thenReturn(agencyMigrated);
 
@@ -382,12 +341,8 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
             return null;
 
         } else {
-            KeyworkerDto keyworkerDto = KeyworkerTestHelper.getKeyworker(staffId, 1, CAPACITY_TIER_1);
-            String testJsonResponse = objectMapper.writeValueAsString(keyworkerDto);
-
-            server.expect(once(), requestTo(String.format("/bookings/offenderNo/%s/key-worker", offenderNo)))
-                    .andExpect(method(HttpMethod.GET))
-                    .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+            BasicKeyworkerDto keyworkerDto = KeyworkerTestHelper.getKeyworker(staffId);
+            when(nomisService.getBasicKeyworkerDto(offenderNo)).thenReturn(keyworkerDto);
             return keyworkerDto;
         }
     }
@@ -405,31 +360,15 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(ALLOCATIONS);
     }
 
-    private void expectStaffRoleApiCall(long staffId) throws JsonProcessingException {
-        List<StaffLocationRoleDto> testDtos = Collections.singletonList(KeyworkerTestHelper.getStaffLocationRoleDto(staffId));
-        String testJsonResponse = objectMapper.writeValueAsString(testDtos);
-
-        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+    private void expectStaffRoleApiCall(long staffId) {
+        when(nomisService.getStaffKeyWorkerForPrison(TEST_AGENCY, staffId)).thenReturn(Optional.ofNullable(KeyworkerTestHelper.getStaffLocationRoleDto(staffId)));
     }
 
     private void expectBasicStaffApiCall(long staffId) throws JsonProcessingException {
         StaffLocationRoleDto staffLocationRoleDto = KeyworkerTestHelper.getStaffLocationRoleDto(staffId);
-        String testJsonResponse = objectMapper.writeValueAsString(staffLocationRoleDto);
-
-        server.expect(once(), requestTo(String.format("/staff/%d", staffId)))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(testJsonResponse, MediaType.APPLICATION_JSON));
+        when(nomisService.getBasicKeyworkerDto(staffId)).thenReturn(staffLocationRoleDto);
     }
 
-    @Test(expected = HttpClientErrorException.class)
-    public void testGetKeyworkerDetails404() {
-        final long staffId = 5L;
-        server.expect(once(), requestTo(String.format("/staff/roles/%s/role/KW?staffId=%d", TEST_AGENCY, staffId)))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND));
-        service.getKeyworkerDetails(TEST_AGENCY, staffId);
-    }
 
     @Test
     public void testGetKeyworkerDetailsNoCapacity() throws JsonProcessingException {
@@ -439,7 +378,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        server.verify();
         KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
     }
 
@@ -453,37 +391,23 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        server.verify();
         KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, null, KeyworkerStatus.ACTIVE, keyworkerDetails);
     }
 
     @Test
     public void testGetAllocationsForKeyworkerWithOffenderDetails() throws Exception {
 
-        String offender1Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "1");
-        String offender2Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "2");
-        String offender3Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "3");
-
-        String testJsonResponseOffender1 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1",true)));
-        String testJsonResponseOffender2 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(62, TEST_AGENCY, "2",true)));
-        String testJsonResponseOffender3 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true)));
+        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1", true);
+        OffenderLocationDto offender2 = KeyworkerTestHelper.getOffender(62, TEST_AGENCY, "2",true);
+        OffenderLocationDto offender3 = KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true);
 
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
         // Mock allocation lookup
         when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
-
-        server.expect(requestTo(offender1Uri))
-                .andRespond(withSuccess(testJsonResponseOffender1, MediaType.APPLICATION_JSON)
-                        );
-
-        server.expect(requestTo(offender2Uri))
-                .andRespond(withSuccess(testJsonResponseOffender2, MediaType.APPLICATION_JSON)
-                );
-
-        server.expect(requestTo(offender3Uri))
-                .andRespond(withSuccess(testJsonResponseOffender3, MediaType.APPLICATION_JSON)
-                );
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender2.getOffenderNo())).thenReturn(Optional.of(offender2));
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
 
         // Invoke service method
         List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
@@ -495,7 +419,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         // Verify mocks
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
 
-        server.verify();
     }
 
     @Test
@@ -517,36 +440,21 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         // Verify mocks
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
 
-        server.verify();
     }
 
     @Test
     public void testGetAllocationsForKeyworkerWithOffenderDetails_NoAssociatedEliteBookingRecord() throws Exception {
 
-        String offender1Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "1");
-        //Elite search responds with empty list for this offender
-        String offender2Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "2");
-        String offender3Uri = expandUriTemplate(KeyworkerService.URI_ACTIVE_OFFENDER_BY_AGENCY, TEST_AGENCY, "3");
-
-        String testJsonResponseOffender1 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1",true)));
-        String testJsonResponseOffender3 = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true)));
+        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1",true);
+        OffenderLocationDto offender3 = KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true);
 
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
-        // Mock allocation lookup
         when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
 
-        server.expect(requestTo(offender1Uri))
-                .andRespond(withSuccess(testJsonResponseOffender1, MediaType.APPLICATION_JSON)
-                );
-
-        server.expect(requestTo(offender2Uri))
-                .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON)
-                );
-
-        server.expect(requestTo(offender3Uri))
-                .andRespond(withSuccess(testJsonResponseOffender3, MediaType.APPLICATION_JSON)
-                );
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, "2")).thenReturn(Optional.empty());
+        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
 
         // Invoke service method
         List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
@@ -558,50 +466,42 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         // Verify mocks
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
 
-        server.verify();
     }
 
 
     @Test
     public void testGetAvailableKeyworkers() throws Exception {
-        String availableKeyworkersUri = expandUriTemplate(KeyworkerService.URI_AVAILABLE_KEYWORKERS, TEST_AGENCY);
-
-        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
+        ImmutableList<KeyworkerDto> keyworkers = ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
                 KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1)));
+                KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1));
 
 
-        when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).autoAllocationFlag(true).build());
-        when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
-        when(keyworkerRepository.findOne(3l)).thenReturn(Keyworker.builder().staffId(3l).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(1L)).thenReturn(Keyworker.builder().staffId(1L).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(2L)).thenReturn(Keyworker.builder().staffId(2L).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(3L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).build());
 
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(2);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(2);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
 
-        server.expect(requestTo(availableKeyworkersUri))
-                .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)
-                );
-
+        when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(keyworkers, HttpStatus.OK));
         // Invoke service method
         List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(TEST_AGENCY);
 
         // Verify response
         assertThat(keyworkerList).hasSize(3);
         assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
-
-        server.verify();
     }
 
     @Test
     public void testGetKeyworkersAvailableforAutoAllocation() throws Exception {
-        String availableKeyworkersUri = expandUriTemplate(KeyworkerService.URI_AVAILABLE_KEYWORKERS, TEST_AGENCY);
 
-        String testJsonResponseKeyworkers = objectMapper.writeValueAsString(ImmutableList.of(
+        ImmutableList<KeyworkerDto> allocations = ImmutableList.of(
                 KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
                 KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
                 KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(4, 0, CAPACITY_TIER_1)));
+                KeyworkerTestHelper.getKeyworker(4, 0, CAPACITY_TIER_1));
+
 
         when(keyworkerRepository.findOne(1l)).thenReturn(Keyworker.builder().staffId(1l).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(2l)).thenReturn(Keyworker.builder().staffId(2l).autoAllocationFlag(true).build());
@@ -612,10 +512,8 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3l, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
 
-        server.expect(requestTo(availableKeyworkersUri))
-                .andRespond(withSuccess(testJsonResponseKeyworkers, MediaType.APPLICATION_JSON)
-                );
 
+        when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<List<KeyworkerDto>>(allocations, HttpStatus.OK));
         // Invoke service method
         List<KeyworkerDto> keyworkerList = service.getKeyworkersAvailableforAutoAllocation(TEST_AGENCY);
 
@@ -625,7 +523,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
         assertThat(keyworkerList).extracting("autoAllocationAllowed").isEqualTo(ImmutableList.of(true,true,true));
 
-        server.verify();
     }
 
     @Test

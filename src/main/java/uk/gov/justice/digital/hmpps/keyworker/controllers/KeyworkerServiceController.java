@@ -152,7 +152,7 @@ public class KeyworkerServiceController {
     @ApiOperation(
             value = "Keyworker details for specified offenders in the given prison.",
             notes = "Keyworker details for specified offenders in the given prison, where the offender and details exist.",
-            nickname="getOffenders")
+            nickname="getOffenderForPrison")
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = OffenderKeyworkerDto.class, responseContainer = "List"),
