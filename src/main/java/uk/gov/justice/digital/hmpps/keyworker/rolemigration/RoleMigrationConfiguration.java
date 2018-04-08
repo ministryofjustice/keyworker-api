@@ -11,6 +11,6 @@ import java.util.List;
 @Data
 @ConfigurationProperties(prefix="roleMigration")
 public class RoleMigrationConfiguration {
-    private List<String> sourceRoles = new ArrayList<>();
-    private List<String> targetRoles = new ArrayList<>();
+    private List<String> rolesToMatch = new ArrayList<>();
+    private List<String> rolesToAssign = new ArrayList<>();
 }

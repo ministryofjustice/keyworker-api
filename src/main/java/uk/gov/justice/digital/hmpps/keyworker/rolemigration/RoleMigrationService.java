@@ -4,6 +4,7 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.*;
 import java.util.function.BinaryOperator;
@@ -20,24 +21,24 @@ public class RoleMigrationService {
     };
 
     private final RoleService roleService;
-    private final Set<String> sourceRoles;
-    private final Set<String> targetRoles;
+    private final Set<String> rolesToMatch;
+    private final Set<String> rolesToAssign;
 
     public RoleMigrationService(RoleService roleService, RoleMigrationConfiguration configuration) {
         this.roleService = roleService;
-        sourceRoles = Collections.unmodifiableSet(new HashSet<>(configuration.getSourceRoles()));
-        targetRoles = Collections.unmodifiableSet(new HashSet<>(configuration.getTargetRoles()));
+        rolesToMatch = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMatch()));
+        rolesToAssign = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToAssign()));
     }
 
     public void migrate(String prisonId) {
-        migrateRoles(prisonId, sourceRoles, targetRoles);
+        migrateRoles(prisonId, rolesToMatch, rolesToAssign);
     }
 
-    private void migrateRoles(String prisonId, Set<String> sourceRoleCodes, Set<String> targetRoleCodes) {
+    private void migrateRoles(String prisonId, Set<String> rolesToMatch, Set<String> rolesToAssign) {
 
-        List<Pair<String, Set<Long>>> staffIdsByRole = findStaffIdsByRole(prisonId, sourceRoleCodes);
+        List<Pair<String, Set<Long>>> staffIdsByRole = findStaffIdsByRole(prisonId, rolesToMatch);
 
-        assignRolesToStaff(targetRoleCodes, allStaffIds(staffIdsByRole));
+        assignRolesToStaff(rolesToAssign, allStaffIds(staffIdsByRole));
 
         removeRolesFromStaff(prisonId, staffIdsByRole);
     }
@@ -76,8 +77,13 @@ public class RoleMigrationService {
      */
     private void assignRolesToStaff(Set<String> rolesToAssign, Set<Long> staffIds) {
         staffIds.forEach(staffId ->
-            rolesToAssign.forEach(targetRole ->
-                    roleService.assignRoleToApiCaseload(staffId, targetRole)));
+            rolesToAssign.forEach(roleToAssign -> {
+                try {
+                    roleService.assignRoleToApiCaseload(staffId, roleToAssign);
+                } catch (HttpServerErrorException e){
+                    log.info("API caseload role assignment (staffId {}, role {}) failed. (Does the role assignment already exist?).", staffId, roleToAssign);
+                }
+            }));
     }
 
     /**
