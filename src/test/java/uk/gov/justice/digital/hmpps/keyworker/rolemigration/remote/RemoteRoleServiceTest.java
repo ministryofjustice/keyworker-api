@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -17,14 +18,13 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @RunWith(SpringRunner.class)
 @RestClientTest(RemoteRoleService.class)
-public class RemoteRoleServiceTest extends AbstractServiceTest {
+@AutoConfigureWebClient(registerRestTemplate=true)
 
-    @Autowired
-    private MockRestServiceServer server;
+public class RemoteRoleServiceTest extends AbstractServiceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -32,7 +32,10 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
     @Autowired
     private RoleService service;
 
-    @Test
+    @Autowired
+    private MockRestServiceServer server;
+
+   @Test
     public void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() throws JsonProcessingException {
         server
                 .expect(requestTo("/staff/1/access-roles/"))
