@@ -94,6 +94,7 @@ public class ControllerAdvice {
                         .builder()
                         .status(HttpStatus.METHOD_NOT_ALLOWED.value())
                         .developerMessage(e.getMessage())
+                        .userMessage(e.getMessage())
                         .build());
     }
 
