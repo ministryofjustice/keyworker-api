@@ -69,7 +69,7 @@ public class PrisonSupportedService {
     }
 
     public boolean isMigrated(String prisonId) {
-        // Check repository to determine if prison already migrated
+        // Check remote to determine if prison already migrated
         Prison prison = getPrisonDetail(prisonId);
         return prison != null && prison.isMigrated();
     }
