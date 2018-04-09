@@ -44,8 +44,10 @@ public class KeyworkerService  {
     private int capacityDefault;
 
     public KeyworkerService(AuthenticationFacade authenticationFacade,
-                            OffenderKeyworkerRepository repository, KeyworkerRepository keyworkerRepository,
-                            KeyworkerAllocationProcessor processor, PrisonSupportedService prisonSupportedService,
+                            OffenderKeyworkerRepository repository,
+                            KeyworkerRepository keyworkerRepository,
+                            KeyworkerAllocationProcessor processor,
+                            PrisonSupportedService prisonSupportedService,
                             NomisService nomisService) {
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;

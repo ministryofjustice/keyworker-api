@@ -34,25 +34,8 @@ public class RestCallHelper {
     private final RestTemplate restTemplate;
 
     @Autowired
-    public RestCallHelper(ApiGatewayTokenGenerator apiGatewayTokenGenerator, RestTemplateBuilder restTemplateBuilder,
-                          @Value("${elite2.api.uri.root:http://localhost:8080/api}") String apiRootUri,
-                          @Value("${use.api.gateway.auth}") boolean useApiGateway) {
-
-        List<ClientHttpRequestInterceptor> additionalInterceptors = new ArrayList<>();
-
-        additionalInterceptors.add(new UserContextInterceptor());
-
-        if (useApiGateway) {
-            additionalInterceptors.add(new ApiGatewayInterceptor(apiGatewayTokenGenerator));
-        } else {
-            additionalInterceptors.add(new JwtAuthInterceptor());
-
-        }
-
-        restTemplate = restTemplateBuilder
-                .rootUri(apiRootUri)
-                .additionalInterceptors(additionalInterceptors)
-                .build();
+    public RestCallHelper(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     protected <T> T get(URI uri, Class<T> responseType) {
