@@ -1,13 +1,19 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.util.ObjectUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetailDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -26,9 +32,13 @@ public class KeyworkerPool {
     private final Map<Long,List<OffenderKeyworker>> keyworkerAllocations;
     private final SortedSet<Integer> capacityTiers;
     private final Set<Long> keyworkerStaffIds;
+    private final Map<Long,Integer> keyworkerRecentlyDeallocatedNumber;
     private final Integer maxCapacity;
+   // private final int deallocationBufferHours;
 
     private KeyworkerService keyworkerService;
+    private OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private NomisService nomisService;
 
     /**
      * Constructor.
@@ -36,8 +46,14 @@ public class KeyworkerPool {
      * @param keyworkers set of Key workers in the pool.
      * @param capacityTiers optional set of capacity tier levels.
      */
-    KeyworkerPool(Collection<KeyworkerDto> keyworkers, Collection<Integer> capacityTiers) {
+    KeyworkerPool(KeyworkerService keyworkerService, OffenderKeyworkerRepository offenderKeyworkerRepository, NomisService nomisService,
+
+                  Collection<KeyworkerDto> keyworkers, Collection<Integer> capacityTiers, int deallocationBufferHours) {
         Validate.notEmpty(keyworkers, "Key worker pool must contain at least one Key worker.");
+
+        this.keyworkerService = keyworkerService;
+        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
+        this.nomisService = nomisService;
 
         // Initialise capacity tiers
         if (ObjectUtils.isEmpty(capacityTiers)) {
@@ -51,20 +67,19 @@ public class KeyworkerPool {
         // Initialise key worker pool
         keyworkerStaffIds = new HashSet<>();
         keyworkerAllocations = new HashMap<>();
+        keyworkerRecentlyDeallocatedNumber = new HashMap<>();
+        final Duration lookBackDuration = Duration.ofHours(deallocationBufferHours);
 
         keyworkers.forEach(kw -> {
             keyworkerStaffIds.add(kw.getStaffId());
             keyworkerAllocations.put(kw.getStaffId(), null);
+            keyworkerRecentlyDeallocatedNumber.put(kw.getStaffId(), getRecentDeallocations(kw.getStaffId(), kw.getAgencyId(), lookBackDuration));
         });
 
         keyworkerPool = new TreeSet<>(buildKeyworkerComparator());
         keyworkerPool.addAll(keyworkers);
 
         log.debug("Key worker pool initialised with {} members.", keyworkers.size());
-    }
-
-    public void setKeyworkerService(KeyworkerService keyworkerService) {
-        this.keyworkerService = keyworkerService;
     }
 
     // Constructs Key worker comparator which, effectively, implements Key worker allocation prioritisation algorithm.
@@ -75,19 +90,25 @@ public class KeyworkerPool {
         Comparator<KeyworkerDto> isFullComparator = (kw1, kw2) -> {
             int enhancedCapacityKw1 = calculateEnhancedCapacity(kw1);
             int enhancedCapacityKw2 = calculateEnhancedCapacity(kw2);
-            if (kw1.getNumberAllocated() >= enhancedCapacityKw1) {
-                if (kw2.getNumberAllocated() >= enhancedCapacityKw2) {
+            final Integer numberAllocated1 = totalAllocations(kw1);
+            final Integer numberAllocated2 = totalAllocations(kw2);
+            if (numberAllocated1 >= enhancedCapacityKw1) {
+                if (numberAllocated2 >= enhancedCapacityKw2) {
                     return 0;
                 }
                 return 1;
             }
-            if (kw2.getNumberAllocated() >= enhancedCapacityKw2) {
+            if (numberAllocated2 >= enhancedCapacityKw2) {
                 return -1;
             }
             return 0;
         };
 
-        final Comparator<KeyworkerDto> numberAllocatedComparator = Comparator.comparingInt(KeyworkerDto::getNumberAllocated);
+        final Comparator<KeyworkerDto> numberAllocatedComparator = (kw1, kw2) -> {
+            final Integer numberAllocated1 = totalAllocations(kw1);
+            final Integer numberAllocated2 = totalAllocations(kw2);
+            return numberAllocated1.compareTo(numberAllocated2);
+        };
 
         final Comparator<Long> staffIdComparator = (id1, id2) -> {
             Comparator<OffenderKeyworker> keyWorkerAllocationComparator = Comparator.comparing(OffenderKeyworker::getAssignedDateTime);
@@ -126,6 +147,10 @@ public class KeyworkerPool {
             }
             return comparator.compare(kw1, kw2);
         };
+    }
+
+    private int totalAllocations(KeyworkerDto kw1) {
+        return kw1.getNumberAllocated() + keyworkerRecentlyDeallocatedNumber.get(kw1.getStaffId());
     }
 
     private int calculateEnhancedCapacity(KeyworkerDto kw1) {
@@ -303,5 +328,58 @@ public class KeyworkerPool {
 
         log.debug("Key worker with staffId [{}] reinstated to pool. New pool size is [{}] and priority Key worker has staffId [{}] and [{}] allocations.",
                 staffId, keyworkerPool.size(), keyworkerPool.first().getStaffId(), keyworkerPool.first().getNumberAllocated());
+    }
+
+    // Gets allocations for Key worker that have expired recently (between start of look back period and current time)
+    private int getRecentDeallocations(Long staffId, String prisonId, Duration lookBackDuration) {
+        LocalDateTime cutOff = LocalDateTime.now().minus(lookBackDuration);
+        List<OffenderKeyworker> keyWorkerAllocations = offenderKeyworkerRepository.findByStaffIdAndPrisonId(staffId, prisonId);
+        if (keyWorkerAllocations == null) {
+            return 0;
+        }
+        // Extract set of offender id for active allocations
+        Set<String> activeOffenderNos = keyWorkerAllocations.stream()
+                .filter(kwa -> kwa.getExpiryDateTime() == null)
+                .map(OffenderKeyworker::getOffenderNo)
+                .collect(Collectors.toSet());
+
+        // Allocation record is of interest if:
+        //  - if it is for booking that is not in set of active allocation booking ids, and
+        //  - it has an expiry datetime set, and
+        //  - expiry datetime is after start of 'lookBackDuration' period.
+        List<OffenderKeyworker> deallocations = keyWorkerAllocations.stream()
+                .filter(kwa -> !activeOffenderNos.contains(kwa.getOffenderNo()))
+                .filter(kwa -> Objects.nonNull(kwa.getExpiryDateTime()))
+                .filter(kwa -> kwa.getExpiryDateTime().isAfter(cutOff))
+                // TODO - filter multiple recent expired allocations for the same offender?
+                .collect(Collectors.toList());
+
+        // Removes deallocations where:
+        //  - offender has active booking (in different agency)
+        //  - offender has active booking in same agency and is allocated to a different Key worker
+        Predicate<OffenderKeyworker> kwaDeallocPredicate = (kwa -> {
+            boolean keepDeallocation = true;
+
+            List<PrisonerDetailDto> results = nomisService.getOffender(kwa.getOffenderNo());
+
+            // Keep deallocation if:
+            //  - no offender summary found for booking id (should not happen)
+            //  - latest offender booking indicates they are not currently in prison, or
+            //  - latest offender booking indicates they are in same agency as allocation and
+            //    they have an active allocation (to same or a different Key worker)
+            for (PrisonerDetailDto summary : results) {
+                if (StringUtils.equalsIgnoreCase(summary.getCurrentlyInPrison(), "Y")) {
+                    if (StringUtils.equals(kwa.getPrisonId(), summary.getLatestLocationId())) {
+                        final List<OffenderKeyworker> byActiveAndOffenderNo = offenderKeyworkerRepository.findByActiveAndOffenderNo(true, summary.getOffenderNo());
+                        keepDeallocation = ! byActiveAndOffenderNo.stream().anyMatch(t -> t.getPrisonId().equals(kwa.getPrisonId()));
+                    } else {
+                        // In a different prison
+                        keepDeallocation = false;
+                    }
+                }
+            }
+            return keepDeallocation;
+        });
+        return (int) deallocations.stream().filter(kwaDeallocPredicate).count();
     }
 }

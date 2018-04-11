@@ -625,9 +625,8 @@ public class KeyworkerAutoAllocationServiceTest {
     }
 
     private void mockKeyworkerPool(List<KeyworkerDto> keyworkers) {
-        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkers, Collections.singletonList(FULLY_ALLOCATED));
-
-        keyworkerPool.setKeyworkerService(keyworkerService);
+        KeyworkerPool keyworkerPool = KeyworkerTestHelper.initKeyworkerPool(keyworkerService, offenderKeyworkerRepository, null,
+                keyworkers, Collections.singletonList(FULLY_ALLOCATED));
 
         when(keyworkerPoolFactory.getKeyworkerPool(keyworkers)).thenReturn(keyworkerPool);
     }

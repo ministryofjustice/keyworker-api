@@ -26,7 +26,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     List<OffenderKeyworker> findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(boolean isActive, String prisonId, Collection<String> offenderNo, AllocationType type);
     List<OffenderKeyworker> findByActiveAndPrisonIdAndAllocationTypeIsNot(boolean isActive, String prisonId, AllocationType type);
     List<OffenderKeyworker> findByActiveAndPrisonIdAndAllocationType(boolean isActive, String prisonId, AllocationType type);
-    List<OffenderKeyworker> findByStaffIdAndPrisonIdAndActiveAndExpiryDateTimeIsAfter(Long staffId, String prisonId, boolean active, LocalDateTime expiryDate);
+    List<OffenderKeyworker> findByStaffIdAndPrisonId(Long staffId, String prisonId);
 
     Integer countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Long staffId, String prisonId, boolean active, AllocationType allocationType);
 

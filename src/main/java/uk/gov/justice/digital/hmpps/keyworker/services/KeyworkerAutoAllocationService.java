@@ -47,10 +47,6 @@ public class KeyworkerAutoAllocationService {
     private final BufferMetricReader metricReader;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
-    private final NomisService nomisService;
-
-    @Value("${api.keyworker.deallocation.buffer.hours:48}")
-    private int deallocationBufferHours;
 
     /**
      * Constructor.
@@ -63,15 +59,13 @@ public class KeyworkerAutoAllocationService {
                                           CounterService counterService,
                                           BufferMetricReader metricReader,
                                           OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                          PrisonSupportedService prisonSupportedService,
-                                          NomisService nomisService) {
+                                          PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.counterService = counterService;
         this.metricReader = metricReader;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
-        this.nomisService = nomisService;
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
@@ -219,76 +213,5 @@ public class KeyworkerAutoAllocationService {
         }
 
         return allocCount;
-    }
-
-
-//    private KeyworkerDto getKeyworkerDetailsWithProvisionals(Long staffId) {
-//        final Keyworker keyworker = nomisService.getKeyworkerDetails(staffId)
-//                .orElseThrow(EntityNotFoundException.withMessage(String.format("Key worker with id %d not found", staffId)));
-//
-//        int activeAllocCount = Optional.ofNullable(keyworker.getNumberAllocated()).orElse(0);
-//
-//        List<KeyWorkerAllocation> recentDeallocations = getRecentDeallocations(staffId, Duration.ofHours(deallocationBufferHours));
-//
-//        recentDeallocations = filterDeallocations(recentDeallocations);
-//
-//        keyworker.setNumberAllocated(activeAllocCount + recentDeallocations.size());
-//
-//        return keyworker;
-//    }
-
-    // Gets allocations for Key worker that have expired recently (between start of look back period and current time)
-    private int getRecentDeallocations(Long staffId, Duration lookBackDuration) {
-        LocalDateTime cutOff = LocalDateTime.now().minus(lookBackDuration);
-        List<OffenderKeyworker> keyWorkerAllocations = offenderKeyworkerRepository.findByStaffIdAndPrisonIdAndActiveAndExpiryDateTimeIsAfter(staffId, prison, false, cutOff);
-
-        // Extract set of booking id for active allocations
-//        Set<Long> activeBookingIds = keyWorkerAllocations.stream()
-//                .filter(kwa -> StringUtils.equalsIgnoreCase("Y", kwa.getActive()))
-//                .map(KeyWorkerAllocation::getBookingId)
-//                .collect(Collectors.toSet());
-
-        // Allocation record is of interest if:
-        //  - if it is for booking that is not in set of active allocation booking ids, and
-        //  - it has an expiry datetime set, and
-        //  - expiry datetime is after start of 'lookBackDuration' period.
-//        List<OffenderKeyworker> deallocations = keyWorkerAllocations.stream()
-//                .filter(kwa -> !kwa.isActive())
-//                .filter(kwa -> Objects.nonNull(kwa.getExpiryDateTime()))
-//                .filter(kwa -> kwa.getExpiryDateTime().isAfter(cutOff))
-//                .collect(Collectors.toList());
-
-        // Removes deallocations where:
-        //  - offender has active booking (in different agency)
-        //  - offender has active booking in same agency and is allocated to a different Key worker
-        Predicate<OffenderKeyworker> kwaDeallocPredicate = (kwa -> {
-            boolean keepDeallocation = true;
-
-            List<PrisonerDetailDto> results = nomisService.getOffender(kwa.getOffenderNo());//BookingId());
-
-            // Keep deallocation if:
-            //  - no offender summary found for booking id (should not happen)
-            //  - latest offender booking indicates they are not currently in prison, or
-            //  - latest offender booking indicates they are in same agency as allocation and
-            //    they have an active allocation (to same or a different Key worker)
-            for (PrisonerDetailDto summary : results) {
-                if (StringUtils.equalsIgnoreCase(summary.getCurrentlyInPrison(), "Y")) {
-                    if (StringUtils.equals(kwa.getPrisonId(), summary.getLatestLocationId())) {
-                        // Optional<KeyWorkerAllocation> latestOffenderAlloc = repository.getCurrentAllocationForOffenderBooking(summary.getBookingId());
-
-                        final List<OffenderKeyworker> byActiveAndOffenderNo = offenderKeyworkerRepository.findByActiveAndOffenderNo(true, summary.getOffenderNo());
-                        keepDeallocation = ! byActiveAndOffenderNo.stream().anyMatch(t -> t.getPrisonId().equals(kwa.getPrisonId()));
-                        // keepDeallocation = !latestOffenderAlloc.isPresent();
-                    } else {
-                        // In a different prison
-                        keepDeallocation = false;
-                    }
-                }
-            }
-            return keepDeallocation;
-        });
-
-        long count = keyWorkerAllocations.stream().filter(kwaDeallocPredicate).count();
-        return (int)count;
     }
 }
