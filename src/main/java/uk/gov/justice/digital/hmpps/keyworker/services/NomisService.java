@@ -24,22 +24,24 @@ public class NomisService {
     private static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
     private static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     private static final String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
-    private static final String GET_STAFF_IN_SPECFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
+    private static final String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
     private static final String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
+    private static final String GET_PRISONER = "/prisoners?offenderNo={offenderNo}";
 
-    private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFF_KEY_WORKER =
+    private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFFENDER_KEY_WORKER =
             new ParameterizedTypeReference<List<OffenderKeyworkerDto>>() {};
 
+    private static final ParameterizedTypeReference<List<PrisonerDetailDto>> PRISONER_DTO_LIST =
+            new ParameterizedTypeReference<List<PrisonerDetailDto>>() {};
+
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {
-            };
+            new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {};
 
     private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<List<OffenderLocationDto>>() {
-            };
+            new ParameterizedTypeReference<List<OffenderLocationDto>>() {};
+
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
-            new ParameterizedTypeReference<List<KeyworkerDto>>() {
-            };
+            new ParameterizedTypeReference<List<KeyworkerDto>>() {};
 
     private final RestCallHelper restCallHelper;
 
@@ -56,10 +58,16 @@ public class NomisService {
 
     }
 
+    public List<PrisonerDetailDto> getOffender(String offenderNo) {
+        log.info("Getting bookings for offender No {}", offenderNo);
+        URI uri = new UriTemplate(GET_PRISONER).expand(offenderNo);
+        return restCallHelper.getForList(uri, PRISONER_DTO_LIST).getBody();
+    }
+
     public ResponseEntity<List<StaffLocationRoleDto>> getStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
         log.info("Getting KW Staff in prison {}", prisonId);
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(GET_STAFF_IN_SPECFIC_PRISON);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(GET_STAFF_IN_SPECIFIC_PRISON);
         nameFilter.ifPresent(filter -> uriBuilder.queryParam("nameFilter", filter));
         URI uri = uriBuilder.buildAndExpand(prisonId).toUri();
 
@@ -69,7 +77,7 @@ public class NomisService {
     public Optional<StaffLocationRoleDto> getStaffKeyWorkerForPrison(String prisonId, Long staffId) {
         log.info("Getting staff in prison {} staff Id {}", prisonId, staffId);
 
-        URI uri = new UriTemplate(GET_STAFF_IN_SPECFIC_PRISON +"?staffId={staffId}").expand(prisonId, staffId);
+        URI uri = new UriTemplate(GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}").expand(prisonId, staffId);
 
         List<StaffLocationRoleDto> staff = restCallHelper.getForList(uri, ELITE_STAFF_LOCATION_DTO_LIST).getBody();
         Assert.isTrue(staff.size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, prisonId));
@@ -110,7 +118,7 @@ public class NomisService {
         URI uri = new UriTemplate(URI_KEY_WORKER_GET_ALLOCATION_HISTORY).expand(prisonId);
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageOffset(offset).pageLimit(limit).build();
 
-        return restCallHelper.getWithPaging(uri, pagingAndSorting, PARAM_TYPE_REF_OFF_KEY_WORKER).getBody();
+        return restCallHelper.getWithPaging(uri, pagingAndSorting, PARAM_TYPE_REF_OFFENDER_KEY_WORKER).getBody();
     }
 
 }

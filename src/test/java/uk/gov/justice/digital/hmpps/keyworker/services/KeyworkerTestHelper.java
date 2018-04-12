@@ -3,11 +3,9 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -69,18 +67,22 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    // Provides list of Key workers with varying number of allocations (within specified range)
     public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations, int capacity) {
+        return getKeyworkers(total, minAllocations, maxAllocations, capacity, null);
+    }
+
+    // Provides list of Key workers with varying number of allocations (within specified range)
+    public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations, int capacity, String agencyId) {
         List<KeyworkerDto> keyworkers = new ArrayList<>();
 
         for (long i = 1; i <= total; i++) {
             keyworkers.add(KeyworkerDto.builder()
                     .staffId(i)
                     .numberAllocated(RandomUtils.nextInt(minAllocations, maxAllocations + 1))
+                    .agencyId(agencyId)
                     .capacity(capacity)
                     .build());
         }
-
         return keyworkers;
     }
 
@@ -132,6 +134,14 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
+    public static PrisonerDetailDto getOffender(String offenderNo, boolean currentlyInPrison) {
+        return PrisonerDetailDto.builder()
+                .offenderNo(offenderNo)
+                .currentlyInPrison(currentlyInPrison ? "Y" : "N")
+                .lastName("Testlastname")
+                .build();
+    }
+
     public static List<OffenderLocationDto> getOffenders(String prisonId, long total) {
         Validate.notBlank(prisonId);
         Validate.isTrue(total > 0);
@@ -172,11 +182,10 @@ public class KeyworkerTestHelper {
         when(keyworkerService.getAllocationHistoryForPrisoner(anyString())).thenReturn(allocationHistory);
     }
 
-    public static KeyworkerPool initKeyworkerPool(KeyworkerService keyworkerService,
+    public static KeyworkerPool initKeyworkerPool(KeyworkerService keyworkerService, OffenderKeyworkerRepository offenderKeyworkerRepository, NomisService nomisService,
                                                   Collection<KeyworkerDto> keyworkers, Collection<Integer> capacityTiers) {
-        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkers, capacityTiers);
-
-        keyworkerPool.setKeyworkerService(keyworkerService);
+        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkerService, offenderKeyworkerRepository, nomisService,
+                keyworkers, capacityTiers, 48);
 
         return keyworkerPool;
     }

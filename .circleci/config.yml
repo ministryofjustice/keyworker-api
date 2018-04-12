@@ -39,10 +39,14 @@ jobs:
             jar xvf build/libs/keyworker-service-*.jar META-INF/build-info.properties
             API_VERSION=$(grep 'build.version=' META-INF/build-info.properties | awk -F= '{print $2}')
             rm META-INF/build-info.properties
+
+            # make up a good version name
             TAG=${API_VERSION}.${CIRCLE_BRANCH}
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
               TAG=KEYWORKER_SERVICE_${API_VERSION}
             fi
+
+            # build the container
             docker build --rm=false . \
                --tag "mojdigitalstudio/keyworker-service:$TAG" \
                --label "maintainer=michael.willis@digital.justice.gov.uk" \
@@ -51,15 +55,20 @@ jobs:
                --label "build.number=$CIRCLE_BUILD_NUM" \
                --label "build.url=$CIRCLE_BUILD_URL" \
                --label "build.gitref=$CIRCLE_SHA1"
+
+            # publish to docker hub as the tag
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push mojdigitalstudio/keyworker-service:$TAG
 
+            # if master, also publish to latest and git
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
               docker tag mojdigitalstudio/keyworker-service:$TAG mojdigitalstudio/keyworker-service:latest
               docker push mojdigitalstudio/keyworker-service:latest
               git tag $TAG
               git push --tags
             fi
+
+            # generate Dockerrun manifest
             node scripts/plant-beanstalk.js $TAG
       - persist_to_workspace:
           root: .
