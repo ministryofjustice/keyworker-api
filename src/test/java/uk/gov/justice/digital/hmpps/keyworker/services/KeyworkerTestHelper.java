@@ -136,8 +136,8 @@ public class KeyworkerTestHelper {
 
     public static PrisonerDetailDto getOffender(String offenderNo, boolean currentlyInPrison) {
         return PrisonerDetailDto.builder()
-                .currentlyInPrison(currentlyInPrison?"Y":"N")
                 .offenderNo(offenderNo)
+                .currentlyInPrison(currentlyInPrison ? "Y" : "N")
                 .lastName("Testlastname")
                 .build();
     }

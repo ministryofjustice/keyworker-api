@@ -163,8 +163,6 @@ public class KeyworkerAutoAllocationService {
         storeAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
-
-       // KeyworkerDto refreshedKeyworker = getKeyworkerDetailsWithProvisionals(keyworker.getStaffId());
         keyworkerPool.incrementAndRefreshKeyworker(keyworker); //refreshedKeyworker);
     }
 

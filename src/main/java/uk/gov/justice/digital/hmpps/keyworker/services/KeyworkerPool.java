@@ -33,8 +33,6 @@ public class KeyworkerPool {
     private final SortedSet<Integer> capacityTiers;
     private final Set<Long> keyworkerStaffIds;
     private final Map<Long,Integer> keyworkerRecentlyDeallocatedNumber;
-    private final Integer maxCapacity;
-   // private final int deallocationBufferHours;
 
     private KeyworkerService keyworkerService;
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
@@ -61,8 +59,6 @@ public class KeyworkerPool {
         } else {
             this.capacityTiers = new TreeSet<>(capacityTiers);
         }
-
-        maxCapacity = this.capacityTiers.last();
 
         // Initialise key worker pool
         keyworkerStaffIds = new HashSet<>();
