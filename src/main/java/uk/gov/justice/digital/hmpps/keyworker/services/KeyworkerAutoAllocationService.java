@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
@@ -12,19 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetailDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Service implementation of Key worker auto-allocation. On initiation the auto-allocation process will attempt to
@@ -104,7 +98,6 @@ public class KeyworkerAutoAllocationService {
             log.info("Proceeding with auto-allocation for {} unallocated offenders and {} available Key workers at agency [{}].",
                     unallocatedOffenders.size(), availableKeyworkers.size(), prisonId);
 
-            // ****** TODO calculate recently deallocated totals for all KWs
             // At this point, we have some unallocated offenders and some available Key workers. Let's put the Key
             // workers into a pool then start processing allocations.
             KeyworkerPool keyworkerPool = keyworkerPoolFactory.getKeyworkerPool(availableKeyworkers);
@@ -163,7 +156,7 @@ public class KeyworkerAutoAllocationService {
         storeAllocation(offender, keyworker);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
-        keyworkerPool.incrementAndRefreshKeyworker(keyworker); //refreshedKeyworker);
+        keyworkerPool.incrementAndRefreshKeyworker(keyworker);
     }
 
     private List<OffenderLocationDto> getUnallocatedOffenders(String prisonId) {
