@@ -124,7 +124,7 @@ public class KeyworkerPool {
             } else if (id2Allocations.isEmpty()) {
                 result = 1;
             } else {
-                result = id1Allocations.first().getAssignedDateTime().compareTo(id2Allocations.first().getAssignedDateTime());
+                result = id1Allocations.last().getAssignedDateTime().compareTo(id2Allocations.last().getAssignedDateTime());
 
                 if (result == 0) {
                     result = id1.compareTo(id2);
@@ -213,6 +213,7 @@ public class KeyworkerPool {
      */
     public void incrementAndRefreshKeyworker(KeyworkerDto keyworker) {
         Validate.notNull(keyworker, "Key worker to refresh must be specified.");
+        final List<OffenderKeyworker> savedOldAllocationsList = keyworkerAllocations.get(keyworker.getStaffId());
 
         // Remove Key worker from pool (throwing exception if Key worker not in pool)
         if (!removeKeyworker(keyworker.getStaffId()).isPresent()) {
@@ -223,7 +224,7 @@ public class KeyworkerPool {
         keyworker.setNumberAllocated(keyworker.getNumberAllocated() + 1);
 
         // Add Key worker back to pool
-        reinstateKeyworker(keyworker, null);
+        reinstateKeyworker(keyworker, savedOldAllocationsList);
     }
 
     private Optional<KeyworkerDto> findPreviousAllocation(String offenderNo, List<OffenderKeyworker> keyWorkerAllocations) {
@@ -260,11 +261,13 @@ public class KeyworkerPool {
         // Identify Key worker(s) with least number of allocations - first Key worker in pool will have least allocations
         int fewestAllocs = keyworkerPool.first().getNumberAllocated();
 
-        // If priority Key worker hos no allocations, no further processing required, otherwise identify any other Key
-        // workers in pool having same number of allocations.
+        // If priority Key worker has no allocations, no further processing required, otherwise identify any other Key
+        // workers in pool having same number of allocations (and their keyworkerAllocations map entry remains uninitialised)
         if (fewestAllocs > 0) {
-            List<KeyworkerDto> fewestAllocKeyworkers =
-                    keyworkerPool.stream().filter(kw -> (kw.getNumberAllocated() == fewestAllocs)).collect(Collectors.toList());
+            List<KeyworkerDto> fewestAllocKeyworkers = keyworkerPool.stream()
+                    .filter(kw -> kw.getNumberAllocated() == fewestAllocs)
+                    .filter(kw -> keyworkerAllocations.get(kw.getStaffId()) == null)
+                    .collect(Collectors.toList());
 
             // If only one Key worker with fewest allocations, no further processing required, otherwise retrieve
             // allocations for all Key workers with fewest allocations and update sort.
@@ -272,11 +275,7 @@ public class KeyworkerPool {
                 // For each Key worker with fewest allocations, remove from pool, update allocations, reinstate to pool.
                 fewestAllocKeyworkers.forEach(kw -> {
                     removeKeyworker(kw.getStaffId());
-
-                    Long staffId = kw.getStaffId();
-                    List<OffenderKeyworker> allocations = keyworkerService.getAllocationsForKeyworker(staffId);
-
-                    reinstateKeyworker(kw, allocations);
+                    reinstateKeyworker(kw, keyworkerService.getAllocationsForKeyworker(kw.getStaffId()));
                 });
             }
         }
@@ -304,7 +303,6 @@ public class KeyworkerPool {
         keyworker.ifPresent(keyworkerPool::remove);
 
         keyworkerAllocations.remove(staffId);
-
         return keyworker;
     }
 
@@ -314,9 +312,9 @@ public class KeyworkerPool {
         log.debug("Reinstating Key worker with staffId [{}], and having [{}] allocations, to pool.",
                 staffId, keyworker.getNumberAllocated());
 
-        // Filter out manual allocations (only interested in auto-allocations)
+        // Filter out manual allocations (and Provisionals obviously. Only interested in auto-allocations)
         List<OffenderKeyworker> autoAllocations = (allocations == null) ? null :
-                allocations.stream().filter(kwa -> !kwa.getAllocationType().isManual()).collect(Collectors.toList());
+                allocations.stream().filter(kwa -> kwa.getAllocationType().isAuto()).collect(Collectors.toList());
 
         keyworkerAllocations.put(staffId, autoAllocations);
         keyworkerPool.add(keyworker);

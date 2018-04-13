@@ -10,6 +10,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetailDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
@@ -56,7 +57,8 @@ public class KeyworkerPoolTest {
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
     // KW = Key worker
     // KWP = Key worker pool
-    // Capacity refers to spare allocation capacity (i.e. the KW has capacity for further offender allocations)
+    // Capacity can refer to spare allocation capacity (i.e. the KW has capacity for further offender allocations)
+    //  or total capacity
     // Allocation refers to an extant and active relationship of an offender to a Key worker
     //   (there is a distinction between an automatically created allocation and a manually created allocation)
     // For purposes of these tests, 'multiple' means at least three or more
@@ -209,10 +211,17 @@ public class KeyworkerPoolTest {
 
         OffenderKeyworker staff3Allocation =
                 getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, "A3333AA", staffId3, refDateTime.minusDays(5));
+        OffenderKeyworker staff3IrrelevantAllocationP =
+                getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, "A3333AB", staffId3, refDateTime.minusDays(1));
+        OffenderKeyworker staff3IrrelevantAllocationM =
+                getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, "A3333AC", staffId3, refDateTime.minusDays(1));
+        staff3IrrelevantAllocationP.setAllocationType(AllocationType.PROVISIONAL);
+        staff3IrrelevantAllocationM.setAllocationType(AllocationType.MANUAL);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId1))).thenReturn(Collections.singletonList(staff1Allocation));
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId2))).thenReturn(Collections.singletonList(staff2Allocation));
-        when(keyworkerService.getAllocationsForKeyworker(eq(staffId3))).thenReturn(Collections.singletonList(staff3Allocation));
+        when(keyworkerService.getAllocationsForKeyworker(eq(staffId3))).thenReturn(Arrays.asList(
+                staff3Allocation, staff3IrrelevantAllocationP, staff3IrrelevantAllocationM));
 
         // Request KW from pool for offender
         KeyworkerDto allocatedKeyworker = keyworkerPool.getKeyworker("A1111AA");
