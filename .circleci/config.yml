@@ -1,5 +1,5 @@
 defaults: &defaults
-  working_directory: /tmp/circleci-keyworker-service
+  working_directory: ~/app
 
 version: 2
 jobs:
@@ -31,7 +31,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/circleci-keyworker-service/
+          at: ~/app
       - setup_remote_docker:
           exclusive: true
       - run:
@@ -82,7 +82,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/circleci-keyworker-service/
+          at: ~/app
       - deploy:
           name: Install elastic beanstalk CLI
           command: |
