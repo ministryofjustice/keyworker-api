@@ -1,15 +1,15 @@
 FROM openjdk:8-jdk-alpine
 MAINTAINER HMPPS Digital Studio <info@digital.justice.gov.uk>
-RUN  apk update && apk upgrade && apk add netcat-openbsd && apk add --update curl && rm -rf /var/cache/apk/*
 
-ENV NAME keyworker-service
-ENV JAR_PATH build/libs
-ARG VERSION
+RUN apk update \
+  && apk upgrade \
+  && apk add netcat-openbsd \
+  && apk add --update curl \
+  && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
-COPY ${JAR_PATH}/${NAME}*.jar /app
+COPY build/libs/keyworker-service*.jar /app/app.jar
 COPY run.sh /app
 
-RUN chmod a+x /app/run.sh
-ENTRYPOINT /app/run.sh
+ENTRYPOINT ["/bin/sh", "/app/run.sh"]
