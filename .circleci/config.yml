@@ -40,9 +40,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/app
-      - setup_remote_docker:
-          exclusive: true
+      - setup_remote_docker
       - run:
+          name: Build container and publish to docker hub
           command: |
             jar xvf build/libs/keyworker-service-*.jar META-INF/build-info.properties
             API_VERSION=$(grep 'build.version=' META-INF/build-info.properties | awk -F= '{print $2}')
