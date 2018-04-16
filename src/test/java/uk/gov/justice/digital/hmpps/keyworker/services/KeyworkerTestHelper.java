@@ -103,6 +103,14 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
+    public static StaffLocationRoleDto getBasicVersionOfStaffLocationRoleDto(long staffId) {
+        return StaffLocationRoleDto.builder()
+                .staffId(staffId)
+                .firstName("First")
+                .lastName("Last")
+                .build();
+    }
+
     public static void verifyBasicKeyworkerDto(BasicKeyworkerDto keyworkerDetails, long staffId, String firstName, String lastName) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getFirstName()).isEqualTo(firstName);

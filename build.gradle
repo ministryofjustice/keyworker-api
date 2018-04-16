@@ -16,8 +16,10 @@ group 'uk.gov.justice.digital.hmpps'
 version '0.0.1'
 
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
+
 
 
 sourceCompatibility = 1.8
@@ -97,6 +99,11 @@ dependencies {
 
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("org.assertj:assertj-core:3.8.0")
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.7'
     testCompile("com.github.tomakehurst:wiremock:2.14.0")
+    testCompile 'org.spockframework:spock-spring:1.1-groovy-2.4-rc-2'
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-2'
+
+
 }
 
