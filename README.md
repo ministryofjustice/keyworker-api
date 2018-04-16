@@ -54,4 +54,15 @@ docker run --name=keyworker-postgres -e POSTGRES_PASSWORD=password -p5432:5432 -
 ```
 Run spring boot with the the postgres spring profile
 
+### Connecting to Dev / Stage keyworker RDS DB instances
 
+The RDS DB required SSL mode to connect therefore add `sslmode=verify-full` to the end of the JDBC URL
+
+In addition you will need to add the root Amazon CA certificate
+
+```bash
+mkdir ~/.postgresql
+curl https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem > ~/.postgresql/root.crt
+```
+
+ 
