@@ -33,6 +33,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
+import static uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
 
 /**
@@ -271,7 +272,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .build();
         final List<String> testOffenderNos = Arrays.asList("offender1", "offender2");
         List<OffenderKeyworker> results = Arrays.asList(offender1, offender2);
-        when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, TEST_AGENCY, testOffenderNos, AllocationType.PROVISIONAL)).thenReturn(results);
+        when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, TEST_AGENCY, testOffenderNos, PROVISIONAL)).thenReturn(results);
 
         final List<OffenderKeyworkerDto> offenders = service.getOffenders(TEST_AGENCY, testOffenderNos);
 
@@ -332,7 +333,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(prisonSupportedService.isMigrated(isA(String.class))).thenReturn(agencyMigrated);
 
         if (agencyMigrated) {
-            when(repository.findByOffenderNoAndActive(offenderNo, true)).thenReturn(OffenderKeyworker.builder()
+            when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(OffenderKeyworker.builder()
                     .staffId(staffId)
                     .build()
             );
@@ -356,7 +357,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .autoAllocationFlag(true)
                 .build()
         );
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(ALLOCATIONS);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, PROVISIONAL)).thenReturn(ALLOCATIONS);
     }
 
     private void expectStaffRoleApiCall(long staffId) {
@@ -386,7 +387,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         expectStaffRoleApiCall(staffId);
 
         when(keyworkerRepository.findOne(staffId)).thenReturn(null);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(null);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, PROVISIONAL)).thenReturn(null);
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
@@ -424,7 +425,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
         // Mock allocation lookup
-        when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
+        when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offender2.getOffenderNo())).thenReturn(Optional.of(offender2));
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
@@ -448,7 +449,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offenderNos);
 
         // Mock allocation lookup
-        when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
+        when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
 
         // Invoke service method
         List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, true);
@@ -470,7 +471,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
-        when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(allocations);
+        when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
 
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
         when(nomisService.getOffenderForPrison(TEST_AGENCY, "2")).thenReturn(Optional.empty());
@@ -500,9 +501,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(2L)).thenReturn(Keyworker.builder().staffId(2L).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(3L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).build());
 
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(2);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(2);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(3);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(1);
 
         when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(keyworkers, HttpStatus.OK));
         // Invoke service method
@@ -528,9 +529,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findOne(3L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).build());
         when(keyworkerRepository.findOne(4L)).thenReturn(Keyworker.builder().staffId(4L).autoAllocationFlag(false).build());
 
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(2);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(3);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, AllocationType.PROVISIONAL)).thenReturn(1);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(2);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(3);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(1);
 
 
         when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(allocations, HttpStatus.OK));

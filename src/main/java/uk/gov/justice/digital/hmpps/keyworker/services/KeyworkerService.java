@@ -117,7 +117,7 @@ public class KeyworkerService  {
     public Optional<BasicKeyworkerDto> getCurrentKeyworkerForPrisoner(String prisonId, String offenderNo) {
          BasicKeyworkerDto currentKeyworker = null;
         if (prisonSupportedService.isMigrated(prisonId)) {
-            OffenderKeyworker activeOffenderKeyworker = repository.findByOffenderNoAndActive(offenderNo, true);
+            OffenderKeyworker activeOffenderKeyworker = repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, AllocationType.PROVISIONAL);
             if (activeOffenderKeyworker != null) {
                 StaffLocationRoleDto staffDetail = nomisService.getBasicKeyworkerDtoForStaffId(activeOffenderKeyworker.getStaffId());
                 if (staffDetail != null) {

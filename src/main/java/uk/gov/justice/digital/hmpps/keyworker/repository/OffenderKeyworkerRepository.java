@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -15,7 +14,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
 
     List<OffenderKeyworker> findByOffenderNo(String offenderNo);
 
-    OffenderKeyworker findByOffenderNoAndActive(String offenderNo, boolean active);
+    OffenderKeyworker findByOffenderNoAndActiveAndAllocationTypeIsNot(String offenderNo, boolean active, AllocationType type);
 
     List<OffenderKeyworker> findByStaffId(Long staffId);
 
