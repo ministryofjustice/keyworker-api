@@ -19,12 +19,12 @@ import static java.lang.String.format;
 @Slf4j
 public class NomisService {
 
-    private static final String URI_STAFF = "/staff/{staffId}";
+    public static final String URI_STAFF = "/staff/{staffId}";
     private static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
     private static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
-    private static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
-    private static final String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
-    private static final String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
+    public static final String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
+    public static final String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
+    public static final String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
     private static final String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
     private static final String GET_PRISONER = "/prisoners?offenderNo={offenderNo}";
 
@@ -78,13 +78,17 @@ public class NomisService {
         log.info("Getting staff in prison {} staff Id {}", prisonId, staffId);
 
         URI uri = new UriTemplate(GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}").expand(prisonId, staffId);
+        log.debug("About to retrieve keyworker from Elite2api using uri {}", uri.toString());
 
         List<StaffLocationRoleDto> staff = restCallHelper.getForList(uri, ELITE_STAFF_LOCATION_DTO_LIST).getBody();
         Assert.isTrue(staff.size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, prisonId));
-        return Optional.ofNullable(staff.size() > 0 ? staff.get(0) : null);
+
+        final Optional<StaffLocationRoleDto> staffLocationRoleDto = Optional.ofNullable(staff.size() > 0 ? staff.get(0) : null);
+        log.debug("Result: {}", staffLocationRoleDto);
+        return staffLocationRoleDto;
     }
 
-    public BasicKeyworkerDto getBasicKeyworkerDto(String offenderNo) {
+    public BasicKeyworkerDto getBasicKeyworkerDtoForOffender(String offenderNo) {
         log.info("Getting KW for offender", offenderNo);
 
         URI uri = new UriTemplate(GET_KEY_WORKER).expand(offenderNo);
@@ -106,9 +110,9 @@ public class NomisService {
                 });
     }
 
-    public StaffLocationRoleDto getBasicKeyworkerDto(Long staffId) {
-        log.info("Getting staff Id info {}", staffId);
+    public StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(Long staffId) {
         URI uri = new UriTemplate(URI_STAFF).expand(staffId);
+        log.debug("Getting basic keyworker details for staffId {} from Elite2api using uri {}", staffId, uri.toString());
         return restCallHelper.get(uri, StaffLocationRoleDto.class);
     }
 

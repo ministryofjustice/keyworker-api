@@ -20,6 +20,7 @@ public class RemoteRoleService implements RoleService {
 
     private static final ParameterizedTypeReference<List<StaffUserRoleDto>> LIST_OF_STAFF_USER_ROLE = new ParameterizedTypeReference<List<StaffUserRoleDto>>() {
     };
+    public static final String STAFF_ACCESS_CODES_LIST_URL = "/staff/access-roles/caseload/{caseload}/access-role/{roleCode}";
 
     private final RestTemplate restTemplate;
 
@@ -32,7 +33,7 @@ public class RemoteRoleService implements RoleService {
     public Set<Long> findStaffForPrisonHavingRole(String prisonId, String roleCode) {
 
         ResponseEntity<List<StaffUserRoleDto>> responseEntity = restTemplate.exchange(
-                "/staff/access-roles/caseload/{caseload}/access-role/{roleCode}",
+                STAFF_ACCESS_CODES_LIST_URL,
                 HttpMethod.GET,
                 null,
                 LIST_OF_STAFF_USER_ROLE,

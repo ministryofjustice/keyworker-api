@@ -119,7 +119,7 @@ public class KeyworkerService  {
         if (prisonSupportedService.isMigrated(prisonId)) {
             OffenderKeyworker activeOffenderKeyworker = repository.findByOffenderNoAndActive(offenderNo, true);
             if (activeOffenderKeyworker != null) {
-                StaffLocationRoleDto staffDetail = nomisService.getBasicKeyworkerDto(activeOffenderKeyworker.getStaffId());
+                StaffLocationRoleDto staffDetail = nomisService.getBasicKeyworkerDtoForStaffId(activeOffenderKeyworker.getStaffId());
                 if (staffDetail != null) {
                     currentKeyworker = BasicKeyworkerDto.builder()
                             .firstName(staffDetail.getFirstName())
@@ -130,7 +130,7 @@ public class KeyworkerService  {
                 }
             }
         } else {
-            currentKeyworker = nomisService.getBasicKeyworkerDto(offenderNo);
+            currentKeyworker = nomisService.getBasicKeyworkerDtoForOffender(offenderNo);
         }
         return Optional.ofNullable(currentKeyworker);
     }
@@ -138,7 +138,7 @@ public class KeyworkerService  {
 
 
     public KeyworkerDto getKeyworkerDetails(String prisonId, Long staffId) {
-        StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElse(nomisService.getBasicKeyworkerDto(staffId));
+        StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElseGet(() -> nomisService.getBasicKeyworkerDtoForStaffId(staffId));
         return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(staffKeyWorker));
     }
 
@@ -283,7 +283,7 @@ public class KeyworkerService  {
     }
 
     private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto) {
-        if (keyworkerDto != null) {
+        if (keyworkerDto != null && keyworkerDto.getAgencyId()!=null ) {
             final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
             final Integer allocationsCount = repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
 
