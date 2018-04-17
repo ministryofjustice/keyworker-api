@@ -13,7 +13,6 @@ buildscript {
 }
 
 group 'uk.gov.justice.digital.hmpps'
-version '0.0.1'
 
 apply plugin: 'java'
 apply plugin: 'groovy'
@@ -31,7 +30,10 @@ repositories {
 
 def applicationMainClass = 'uk.gov.justice.digital.hmpps.keyworker.KeyworkerApplication'
 def dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+def dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd")
+def today = dateOnlyFormat.format(new Date())
 def applicationName = 'keyworker-service'
+version today
 
 jar {
     baseName = applicationName
