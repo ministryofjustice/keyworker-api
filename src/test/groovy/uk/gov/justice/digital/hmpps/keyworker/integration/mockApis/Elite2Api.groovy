@@ -53,7 +53,7 @@ class Elite2Api extends WireMockRule {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
     void stubKeyworkerDetails(String prisonId, Long staffId) {
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}").expand(prisonId, staffId).toString()))
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}&activeOnly=false").expand(prisonId, staffId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(KeyworkerDtoListStub.response)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
@@ -67,7 +67,7 @@ class Elite2Api extends WireMockRule {
     }
 
     void stubKeyworkerDetails_emptyListResponse(String prisonId, Long staffId) {
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}").expand(prisonId, staffId).toString()))
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}&activeOnly=false").expand(prisonId, staffId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody("[]") //empty list
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
