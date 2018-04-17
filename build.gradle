@@ -13,7 +13,6 @@ buildscript {
 }
 
 group 'uk.gov.justice.digital.hmpps'
-version '0.0.1'
 
 apply plugin: 'java'
 apply plugin: 'groovy'
@@ -31,6 +30,8 @@ repositories {
 
 def applicationMainClass = 'uk.gov.justice.digital.hmpps.keyworker.KeyworkerApplication'
 def dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+def dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd")
+def today = dateOnlyFormat.format(new Date())
 def applicationName = 'keyworker-service'
 
 jar {
@@ -53,7 +54,7 @@ springBoot {
                 machine              : InetAddress.localHost.hostName,
                 time                 : dateFormat.format(new Date()),
                 name                 : applicationName,
-                version              : System.getenv('CI') ? "${version}.${System.getenv('CIRCLE_BUILD_NUM')}" : version
+                version              : System.getenv('CI') ? "${today}.${System.getenv('CIRCLE_BUILD_NUM')}" : today
         ]
     }
     executable = true
