@@ -64,7 +64,7 @@ public class NomisService {
         return restCallHelper.getForList(uri, PRISONER_DTO_LIST).getBody();
     }
 
-    public ResponseEntity<List<StaffLocationRoleDto>> getStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
+    public ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
         log.info("Getting KW Staff in prison {}", prisonId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(GET_STAFF_IN_SPECIFIC_PRISON);
@@ -77,7 +77,7 @@ public class NomisService {
     public Optional<StaffLocationRoleDto> getStaffKeyWorkerForPrison(String prisonId, Long staffId) {
         log.info("Getting staff in prison {} staff Id {}", prisonId, staffId);
 
-        URI uri = new UriTemplate(GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}").expand(prisonId, staffId);
+        URI uri = new UriTemplate(GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}&activeOnly=false").expand(prisonId, staffId);
         log.debug("About to retrieve keyworker from Elite2api using uri {}", uri.toString());
 
         List<StaffLocationRoleDto> staff = restCallHelper.getForList(uri, ELITE_STAFF_LOCATION_DTO_LIST).getBody();

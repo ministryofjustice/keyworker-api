@@ -275,7 +275,7 @@ public class KeyworkerService  {
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
 
-        ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
+        ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream()
                 .map(dto -> decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto))).collect(Collectors.toList());
