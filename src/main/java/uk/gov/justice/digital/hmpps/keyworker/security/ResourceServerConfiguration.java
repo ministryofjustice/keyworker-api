@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -29,6 +30,7 @@ import uk.gov.justice.digital.hmpps.keyworker.controllers.KeyworkerServiceContro
 @EnableSwagger2
 @EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
+@EnableWebSecurity
 public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
     @Value("${jwt.public.key}")
@@ -46,6 +48,12 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
           .hasRole("ADMIN")
           .anyRequest()
           .authenticated();
+
+        http
+            .headers()
+            .httpStrictTransportSecurity()
+                .includeSubDomains(true)
+                .maxAgeInSeconds(31536000);
     }
 
     @Override
