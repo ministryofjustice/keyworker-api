@@ -35,7 +35,7 @@ public class RemoteRoleService implements RoleService {
 
     @Override
     public Set<String> findUsersForPrisonHavingRole(String prisonId, String roleCode) {
-        log.info("Looing for users matching (prison {}, role {})", prisonId, roleCode);
+        log.info("Looking for users matching (prison {}, role {})", prisonId, roleCode);
         ResponseEntity<List<String>> responseEntity = restTemplate.exchange(
                 STAFF_ACCESS_CODES_LIST_URL,
                 HttpMethod.GET,
@@ -52,7 +52,7 @@ public class RemoteRoleService implements RoleService {
 
     @Override
     public void removeRole(String username, String prisonId, String roleCode) {
-        log.info("Delete association (username {}, prison {}, role {})", username, prisonId, roleCode);
+        log.info("Remove role association (username {}, prison {}, role {})", username, prisonId, roleCode);
         restTemplate.delete(
                 "/users/{username}/caseload/{caseload}/access-role/{roleCode}",
                 username,
@@ -65,7 +65,7 @@ public class RemoteRoleService implements RoleService {
         log.info("Assign (username {}, role {}) to the API caseload", username, roleCode);
 
         restTemplate.put(
-                "/users/{username}/access-roles/{roleCode}",
+                "/users/{username}/access-role/{roleCode}",
                 null,
                 username,
                 roleCode);
