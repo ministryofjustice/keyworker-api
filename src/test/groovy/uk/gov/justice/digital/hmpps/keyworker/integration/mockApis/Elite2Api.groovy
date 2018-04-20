@@ -33,14 +33,16 @@ class Elite2Api extends WireMockRule {
                 .withBody(OffenderKeyworkerDtoListStub.response)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
+
     void stubAvailableKeyworkers(String prisonId) {
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(StaffLocationRoleDtoListStub.response)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
+
     void stubAccessCodeListForKeyRole(String prisonId) {
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ RemoteRoleService.STAFF_ACCESS_CODES_LIST_URL).expand(prisonId, "KEY_ROLE").toString()))
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ RemoteRoleService.STAFF_ACCESS_CODES_LIST_URL).expand(prisonId, "KEY_WORK").toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody("[]")
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))

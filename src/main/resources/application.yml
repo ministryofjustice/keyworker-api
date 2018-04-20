@@ -35,6 +35,6 @@ logging:
 roleMigration:
   rolesToMatch:
     - KW_ADMIN
-    - KEY_ROLE
+    - KEY_WORK
   rolesToAssign:
     - KW_ADMIN
