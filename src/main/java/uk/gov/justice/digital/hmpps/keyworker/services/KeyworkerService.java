@@ -106,7 +106,7 @@ public class KeyworkerService  {
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
-    public List<OffenderKeyworkerDto> getOffenders(String prisonId, Collection<String> offenderNos) {
+    public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailList(String prisonId, Collection<String> offenderNos) {
         final List<OffenderKeyworker> results =
                 CollectionUtils.isEmpty(offenderNos)
                         ? repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL)

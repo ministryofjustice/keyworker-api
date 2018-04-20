@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -161,7 +162,7 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @GetMapping(path = "/{prisonId}/offenders")
-    public List<OffenderKeyworkerDto> getOffenders(
+    public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailsList(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
             @PathVariable("prisonId")
@@ -171,7 +172,19 @@ public class KeyworkerServiceController {
             @RequestParam(value = "offenderNo", required = false)
                     List<String> offenderNos
     ) {
-        return keyworkerService.getOffenders(prisonId, offenderNos);
+        return keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos);
+    }
+
+    @PostMapping(path = "/{prisonId}/offenders")
+    public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailsListPost(
+            @ApiParam(value = "prisonId", required = true)
+            @NotEmpty
+            @PathVariable("prisonId") String prisonId,
+            @ApiParam(value = "Offenders for which details are required, use GET version of endpoint if all offenders for prison are required.")
+            @RequestBody @NotEmpty List<String> offenderNos
+    ) {
+        Validate.notEmpty(offenderNos, "Please provide a list of Offender Nos.");
+        return keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos);
     }
 
     /* --------------------------------------------------------------------------------*/
