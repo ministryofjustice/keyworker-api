@@ -26,6 +26,10 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class RemoteRoleServiceTest extends AbstractServiceTest {
 
+    private static final String USERNAME_1 = "UN1";
+    private static final String USERNAME_2 = "UN2";
+    private static final String USERNAME_3 = "UN3";
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -38,13 +42,12 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
    @Test
     public void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() throws JsonProcessingException {
         server
-                .expect(requestTo("/staff/1/access-roles/"))
-                .andExpect(method(HttpMethod.POST))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(content().string("RC"))
-                .andRespond(withSuccess(staffUserRole(), MediaType.APPLICATION_JSON));
+                .expect(requestTo("/users/UN1/access-role/RC"))
+                .andExpect(method(HttpMethod.PUT))
+                .andExpect(content().bytes(new byte[0]))
+                .andRespond(withSuccess());
 
-        service.assignRoleToApiCaseload(1L, "RC");
+        service.assignRoleToApiCaseload(USERNAME_1, "RC");
 
         server.verify();
     }
@@ -52,66 +55,34 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
     @Test
     public void givenRoleService_whenRemoveRoleInvoked_thenExpectedHttpExchangeOccurs() {
         server
-                .expect(requestTo("/staff/1/access-roles/caseload/CL/access-role/RC"))
+                .expect(requestTo("/users/UN1/caseload/CL/access-role/RC"))
                 .andExpect(method(HttpMethod.DELETE))
-                .andRespond(withSuccess("string", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess());
 
-        service.removeRole(1L, "CL", "RC");
+        service.removeRole(USERNAME_1, "CL", "RC");
 
         server.verify();
     }
-
 
     @Test
     public void givenRoleService_whenFindStaffMatchingCaseloadAndRoleInvoked_thenExpectedHttpExchangeOccursAndResultsAreCorrect() throws JsonProcessingException {
         server
-                .expect(requestTo("/staff/access-roles/caseload/CL/access-role/RC"))
+                .expect(requestTo("/users/access-roles/caseload/CL/access-role/RC"))
                 .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(staffUserRoles(), MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(usernames(), MediaType.APPLICATION_JSON));
 
-        Set<Long> staffIds = service.findStaffForPrisonHavingRole("CL", "RC");
+        Set<String> usernames = service.findUsersForPrisonHavingRole("CL", "RC");
 
         server.verify();
 
-        assertThat(staffIds).containsExactlyInAnyOrder(1L, 2L, 3L);
+        assertThat(usernames).containsExactlyInAnyOrder(USERNAME_1, USERNAME_2, USERNAME_3);
     }
 
-    private String staffUserRole() throws JsonProcessingException {
-        return toJson(StaffUserRoleDto
-                .builder()
-                .caseloadId("CLID")
-                .parentRoleCode("PRC")
-                .roleCode("RC")
-                .roleName("ROLENAME")
-                .username("USERNAME")
-                .roleId(-1L)
-                .staffId(1L)
-                .build());
+    private String usernames() throws JsonProcessingException {
+        return usernames(USERNAME_1, USERNAME_3, USERNAME_2);
     }
 
-    private String staffUserRoles() throws JsonProcessingException {
-        StaffUserRoleDto.StaffUserRoleDtoBuilder builder = StaffUserRoleDto
-                .builder()
-                .caseloadId("CLID")
-                .parentRoleCode("PRC")
-                .roleCode("RC")
-                .roleName("ROLENAME")
-                .username("USERNAME")
-                .roleId(-1L);
-
-        return toJson(
-                builder.staffId(1L).build(),
-                builder.staffId(2L).build(),
-                builder.staffId(2L).build(),
-                builder.staffId(3L).build()
-        );
-    }
-
-    private String toJson(StaffUserRoleDto staffUserRole) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(staffUserRole);
-    }
-
-    private String toJson(StaffUserRoleDto... staffUserRoles) throws JsonProcessingException {
-        return objectMapper.writeValueAsString(staffUserRoles);
+    private String usernames(String... usernames) throws JsonProcessingException {
+       return objectMapper.writeValueAsString(usernames);
     }
 }

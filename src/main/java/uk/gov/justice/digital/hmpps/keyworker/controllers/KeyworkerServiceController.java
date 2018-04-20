@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleMigrationService;
+import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
@@ -36,14 +36,14 @@ public class KeyworkerServiceController {
 
     private final KeyworkerService keyworkerService;
     private final KeyworkerMigrationService keyworkerMigrationService;
-    private final RoleMigrationService roleMigrationService;
+    private final UserRolesMigrationService roleMigrationService;
     private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
     private final PrisonSupportedService prisonSupportedService;
 
     public KeyworkerServiceController(KeyworkerService keyworkerService,
                                       KeyworkerMigrationService keyworkerMigrationService,
                                       KeyworkerAutoAllocationService keyworkerAutoAllocationService,
-                                      RoleMigrationService roleMigrationService,
+                                      UserRolesMigrationService roleMigrationService,
                                       PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerMigrationService = keyworkerMigrationService;
