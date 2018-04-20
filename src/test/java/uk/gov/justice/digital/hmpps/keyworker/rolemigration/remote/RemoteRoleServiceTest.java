@@ -42,7 +42,7 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
    @Test
     public void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() throws JsonProcessingException {
         server
-                .expect(requestTo("/users/UN1/access-roles/RC"))
+                .expect(requestTo("/users/UN1/access-role/RC"))
                 .andExpect(method(HttpMethod.PUT))
                 .andExpect(content().bytes(new byte[0]))
                 .andRespond(withSuccess());
