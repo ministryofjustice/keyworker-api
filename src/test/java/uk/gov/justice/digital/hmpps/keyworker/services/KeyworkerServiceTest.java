@@ -274,7 +274,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         List<OffenderKeyworker> results = Arrays.asList(offender1, offender2);
         when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, TEST_AGENCY, testOffenderNos, PROVISIONAL)).thenReturn(results);
 
-        final List<OffenderKeyworkerDto> offenders = service.getOffenders(TEST_AGENCY, testOffenderNos);
+        final List<OffenderKeyworkerDto> offenders = service.getOffenderKeyworkerDetailList(TEST_AGENCY, testOffenderNos);
 
         assertThat(offenders).asList().containsExactly(OffenderKeyworkerDto.builder()
                         .offenderKeyworkerId(11L)
