@@ -2,20 +2,12 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
-import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayInterceptor;
-import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayTokenGenerator;
-import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
-import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -67,9 +59,8 @@ public class RestCallHelper {
 
     protected <T> List<T> getAllWithSorting(URI uri, String sortFields, SortOrder sortOrder,
                                             ParameterizedTypeReference<List<T>> responseType) {
-        final long initialPageSize = 50;
+        final long initialPageSize = Integer.MAX_VALUE;
 
-        // Initial request (for up to 50 items).
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder()
                 .sortFields(sortFields)
                 .sortOrder(sortOrder)
@@ -79,23 +70,7 @@ public class RestCallHelper {
 
         ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, responseType);
 
-        final List<T> items = new ArrayList<>(response.getBody());
-
-        // Inspect response pagination headers to determine total item count
-        long totalRecords = extractTotalRecords(response.getHeaders());
-        long totalRemaining = totalRecords - items.size();
-
-        // Get remaining items, if necessary
-        if (totalRemaining > 0) {
-            pagingAndSorting.setPageOffset(initialPageSize);
-            pagingAndSorting.setPageLimit(totalRemaining);
-
-            response = getWithPagingAndSorting(uri, pagingAndSorting, responseType);
-
-            items.addAll(response.getBody());
-        }
-
-        return items;
+        return new ArrayList<>(response.getBody());
     }
 
     protected <T> ResponseEntity<T> getForList(URI uri, ParameterizedTypeReference<T> responseType) {
@@ -127,18 +102,6 @@ public class RestCallHelper {
         headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
 
         return new HttpEntity<>(null, headers);
-    }
-
-    private long extractTotalRecords(HttpHeaders headers) {
-        long totalRecords = 0;
-
-        String trHeaderValue = headers.getFirst(Page.HEADER_TOTAL_RECORDS);
-
-        if (StringUtils.isNotBlank(trHeaderValue)) {
-            totalRecords = Long.parseLong(trHeaderValue);
-        }
-
-        return totalRecords;
     }
 
     private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
