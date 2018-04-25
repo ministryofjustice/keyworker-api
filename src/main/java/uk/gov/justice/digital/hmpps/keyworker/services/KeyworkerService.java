@@ -135,8 +135,6 @@ public class KeyworkerService  {
         return Optional.ofNullable(currentKeyworker);
     }
 
-
-
     public KeyworkerDto getKeyworkerDetails(String prisonId, Long staffId) {
         StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElseGet(() -> nomisService.getBasicKeyworkerDtoForStaffId(staffId));
         return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(staffKeyWorker));

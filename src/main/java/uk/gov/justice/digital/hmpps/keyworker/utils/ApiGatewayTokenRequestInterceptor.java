@@ -7,15 +7,16 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
- * Copies an existing Auth token from user context to elite-authorization and adds the gateway Jwt
+ * Copies an existing Authorisation header param to elite-authorization and adds the gateway Jwt
  */
-public class ApiGatewayInterceptor implements ClientHttpRequestInterceptor {
+public class ApiGatewayTokenRequestInterceptor implements ClientHttpRequestInterceptor {
 
     private final ApiGatewayTokenGenerator apiGatewayTokenGenerator;
 
-    public ApiGatewayInterceptor(ApiGatewayTokenGenerator apiGatewayTokenGenerator) {
+    public ApiGatewayTokenRequestInterceptor(ApiGatewayTokenGenerator apiGatewayTokenGenerator) {
         this.apiGatewayTokenGenerator = apiGatewayTokenGenerator;
     }
 
@@ -25,13 +26,15 @@ public class ApiGatewayInterceptor implements ClientHttpRequestInterceptor {
             throws IOException {
 
         HttpHeaders headers = request.getHeaders();
-        headers.add("elite-authorization", UserContext.getAuthToken());
+        final List<String> authorisation = headers.get(HttpHeaders.AUTHORIZATION);
+        if (authorisation != null && !authorisation.isEmpty()) {
+            headers.add("elite-authorization", authorisation.get(0));
+        }
         try {
             headers.add(HttpHeaders.AUTHORIZATION, "Bearer "+ apiGatewayTokenGenerator.createGatewayToken());
         } catch (Exception e) {
             throw new IOException(e);
         }
-
         return execution.execute(request, body);
     }
 }

@@ -38,3 +38,12 @@ roleMigration:
     - KEY_WORK
   rolesToAssign:
     - KW_ADMIN
+
+elite2api:
+  client:
+    clientId: omicadmin
+    clientSecret: clientsecret
+    accessTokenUri: http://localhost:8080/oauth/token
+    tokenName: elite2_token
+    authenticationScheme: header
+    clientAuthenticationScheme: header

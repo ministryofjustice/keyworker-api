@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.security;
 
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -11,6 +12,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
@@ -94,5 +98,16 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         public String getCurrentAuditor() {
              return authenticationFacade.getCurrentUsername();
         }
+    }
+
+    @Bean
+    @ConfigurationProperties("elite2api.client")
+    public ClientCredentialsResourceDetails elite2apiClientCredentials() {
+        return new ClientCredentialsResourceDetails();
+    }
+
+    @Bean
+    public OAuth2ClientContext oAuth2ClientContext() {
+        return new DefaultOAuth2ClientContext();
     }
 }

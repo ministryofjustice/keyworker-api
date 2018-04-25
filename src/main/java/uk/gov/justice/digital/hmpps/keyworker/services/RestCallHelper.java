@@ -2,20 +2,14 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
-import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayInterceptor;
-import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayTokenGenerator;
-import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
-import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -32,10 +26,24 @@ public class RestCallHelper {
     private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
 
     private final RestTemplate restTemplate;
+    private final OAuth2RestTemplate elite2SystemRestTemplate;
 
     @Autowired
-    public RestCallHelper(RestTemplate restTemplate) {
+    public RestCallHelper(RestTemplate restTemplate,
+                          OAuth2RestTemplate elite2SystemRestTemplate) {
         this.restTemplate = restTemplate;
+        this.elite2SystemRestTemplate = elite2SystemRestTemplate;
+    }
+
+    protected <T> ResponseEntity<T> getForListWithAuthentication(URI uri, ParameterizedTypeReference<T> responseType) {
+
+       // UserContext.setAuthToken(elite2SystemRestTemplate.getAccessToken().getValue());
+
+        return elite2SystemRestTemplate.exchange(
+                uri.toString(),
+                HttpMethod.GET,
+                null,
+                responseType);
     }
 
     protected <T> T get(URI uri, Class<T> responseType) {
