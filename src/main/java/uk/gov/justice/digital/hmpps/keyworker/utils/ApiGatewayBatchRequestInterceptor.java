@@ -5,18 +5,19 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.List;
 
 /**
- * Copies an existing Authorisation header param to elite-authorization and adds the gateway Jwt
+ * Moves an existing Authorisation header param to elite-authorization and adds the gateway Jwt
  */
-public class ApiGatewayTokenRequestInterceptor implements ClientHttpRequestInterceptor {
+public class ApiGatewayBatchRequestInterceptor implements ClientHttpRequestInterceptor {
 
     private final ApiGatewayTokenGenerator apiGatewayTokenGenerator;
 
-    public ApiGatewayTokenRequestInterceptor(ApiGatewayTokenGenerator apiGatewayTokenGenerator) {
+    public ApiGatewayBatchRequestInterceptor(ApiGatewayTokenGenerator apiGatewayTokenGenerator) {
         this.apiGatewayTokenGenerator = apiGatewayTokenGenerator;
     }
 
@@ -26,12 +27,12 @@ public class ApiGatewayTokenRequestInterceptor implements ClientHttpRequestInter
             throws IOException {
 
         HttpHeaders headers = request.getHeaders();
-        final List<String> authorisation = headers.get(HttpHeaders.AUTHORIZATION);
-        if (authorisation != null && !authorisation.isEmpty()) {
+        final List<String> authorisation = headers.remove(HttpHeaders.AUTHORIZATION);
+        if (!CollectionUtils.isEmpty(authorisation)) {
             headers.add("elite-authorization", authorisation.get(0));
         }
         try {
-            headers.add(HttpHeaders.AUTHORIZATION, "Bearer "+ apiGatewayTokenGenerator.createGatewayToken());
+            headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + apiGatewayTokenGenerator.createGatewayToken());
         } catch (Exception e) {
             throw new IOException(e);
         }

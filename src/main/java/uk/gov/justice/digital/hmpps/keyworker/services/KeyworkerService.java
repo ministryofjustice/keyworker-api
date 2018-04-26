@@ -328,7 +328,7 @@ public class KeyworkerService  {
             final LocalDateTime now = LocalDateTime.now();
             final List<OffenderKeyworker> allocations = repository.findByStaffIdAndPrisonIdAndActive(staffId, prisonId, true);
             allocations.forEach(ok -> {
-                ok.setDeallocationReason(DeallocationReason.RELEASED);
+                ok.setDeallocationReason(DeallocationReason.KEYWORKER_STATUS_CHANGE);
                 ok.setActive(false);
                 ok.setExpiryDateTime(now);
             });

@@ -43,7 +43,7 @@ elite2api:
   client:
     clientId: omicadmin
     clientSecret: clientsecret
-    accessTokenUri: http://localhost:8080/oauth/token
+    accessTokenUri: ${elite2.uri.root}/oauth/token
     tokenName: elite2_token
     authenticationScheme: header
     clientAuthenticationScheme: header

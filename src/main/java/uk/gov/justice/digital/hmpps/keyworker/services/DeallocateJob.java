@@ -18,15 +18,13 @@ import java.util.List;
 public class DeallocateJob {
 
     @Autowired
-    private KeyworkerService keyworkerService;
-    @Autowired
     private NomisService nomisService;
     @Autowired
     private OffenderKeyworkerRepository repository;
 
     public void execute(LocalDateTime previousJobStart) {
         try {
-            log.info("******** De-allocation Process Started using threshold="+previousJobStart);
+            log.info("******** De-allocation Process Started using threshold=" + previousJobStart);
 
             checkReleases(previousJobStart);
 
@@ -46,6 +44,7 @@ public class DeallocateJob {
 
         prisonerStatuses.forEach(p -> {
             final List<OffenderKeyworker> ok = repository.findByActiveAndOffenderNo(true, p.getOffenderNo());
+            // There shouldnt ever be more than 1, but just in case
             ok.forEach(offenderKeyworker -> {
                 offenderKeyworker.setActive(false);
                 offenderKeyworker.setExpiryDateTime(p.getCreateDateTime());

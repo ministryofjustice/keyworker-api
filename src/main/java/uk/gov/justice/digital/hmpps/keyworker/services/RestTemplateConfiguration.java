@@ -45,8 +45,12 @@ public class RestTemplateConfiguration {
     public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
 
         List<ClientHttpRequestInterceptor> additionalInterceptors = new ArrayList<>();
-        configureInterceptors(additionalInterceptors);
-
+        additionalInterceptors.add(new UserContextInterceptor());
+        if (useApiGateway) {
+            additionalInterceptors.add(new ApiGatewayInterceptor(apiGatewayTokenGenerator));
+        } else {
+            additionalInterceptors.add(new JwtAuthInterceptor());
+        }
         return restTemplateBuilder
                 .rootUri(apiRootUri)
                 .additionalInterceptors(additionalInterceptors)
@@ -54,33 +58,30 @@ public class RestTemplateConfiguration {
     }
 
     @Bean
-    public OAuth2RestTemplate elite2SystemRestTemplate(final RestTemplate restTemplate,
-                                                       GatewayAwareAccessTokenProvider accessTokenProvider) {
+    public OAuth2RestTemplate elite2SystemRestTemplate(GatewayAwareAccessTokenProvider accessTokenProvider) {
 
         OAuth2RestTemplate elite2SystemRestTemplate = new OAuth2RestTemplate(elite2apiDetails, oauth2ClientContext);
-        configureInterceptors(elite2SystemRestTemplate.getInterceptors());
-
+        List<ClientHttpRequestInterceptor> systemInterceptors = elite2SystemRestTemplate.getInterceptors();
+        systemInterceptors.add(new UserContextInterceptor());
         if (useApiGateway) {
-            // The access token provider needs to know how to get through the gateway
-            final List<ClientHttpRequestInterceptor> interceptors = ((RestTemplate) accessTokenProvider.getRestTemplate()).getInterceptors();
-            interceptors.add(new ApiGatewayTokenRequestInterceptor(apiGatewayTokenGenerator));
+            systemInterceptors.add(new ApiGatewayBatchRequestInterceptor(apiGatewayTokenGenerator));
+            // The access token provider's rest template also needs to know how to get through the gateway
+            List<ClientHttpRequestInterceptor> tokenProviderInterceptors = ((RestTemplate) accessTokenProvider.getRestTemplate()).getInterceptors();
+            tokenProviderInterceptors.add(new ApiGatewayBatchRequestInterceptor(apiGatewayTokenGenerator));
+        } else {
+            systemInterceptors.add(new JwtAuthInterceptor());
         }
+
         elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);
 
         RootUriTemplateHandler.addTo(elite2SystemRestTemplate, this.apiRootUri);
         return elite2SystemRestTemplate;
     }
 
-    private void configureInterceptors(List<ClientHttpRequestInterceptor> interceptors) {
-        interceptors.add(new UserContextInterceptor());
-        if (useApiGateway) {
-            interceptors.add(new ApiGatewayInterceptor(apiGatewayTokenGenerator));
-        } else {
-            interceptors.add(new JwtAuthInterceptor());
-        }
-    }
-
-    @Component
+    /**
+     * This subclass is necessary to make OAuth2AccessTokenSupport.getRestTemplate() public
+     */
+    @Component("accessTokenProvider")
     public class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
         @Override
         public RestOperations getRestTemplate() {
