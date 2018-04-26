@@ -12,8 +12,6 @@ public final class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory i
 
     private transient AutowireCapableBeanFactory beanFactory;
 
-    private DeallocateQuartzJob deallocateQuartzJob;
-
     @Override
     public void setApplicationContext(final ApplicationContext context) {
         beanFactory = context.getAutowireCapableBeanFactory();
