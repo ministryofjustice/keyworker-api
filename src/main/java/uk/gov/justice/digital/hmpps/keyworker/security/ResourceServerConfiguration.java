@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.security;
 
 
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -34,8 +36,13 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Value("${jwt.public.key}")
     private String jwtPublicKey;
 
+    @Autowired
+    private SecurityProperties securityProperties;
+
     @Override
     public void configure(HttpSecurity http) throws Exception{
+        if (securityProperties.isRequireSsl()) http.requiresChannel().anyRequest().requiresSecure();
+
         http
         .authorizeRequests()
                 .antMatchers("/health").permitAll()
