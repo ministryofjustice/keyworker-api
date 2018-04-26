@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,7 +42,7 @@ public class ConversionHelperTest {
 
         List<OffenderKeyworkerDto> testDtos = Arrays.asList(testActiveDto, testExpiredDto);
 
-        List<OffenderKeyworker> okws = ConversionHelper.convertOffenderKeyworkerDto2Model(testDtos);
+        Set<OffenderKeyworker> okws = ConversionHelper.convertOffenderKeyworkerDto2Model(testDtos);
 
         assertThat(okws.size()).isEqualTo(testDtos.size());
 

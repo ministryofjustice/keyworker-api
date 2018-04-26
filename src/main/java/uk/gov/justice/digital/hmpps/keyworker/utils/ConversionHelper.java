@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -16,10 +17,10 @@ public final class ConversionHelper {
     private ConversionHelper() {
     }
 
-    public static List<OffenderKeyworker> convertOffenderKeyworkerDto2Model(List<OffenderKeyworkerDto> dtos) {
+    public static Set<OffenderKeyworker> convertOffenderKeyworkerDto2Model(List<OffenderKeyworkerDto> dtos) {
         Validate.notNull(dtos);
 
-        return dtos.stream().map(ConversionHelper::convertOffenderKeyworkerDto2Model).collect(Collectors.toList());
+        return dtos.stream().map(ConversionHelper::convertOffenderKeyworkerDto2Model).collect(Collectors.toSet());
     }
 
     public static OffenderKeyworker convertOffenderKeyworkerDto2Model(OffenderKeyworkerDto dto) {
@@ -38,11 +39,10 @@ public final class ConversionHelper {
 
     public static List<OffenderKeyworkerDto> convertOffenderKeyworkerModel2Dto(List<OffenderKeyworker> models) {
         Validate.notNull(models);
-
         return models.stream().map(ConversionHelper::convertOffenderKeyworkerModel2Dto).collect(Collectors.toList());
     }
 
-    public static OffenderKeyworkerDto convertOffenderKeyworkerModel2Dto(OffenderKeyworker model) {
+    private static OffenderKeyworkerDto convertOffenderKeyworkerModel2Dto(OffenderKeyworker model) {
         Validate.notNull(model);
 
         return OffenderKeyworkerDto.builder()
