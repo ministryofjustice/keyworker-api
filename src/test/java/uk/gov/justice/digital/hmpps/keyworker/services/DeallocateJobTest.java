@@ -72,6 +72,4 @@ public class DeallocateJobTest {
                 .build());
         verify(repository).findByActiveAndOffenderNo(true, "AA1111C-notinDB");
     }
-
-
 }
