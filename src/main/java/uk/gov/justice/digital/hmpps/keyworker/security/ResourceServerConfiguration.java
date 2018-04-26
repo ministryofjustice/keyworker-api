@@ -40,7 +40,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Override
     public void configure(HttpSecurity http) throws Exception{
-        if (securityProperties.isRequireSsl()) http.requiresChannel().anyRequest().requiresSecure();
+        if (securityProperties.isRequireSsl()) http.requiresChannel().antMatchers("/key-worker/**").requiresSecure();
 
         http
         .authorizeRequests()
