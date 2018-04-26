@@ -2,14 +2,15 @@ package uk.gov.justice.digital.hmpps.keyworker.security;
 
 
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
@@ -38,16 +39,19 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Value("${jwt.public.key}")
     private String jwtPublicKey;
 
+    @Autowired
+    private SecurityProperties securityProperties;
+
     @Override
     public void configure(HttpSecurity http) throws Exception{
+        if (securityProperties.isRequireSsl()) http.requiresChannel().anyRequest().requiresSecure();
+
         http
         .authorizeRequests()
                 .antMatchers("/health").permitAll()
                 .antMatchers("/swagger*").permitAll()
                 .antMatchers("/webjars/**").permitAll()
                 .antMatchers("/v2/**").permitAll()
-                .antMatchers(HttpMethod.DELETE, "/v1/keyworker/**")
-          .hasRole("ADMIN")
           .anyRequest()
           .authenticated();
     }

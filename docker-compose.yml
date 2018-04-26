@@ -121,6 +121,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=keyworker
       - SPRING_DATASOURCE_USERNAME=keyworker
       - SPRING_PROFILES_ACTIVE=postgres
+      - security.require-ssl=false
 
   keyworker-db:
     image: postgres
