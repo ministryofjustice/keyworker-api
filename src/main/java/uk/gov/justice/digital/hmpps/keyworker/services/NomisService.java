@@ -10,6 +10,7 @@ import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ import static java.lang.String.format;
 @Slf4j
 public class NomisService {
 
+    public static final String URI_CUSTODY_STATUSES = "/custody-statuses?fromDateTime={fromDateTime}";
     public static final String URI_STAFF = "/staff/{staffId}";
     private static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
     private static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
@@ -43,10 +45,19 @@ public class NomisService {
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
             new ParameterizedTypeReference<List<KeyworkerDto>>() {};
 
+    private static final ParameterizedTypeReference<List<PrisonerCustodyStatusDto>> PRISONER_STATUS_DTO_LIST =
+            new ParameterizedTypeReference<List<PrisonerCustodyStatusDto>>() {};
+
     private final RestCallHelper restCallHelper;
 
     public NomisService(RestCallHelper restCallHelper) {
         this.restCallHelper = restCallHelper;
+    }
+
+    public List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold) {
+        URI uri = new UriTemplate(URI_CUSTODY_STATUSES).expand(threshold);
+
+        return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST).getBody();
     }
 
     public Optional<OffenderLocationDto> getOffenderForPrison(String prisonId, String offenderNo) {
@@ -55,7 +66,6 @@ public class NomisService {
 
         List<OffenderLocationDto> offenders = restCallHelper.getForList(uri, OFFENDER_LOCATION_DTO_LIST).getBody();
         return Optional.ofNullable(offenders.size() > 0 ? offenders.get(0) : null);
-
     }
 
     public List<PrisonerDetailDto> getOffender(String offenderNo) {
@@ -124,5 +134,4 @@ public class NomisService {
 
         return restCallHelper.getWithPaging(uri, pagingAndSorting, PARAM_TYPE_REF_OFFENDER_KEY_WORKER).getBody();
     }
-
 }

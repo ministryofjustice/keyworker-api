@@ -68,7 +68,7 @@ public class SchedulerConfiguration {
 
     @Bean
     public JobDetailFactoryBean deallocationJobDetail() {
-        return createJobDetail(DeallocateJob.class);
+        return createJobDetail(DeallocateQuartzJob.class);
     }
 
     @Bean
@@ -88,5 +88,4 @@ public class SchedulerConfiguration {
         factoryBean.setDurability(true);
         return factoryBean;
     }
-
 }

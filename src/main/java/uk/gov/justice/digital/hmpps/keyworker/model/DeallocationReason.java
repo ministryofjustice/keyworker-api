@@ -6,6 +6,7 @@ import java.util.Map;
 public enum DeallocationReason {
     OVERRIDE("OVERRIDE"),
     RELEASED("RELEASED"),
+    KEYWORKER_STATUS_CHANGE("KEYWORKER_STATUS_CHANGE"),
     TRANSFER("TRANSFER");
 
     private final String reasonCode;
