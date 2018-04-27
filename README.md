@@ -12,7 +12,11 @@ OMIC Keyworker Service
       API_GATEWAY_PRIVATE_KEY=***
       USE_API_GATEWAY_AUTH=false
       JWT_PUBLIC_KEY=secret
-      ELITE2_API_URI_ROOT=http://localhost:8080/api
+      ELITE2_URI_ROOT=http://localhost:8080
+      QUARTZ_ENABLED=false
+      DEALLOCATION_JOB_CRON=0 15 09 ? * *
+      API_KEYWORKER_INITIAL_DEALLOCATE_THRESHOLD=2018-04-01T12:00
+      ELITE2API_CLIENT_CLIENTSECRET=**
 ```
 
 ### Setting secrets
@@ -35,6 +39,15 @@ keytool -list -rfc --keystore elite2api.jks | openssl x509 -inform pem -pubkey -
 
 `elite2api.jks` is the pub/private key pair that elite2-api holds.
 
+### Other Variables
+####QUARTZ_ENABLED
+Switch running batch processes on or off
+####DEALLOCATION_JOB_CRON
+Defines when the deallocation job runs. Can be as often as desired provided there isnt a significant load on NOMIS.
+####API_KEYWORKER_INITIAL_DEALLOCATE_THRESHOLD
+The earliest date the deallocate batch job needs to go back to, e.g. migration time of the earliest prison. This is used when there is no previous batch run timestamp available.
+####ELITE2API_CLIENT_CLIENTSECRET
+The secret for the "omicadmin" oauth2 client id.
 
 ### To build:
 
