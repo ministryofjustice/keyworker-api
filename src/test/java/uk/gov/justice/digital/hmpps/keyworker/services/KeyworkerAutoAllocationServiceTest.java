@@ -9,7 +9,6 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
@@ -625,7 +624,7 @@ public class KeyworkerAutoAllocationServiceTest {
     }
 
     private void mockKeyworkerPool(List<KeyworkerDto> keyworkers) {
-        KeyworkerPool keyworkerPool = KeyworkerTestHelper.initKeyworkerPool(keyworkerService, offenderKeyworkerRepository, null,
+        KeyworkerPool keyworkerPool = KeyworkerTestHelper.initKeyworkerPool(keyworkerService,
                 keyworkers, Collections.singletonList(FULLY_ALLOCATED));
 
         when(keyworkerPoolFactory.getKeyworkerPool(keyworkers)).thenReturn(keyworkerPool);

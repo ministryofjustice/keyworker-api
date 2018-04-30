@@ -5,7 +5,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -190,12 +189,10 @@ public class KeyworkerTestHelper {
         when(keyworkerService.getAllocationHistoryForPrisoner(anyString())).thenReturn(allocationHistory);
     }
 
-    public static KeyworkerPool initKeyworkerPool(KeyworkerService keyworkerService, OffenderKeyworkerRepository offenderKeyworkerRepository, NomisService nomisService,
-                                                  Collection<KeyworkerDto> keyworkers, Collection<Integer> capacityTiers) {
-        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkerService, offenderKeyworkerRepository, nomisService,
-                keyworkers, capacityTiers, 48);
-
-        return keyworkerPool;
+    public static KeyworkerPool initKeyworkerPool(KeyworkerService keyworkerService,
+                                                  Collection<KeyworkerDto> keyworkers,
+                                                  Collection<Integer> capacityTiers) {
+        return new KeyworkerPool(keyworkerService, keyworkers, capacityTiers);
     }
 
     // Provides a previous Key worker allocation between specified offender and Key worker with an assigned datetime 7

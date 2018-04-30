@@ -2,7 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses
 
 class StaffLocationRoleDtoListStub {
 
-    static response = '''
+    static getResponse() {
+        def response = """
 [
     {
         "staffId": -5,
@@ -29,6 +30,18 @@ class StaffLocationRoleDtoListStub {
         "numberAllocated": 10
     }
 ]
-'''
-}
+"""
+        return response
+    }
 
+    static getResponseForAutoAllocation() {
+        def response = """
+[
+   { "staffId": 1001, "firstName": "Staff", "lastName": "User1" },
+   { "staffId": 1002, "firstName": "Staff", "lastName": "User2" },
+   { "staffId": 1003, "firstName": "Staff", "lastName": "User3" }
+]
+"""
+       return response
+    }
+}

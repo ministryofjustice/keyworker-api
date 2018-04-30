@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.util.logging.Slf4j
 import org.junit.Rule
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
@@ -19,6 +22,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @TestPropertySource(locations = "classpath:test-application-override.properties")
 @ContextConfiguration
+@Slf4j
 abstract class TestSpecification extends Specification {
 
     private String token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbnRlcm5hbFVzZXIiOnRydWUsInVzZXJfbmFtZSI6IklUQUdfVVNFUiIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE4MzkxMTY0MzgsImF1dGhvcml0aWVzIjpbIlJPTEVfTElDRU5DRV9DQSIsIlJPTEVfS1dfQURNSU4iXSwianRpIjoiMDMyYzc0MmEtN2Y2OS00YjgyLTgwOGUtNDQ3MTkxM2Y0NGM1IiwiY2xpZW50X2lkIjoiZWxpdGUyYXBpY2xpZW50In0.nJRjJkZbjIJSL8Fah6Lm0eie7BitzVyjEIF2bgUM9Wh3hzciYWn0oADQ82W09qgrDqEf93EA69dHVhXMtktKNCVuT6zvwQQLOjwV2JyLpkI0Rq1TDgEx28duz1wnl_Kr6JFLDeSPmsZmM6mlPSf7oyur3x07__wwS3TXCnEeP_-M8qq-owveOa_0wPDD4fghWyb4QjjHcMYrjzHarrbiQDuAJCMnb3cxCSzHW5G99xLiISoHHGDTCTegpFquoqAXOORl5lx0H9MVl62cVjXrc_PqfqajHIAAYMNylNqL70ce-MKqHR-v1IdIYUCRvMb8mTpOQSuU6-CpTa3i4mYm9g"
@@ -27,13 +31,25 @@ abstract class TestSpecification extends Specification {
     @Rule
     Elite2Api elite2api = new Elite2Api()
 
+    @Rule
+    TestWatcher t = new TestWatcher() {
+        @Override
+        protected void starting(Description description) {
+            log.info ("Starting test '{}'", description.getDisplayName())
+        }
+        @Override
+        protected void finished(Description description) {
+            log.info ("Finished test '{}'", description.getDisplayName())
+        }
+    }
+
     @Autowired
     TestRestTemplate restTemplate
 
     @Autowired
     ObjectMapper objectMapper
 
-    def migrated(String prisonId){
+    def migrated(prisonId){
         elite2api.stubAllocationHistory(prisonId)
         elite2api.stubAccessCodeListForKeyRole(prisonId)
         elite2api.stubAccessCodeListForKeyAdminRole(prisonId)
@@ -42,6 +58,14 @@ abstract class TestSpecification extends Specification {
         response.toString()
     }
 
+    def migratedForAutoAllocation(prisonId){
+        elite2api.stubAllocationHistoryForAutoAllocation(prisonId)
+        elite2api.stubAccessCodeListForKeyRole(prisonId)
+        elite2api.stubAccessCodeListForKeyAdminRole(prisonId)
+
+        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true", HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
+        response.toString()
+    }
 
     HttpEntity createHeaderEntityForAdminUser(Object entity) {
         HttpHeaders headers = new HttpHeaders()
