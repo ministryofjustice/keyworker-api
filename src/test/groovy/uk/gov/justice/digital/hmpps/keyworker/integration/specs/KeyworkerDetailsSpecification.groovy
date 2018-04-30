@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 import groovy.json.JsonSlurper
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.web.util.UriTemplate
-
-import static uk.gov.justice.digital.hmpps.keyworker.services.NomisService.GET_STAFF_IN_SPECIFIC_PRISON
 
 class KeyworkerDetailsSpecification extends TestSpecification {
 

@@ -3,12 +3,13 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses
 
 class OffenderKeyworkerDtoListStub {
 
-    static response = '''
+    static def getResponse(prisonId) {
+        def response = """
 [
     {
         "offenderNo": "A1176RS",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2017-06-01T12:14:00",
         "userId": "ITAG_USER",
         "active": "Y",
@@ -17,8 +18,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A5576RS",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2017-05-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "Y",
@@ -27,8 +28,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A6676RS",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2016-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -37,8 +38,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A6676RS",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -47,8 +48,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A9876RS",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "Y",
@@ -57,8 +58,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A1234AP",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -67,8 +68,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A1234AP",
-        "staffId": -5,
-        "agencyId": "LEI",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T12:14:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -77,8 +78,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A1234AI",
-        "staffId": -4,
-        "agencyId": "LEI",
+        "staffId":  -4,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T12:14:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -87,8 +88,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A1234AI",
-        "staffId": -4,
-        "agencyId": "LEI",
+        "staffId":  -4,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T12:13:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -97,8 +98,8 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A1234AL",
-        "staffId": -4,
-        "agencyId": "LEI",
+        "staffId":  -4,
+        "agencyId": "${prisonId}",
         "assigned": "2017-01-01T12:00:00",
         "userId": "ITAG_USER",
         "active": "N",
@@ -106,6 +107,17 @@ class OffenderKeyworkerDtoListStub {
         "createdBy": "SA"
     }
 ]
-'''
-}
+"""
+        return response
+    }
 
+    static def getResponseForAutoAllocation(prisonId) {
+        def response = """
+[
+    {"offenderNo": "ALLOCED1", "staffId": 1001, "agencyId": "${prisonId}", "assigned": "2017-06-01T12:14:00",                                  "userId": "ITAG_USER", "active": "Y"},
+    {"offenderNo": "EXPIRED1", "staffId": 1002, "agencyId": "${prisonId}", "assigned": "2017-06-01T12:14:00", "expired":"2018-04-01T12:14:00", "userId": "ITAG_USER", "active": "N"}
+]
+"""
+        return response
+    }
+}

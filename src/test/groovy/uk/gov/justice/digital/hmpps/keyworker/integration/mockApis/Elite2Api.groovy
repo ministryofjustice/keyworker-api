@@ -6,6 +6,7 @@ import org.springframework.http.MediaType
 import org.springframework.web.util.UriTemplate
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses.OffenderKeyworkerDtoListStub
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses.KeyworkerDtoListStub
+import uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses.OffenderLocationDtoListStub
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses.StaffLocationRoleDtoListStub
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses.StaffLocationRoleDtoStub
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote.RemoteRoleService
@@ -30,14 +31,35 @@ class Elite2Api extends WireMockRule {
     void stubAllocationHistory(String prisonId) {
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_KEY_WORKER_GET_ALLOCATION_HISTORY).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(OffenderKeyworkerDtoListStub.response)
+                .withBody(OffenderKeyworkerDtoListStub.getResponse(prisonId))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
-    void stubAvailableKeyworkers(String prisonId) {
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
+    void stubAllocationHistoryForAutoAllocation(String prisonId) {
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_KEY_WORKER_GET_ALLOCATION_HISTORY).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(StaffLocationRoleDtoListStub.response)
+                .withBody(OffenderKeyworkerDtoListStub.getResponseForAutoAllocation(prisonId))
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
+    def stubAvailableKeyworkers = { prisonId ->
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(StaffLocationRoleDtoListStub.getResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
+    def stubAvailableKeyworkersForAutoAllocation = { prisonId ->
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(StaffLocationRoleDtoListStub.getResponseForAutoAllocation())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
+    def stubOffendersAtLocationForAutoAllocation = { String prisonId ->
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(prisonId).toString()))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(OffenderLocationDtoListStub.getResponseForAutoAllocation(prisonId))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
