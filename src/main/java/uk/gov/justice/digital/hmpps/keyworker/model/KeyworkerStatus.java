@@ -8,8 +8,7 @@ public enum KeyworkerStatus {
     INACTIVE("INA"),
     UNAVAILABLE_ANNUAL_LEAVE("UAL"),
     UNAVAILABLE_LONG_TERM_ABSENCE("ULT"),
-    UNAVAILABLE_NO_PRISONER_CONTACT("UNP"),
-    UNAVAILABLE_SUSPENDED("USU");
+    UNAVAILABLE_NO_PRISONER_CONTACT("UNP");
 
     private final String statusCode;
 

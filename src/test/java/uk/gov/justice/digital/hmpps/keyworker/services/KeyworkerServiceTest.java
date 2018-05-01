@@ -569,7 +569,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
     @Test
     public void testThatKeyworkerRecordIsUpdated() {
-        final KeyworkerStatus status = KeyworkerStatus.UNAVAILABLE_SUSPENDED;
+        final KeyworkerStatus status = KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE;
 
         final Keyworker existingKeyWorker = Keyworker.builder()
                 .staffId(TEST_STAFF_ID)
@@ -638,7 +638,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.findByStaffIdAndPrisonIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_SUSPENDED).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
+                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
 
         verify(repository, times(1)).findByStaffIdAndPrisonIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true);
     }
