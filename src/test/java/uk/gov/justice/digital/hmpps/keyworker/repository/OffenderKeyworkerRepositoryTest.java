@@ -183,7 +183,7 @@ public class OffenderKeyworkerRepositoryTest {
                 .userId("The Assigning User")
                 .prisonId(AGENCY_ID_LEI)
                 .expiryDateTime(EXPIRY_DATE_TIME)
-                .deallocationReason(DeallocationReason.OVERRIDE)
+                .deallocationReason(DeallocationReason.KEYWORKER_STATUS_CHANGE)
                 //.createUpdate(creationTimeInfo())
                 .build();
     }
