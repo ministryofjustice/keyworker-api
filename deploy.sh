@@ -9,7 +9,7 @@ promote_to_env() {
   ENV=$2
 
   # Build a deployment file
-  yarn run plant-beanstalk KEYWORKER_SERVICE_${VERSION}
+  node scripts/plant-beanstalk KEYWORKER_SERVICE_${VERSION}
   eb deploy keyworker-api-${ENV} --verbose --label ${VERSION}
 }
 
