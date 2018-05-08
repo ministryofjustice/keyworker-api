@@ -2,15 +2,19 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
 import uk.gov.justice.digital.hmpps.keyworker.services.AbstractServiceTest;
 
@@ -20,24 +24,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-@RunWith(SpringRunner.class)
-@RestClientTest(RemoteRoleService.class)
-@AutoConfigureWebClient(registerRestTemplate=true)
-
 public class RemoteRoleServiceTest extends AbstractServiceTest {
 
     private static final String USERNAME_1 = "UN1";
     private static final String USERNAME_2 = "UN2";
     private static final String USERNAME_3 = "UN3";
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
     private RoleService service;
 
-    @Autowired
     private MockRestServiceServer server;
+
+    @Before
+    public void initialiseMockRestServiceServer() {
+        RestTemplate restTemplate = new RestTemplate();
+        server = MockRestServiceServer.bindTo(restTemplate).build();
+        service = new RemoteRoleService(restTemplate);
+    }
 
    @Test
     public void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() throws JsonProcessingException {

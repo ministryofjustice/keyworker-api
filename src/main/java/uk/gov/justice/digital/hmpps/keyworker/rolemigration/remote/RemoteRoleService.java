@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -28,8 +29,10 @@ public class RemoteRoleService implements RoleService {
 
     private final RestTemplate restTemplate;
 
-    @Autowired
-    RemoteRoleService(RestTemplate restTemplate) {
+
+    @Autowired()
+    RemoteRoleService(
+            @Qualifier(value = "elite2ApiRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
