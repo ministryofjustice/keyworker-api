@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.utils.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -26,8 +27,12 @@ public class RestTemplateConfiguration {
     private final ClientCredentialsResourceDetails elite2apiDetails;
     private final ApiGatewayTokenGenerator apiGatewayTokenGenerator;
 
+    @Value("${elite2.uri.root}")
+    private String elit2UriRoot;
+
     @Value("${elite2.api.uri.root}")
     private String apiRootUri;
+
     @Value("${use.api.gateway.auth}")
     private boolean useApiGateway;
 
@@ -41,20 +46,33 @@ public class RestTemplateConfiguration {
         this.apiGatewayTokenGenerator = apiGatewayTokenGenerator;
     }
 
-    @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
+    @Bean(name = "elite2ApiRestTemplate")
+    public RestTemplate elite2ApiRestTemplate(RestTemplateBuilder restTemplateBuilder) {
+        return getRestTemplate(restTemplateBuilder, apiRootUri);
+    }
 
-        List<ClientHttpRequestInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new UserContextInterceptor());
-        if (useApiGateway) {
-            additionalInterceptors.add(new ApiGatewayInterceptor(apiGatewayTokenGenerator));
-        } else {
-            additionalInterceptors.add(new JwtAuthInterceptor());
-        }
+    @Bean(name = "elite2ApiHealthRestTemplate")
+    public RestTemplate elite2ApiHealthRestTemplate(RestTemplateBuilder restTemplateBuilder) {
+        return getRestTemplate(restTemplateBuilder, elit2UriRoot);
+    }
+
+    private RestTemplate getRestTemplate(RestTemplateBuilder restTemplateBuilder, String uri) {
         return restTemplateBuilder
-                .rootUri(apiRootUri)
-                .additionalInterceptors(additionalInterceptors)
+                .rootUri(uri)
+                .additionalInterceptors(getRequestInterceptors())
                 .build();
+    }
+
+    private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
+        if (useApiGateway) {
+            return Arrays.asList(
+                    new UserContextInterceptor(),
+                    new ApiGatewayInterceptor(apiGatewayTokenGenerator));
+        } else {
+            return Arrays.asList(
+                    new UserContextInterceptor(),
+                    new JwtAuthInterceptor());
+        }
     }
 
     @Bean

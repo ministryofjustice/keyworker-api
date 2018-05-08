@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -28,7 +29,7 @@ public class RestCallHelper {
     private final OAuth2RestTemplate elite2SystemRestTemplate;
 
     @Autowired
-    public RestCallHelper(RestTemplate restTemplate,
+    public RestCallHelper(@Qualifier(value = "elite2ApiRestTemplate") RestTemplate restTemplate,
                           OAuth2RestTemplate elite2SystemRestTemplate) {
         this.restTemplate = restTemplate;
         this.elite2SystemRestTemplate = elite2SystemRestTemplate;
