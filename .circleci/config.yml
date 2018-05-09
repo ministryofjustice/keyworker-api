@@ -40,14 +40,14 @@ jobs:
       - run:
           name: Build container and publish to docker hub
           command: |
-            jar xvf build/libs/keyworker-service-*.jar META-INF/build-info.properties
+            jar xvf build/libs/keyworker-api-*.jar META-INF/build-info.properties
             API_VERSION=$(grep 'build.version=' META-INF/build-info.properties | awk -F= '{print $2}')
             rm META-INF/build-info.properties
 
             # make up a good version name
             TAG=${API_VERSION}.${CIRCLE_BRANCH}
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              TAG=KEYWORKER_SERVICE_${API_VERSION}
+              TAG=KEYWORKER_API_${API_VERSION}
             fi
 
             # build the container

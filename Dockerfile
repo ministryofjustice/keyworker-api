@@ -14,7 +14,7 @@ RUN mkdir /root/.postgresql \
 
 WORKDIR /app
 
-COPY build/libs/keyworker-service*.jar /app/app.jar
+COPY build/libs/keyworker-api*.jar /app/app.jar
 COPY run.sh /app
 
 ENTRYPOINT ["/bin/sh", "/app/run.sh"]

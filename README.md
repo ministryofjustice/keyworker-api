@@ -1,6 +1,6 @@
-# keyworker-service
+# keyworker-api
 
-OMIC Keyworker Service
+OMIC Keyworker API
 
 
 #### Env Variables:
