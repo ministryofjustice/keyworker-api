@@ -10,6 +10,9 @@ class HealthSpecification extends TestSpecification {
 
     def "Health page reports ok"() {
 
+        given:
+        elite2api.stubHealthOKResponse()
+
         when:
         def response = restTemplate.exchange("/health", HttpMethod.GET, createHeaderEntity("headers"), String.class)
 
@@ -18,7 +21,7 @@ class HealthSpecification extends TestSpecification {
         def details = jsonSlurper.parseText(response.body)
 
         details.healthInfo.status == "UP"
-        // details.healthInfo.version == "version not available"
+        details.elite2ApiHealth.status == "UP"
         details.status == "UP"
         details.db.status == "UP"
     }
