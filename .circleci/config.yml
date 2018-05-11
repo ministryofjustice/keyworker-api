@@ -47,12 +47,12 @@ jobs:
             # make up a good version name
             TAG=${API_VERSION}.${CIRCLE_BRANCH}
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              TAG=KEYWORKER_API_${API_VERSION}
+              TAG=${API_VERSION}
             fi
 
             # build the container
             docker build --rm=false . \
-               --tag "mojdigitalstudio/keyworker-service:$TAG" \
+               --tag "mojdigitalstudio/keyworker-api:$TAG" \
                --label "maintainer=michael.willis@digital.justice.gov.uk" \
                --label "app.version=$TAG" \
                --label "build.version=$TAG" \
@@ -62,12 +62,12 @@ jobs:
 
             # publish to docker hub as the tag
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push mojdigitalstudio/keyworker-service:$TAG
+            docker push mojdigitalstudio/keyworker-api:$TAG
 
             # if master, also publish to latest and git
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              docker tag mojdigitalstudio/keyworker-service:$TAG mojdigitalstudio/keyworker-service:latest
-              docker push mojdigitalstudio/keyworker-service:latest
+              docker tag mojdigitalstudio/keyworker-api:$TAG mojdigitalstudio/keyworker-api:latest
+              docker push mojdigitalstudio/keyworker-api:latest
               git tag $TAG
               git push --tags
             fi
@@ -98,7 +98,7 @@ jobs:
           name: Deploy to Elastic Beanstalk Dev
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              VERSION=$(egrep keyworker-service Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F"_" '{print $3}')
+              VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F"_" '{print $3}')
               ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
             fi
 

@@ -91,7 +91,7 @@ services:
 
 
   keyworker-api:
-    image: mojdigitalstudio/keyworker-service:latest
+    image: mojdigitalstudio/keyworker-api:latest
     depends_on:
       - elite2-api
       - keyworker-db

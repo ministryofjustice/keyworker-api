@@ -10,7 +10,7 @@ if (!version) {
 const dockerrun = {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "mojdigitalstudio/keyworker-service:" + version,
+    "Name": "mojdigitalstudio/keyworker-api:" + version,
     "Update": "true"
   },
   "Ports": [

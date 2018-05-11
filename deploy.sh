@@ -9,7 +9,7 @@ promote_to_env() {
   ENV=$2
 
   # Build a deployment file
-  node scripts/plant-beanstalk KEYWORKER_API_${VERSION}
+  node scripts/plant-beanstalk ${VERSION}
   eb deploy keyworker-api-${ENV} --verbose --label ${VERSION}
 }
 
