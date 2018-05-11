@@ -98,7 +98,7 @@ jobs:
           name: Deploy to Elastic Beanstalk Dev
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F"_" '{print $3}')
+              VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F":" '{print $2}')
               ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
             fi
 
