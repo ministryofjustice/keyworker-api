@@ -25,15 +25,18 @@ public class PrisonSupported {
     @Column(name = "PRISON_ID", nullable = false)
     private String prisonId;
 
-    @NotNull
     @Column(name = "MIGRATED", nullable = false)
     private boolean migrated;
 
-    @NotNull
     @Column(name = "AUTO_ALLOCATE", nullable = false)
     private boolean autoAllocate;
 
     @Column(name = "MIGRATED_DATE_TIME", nullable = true)
     private LocalDateTime migratedDateTime;
 
+    @Column(name = "CAPACITY_TIER_1", nullable = false)
+    private int capacityTier1;
+
+    @Column(name = "CAPACITY_TIER_2", nullable = true)
+    private int capacityTier2;
 }

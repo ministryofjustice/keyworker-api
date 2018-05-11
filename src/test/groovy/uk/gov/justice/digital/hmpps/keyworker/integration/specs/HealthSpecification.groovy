@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
 import groovy.json.JsonSlurper
-import org.junit.Ignore
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 
-@Ignore
 class HealthSpecification extends TestSpecification {
 
     def jsonSlurper = new JsonSlurper()

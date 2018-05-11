@@ -87,7 +87,7 @@ public class KeyworkerAutoAllocationService {
         if (unallocatedOffenders.isEmpty()) {
             log.info(OUTCOME_NO_UNALLOCATED_OFFENDERS);
         } else {
-            List<KeyworkerDto> availableKeyworkers = keyworkerService.getKeyworkersAvailableforAutoAllocation(prisonId);
+            List<KeyworkerDto> availableKeyworkers = keyworkerService.getKeyworkersAvailableForAutoAllocation(prisonId);
 
             if (availableKeyworkers.isEmpty()) {
                 log.error(OUTCOME_NO_AVAILABLE_KEY_WORKERS);
@@ -100,7 +100,7 @@ public class KeyworkerAutoAllocationService {
 
             // At this point, we have some unallocated offenders and some available Key workers. Let's put the Key
             // workers into a pool then start processing allocations.
-            KeyworkerPool keyworkerPool = keyworkerPoolFactory.getKeyworkerPool(availableKeyworkers);
+            KeyworkerPool keyworkerPool = keyworkerPoolFactory.getKeyworkerPool(prisonId, availableKeyworkers);
 
             // Continue processing allocations for unallocated offenders until no further unallocated offenders exist
             // or Key workers no longer have capacity.

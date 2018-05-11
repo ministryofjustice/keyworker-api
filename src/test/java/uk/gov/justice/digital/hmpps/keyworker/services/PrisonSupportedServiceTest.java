@@ -3,13 +3,17 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -28,6 +32,7 @@ public class PrisonSupportedServiceTest {
     @Before
     public void setUp() {
         prisonSupportedService = new PrisonSupportedService(repository);
+        ReflectionTestUtils.setField(prisonSupportedService, "capacityTiers", Arrays.asList(6,9));
     }
 
     @Test(expected = PrisonNotSupportedException.class)
@@ -90,11 +95,14 @@ public class PrisonSupportedServiceTest {
 
     @Test
     public void testUpdateSupportedPrisonAutoAllocateUpdate() {
-        when(repository.findOne(TEST_AGENCY)).thenReturn(PrisonSupported.builder().prisonId(TEST_AGENCY).build());
+        PrisonSupported prison = PrisonSupported.builder().prisonId(TEST_AGENCY).build();
+        when(repository.findOne(TEST_AGENCY)).thenReturn(prison);
 
-        prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true);
+        prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true, 5, 7);
 
         verify(repository, never()).save(any(PrisonSupported.class));
+        assertThat(prison.getCapacityTier1()).isEqualTo(5);
+        assertThat(prison.getCapacityTier2()).isEqualTo(7);
     }
 
     @Test
@@ -103,6 +111,10 @@ public class PrisonSupportedServiceTest {
 
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true);
 
-        verify(repository).save(any(PrisonSupported.class));
+        ArgumentCaptor<PrisonSupported> kwaArg = ArgumentCaptor.forClass(PrisonSupported.class);
+        verify(repository).save(kwaArg.capture());//any(PrisonSupported.class));
+        final PrisonSupported prison = kwaArg.getValue();
+        assertThat(prison.getCapacityTier1()).isEqualTo(6);
+        assertThat(prison.getCapacityTier2()).isEqualTo(9);
     }
 }

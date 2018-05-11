@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
 import static uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_2;
 
 /**
  * Test class for {@link KeyworkerService}.
@@ -71,6 +72,10 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Before
     public void setup() {
         doThrow(new PrisonNotSupportedException("Agency [MDI] is not supported by this service.")).when(prisonSupportedService).verifyPrisonMigrated(eq("MDI"));
+        Prison prisonDetail = Prison.builder()
+                .prisonId(TEST_AGENCY).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
+                .build();
+        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY)).thenReturn(prisonDetail);
     }
     @Test
     public void testGetUnallocatedOffendersForSupportedAgencyNoneAllocated() {
@@ -536,7 +541,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(allocations, HttpStatus.OK));
         // Invoke service method
-        List<KeyworkerDto> keyworkerList = service.getKeyworkersAvailableforAutoAllocation(TEST_AGENCY);
+        List<KeyworkerDto> keyworkerList = service.getKeyworkersAvailableForAutoAllocation(TEST_AGENCY);
 
         // Verify response
         assertThat(keyworkerList).hasSize(3);
