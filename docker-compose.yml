@@ -32,7 +32,7 @@ services:
       - HMPPS_COOKIE_SECRET=acookiesecret
 
   omic-ui:
-    image: mojdigitalstudio/keyworker-ui:latest
+    image: mojdigitalstudio/omic-ui:latest
     networks:
       - hmpps
     depends_on:
