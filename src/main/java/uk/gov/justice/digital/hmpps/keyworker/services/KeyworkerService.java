@@ -58,7 +58,6 @@ public class KeyworkerService  {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getAvailableKeyworkers(String prisonId) {
 
         ResponseEntity<List<KeyworkerDto>> responseEntity = nomisService.getAvailableKeyworkers(prisonId);
@@ -73,13 +72,11 @@ public class KeyworkerService  {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<KeyworkerDto> getKeyworkersAvailableforAutoAllocation(String prisonId) {
         final List<KeyworkerDto> availableKeyworkers = getAvailableKeyworkers(prisonId);
         return availableKeyworkers.stream().filter(KeyworkerDto::getAutoAllocationAllowed).collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public Page<KeyworkerAllocationDetailsDto> getAllocations(AllocationsFilterDto allocationFilter, PagingAndSortingDto pagingAndSorting) {
 
         final String prisonId = allocationFilter.getPrisonId();
@@ -96,8 +93,6 @@ public class KeyworkerService  {
     }
 
 
-
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
     public List<OffenderLocationDto> getUnallocatedOffenders(String prisonId, String sortFields, SortOrder sortOrder) {
 
         prisonSupportedService.verifyPrisonMigrated(prisonId);
@@ -105,7 +100,7 @@ public class KeyworkerService  {
         return processor.filterByUnallocated(allOffenders);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+
     public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailList(String prisonId, Collection<String> offenderNos) {
         final List<OffenderKeyworker> results =
                 CollectionUtils.isEmpty(offenderNos)
@@ -200,17 +195,17 @@ public class KeyworkerService  {
         repository.save(allocation);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+
     public List<OffenderKeyworker> getAllocationHistoryForPrisoner(String offenderNo) {
         return repository.findByOffenderNo(offenderNo);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+
     public List<OffenderKeyworker> getAllocationsForKeyworker(Long staffId) {
         return repository.findByStaffId(staffId);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String prisonId, Long staffId, boolean skipOffenderDetails) {
 
         prisonSupportedService.verifyPrisonMigrated(prisonId);
@@ -270,7 +265,7 @@ public class KeyworkerService  {
         return dto;
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
 
         ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
