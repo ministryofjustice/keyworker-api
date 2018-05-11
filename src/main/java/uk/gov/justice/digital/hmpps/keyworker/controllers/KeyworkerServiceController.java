@@ -480,8 +480,11 @@ public class KeyworkerServiceController {
 
     @PostMapping(path="/enable/{prisonId}/manual")
     public Prison addSupportedPrisonForManualAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId,
-                                                      @ApiParam("migrate") @Param("migrate") boolean migrate) {
-        return updateAndMigrate(prisonId, migrate, false);
+                                                        @ApiParam("migrate") @Param("migrate") boolean migrate,
+                                                        @ApiParam(name = "capacity",
+                                                                value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9")
+                                                            @Param("capacity") Integer[] capacity) {
+        return updateAndMigrate(prisonId, migrate, false, capacity);
     }
 
     @ApiOperation(value = "Enable Auto Allocation for specified prison and Migrate", notes = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB")
@@ -492,12 +495,21 @@ public class KeyworkerServiceController {
 
     @PostMapping(path="/enable/{prisonId}/auto-allocate")
     public Prison addSupportedPrisonForAutoAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId,
-                                                    @ApiParam("migrate") @Param("migrate") boolean migrate) {
-        return updateAndMigrate(prisonId, migrate, true);
+                                                      @ApiParam("migrate") @Param("migrate") boolean migrate,
+                                                      @ApiParam(name = "capacity",
+                                                              value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9")
+                                                      @Param("capacity") Integer[] capacity) {
+        return updateAndMigrate(prisonId, migrate, true, capacity);
     }
 
-    private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate) {
-        prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate);
+    private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate, Integer[] capacity) {
+
+        if (capacity != null) {
+            Validate.isTrue(capacity.length == 2, "Two capacity values must be specified.");
+            prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate, capacity[0], capacity[1]);
+        } else {
+            prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate);
+        }
 
         if (migrate) {
             keyworkerMigrationService.migrateKeyworkerByPrison(prisonId);

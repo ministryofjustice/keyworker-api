@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.util.ObjectUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
@@ -29,24 +30,19 @@ public class KeyworkerPool {
 
     private KeyworkerService keyworkerService;
 
-    /**
-     * Constructor.
-     * @param keyworkers set of Key workers in the pool.
-     * @param capacityTiers optional set of capacity tier levels.
-     */
     KeyworkerPool(KeyworkerService keyworkerService,
+                  PrisonSupportedService prisonSupportedService,
                   Collection<KeyworkerDto> keyworkers,
-                  Collection<Integer> capacityTiers) {
+                  String prisonId) {
         Validate.notEmpty(keyworkers, "Key worker pool must contain at least one Key worker.");
+        Validate.notBlank(prisonId, "Prison must be specified.");
 
         this.keyworkerService = keyworkerService;
+        final Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
 
-        // Initialise capacity tiers
-        if (ObjectUtils.isEmpty(capacityTiers)) {
-            this.capacityTiers = new TreeSet<>(Collections.singleton(Integer.MAX_VALUE));
-        } else {
-            this.capacityTiers = new TreeSet<>(capacityTiers);
-        }
+        this.capacityTiers = new TreeSet<>();
+        capacityTiers.add(prisonDetail.getCapacityTier1());
+        capacityTiers.add(prisonDetail.getCapacityTier2());
 
         // Initialise key worker pool
         keyworkerStaffIds = new HashSet<>();

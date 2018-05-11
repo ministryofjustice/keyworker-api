@@ -54,7 +54,8 @@ abstract class TestSpecification extends Specification {
         elite2api.stubAccessCodeListForKeyRole(prisonId)
         elite2api.stubAccessCodeListForKeyAdminRole(prisonId)
 
-        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true", HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
+        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true",
+                HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
         response.toString()
     }
 
@@ -63,7 +64,8 @@ abstract class TestSpecification extends Specification {
         elite2api.stubAccessCodeListForKeyRole(prisonId)
         elite2api.stubAccessCodeListForKeyAdminRole(prisonId)
 
-        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true", HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
+        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true&capacity=6,9",
+                HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
         response.toString()
     }
 

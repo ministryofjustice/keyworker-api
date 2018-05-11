@@ -18,4 +18,6 @@ public class Prison {
     private boolean supported;
     private boolean migrated;
     private boolean autoAllocatedSupported;
+    private int capacityTier1;
+    private int capacityTier2;
 }

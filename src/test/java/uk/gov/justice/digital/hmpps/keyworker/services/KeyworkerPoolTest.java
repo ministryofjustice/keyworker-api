@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -29,22 +30,20 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 @RunWith(MockitoJUnitRunner.class)
 public class KeyworkerPoolTest {
     private static final String TEST_AGENCY_ID = "LEI";
-    private static final long STAFF_ID = 1L;
-    private static final String OFFENDER_NO = "AA1234X";
 
     private KeyworkerPool keyworkerPool;
-    private Set<Integer> capacityTiers;
 
     @Mock
     private KeyworkerService keyworkerService;
+    @Mock
+    private PrisonSupportedService prisonSupportedService;
 
     @Before
     public void setUp() {
-        // Initialise Key worker allocation capacity tiers
-        capacityTiers = new TreeSet<>();
-
-        capacityTiers.add(CAPACITY_TIER_1);
-        capacityTiers.add(CAPACITY_TIER_2);
+        Prison prisonDetail = Prison.builder()
+                .prisonId(TEST_AGENCY_ID).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
+                .build();
+        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -68,7 +67,7 @@ public class KeyworkerPoolTest {
     public void testSingleKeyworkerWithSpareCapacity() {
         // Single KW, with capacity, in KWP
         KeyworkerDto keyworker = getKeyworker(1, CAPACITY_TIER_1, CAPACITY_TIER_1);
-        keyworkerPool = initKeyworkerPool(keyworkerService, Collections.singleton(keyworker), capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, Collections.singleton(keyworker), TEST_AGENCY_ID);
 
         // Request KW from pool for offender
         KeyworkerDto allocatedKeyworker = keyworkerPool.getKeyworker("A1111AA");
@@ -90,7 +89,7 @@ public class KeyworkerPoolTest {
     public void testPoolErrorsWhenSingleKeyworkerIsFullyAllocated() {
         // Single KW, fully allocated, in KWP
         KeyworkerDto keyworker = getKeyworker(1, FULLY_ALLOCATED, CAPACITY_TIER_1);
-        keyworkerPool = initKeyworkerPool(keyworkerService, Collections.singleton(keyworker), capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, Collections.singleton(keyworker), TEST_AGENCY_ID);
 
         // Request KW from pool (catching expected exception)
         Throwable thrown = catchThrowable(() -> keyworkerPool.getKeyworker("A1111AA"));
@@ -114,7 +113,7 @@ public class KeyworkerPoolTest {
         final int lowAllocCount = 1;
         final int highAllocCount = FULLY_ALLOCATED - 1;
         List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // Request KW from pool for offender
         KeyworkerDto allocatedKeyworker = keyworkerPool.getKeyworker("A1111AA");
@@ -141,7 +140,7 @@ public class KeyworkerPoolTest {
         List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
         keyworkers.get(0).setCapacity(3);
         keyworkers.get(0).setNumberAllocated(4);
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // Request KW from pool for offender
         KeyworkerDto allocatedKeyworker = keyworkerPool.getKeyworker("A1111AA");
@@ -156,7 +155,7 @@ public class KeyworkerPoolTest {
         List<KeyworkerDto> keyworkers = getKeyworkers(5, 1, 1, CAPACITY_TIER_1);
         // Make life difficult for the comparator - decreasing staff id order
         Collections.shuffle(keyworkers);
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // Get KW sorted set to check directly
         SortedSet<KeyworkerDto> set = (SortedSet<KeyworkerDto>) ReflectionTestUtils.getField(keyworkerPool, "keyworkerPool");
@@ -191,7 +190,7 @@ public class KeyworkerPoolTest {
                 getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
                 getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
 
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // Some previous allocations for each Key worker
         LocalDateTime refDateTime = LocalDateTime.now();
@@ -242,7 +241,7 @@ public class KeyworkerPoolTest {
         final long allocStaffId = 2;
 
         List<KeyworkerDto> keyworkers = getKeyworkers(3, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // A previous allocation between the unallocated offender and Key worker with staffId = 2
         mockPrisonerAllocationHistory(keyworkerService,
@@ -276,7 +275,7 @@ public class KeyworkerPoolTest {
         final LocalDateTime ldtLeastRecent = ldtOther.minusDays(7);
 
         List<KeyworkerDto> keyworkers = getKeyworkers(7, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // Previous allocations between the unallocated offender and previous KWs
         mockPrisonerAllocationHistory(keyworkerService,
@@ -303,7 +302,7 @@ public class KeyworkerPoolTest {
         final int highAllocCount = FULLY_ALLOCATED - 1;
 
         List<KeyworkerDto> keyworkers = getKeyworkers(7, lowAllocCount, highAllocCount, CAPACITY_TIER_1);
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // A KW who is not a member of KWP
         KeyworkerDto otherKeyworker = getKeyworker(8, 5, CAPACITY_TIER_1);
@@ -334,7 +333,7 @@ public class KeyworkerPoolTest {
         keyworkers.add(firstKeyworker);
         keyworkers.add(secondKeyworker);
 
-        keyworkerPool = initKeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, TEST_AGENCY_ID);
 
         // Verify that priority KW is the one with known low alloc count and lowest staff id
         KeyworkerDto priorityKeyworker = keyworkerPool.getKeyworker("A1111AA");

@@ -190,9 +190,10 @@ public class KeyworkerTestHelper {
     }
 
     public static KeyworkerPool initKeyworkerPool(KeyworkerService keyworkerService,
+                                                  PrisonSupportedService prisonSupportedService,
                                                   Collection<KeyworkerDto> keyworkers,
-                                                  Collection<Integer> capacityTiers) {
-        return new KeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+                                                  String prisonId) {
+        return new KeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, prisonId);
     }
 
     // Provides a previous Key worker allocation between specified offender and Key worker with an assigned datetime 7

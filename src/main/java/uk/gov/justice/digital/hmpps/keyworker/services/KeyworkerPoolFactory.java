@@ -2,12 +2,10 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Spring managed component responsible for instantiating and initialising {@code KeyworkerPool} instances.
@@ -16,27 +14,25 @@ import java.util.Set;
 @Slf4j
 public class KeyworkerPoolFactory {
     private final KeyworkerService keyworkerService;
+    private final PrisonSupportedService prisonSupportedService;
 
-    @Value("${svc.kw.allocation.capacity.tiers:6,9}")
-    private Set<Integer> capacityTiers;
+    public KeyworkerPoolFactory(KeyworkerService keyworkerService,
+                                PrisonSupportedService prisonSupportedService) {
 
-    public KeyworkerPoolFactory(KeyworkerService keyworkerService) {
         this.keyworkerService = keyworkerService;
+        this.prisonSupportedService = prisonSupportedService;
     }
 
     /**
-     * Initialise new key worker pool with set of key workers and capacity tiers.
-     *
-     * @param keyworkers set of key workers in the pool.
-     * @return initialised key worker pool.
+     * Initialise new key worker pool with set of key workers.
      */
-    public KeyworkerPool getKeyworkerPool(Collection<KeyworkerDto> keyworkers) {
+    public KeyworkerPool getKeyworkerPool(String prisonId, Collection<KeyworkerDto> keyworkers) {
         Validate.notEmpty(keyworkers);
 
-        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkerService, keyworkers, capacityTiers);
+        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, prisonId);
 
-        log.debug("Initialised new Key worker pool with {} members and {} capacity tiers.",
-                keyworkers.size(), capacityTiers.size());
+        log.debug("Initialised new Key worker pool with {} members for prison {}.",
+                keyworkers.size(), prisonId);
 
         return keyworkerPool;
     }

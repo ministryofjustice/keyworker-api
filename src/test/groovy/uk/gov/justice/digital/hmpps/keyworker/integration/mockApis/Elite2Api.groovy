@@ -97,4 +97,11 @@ class Elite2Api extends WireMockRule {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
+    void stubHealthOKResponse() {
+        stubFor(get(urlEqualTo("/health"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody("""{"status":"UP","HttpStatus":200}""")
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
 }
