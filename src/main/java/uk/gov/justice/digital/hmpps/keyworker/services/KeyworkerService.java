@@ -58,7 +58,7 @@ public class KeyworkerService  {
         ResponseEntity<List<KeyworkerDto>> responseEntity = nomisService.getAvailableKeyworkers(prisonId);
         final List<KeyworkerDto> returnedList = responseEntity.getBody();
 
-        final int prisonCapacityDefault = getprisonCapacityDefault(prisonId);
+        final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
         returnedList.forEach(keyworkerDto -> keyworkerDto.setAgencyId(prisonId));
 
@@ -128,7 +128,7 @@ public class KeyworkerService  {
 
     public KeyworkerDto getKeyworkerDetails(String prisonId, Long staffId) {
         StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElseGet(() -> nomisService.getBasicKeyworkerDtoForStaffId(staffId));
-        final int prisonCapacityDefault = getprisonCapacityDefault(prisonId);
+        final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
         return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(staffKeyWorker), prisonCapacityDefault);
     }
 
@@ -266,7 +266,7 @@ public class KeyworkerService  {
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
 
         ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
-        final int prisonCapacityDefault = getprisonCapacityDefault(prisonId);
+        final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream()
                 .map(dto -> decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto), prisonCapacityDefault))
@@ -274,7 +274,7 @@ public class KeyworkerService  {
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
     }
 
-    private int getprisonCapacityDefault(String prisonId) {
+    private int getPrisonCapacityDefault(String prisonId) {
         return prisonSupportedService.getPrisonDetail(prisonId).getCapacityTier1();
     }
 
