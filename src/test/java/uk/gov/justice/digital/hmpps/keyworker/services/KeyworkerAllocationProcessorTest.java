@@ -98,6 +98,30 @@ public class KeyworkerAllocationProcessorTest {
         verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
     }
 
+    //should be resilient if duplicate allocations exist
+    @Test
+    public void testFilterByUnallocatedHandlesDuplicateActiveAllocations() {
+        // Get some OffenderSummaryDto records
+        List<OffenderLocationDto> dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
+
+        Set<String> offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
+
+        // Mock remote to return active allocations for all offender numbers.
+        List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
+
+        allocs.add(allocs.get(0));
+
+        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(allocs);
+
+        // Invoke service
+        List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
+
+        // Verify
+        assertThat(results).isEmpty();
+
+        verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+    }
+
     // When offender summary allocation filter processing requested with a list of 5 offender summary dtos
     // And 3 of the offenders have an active allocation to a Key worker (so 2 do not)
     // Then response is a list of 2 offender summary dtos for the offenders who do not have an allocation
