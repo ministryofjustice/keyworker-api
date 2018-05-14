@@ -60,16 +60,12 @@ jobs:
                --label "build.url=$CIRCLE_BUILD_URL" \
                --label "build.gitref=$CIRCLE_SHA1"
 
-            # publish to docker hub as the tag
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push mojdigitalstudio/keyworker-api:$TAG
-
-            # if master, also publish to latest and git
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              # publish to docker hub as the tag
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker push mojdigitalstudio/keyworker-api:$TAG
               docker tag mojdigitalstudio/keyworker-api:$TAG mojdigitalstudio/keyworker-api:latest
               docker push mojdigitalstudio/keyworker-api:latest
-              git tag $TAG
-              git push --tags
             fi
 
             # generate Dockerrun manifest
@@ -90,17 +86,13 @@ jobs:
       - deploy:
           name: Install elastic beanstalk CLI
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              sudo apt-get install python-pip python-dev
-              pip install --user 'six>-1.9.0' awsebcli --ignore-installed
-            fi
+            sudo apt-get install python-pip python-dev
+            pip install --user 'six>-1.9.0' awsebcli --ignore-installed
       - deploy:
           name: Deploy to Elastic Beanstalk Dev
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F":" '{print $2}')
-              ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
-            fi
+            VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F":" '{print $2}')
+            ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
 
 workflows:
   version: 2
