@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE;
 
 @Service
 @Transactional
@@ -64,7 +65,9 @@ public class KeyworkerService  {
 
         return returnedList.stream()
                 .map(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)        )
+                .filter(k -> k.getStatus() != INACTIVE)
+                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
+                                  .thenComparing(KeyworkerDto::getFullName))
                 .collect(Collectors.toList());
     }
 
@@ -275,7 +278,8 @@ public class KeyworkerService  {
     }
 
     private int getPrisonCapacityDefault(String prisonId) {
-        return prisonSupportedService.getPrisonDetail(prisonId).getCapacityTier1();
+        Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
+        return prisonDetail != null ? prisonDetail.getCapacityTier1() : 0;
     }
 
     private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto, int capacityDefault) {

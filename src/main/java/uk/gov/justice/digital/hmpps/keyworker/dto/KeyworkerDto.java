@@ -7,10 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
 
 @ApiModel(description = "Key worker details")
 @Data
@@ -60,4 +62,11 @@ public class KeyworkerDto {
 
     @ApiModelProperty(value = "Key worker is eligible for auto allocation.")
     private Boolean autoAllocationAllowed;
+
+    /**
+     * @return fullname (last name first name in lower case)
+     */
+    public String getFullName() {
+        return StringUtils.lowerCase(StringUtils.join(Arrays.asList(lastName, firstName), " "));
+    }
 }
