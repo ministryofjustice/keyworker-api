@@ -94,7 +94,7 @@ dependencies {
     compile("org.flywaydb:flyway-core:5.0.2")
     compile("org.hsqldb:hsqldb:2.4.0")
     compile("org.postgresql:postgresql:42.2.1")
-    compile("org.projectlombok:lombok:1.16.18")
+    compile("org.projectlombok:lombok:1.16.20")
 
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("org.assertj:assertj-core:3.8.0")
