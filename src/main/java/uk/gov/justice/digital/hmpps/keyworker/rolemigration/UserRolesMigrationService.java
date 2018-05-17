@@ -26,22 +26,24 @@ public class UserRolesMigrationService {
     private final RoleService roleService;
     private final Set<String> rolesToMatch;
     private final Set<String> rolesToAssign;
+    private final Set<String> rolesToMigrate;
 
     public UserRolesMigrationService(RoleService roleService, RoleMigrationConfiguration configuration) {
         this.roleService = roleService;
         rolesToMatch = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMatch()));
         rolesToAssign = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToAssign()));
+        rolesToMigrate = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMigrate()));
     }
 
     public void migrate(String prisonId) {
-        migrateRoles(prisonId, rolesToMatch, rolesToAssign);
+        migrateRoles(prisonId, rolesToMatch, rolesToAssign, rolesToMigrate);
     }
 
-    private void migrateRoles(String prisonId, Set<String> rolesToMatch, Set<String> rolesToAssign) {
+    private void migrateRoles(String prisonId, Set<String> rolesToMatch, Set<String> rolesToAssign, Set<String> rolesToMigrate) {
 
         List<Pair<String, Set<String>>> usernamesByRole = findUsernamesByRole(prisonId, rolesToMatch);
 
-        assignRolesToUsers(rolesToAssign, allUsernames(usernamesByRole));
+        assignRolesToUsers(rolesToAssign, usernamesForUsersHavingRoles(usernamesByRole, rolesToMigrate));
 
         removeRolesFromStaff(prisonId, usernamesByRole);
     }
@@ -68,10 +70,11 @@ public class UserRolesMigrationService {
      * Extract the set of all usernames contained in the supplied data structure.
      *
      * @param usernamesByRole usernames grouped by role membership.
+     * @param filterRoles roles to include
      * @return all the supplied usernames as a set.
      */
-    private Set<String> allUsernames(List<Pair<String, Set<String>>> usernamesByRole) {
-        return usernamesByRole.stream().map(Pair::getRight).reduce(new HashSet<>(), SET_UNION);
+    private Set<String> usernamesForUsersHavingRoles(List<Pair<String, Set<String>>> usernamesByRole, Set<String> filterRoles) {
+        return usernamesByRole.stream().filter(p -> filterRoles.contains(p.getLeft())).map(Pair::getRight).reduce(new HashSet<>(), SET_UNION);
     }
 
     /**
