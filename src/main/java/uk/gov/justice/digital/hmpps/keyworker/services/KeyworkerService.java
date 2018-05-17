@@ -19,10 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -67,8 +64,12 @@ public class KeyworkerService  {
                 .map(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
                 .filter(k -> k.getStatus() != INACTIVE)
                 .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
-                                  .thenComparing(KeyworkerDto::getFullName))
+                                  .thenComparing(KeyworkerService::getKeyWorkerFullName))
                 .collect(Collectors.toList());
+    }
+
+    private static String getKeyWorkerFullName(KeyworkerDto keyworkerDto) {
+        return StringUtils.lowerCase(StringUtils.join(Arrays.asList(keyworkerDto.getLastName(), keyworkerDto.getFirstName()), " "));
     }
 
     public List<KeyworkerDto> getKeyworkersAvailableForAutoAllocation(String prisonId) {
