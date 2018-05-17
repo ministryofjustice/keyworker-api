@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -14,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static java.lang.String.format;
 
 @Component
 @Slf4j
@@ -91,8 +89,6 @@ public class NomisService {
         log.debug("About to retrieve keyworker from Elite2api using uri {}", uri.toString());
 
         List<StaffLocationRoleDto> staff = restCallHelper.getForList(uri, ELITE_STAFF_LOCATION_DTO_LIST).getBody();
-        Assert.isTrue(staff.size() <= 1, format("Multiple rows found for role of staffId %d at agencyId %s", staffId, prisonId));
-
         final Optional<StaffLocationRoleDto> staffLocationRoleDto = Optional.ofNullable(staff.size() > 0 ? staff.get(0) : null);
         log.debug("Result: {}", staffLocationRoleDto);
         return staffLocationRoleDto;

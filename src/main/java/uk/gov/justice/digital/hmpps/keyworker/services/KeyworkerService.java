@@ -272,7 +272,7 @@ public class KeyworkerService  {
         ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
-        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream()
+        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().distinct()
                 .map(dto -> decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto), prisonCapacityDefault))
                 .collect(Collectors.toList());
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
