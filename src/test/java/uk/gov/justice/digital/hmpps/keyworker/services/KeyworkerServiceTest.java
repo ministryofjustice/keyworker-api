@@ -497,26 +497,36 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
     @Test
     public void testGetAvailableKeyworkers() {
-        ImmutableList<KeyworkerDto> keyworkers = ImmutableList.of(KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1));
+        ImmutableList<KeyworkerDto> keyworkers = ImmutableList.of(
+                KeyworkerTestHelper.getKeyworker(1, 0, 0),
+                KeyworkerTestHelper.getKeyworker(2, 0, 0),
+                KeyworkerTestHelper.getKeyworker(3, 0, 0),
+                KeyworkerTestHelper.getKeyworker(4, 0, 0),
+                KeyworkerTestHelper.getKeyworker(5, 0, 0),
+                KeyworkerTestHelper.getKeyworker(6, 0, 0),
+                KeyworkerTestHelper.getKeyworker(7, 0, 0)
+                );
 
 
-        when(keyworkerRepository.findOne(1L)).thenReturn(Keyworker.builder().staffId(1L).autoAllocationFlag(true).build());
-        when(keyworkerRepository.findOne(2L)).thenReturn(Keyworker.builder().staffId(2L).autoAllocationFlag(true).build());
-        when(keyworkerRepository.findOne(3L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).build());
+        when(keyworkerRepository.findOne(1L)).thenReturn(Keyworker.builder().staffId(1L).autoAllocationFlag(true).status(KeyworkerStatus.INACTIVE).build());
+        when(keyworkerRepository.findOne(2L)).thenReturn(Keyworker.builder().staffId(2L).autoAllocationFlag(true).status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE).build());
+        when(keyworkerRepository.findOne(3L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).status(KeyworkerStatus.ACTIVE).build());
+        when(keyworkerRepository.findOne(5L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE).build());
+        when(keyworkerRepository.findOne(7L)).thenReturn(Keyworker.builder().staffId(3L).autoAllocationFlag(true).status(KeyworkerStatus.ACTIVE).build());
 
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(2);
-        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(3);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(0);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(2L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(2);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(1);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(5L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(0);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(7L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(2);
 
         when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(keyworkers, HttpStatus.OK));
         // Invoke service method
         List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(TEST_AGENCY);
 
         // Verify response
-        assertThat(keyworkerList).hasSize(3);
-        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
+        assertThat(keyworkerList).hasSize(6);
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0,0,0,1,2,2));
     }
 
     @Test

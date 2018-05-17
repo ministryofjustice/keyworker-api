@@ -19,13 +19,11 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE;
 
 @Service
 @Transactional
@@ -64,8 +62,14 @@ public class KeyworkerService  {
 
         return returnedList.stream()
                 .map(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)        )
+                .filter(k -> k.getStatus() != INACTIVE)
+                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
+                                  .thenComparing(KeyworkerService::getKeyWorkerFullName))
                 .collect(Collectors.toList());
+    }
+
+    private static String getKeyWorkerFullName(KeyworkerDto keyworkerDto) {
+        return StringUtils.lowerCase(StringUtils.join(Arrays.asList(keyworkerDto.getLastName(), keyworkerDto.getFirstName()), " "));
     }
 
     public List<KeyworkerDto> getKeyworkersAvailableForAutoAllocation(String prisonId) {
@@ -275,7 +279,8 @@ public class KeyworkerService  {
     }
 
     private int getPrisonCapacityDefault(String prisonId) {
-        return prisonSupportedService.getPrisonDetail(prisonId).getCapacityTier1();
+        Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
+        return prisonDetail != null ? prisonDetail.getCapacityTier1() : 0;
     }
 
     private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto, int capacityDefault) {
