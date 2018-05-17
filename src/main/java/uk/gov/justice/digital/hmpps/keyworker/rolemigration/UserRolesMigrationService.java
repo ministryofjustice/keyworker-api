@@ -43,7 +43,7 @@ public class UserRolesMigrationService {
 
         List<Pair<String, Set<String>>> usernamesByRole = findUsernamesByRole(prisonId, rolesToMatch);
 
-        assignRolesToUsers(rolesToAssign, allUsernames(usernamesByRole, rolesToMigrate));
+        assignRolesToUsers(rolesToAssign, usernamesForUsersHavingRoles(usernamesByRole, rolesToMigrate));
 
         removeRolesFromStaff(prisonId, usernamesByRole);
     }
@@ -73,7 +73,7 @@ public class UserRolesMigrationService {
      * @param filterRoles roles to include
      * @return all the supplied usernames as a set.
      */
-    private Set<String> allUsernames(List<Pair<String, Set<String>>> usernamesByRole, Set<String> filterRoles) {
+    private Set<String> usernamesForUsersHavingRoles(List<Pair<String, Set<String>>> usernamesByRole, Set<String> filterRoles) {
         return usernamesByRole.stream().filter(p -> filterRoles.contains(p.getLeft())).map(Pair::getRight).reduce(new HashSet<>(), SET_UNION);
     }
 
