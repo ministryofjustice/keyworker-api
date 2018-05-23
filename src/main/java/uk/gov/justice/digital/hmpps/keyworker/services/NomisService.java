@@ -9,6 +9,7 @@ import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Slf4j
 public class NomisService {
 
-    public static final String URI_CUSTODY_STATUSES = "/custody-statuses?fromDateTime={fromDateTime}";
+    public static final String URI_CUSTODY_STATUSES = "/custody-statuses?fromDateTime={fromDateTime}&movementDate={movementDate}";
     public static final String URI_STAFF = "/staff/{staffId}";
     private static final String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
     private static final String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
@@ -52,8 +53,8 @@ public class NomisService {
         this.restCallHelper = restCallHelper;
     }
 
-    public List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold) {
-        URI uri = new UriTemplate(URI_CUSTODY_STATUSES).expand(threshold);
+    public List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate) {
+        URI uri = new UriTemplate(URI_CUSTODY_STATUSES).expand(threshold, movementDate);
 
         return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST).getBody();
     }
