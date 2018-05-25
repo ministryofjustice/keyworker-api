@@ -45,7 +45,7 @@ public class DeallocateJob {
         }
     }
 
-    private void checkMovements(LocalDateTime previousJobStart) {
+    public void checkMovements(LocalDateTime previousJobStart) {
 
         final LocalDate today = LocalDate.now();
 

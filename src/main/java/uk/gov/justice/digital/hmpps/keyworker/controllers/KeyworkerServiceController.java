@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -316,6 +317,26 @@ public class KeyworkerServiceController {
             @PathVariable("prisonId") String prisonId) {
         return keyworkerAutoAllocationService.confirmAllocations(prisonId);
     }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Force Runs the Batch De-allocation process",
+            notes = "Can only be run with KW_MIGRATION role",
+            nickname="runBatchDeallocation")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Batch process complete", response = String.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PostMapping(path = "/batch/deallocate/{checkFromDateTime}")
+    public void runBatchDeallocation(
+            @ApiParam(value = "The date for which to check for movements", required=true)
+            @PathVariable("checkFromDateTime")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkFromDateTime) {
+        keyworkerService.runDeallocateBatchProcess(checkFromDateTime);
+    }
+
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
