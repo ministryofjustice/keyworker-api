@@ -36,19 +36,22 @@ public class KeyworkerService  {
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
+    private final DeallocateJob deallocateJob;
 
     public KeyworkerService(AuthenticationFacade authenticationFacade,
                             OffenderKeyworkerRepository repository,
                             KeyworkerRepository keyworkerRepository,
                             KeyworkerAllocationProcessor processor,
                             PrisonSupportedService prisonSupportedService,
-                            NomisService nomisService) {
+                            NomisService nomisService,
+                            DeallocateJob deallocateJob) {
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
         this.processor = processor;
         this.prisonSupportedService = prisonSupportedService;
         this.nomisService = nomisService;
+        this.deallocateJob = deallocateJob;
     }
 
     public List<KeyworkerDto> getAvailableKeyworkers(String prisonId) {
@@ -296,6 +299,11 @@ public class KeyworkerService  {
         }
 
         return keyworkerDto;
+    }
+
+    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    public void runDeallocateBatchProcess(LocalDateTime checkFromDateTime) {
+        deallocateJob.checkMovements(checkFromDateTime);
     }
 
     @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
