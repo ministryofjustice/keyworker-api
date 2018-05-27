@@ -340,6 +340,27 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
+            value = "Gets a complete history of the offenders allocations",
+            notes = "Order by most recent first",
+            nickname="getKeyWorkerHistoryForPrisoner")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = OffenderKeyWorkerHistory.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping(path = "/allocation-history/{offenderNo}")
+    public OffenderKeyWorkerHistory getKeyWorkerHistoryForPrisoner(
+            @ApiParam(value = "offenderNo", required = true)
+            @NotEmpty
+            @PathVariable("offenderNo")
+            String offenderNo) {
+        return keyworkerService.getFullAllocationHistory(offenderNo);
+    }
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
             value = "Process manual allocation of an offender to a Key worker.",
             notes = "Process manual allocation of an offender to a Key worker.",
             nickname="allocate")

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -27,13 +28,10 @@ public class NomisService {
     public static final String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
     public static final String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
     private static final String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
-    private static final String GET_PRISONER = "/prisoners?offenderNo={offenderNo}";
+    private static final String GET_USER_DETAILS = "/users/{username}";
 
     private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFFENDER_KEY_WORKER =
             new ParameterizedTypeReference<List<OffenderKeyworkerDto>>() {};
-
-    private static final ParameterizedTypeReference<List<PrisonerDetailDto>> PRISONER_DTO_LIST =
-            new ParameterizedTypeReference<List<PrisonerDetailDto>>() {};
 
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
             new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {};
@@ -65,12 +63,6 @@ public class NomisService {
 
         List<OffenderLocationDto> offenders = restCallHelper.getForList(uri, OFFENDER_LOCATION_DTO_LIST).getBody();
         return Optional.ofNullable(offenders.size() > 0 ? offenders.get(0) : null);
-    }
-
-    public List<PrisonerDetailDto> getOffender(String offenderNo) {
-        log.info("Getting bookings for offender No {}", offenderNo);
-        URI uri = new UriTemplate(GET_PRISONER).expand(offenderNo);
-        return restCallHelper.getForList(uri, PRISONER_DTO_LIST).getBody();
     }
 
     public ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
@@ -130,5 +122,22 @@ public class NomisService {
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageOffset(offset).pageLimit(limit).build();
 
         return restCallHelper.getWithPaging(uri, pagingAndSorting, PARAM_TYPE_REF_OFFENDER_KEY_WORKER).getBody();
+    }
+
+    public BasicKeyworkerDto getStaffDetailByUserId(String userId) {
+        log.info("Getting staff details for user Id {}", userId);
+        URI uri = new UriTemplate(GET_USER_DETAILS).expand(userId);
+        log.debug("About to retrieve staff details from Elite2api using uri {}", uri.toString());
+
+        try {
+            BasicKeyworkerDto basicKeyworkerDto = restCallHelper.get(uri, BasicKeyworkerDto.class);
+            log.debug("Result: {}", basicKeyworkerDto);
+            return basicKeyworkerDto;
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().is4xxClientError()) {
+                return BasicKeyworkerDto.builder().firstName("User").lastName(userId).build();
+            }
+        }
+        return null;
     }
 }
