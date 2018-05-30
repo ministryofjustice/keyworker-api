@@ -356,7 +356,7 @@ public class KeyworkerServiceController {
             @NotEmpty
             @PathVariable("offenderNo")
             String offenderNo) {
-        return keyworkerService.getFullAllocationHistory(offenderNo);
+        return keyworkerService.getFullAllocationHistory(offenderNo).orElseThrow(EntityNotFoundException::new);
     }
     /* --------------------------------------------------------------------------------*/
 

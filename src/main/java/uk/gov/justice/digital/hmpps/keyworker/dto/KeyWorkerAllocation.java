@@ -56,7 +56,7 @@ public class KeyWorkerAllocation {
 
     @ApiModelProperty(required = true, value = "The user who created the allocation.")
     @NotBlank
-    private BasicKeyworkerDto userId;
+    private StaffUser userId;
 
     @ApiModelProperty(required = true, value = "Whether allocation is active.")
     @NotBlank
@@ -79,13 +79,13 @@ public class KeyWorkerAllocation {
 
     @ApiModelProperty(required = true, value = "The user who created the allocation.")
     @NotBlank
-    private BasicKeyworkerDto createdByUser;
+    private StaffUser createdByUser;
 
     @ApiModelProperty(required = false, value = "Last date and time of modification.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime modifyDateTime;
 
     @ApiModelProperty(required = true, value = "The user who last modified the allocation.")
-    private BasicKeyworkerDto lastModifiedByUser;
+    private StaffUser lastModifiedByUser;
 
 }

@@ -141,6 +141,7 @@ public class KeyworkerTestHelper {
                 .agencyId(prisonId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
+                .firstName("TestFirstname")
                 .build();
     }
 
