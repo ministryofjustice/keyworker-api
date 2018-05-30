@@ -54,11 +54,14 @@ public class DeallocateJobTest {
         List<PrisonerCustodyStatusDto> prisonerStatusesDay0 = Arrays.asList(
                 PrisonerCustodyStatusDto.builder()
                         .offenderNo("AA1111A")
+                        .toAgency("LEI")
                         .createDateTime(threshold)
                         .build(),
                 PrisonerCustodyStatusDto.builder()
                         .offenderNo("AA1111B")
+                        .toAgency("SYI")
                         .createDateTime(threshold.plusMinutes(1))
+                        .movementType("REL")
                         .build()
         );
         List<PrisonerCustodyStatusDto> prisonerStatusesDay3 = Arrays.asList(
@@ -72,23 +75,23 @@ public class DeallocateJobTest {
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-2))).thenReturn(Collections.emptyList());
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-3))).thenReturn(prisonerStatusesDay3);
 
-        List<OffenderKeyworker> offenderDetailsA = Arrays.asList(OffenderKeyworker.builder().offenderNo("AA1111A").active(true).build());
+        List<OffenderKeyworker> offenderDetailsA = Arrays.asList(OffenderKeyworker.builder().offenderNo("AA1111A").active(true).staffId(1234L).prisonId("MDI").build());
         List<OffenderKeyworker> offenderDetailsB = Arrays.asList(OffenderKeyworker.builder().offenderNo("AA1111B").active(true).build());
         when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
         when(repository.findByActiveAndOffenderNo(true, "AA1111B")).thenReturn(offenderDetailsB);
 
         deallocateJob.execute(threshold);
 
-        assertThat(offenderDetailsA).asList().containsExactly(OffenderKeyworker.builder().offenderNo("AA1111A")
-                .active(false)
-                .expiryDateTime(threshold)
-                .deallocationReason(DeallocationReason.RELEASED)
-                .build());
-        assertThat(offenderDetailsB).asList().containsExactly(OffenderKeyworker.builder().offenderNo("AA1111B")
-                .active(false)
-                .expiryDateTime(threshold.plusMinutes(1))
-                .deallocationReason(DeallocationReason.RELEASED)
-                .build());
+        assertThat(offenderDetailsA.get(0).getOffenderNo()).isEqualTo("AA1111A");
+        assertThat(offenderDetailsA.get(0).isActive()).isFalse();
+        assertThat(offenderDetailsA.get(0).getExpiryDateTime()).isEqualTo(threshold);
+        assertThat(offenderDetailsA.get(0).getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
+
+        assertThat(offenderDetailsB.get(0).getOffenderNo()).isEqualTo("AA1111B");
+        assertThat(offenderDetailsB.get(0).isActive()).isFalse();
+        assertThat(offenderDetailsB.get(0).getExpiryDateTime()).isEqualTo(threshold.plusMinutes(1));
+        assertThat(offenderDetailsB.get(0).getDeallocationReason()).isEqualTo(DeallocationReason.RELEASED);
+
         verify(repository).findByActiveAndOffenderNo(true, "AA1111C-notinDB");
 
         ArgumentCaptor<Map> event = ArgumentCaptor.forClass(Map.class);
@@ -122,5 +125,36 @@ public class DeallocateJobTest {
         verify(telemetryClient).trackException(exception.capture());
 
         assertThat(exception.getValue().getMessage()).isEqualTo("test");
+    }
+
+    @Test
+    public void testDeallocateJobDontProceed() {
+        final LocalDateTime threshold = LocalDateTime.of(2018, Month.JANUARY, 14, 12, 00);
+        final LocalDate today = LocalDate.now();
+
+        List<PrisonerCustodyStatusDto> prisonerStatusesDay0 = Arrays.asList(
+                PrisonerCustodyStatusDto.builder()
+                        .offenderNo("AA1111A")
+                        .createDateTime(threshold)
+                        .movementType("TRN")
+                        .directionCode("OUT")
+                        .fromAgency("BMI")
+                        .toAgency("BXI")
+                        .build()
+        );
+        when(nomisService.getPrisonerStatuses(threshold, today)).thenReturn(prisonerStatusesDay0);
+
+        List<OffenderKeyworker> offenderDetailsA = Arrays.asList(OffenderKeyworker.builder().offenderNo("AA1111A").prisonId("BXI").active(true).build());
+        when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
+
+        deallocateJob.execute(threshold);
+
+        verify(repository).findByActiveAndOffenderNo(true, "AA1111A");
+        // Check that nothing happened
+        assertThat(offenderDetailsA.get(0).getOffenderNo()).isEqualTo("AA1111A");
+        assertThat(offenderDetailsA.get(0).getPrisonId()).isEqualTo("BXI");
+        assertThat(offenderDetailsA.get(0).isActive()).isTrue();
+        assertThat(offenderDetailsA.get(0).getExpiryDateTime()).isNull();
+        assertThat(offenderDetailsA.get(0).getDeallocationReason()).isNull();
     }
 }
