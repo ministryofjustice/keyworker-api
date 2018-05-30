@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -68,10 +69,14 @@ public class DeallocateJob {
                 final List<OffenderKeyworker> ok = repository.findByActiveAndOffenderNo(true, ps.getOffenderNo());
                 // There shouldnt ever be more than 1, but just in case
                 ok.forEach(offenderKeyworker -> {
-                    offenderKeyworker.setActive(false);
-                    offenderKeyworker.setExpiryDateTime(ps.getCreateDateTime());
-                    offenderKeyworker.setDeallocationReason(DeallocationReason.RELEASED);
-                    log.info("Deallocated {} using timestamp {}", ps.getOffenderNo(), ps.getCreateDateTime());
+                    if (StringUtils.equals(ps.getToAgency(), offenderKeyworker.getPrisonId())) {
+                        log.warn("Not proceeding with " + ps);
+                    } else {
+                        offenderKeyworker.setActive(false);
+                        offenderKeyworker.setExpiryDateTime(ps.getCreateDateTime());
+                        offenderKeyworker.setDeallocationReason("REL".equals(ps.getMovementType()) ? DeallocationReason.RELEASED : DeallocationReason.TRANSFER);
+                        log.info("Deallocated offender from KW {} at {} due to record " + ps, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
+                    }
                 });
             });
         }
