@@ -204,11 +204,55 @@ public class KeyworkerService  {
         return repository.findByOffenderNo(offenderNo);
     }
 
+    public Optional<OffenderKeyWorkerHistory> getFullAllocationHistory(String offenderNo) {
+        final List<OffenderKeyworker> keyworkers = repository.findByOffenderNo(offenderNo);
+        OffenderKeyWorkerHistory offenderKeyWorkerHistory = null;
+
+        if (!keyworkers.isEmpty()) {
+            List<KeyWorkerAllocation> keyWorkerAllocations = keyworkers.stream().map(
+                    kw -> {
+                        StaffLocationRoleDto staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
+
+                        return KeyWorkerAllocation.builder()
+                                .offenderKeyworkerId(kw.getOffenderKeyworkerId())
+                                .firstName(staffKw.getFirstName())
+                                .lastName(staffKw.getLastName())
+                                .staffId(kw.getStaffId())
+                                .active(kw.isActive() ? "Yes" : "No")
+                                .allocationReason(kw.getAllocationReason())
+                                .allocationType(kw.getAllocationType())
+                                .assigned(kw.getAssignedDateTime())
+                                .expired(kw.getExpiryDateTime())
+                                .deallocationReason(kw.getDeallocationReason())
+                                .prisonId(kw.getPrisonId())
+                                .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
+                                .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
+                                .creationDateTime(kw.getCreationDateTime())
+                                .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifyUserId()))
+                                .modifyDateTime(kw.getModifyDateTime())
+                                .build();
+                    }
+
+            ).sorted(Comparator
+                    .comparing(KeyWorkerAllocation::getAssigned).reversed())
+                    .collect(Collectors.toList());
+
+            // use prison for most recent allocation
+            OffenderLocationDto offenderDetail = nomisService.getOffenderForPrison(keyWorkerAllocations.get(0).getPrisonId(), offenderNo)
+                    .orElseGet(OffenderLocationDto::new);
+
+            offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
+                    .offender(offenderDetail)
+                    .allocationHistory(keyWorkerAllocations)
+                    .build();
+
+        }
+        return Optional.ofNullable(offenderKeyWorkerHistory);
+    }
 
     public List<OffenderKeyworker> getAllocationsForKeyworker(Long staffId) {
         return repository.findByStaffId(staffId);
     }
-
 
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String prisonId, Long staffId, boolean skipOffenderDetails) {
 
@@ -233,7 +277,9 @@ public class KeyworkerService  {
                     .map(allocation -> decorateWithOffenderDetails(prisonId, allocation))
                     //remove allocations from returned list that do not have associated booking records
                     .filter(dto -> dto.getBookingId() != null)
-                    .sorted(Comparator.comparing(KeyworkerAllocationDetailsDto::getLastName))
+                    .sorted(Comparator
+                            .comparing(KeyworkerAllocationDetailsDto::getLastName)
+                            .thenComparing(KeyworkerAllocationDetailsDto::getFirstName))
                     .collect(Collectors.toList());
         }
 

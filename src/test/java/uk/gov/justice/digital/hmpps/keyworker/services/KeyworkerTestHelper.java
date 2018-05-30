@@ -3,7 +3,10 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
 
 import java.time.LocalDate;
@@ -138,14 +141,7 @@ public class KeyworkerTestHelper {
                 .agencyId(prisonId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
-                .build();
-    }
-
-    public static PrisonerDetailDto getOffender(String offenderNo, boolean currentlyInPrison) {
-        return PrisonerDetailDto.builder()
-                .offenderNo(offenderNo)
-                .currentlyInPrison(currentlyInPrison ? "Y" : "N")
-                .lastName("Testlastname")
+                .firstName("TestFirstname")
                 .build();
     }
 
