@@ -94,4 +94,11 @@ public class OffenderKeyworker {
     @LastModifiedBy
     @Column(name = "MODIFY_USER_ID")
     private String modifyUserId;
+
+
+    public void deallocate(LocalDateTime expiryDateTime, DeallocationReason deallocationReason) {
+        active = false;
+        setExpiryDateTime(expiryDateTime);
+        setDeallocationReason(deallocationReason);
+    }
 }

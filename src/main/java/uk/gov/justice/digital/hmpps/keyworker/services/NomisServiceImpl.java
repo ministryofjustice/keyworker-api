@@ -22,7 +22,6 @@ import java.util.Optional;
 public class NomisServiceImpl implements NomisService {
 
     private static final String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
-    private static final String GET_USER_DETAILS = "/users/{username}";
 
     private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFFENDER_KEY_WORKER =
             new ParameterizedTypeReference<List<OffenderKeyworkerDto>>() {};

@@ -358,6 +358,29 @@ public class KeyworkerServiceController {
             String offenderNo) {
         return keyworkerService.getFullAllocationHistory(offenderNo).orElseThrow(EntityNotFoundException::new);
     }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Deallocate a key worker from an offender",
+            notes = "Marks the offender with expired time on active record",
+            nickname="deallocate")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "De allocated"),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @PutMapping(path = "/deallocate/{offenderNo}")
+    public void deallocate(
+            @ApiParam(value = "offenderNo", required = true)
+            @NotEmpty
+            @PathVariable("offenderNo")
+                    String offenderNo) {
+        keyworkerService.deallocate(offenderNo);
+    }
+
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
