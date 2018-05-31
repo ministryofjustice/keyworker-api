@@ -112,7 +112,7 @@ class Elite2Api extends WireMockRule {
         } else {
             stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + GET_USER_DETAILS).expand(username).toString()))
                     .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                    .withBody(username.equals("ITAG_USER") ? StaffUserStub.responseItag : StaffUserStub.responseOmic) //empty list
+                    .withBody(StaffUserStub.responseItag(username)) //empty list
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
         }
     }

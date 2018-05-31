@@ -43,7 +43,7 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         given:
         migrated("LEI")
         elite2api.stubKeyworkerDetails("LEI", -2, )
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(-5)
+        elite2api.stubKeyworkerDetails_basicDetailsOnly(-4)
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
         elite2api.stubStaffUserDetails("omicadmin")
         elite2api.stubOffenderLookup("LEI", "A1234XX")
@@ -66,8 +66,8 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         keyWorkerHistory.allocationHistory.size() == 2
         keyWorkerHistory.allocationHistory[0].staffId == -2
         keyWorkerHistory.allocationHistory[0].active == 'Yes'
-        keyWorkerHistory.allocationHistory[1].staffId == -5
-        keyWorkerHistory.allocationHistory[1].active == 'No'
+        keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
+        keyWorkerHistory.allocationHistory[0].createdByUser.username == 'ITAG_USER'
     }
 
     def 'Deallocation makes last record inactive'() {
@@ -76,23 +76,23 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         migrated("LEI")
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
         elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubOffenderLookup("LEI", "A1234XX")
-        elite2api.stubStaffUserDetails("ITAG_USER")
+        elite2api.stubOffenderLookup("LEI", "A1234XZ")
+        elite2api.stubStaffUserDetails("ELITE2_API_USER")
 
         when:
 
-        restTemplate.exchange("/key-worker/deallocate/A1234XX", HttpMethod.PUT, createHeaderEntity(), Void.class)
-        def response = restTemplate.exchange("/key-worker/allocation-history/A1234XX", HttpMethod.GET,
+        restTemplate.exchange("/key-worker/deallocate/A1234XZ", HttpMethod.PUT, createHeaderEntity(), Void.class)
+        def response = restTemplate.exchange("/key-worker/allocation-history/A1234XZ", HttpMethod.GET,
                 createHeaderEntity(), String.class)
 
         then:
         response.statusCode == HttpStatus.OK
         def keyWorkerHistory = jsonSlurper.parseText(response.body)
-        keyWorkerHistory.offender.offenderNo == 'A1234XX'
-        keyWorkerHistory.allocationHistory.size() == 2
-        keyWorkerHistory.allocationHistory[0].staffId == -2
+        keyWorkerHistory.offender.offenderNo == 'A1234XZ'
+        keyWorkerHistory.allocationHistory.size() == 1
+        keyWorkerHistory.allocationHistory[0].staffId == -4
         keyWorkerHistory.allocationHistory[0].active == 'No'
-        keyWorkerHistory.allocationHistory[1].staffId == -5
-        keyWorkerHistory.allocationHistory[1].active == 'No'
+        keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
+        keyWorkerHistory.allocationHistory[0].createdByUser.username == 'omicadmin'
     }
 }
