@@ -13,6 +13,7 @@ public interface NomisService {
     String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
     String URI_CUSTODY_STATUSES = "/custody-statuses?fromDateTime={fromDateTime}&movementDate={movementDate}";
     String URI_STAFF = "/staff/{staffId}";
+    String GET_USER_DETAILS = "/users/{username}";
     String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
     String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";

@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
+import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -394,5 +395,21 @@ public class KeyworkerService  {
         if (behaviour.isRemoveFromAutoAllocation()) {
             keyworkerRepository.findOne(staffId).setAutoAllocationFlag(false);
         }
+    }
+
+    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    public void deallocate(String offenderNo) {
+        final List<OffenderKeyworker> offenderKeyworkers = repository.findByActiveAndOffenderNo(true, offenderNo);
+
+        if (offenderKeyworkers.isEmpty()) {
+            throw new EntityNotFoundException(String.format("Offender No %s not allocated or does not exist", offenderNo));
+        }
+
+        // There shouldnt ever be more than 1, but just in case
+        final LocalDateTime now = LocalDateTime.now();
+        offenderKeyworkers.forEach(offenderKeyworker -> {
+            offenderKeyworker.deallocate(now, DeallocationReason.MANUAL);
+            log.info("De-allocated offender {} from KW {} at {}", offenderNo, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
+        });
     }
 }

@@ -72,9 +72,7 @@ public class DeallocateJob {
                     if (StringUtils.equals(ps.getToAgency(), offenderKeyworker.getPrisonId())) {
                         log.warn("Not proceeding with " + ps);
                     } else {
-                        offenderKeyworker.setActive(false);
-                        offenderKeyworker.setExpiryDateTime(ps.getCreateDateTime());
-                        offenderKeyworker.setDeallocationReason("REL".equals(ps.getMovementType()) ? DeallocationReason.RELEASED : DeallocationReason.TRANSFER);
+                        offenderKeyworker.deallocate(ps.getCreateDateTime(), "REL".equals(ps.getMovementType()) ? DeallocationReason.RELEASED : DeallocationReason.TRANSFER);
                         log.info("Deallocated offender from KW {} at {} due to record " + ps, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
                     }
                 });

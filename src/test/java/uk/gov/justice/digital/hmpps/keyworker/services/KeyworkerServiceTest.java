@@ -22,13 +22,11 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -562,6 +560,28 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1,2,3));
         assertThat(keyworkerList).extracting("autoAllocationAllowed").isEqualTo(ImmutableList.of(true,true,true));
 
+    }
+
+    @Test
+    public void testDeallocation() {
+        final String offenderNo = "A1111AA";
+        final long staffId = -1L;
+
+        OffenderKeyworker testOffenderKeyworker = getTestOffenderKeyworker(TEST_AGENCY, offenderNo, staffId);
+        when(repository.findByActiveAndOffenderNo(true, offenderNo)).thenReturn(Collections.singletonList(testOffenderKeyworker));
+
+        service.deallocate(offenderNo);
+
+        verify(repository).findByActiveAndOffenderNo(true, offenderNo);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void testDeallocationNoOffender() {
+        final String offenderNo = "A1111AB";
+
+        when(repository.findByActiveAndOffenderNo(true, offenderNo)).thenReturn(new ArrayList<>());
+
+        service.deallocate(offenderNo);
     }
 
     @Test

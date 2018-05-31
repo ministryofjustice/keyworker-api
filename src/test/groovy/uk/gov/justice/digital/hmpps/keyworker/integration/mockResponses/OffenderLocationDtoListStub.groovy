@@ -18,4 +18,11 @@ class OffenderLocationDtoListStub {
  {"offenderNo":"EXPIRED1", "bookingId":-37, "firstName":"CHRIS", "lastName":"WOAKES", "agencyId":"${prisonId}"} 
 ]"""
     }
+
+    static getResponseOffender(prisonId, offenderNo) {
+        return """
+[
+ {"offenderNo":"${offenderNo}", "bookingId":-41, "firstName":"MOEEN", "lastName":"LEI","agencyId":"${prisonId}"}
+]"""
+    }
 }
