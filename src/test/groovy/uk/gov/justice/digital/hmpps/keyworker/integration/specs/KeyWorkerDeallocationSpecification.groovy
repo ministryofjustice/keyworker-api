@@ -12,7 +12,7 @@ class KeyWorkerDeallocationSpecification extends TestSpecification {
 
         when:
         //deallocate an active offender
-        def response = restTemplate.exchange("/key-worker/deallocate/A1176RS", HttpMethod.PUT,
+        def response = restTemplate.exchange("/key-worker/deallocate/A1234XY", HttpMethod.PUT,
                 createHeaderEntity(), Void.class)
 
         then:

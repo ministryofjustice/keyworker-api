@@ -105,6 +105,26 @@ class OffenderKeyworkerDtoListStub {
         "active": "N",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
+    },
+    {
+        "offenderNo": "A1234XX",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
+        "assigned": "2018-05-30T12:00:00",
+        "userId": "ITAG_USER",
+        "active": "Y",
+        "created": "2018-05-31T14:08:37.766",
+        "createdBy": "ELITE2_API_USER"
+    },
+    {
+        "offenderNo": "A1234XY",
+        "staffId":  -5,
+        "agencyId": "${prisonId}",
+        "assigned": "2018-05-30T12:00:00",
+        "userId": "ELITE2_API_USER",
+        "active": "Y",
+        "created": "2018-05-31T14:08:37.766",
+        "createdBy": "ITAG_USER"
     }
 ]
 """

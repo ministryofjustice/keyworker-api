@@ -46,23 +46,23 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-5)
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
         elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubOffenderLookup("LEI", "A1176RS")
+        elite2api.stubOffenderLookup("LEI", "A1234XX")
         elite2api.stubStaffUserDetails("ITAG_USER")
 
         when:
 
         restTemplate.exchange("/key-worker/allocate", HttpMethod.POST, createHeaderEntity("{\"allocationReason\": \"MANUAL\"," +
                 "  \"allocationType\": \"M\"," +
-                "  \"offenderNo\": \"A1176RS\"," +
+                "  \"offenderNo\": \"A1234XX\"," +
                 "  \"prisonId\": \"LEI\"," +
                 "  \"staffId\": -2}"), String.class)
-        def response = restTemplate.exchange("/key-worker/allocation-history/A1176RS", HttpMethod.GET,
+        def response = restTemplate.exchange("/key-worker/allocation-history/A1234XX", HttpMethod.GET,
                 createHeaderEntity(), String.class)
 
         then:
         response.statusCode == HttpStatus.OK
         def keyWorkerHistory = jsonSlurper.parseText(response.body)
-        keyWorkerHistory.offender.offenderNo == 'A1176RS'
+        keyWorkerHistory.offender.offenderNo == 'A1234XX'
         keyWorkerHistory.allocationHistory.size() == 2
         keyWorkerHistory.allocationHistory[0].staffId == -2
         keyWorkerHistory.allocationHistory[0].active == 'Yes'
@@ -74,21 +74,21 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
 
         given:
         migrated("LEI")
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(-5)
+        elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
         elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubOffenderLookup("LEI", "A1176RS")
+        elite2api.stubOffenderLookup("LEI", "A1234XX")
         elite2api.stubStaffUserDetails("ITAG_USER")
 
         when:
 
-        restTemplate.exchange("/key-worker/deallocate/A1176RS", HttpMethod.PUT, createHeaderEntity(), Void.class)
-        def response = restTemplate.exchange("/key-worker/allocation-history/A1176RS", HttpMethod.GET,
+        restTemplate.exchange("/key-worker/deallocate/A1234XX", HttpMethod.PUT, createHeaderEntity(), Void.class)
+        def response = restTemplate.exchange("/key-worker/allocation-history/A1234XX", HttpMethod.GET,
                 createHeaderEntity(), String.class)
 
         then:
         response.statusCode == HttpStatus.OK
         def keyWorkerHistory = jsonSlurper.parseText(response.body)
-        keyWorkerHistory.offender.offenderNo == 'A1176RS'
+        keyWorkerHistory.offender.offenderNo == 'A1234XX'
         keyWorkerHistory.allocationHistory.size() == 2
         keyWorkerHistory.allocationHistory[0].staffId == -2
         keyWorkerHistory.allocationHistory[0].active == 'No'
