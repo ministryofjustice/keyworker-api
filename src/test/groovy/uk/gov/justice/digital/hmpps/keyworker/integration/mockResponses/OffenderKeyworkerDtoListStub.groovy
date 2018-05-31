@@ -118,7 +118,7 @@ class OffenderKeyworkerDtoListStub {
     },
     {
         "offenderNo": "A1234XY",
-        "staffId":  -5,
+        "staffId":  -4,
         "agencyId": "${prisonId}",
         "assigned": "2018-05-30T12:00:00",
         "userId": "ELITE2_API_USER",
