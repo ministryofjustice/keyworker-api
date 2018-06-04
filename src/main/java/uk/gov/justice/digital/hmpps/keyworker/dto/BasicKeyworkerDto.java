@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @EqualsAndHashCode()
+@ToString(exclude={"firstName","lastName","email"})
 public class BasicKeyworkerDto {
 
     @ApiModelProperty(required = true, value = "Unique staff identifier for Key worker.")
