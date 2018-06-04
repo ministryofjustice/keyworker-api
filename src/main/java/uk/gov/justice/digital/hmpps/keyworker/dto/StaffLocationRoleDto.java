@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @EqualsAndHashCode(of = { "staffId" })
+@ToString(exclude={"firstName","lastName","email"})
 public class StaffLocationRoleDto {
     private Long staffId;
     private String firstName;

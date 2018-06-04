@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @EqualsAndHashCode()
+@ToString(exclude={"firstName","lastName"})
 public class StaffUser {
 
     @ApiModelProperty(required = true, value = "Unique staff identifier")
