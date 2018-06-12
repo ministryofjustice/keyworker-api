@@ -57,13 +57,13 @@ public class PrisonSupportedService {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
     public void updateSupportedPrison(String prisonId, boolean autoAllocate) {
         updateSupportedPrison(prisonId, autoAllocate, null, null);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
     public void updateSupportedPrison(String prisonId, boolean autoAllocate, Integer capacityTier1, Integer capacityTier2) {
         PrisonSupported prison = repository.findOne(prisonId);

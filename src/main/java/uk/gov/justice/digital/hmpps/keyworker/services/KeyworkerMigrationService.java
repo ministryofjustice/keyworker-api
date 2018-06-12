@@ -38,7 +38,7 @@ public class KeyworkerMigrationService {
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    @PreAuthorize("hasRole('KW_MIGRATION')")
     public void migrateKeyworkerByPrison(String prisonId) {
         if (prisonSupportedService.isMigrated(prisonId)) return;
 
