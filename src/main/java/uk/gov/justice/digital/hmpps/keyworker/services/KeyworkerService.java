@@ -354,7 +354,7 @@ public class KeyworkerService  {
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
     public void runDeallocateBatchProcess(LocalDateTime checkFromDateTime) {
-        deallocateJob.checkMovements(checkFromDateTime);
+        deallocateJob.execute(checkFromDateTime);
     }
 
     @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
