@@ -76,6 +76,7 @@ public class DeallocateJobTest {
         ReflectionTestUtils.setField(deallocateJob, "telemetryClient", telemetryClient);
         ReflectionTestUtils.setField(deallocateJob, "lookBackDays", 3);
         ReflectionTestUtils.setField(deallocateJob, "maxAttempts", 2);
+        ReflectionTestUtils.setField(deallocateJob, "backoffMs", 100);
     }
 
     @Test

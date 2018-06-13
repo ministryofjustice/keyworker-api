@@ -40,6 +40,8 @@ public class DeallocateJob {
     private int lookBackDays;
     @Value("${api.keyworker.deallocate.maxAttempts}")
     private int maxAttempts;
+    @Value("${api.keyworker.deallocate.backoffMs}")
+    private int backoffMs;
 
     public void execute(LocalDateTime previousJobStartParam) {
         try {
@@ -132,7 +134,7 @@ public class DeallocateJob {
 
     private void pause() {
         try {
-            Thread.sleep(1000L);
+            Thread.sleep(backoffMs);
         } catch (InterruptedException ie) {
             log.error("Unexpected error", ie);
         }
