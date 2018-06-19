@@ -10,7 +10,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerCustodyStatusDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
+import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDate;
@@ -26,26 +29,24 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DeallocateJobTest {
+public class KeyworkerBatchServiceTest {
 
-    private DeallocateJob deallocateJob;
+    private KeyworkerBatchService batchService;
 
     @Mock
     private NomisService nomisService;
     @Mock
     private OffenderKeyworkerRepository repository;
     @Mock
+    private KeyworkerRepository keyworkerRepository;
+    @Mock
     private TelemetryClient telemetryClient;
 
     @Before
     public void setUp() {
-        deallocateJob = new DeallocateJob();
-        ReflectionTestUtils.setField(deallocateJob, "nomisService", nomisService);
-        ReflectionTestUtils.setField(deallocateJob, "repository", repository);
-        ReflectionTestUtils.setField(deallocateJob, "telemetryClient", telemetryClient);
-        ReflectionTestUtils.setField(deallocateJob, "lookBackDays", 3);
+        batchService = new KeyworkerBatchService(repository, keyworkerRepository, nomisService, telemetryClient);
+        ReflectionTestUtils.setField(batchService, "lookBackDays", 3);
     }
-
     @Test
     public void testDeallocateJobHappy() {
         final LocalDateTime threshold = LocalDateTime.of(2018, Month.JANUARY, 14, 12, 00);
@@ -80,7 +81,7 @@ public class DeallocateJobTest {
         when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
         when(repository.findByActiveAndOffenderNo(true, "AA1111B")).thenReturn(offenderDetailsB);
 
-        deallocateJob.execute(threshold);
+        batchService.executeDeallocation(threshold);
 
         assertThat(offenderDetailsA.get(0).getOffenderNo()).isEqualTo("AA1111A");
         assertThat(offenderDetailsA.get(0).isActive()).isFalse();
@@ -119,7 +120,7 @@ public class DeallocateJobTest {
 
         when(nomisService.getPrisonerStatuses(threshold, today)).thenThrow(new RuntimeException("test"));
 
-        deallocateJob.execute(threshold);
+        batchService.executeDeallocation(threshold);
 
         ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
         verify(telemetryClient).trackException(exception.capture());
@@ -147,7 +148,7 @@ public class DeallocateJobTest {
         List<OffenderKeyworker> offenderDetailsA = Arrays.asList(OffenderKeyworker.builder().offenderNo("AA1111A").prisonId("BXI").active(true).build());
         when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
 
-        deallocateJob.execute(threshold);
+        batchService.executeDeallocation(threshold);
 
         verify(repository).findByActiveAndOffenderNo(true, "AA1111A");
         // Check that nothing happened
@@ -156,5 +157,34 @@ public class DeallocateJobTest {
         assertThat(offenderDetailsA.get(0).isActive()).isTrue();
         assertThat(offenderDetailsA.get(0).getExpiryDateTime()).isNull();
         assertThat(offenderDetailsA.get(0).getDeallocationReason()).isNull();
+    }
+
+    @Test
+    public void testUpdateStatusBatchHappy() {
+        final LocalDate DATE_14_JAN_2018 = LocalDate.of(2018, Month.JANUARY, 14);
+        final LocalDate today = LocalDate.now();
+
+        final Keyworker keyworker_backFromLeave = new Keyworker(2l, 6, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, Boolean.TRUE, DATE_14_JAN_2018);
+
+        when(keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1))).thenReturn(Arrays.asList(keyworker_backFromLeave));
+
+        final List<Long> keyworkerIds = batchService.executeUpdateStatus();
+
+        assertThat(keyworkerIds).containsExactlyInAnyOrder(2l);
+    }
+
+    @Test
+    public void testUpdateStatusJobException() {
+        final LocalDateTime threshold = LocalDateTime.of(2018, Month.JANUARY, 14, 12, 00);
+        final LocalDate today = LocalDate.now();
+
+        when(keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1))).thenThrow(new RuntimeException("test"));
+
+        batchService.executeUpdateStatus();
+
+        ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
+        verify(telemetryClient).trackException(exception.capture());
+
+        assertThat(exception.getValue().getMessage()).isEqualTo("test");
     }
 }

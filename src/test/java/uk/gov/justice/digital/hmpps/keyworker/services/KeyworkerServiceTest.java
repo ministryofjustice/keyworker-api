@@ -67,8 +67,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @MockBean
     private NomisService nomisService;
 
-    @MockBean
-    private DeallocateJob deallocateJob;
 
     @Before
     public void setup() {
