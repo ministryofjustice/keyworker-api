@@ -42,6 +42,13 @@ class Elite2Api extends WireMockRule {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
+    def stubAvailableKeyworkersForStatusUpdate = { prisonId ->
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(StaffLocationRoleDtoListStub.getResponseForStatusUpdate())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
     def stubAvailableKeyworkersForAutoAllocation = { prisonId ->
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())

@@ -34,6 +34,38 @@ class StaffLocationRoleDtoListStub {
         return response
     }
 
+    static getResponseForStatusUpdate() {
+        def response = """
+[
+    {
+        "staffId": -15,
+        "firstName": "Another",
+        "lastName": "CUser",
+        "numberAllocated": 3
+    },
+    {
+        "staffId": -13,
+        "firstName": "HPA",
+        "lastName": "AUser",
+        "numberAllocated": 0
+    },
+    {
+        "staffId": -14,
+        "firstName": "Test",
+        "lastName": "TUser",
+        "numberAllocated": 2
+    },
+    {
+        "staffId": -12,
+        "firstName": "API",
+        "lastName": "DUser",
+        "numberAllocated": 10
+    }
+]
+"""
+        return response
+    }
+
     static getResponseForAutoAllocation() {
         def response = """
 [

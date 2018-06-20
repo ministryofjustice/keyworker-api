@@ -26,12 +26,12 @@ class UpdateStatusSpecification extends TestSpecification {
 
         given:
         migrated("LEI")
-        elite2api.stubAvailableKeyworkers("LEI")
-        restTemplate.exchange("/key-worker/-5/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerBackFromAnnualLeave), String.class);
-        restTemplate.exchange("/key-worker/-3/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerBackFromAnnualLeave), String.class);
-        restTemplate.exchange("/key-worker/-2/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerOnAnnualLeave), String.class);
-        restTemplate.exchange("/key-worker/-1/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerActive), String.class);
-        restTemplate.exchange("/key-worker/-4/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerInactive), String.class);
+        elite2api.stubAvailableKeyworkersForStatusUpdate("LEI")
+        restTemplate.exchange("/key-worker/-15/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerBackFromAnnualLeave), String.class);
+        restTemplate.exchange("/key-worker/-13/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerBackFromAnnualLeave), String.class);
+        restTemplate.exchange("/key-worker/-12/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerOnAnnualLeave), String.class);
+        restTemplate.exchange("/key-worker/-11/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerActive), String.class);
+        restTemplate.exchange("/key-worker/-14/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerInactive), String.class);
 
 
         when:
@@ -41,8 +41,8 @@ class UpdateStatusSpecification extends TestSpecification {
         response.statusCode == HttpStatus.OK
         def listOfUpdatedKeyworkerIds = jsonSlurper.parseText(response.body)
         listOfUpdatedKeyworkerIds.size() == 2
-        listOfUpdatedKeyworkerIds.contains(-5)
-        listOfUpdatedKeyworkerIds.contains(-3)
+        listOfUpdatedKeyworkerIds.contains(-15)
+        listOfUpdatedKeyworkerIds.contains(-13)
     }
 }
 
