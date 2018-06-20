@@ -39,7 +39,7 @@ roleMigration:
   rolesToMigrate:
     - KW_ADMIN
   rolesToAssign:
-    - KW_ADMIN
+    - OMIC_ADMIN
 
 elite2api:
   client:

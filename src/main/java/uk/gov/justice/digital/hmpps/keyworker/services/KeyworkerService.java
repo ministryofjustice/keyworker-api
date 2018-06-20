@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.text.WordUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -137,7 +138,7 @@ public class KeyworkerService  {
         return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(staffKeyWorker), prisonCapacityDefault);
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
     public void allocate(@Valid @NotNull KeyworkerAllocationDto keyworkerAllocation) {
         prisonSupportedService.verifyPrisonMigrated(keyworkerAllocation.getPrisonId());
         doAllocateValidation(keyworkerAllocation);
@@ -180,7 +181,7 @@ public class KeyworkerService  {
      *
      * @param allocation allocation details.
      */
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
     public void allocate(OffenderKeyworker allocation) {
         Validate.notNull(allocation);
 
@@ -207,21 +208,24 @@ public class KeyworkerService  {
         OffenderKeyWorkerHistory offenderKeyWorkerHistory = null;
 
         if (!keyworkers.isEmpty()) {
-            List<KeyWorkerAllocation> keyWorkerAllocations = keyworkers.stream().map(
+            List<KeyWorkerAllocation> keyWorkerAllocations = keyworkers.stream()
+                    .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
+                    .map(
                     kw -> {
                         StaffLocationRoleDto staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
 
+                        String deallocationReason = WordUtils.capitalizeFully(StringUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
                         return KeyWorkerAllocation.builder()
                                 .offenderKeyworkerId(kw.getOffenderKeyworkerId())
                                 .firstName(staffKw.getFirstName())
                                 .lastName(staffKw.getLastName())
                                 .staffId(kw.getStaffId())
-                                .active(kw.isActive() ? "Yes" : "No")
-                                .allocationReason(kw.getAllocationReason())
+                                .active(kw.isActive())
                                 .allocationType(kw.getAllocationType())
+                                .allocationReason(WordUtils.capitalizeFully(kw.getAllocationReason().getReasonCode()))
                                 .assigned(kw.getAssignedDateTime())
                                 .expired(kw.getExpiryDateTime())
-                                .deallocationReason(kw.getDeallocationReason())
+                                .deallocationReason(deallocationReason)
                                 .prisonId(kw.getPrisonId())
                                 .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
                                 .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
@@ -346,7 +350,7 @@ public class KeyworkerService  {
     }
 
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
     public void addOrUpdate(Long staffId, String prisonId, KeyworkerUpdateDto keyworkerUpdateDto) {
 
         Validate.notNull(staffId, "Missing staff id");
@@ -392,7 +396,7 @@ public class KeyworkerService  {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_KW_ADMIN')")
+    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
     public void deallocate(String offenderNo) {
         final List<OffenderKeyworker> offenderKeyworkers = repository.findByActiveAndOffenderNo(true, offenderNo);
 

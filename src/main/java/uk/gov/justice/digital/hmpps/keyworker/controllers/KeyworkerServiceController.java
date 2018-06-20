@@ -329,11 +329,11 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 200, message = "Batch process complete", response = String.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @PostMapping(path = "/batch/deallocate/{checkFromDateTime}")
+    @PostMapping(path = "/batch/deallocate")
     @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
     public void runBatchDeallocation(
-            @ApiParam(value = "The date for which to check for movements", required=true)
-            @PathVariable("checkFromDateTime")
+            @ApiParam(value = "The date for which to check for movements (ignored if in BATCH_HISTORY)")
+            @RequestParam(value = "checkFromDateTime", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkFromDateTime) {
         keyworkerBatchService.executeDeallocation(checkFromDateTime);
     }

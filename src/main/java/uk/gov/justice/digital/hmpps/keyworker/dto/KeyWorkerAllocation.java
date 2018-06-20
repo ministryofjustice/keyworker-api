@@ -6,9 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.format.annotation.DateTimeFormat;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -58,7 +56,7 @@ public class KeyWorkerAllocation {
 
     @ApiModelProperty(required = true, value = "Whether allocation is active.")
     @NotBlank
-    private String active;
+    private boolean active;
 
     @ApiModelProperty(required = true, value = "Type of allocation - auto or manual.")
     @NotNull
@@ -66,10 +64,10 @@ public class KeyWorkerAllocation {
 
     @ApiModelProperty(required = true, value = "Reason for allocation.")
     @NotNull
-    private AllocationReason allocationReason;
+    private String allocationReason;
 
     @ApiModelProperty(value = "Reason for de-allocation.")
-    private DeallocationReason deallocationReason;
+    private String deallocationReason;
 
     @ApiModelProperty(required = false, value = "The date and time of creation.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

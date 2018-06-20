@@ -29,12 +29,14 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         keyWorkerHistory.offender.offenderNo == 'A6676RS'
         keyWorkerHistory.allocationHistory.size() == 2
         keyWorkerHistory.allocationHistory[0].staffId == -5
-        keyWorkerHistory.allocationHistory[0].active == 'No'
+        keyWorkerHistory.allocationHistory[0].active == false
+        keyWorkerHistory.allocationHistory[0].allocationReason == 'Manual'
         keyWorkerHistory.allocationHistory[0].userId.staffId == -2
         keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'omicadmin'
         keyWorkerHistory.allocationHistory[1].staffId == -5
         keyWorkerHistory.allocationHistory[1].userId.staffId == -2
-        keyWorkerHistory.allocationHistory[1].active == 'No'
+        keyWorkerHistory.allocationHistory[1].active == false
+        keyWorkerHistory.allocationHistory[1].allocationReason == 'Manual'
         keyWorkerHistory.allocationHistory[1].lastModifiedByUser.username == 'omicadmin'
     }
 
@@ -65,7 +67,8 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         keyWorkerHistory.offender.offenderNo == 'A1234XX'
         keyWorkerHistory.allocationHistory.size() == 2
         keyWorkerHistory.allocationHistory[0].staffId == -2
-        keyWorkerHistory.allocationHistory[0].active == 'Yes'
+        keyWorkerHistory.allocationHistory[0].active == true
+        keyWorkerHistory.allocationHistory[0].allocationReason == 'Manual'
         keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
         keyWorkerHistory.allocationHistory[0].createdByUser.username == 'ITAG_USER'
     }
@@ -91,8 +94,9 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         keyWorkerHistory.offender.offenderNo == 'A1234XZ'
         keyWorkerHistory.allocationHistory.size() == 1
         keyWorkerHistory.allocationHistory[0].staffId == -4
-        keyWorkerHistory.allocationHistory[0].active == 'No'
+        keyWorkerHistory.allocationHistory[0].active == false
         keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
         keyWorkerHistory.allocationHistory[0].createdByUser.username == 'omicadmin'
+        keyWorkerHistory.allocationHistory[0].deallocationReason == 'Manual'
     }
 }
