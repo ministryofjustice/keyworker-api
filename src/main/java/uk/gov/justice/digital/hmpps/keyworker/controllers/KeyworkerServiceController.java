@@ -330,7 +330,7 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @PostMapping(path = "/batch/deallocate")
-    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    @PreAuthorize("hasRole('KW_MIGRATION')")
     public void runBatchDeallocation(
             @ApiParam(value = "The date for which to check for movements (ignored if in BATCH_HISTORY)")
             @RequestParam(value = "checkFromDateTime", required = false)
@@ -579,7 +579,7 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @PostMapping(path = "/batch/update-status")
-    @PreAuthorize("hasRole('ROLE_KW_MIGRATION')")
+    @PreAuthorize("hasRole('KW_MIGRATION')")
     public List<Long> runBatchUpdateStatus() {
         final List<Long> keyworkerStaffIds = keyworkerBatchService.executeUpdateStatus();
         log.info("processed /batch/updateStatus call. The following key workers have been set to status active: {}", keyworkerStaffIds);

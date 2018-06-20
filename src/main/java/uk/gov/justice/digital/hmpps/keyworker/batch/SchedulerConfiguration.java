@@ -99,7 +99,7 @@ public class SchedulerConfiguration {
         return getCronTriggerFactoryBean(jobDetail, cronExpression);
     }
 
-    private CronTriggerFactoryBean getCronTriggerFactoryBean(@Qualifier("updateStatusJobDetail") JobDetail jobDetail, @Value("${updateStatus.job.cron}") String cronExpression) {
+    private CronTriggerFactoryBean getCronTriggerFactoryBean(JobDetail jobDetail, String cronExpression) {
         CronTriggerFactoryBean factoryBean = new CronTriggerFactoryBean();
         factoryBean.setJobDetail(jobDetail);
         factoryBean.setCronExpression(cronExpression);
