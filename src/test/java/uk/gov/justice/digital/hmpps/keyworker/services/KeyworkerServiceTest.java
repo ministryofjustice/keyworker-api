@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
@@ -303,11 +304,11 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final long staffId = 5L;
         final int CAPACITY = 10;
         final int ALLOCATIONS = 4;
-        expectKeyworkerDetailsCall(staffId, CAPACITY, ALLOCATIONS);
+        expectKeyworkerDetailsCall(staffId, CAPACITY, ALLOCATIONS, null);
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails, null);
     }
 
     @Test
@@ -351,7 +352,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         }
     }
 
-    private void expectKeyworkerDetailsCall(long staffId, Integer CAPACITY, int ALLOCATIONS) {
+    private void expectKeyworkerDetailsCall(long staffId, Integer CAPACITY, int ALLOCATIONS, LocalDate activeDate) {
         expectStaffRoleApiCall(staffId);
 
         when(keyworkerRepository.findOne(staffId)).thenReturn(Keyworker.builder()
@@ -359,6 +360,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .capacity(CAPACITY)
                 .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
                 .autoAllocationFlag(true)
+                .activeDate(activeDate)
                 .build()
         );
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, PROVISIONAL)).thenReturn(ALLOCATIONS);
@@ -378,11 +380,12 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testGetKeyworkerDetailsNoCapacity() {
         final long staffId = 5L;
         final int ALLOCATIONS = 4;
-        expectKeyworkerDetailsCall(staffId, null, ALLOCATIONS);
+        final LocalDate activeDate = LocalDate.of(2018, 10, 10);
+        expectKeyworkerDetailsCall(staffId, null, ALLOCATIONS, activeDate);
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails, activeDate);
     }
 
     @Test
@@ -395,7 +398,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, null, KeyworkerStatus.ACTIVE, keyworkerDetails);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, null, KeyworkerStatus.ACTIVE, keyworkerDetails, null);
     }
 
     @Test

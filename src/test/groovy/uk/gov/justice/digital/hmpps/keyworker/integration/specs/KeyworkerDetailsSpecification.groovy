@@ -27,6 +27,7 @@ class KeyworkerDetailsSpecification extends TestSpecification {
         keyworkerDetails.numberAllocated == 3 //after migration -5 has 3 active allocations
         keyworkerDetails.firstName == 'Another'
         keyworkerDetails.lastName == 'CUser'
+        keyworkerDetails.activeDate == null
     }
 
     def 'key worker details - keyworker not available for prison - defaults to retrieve basic details (from other prison)'() {
