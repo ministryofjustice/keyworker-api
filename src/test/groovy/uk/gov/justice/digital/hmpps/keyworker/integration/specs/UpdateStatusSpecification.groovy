@@ -29,9 +29,9 @@ class UpdateStatusSpecification extends TestSpecification {
         elite2api.stubAvailableKeyworkers("LEI")
         restTemplate.exchange("/key-worker/-5/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerBackFromAnnualLeave), String.class);
         restTemplate.exchange("/key-worker/-3/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerBackFromAnnualLeave), String.class);
-        restTemplate.exchange("/key-worker/-2/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerOnAnnualLeave()), String.class);
-        restTemplate.exchange("/key-worker/-1/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerActive()), String.class);
-        restTemplate.exchange("/key-worker/-4/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerInactive()), String.class);
+        restTemplate.exchange("/key-worker/-2/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerOnAnnualLeave), String.class);
+        restTemplate.exchange("/key-worker/-1/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerActive), String.class);
+        restTemplate.exchange("/key-worker/-4/prison/LEI", HttpMethod.POST, createHeaderEntity(keyworkerInactive), String.class);
 
 
         when:

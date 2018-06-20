@@ -6,11 +6,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerCustodyStatusDto;
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.repository.BatchHistoryRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
@@ -30,30 +29,82 @@ public class KeyworkerBatchService {
     private final OffenderKeyworkerRepository repository;
     private final KeyworkerRepository keyworkerRepository;
     private TelemetryClient telemetryClient;
+    private final BatchHistoryRepository batchHistoryRepository;
     @Value("${api.keyworker.deallocate.lookBackDays}")
     private int lookBackDays;
+    @Value("${api.keyworker.deallocate.maxAttempts}")
+    private int maxAttempts;
+    @Value("${api.keyworker.deallocate.backoffMs}")
+    private int backoffMs;
 
     public KeyworkerBatchService(OffenderKeyworkerRepository repository,
                                  KeyworkerRepository keyworkerRepository,
                                  NomisService nomisService,
-                                 TelemetryClient telemetryClient) {
+                                 TelemetryClient telemetryClient, BatchHistoryRepository batchHistoryRepository) {
         this.keyworkerRepository = keyworkerRepository;
         this.telemetryClient = telemetryClient;
         this.repository = repository;
         this.nomisService = nomisService;
+        this.batchHistoryRepository = batchHistoryRepository;
     }
 
-    public void executeDeallocation(LocalDateTime previousJobStart) {
-
+    public void executeDeallocation(LocalDateTime previousJobStartParam) {
         try {
-            log.info("******** De-allocation Process Started using threshold=" + previousJobStart);
+            BatchHistory deallocateJob = batchHistoryRepository.findByName("DeallocateJob");
+            if (deallocateJob == null) {
+                deallocateJob = BatchHistory.builder()
+                        .name("DeallocateJob")
+                        .lastRun(previousJobStartParam)
+                        .build();
+                batchHistoryRepository.save(deallocateJob);
+                log.warn("Created BatchHistory record");
+            }
+            LocalDateTime previousJobStart = deallocateJob.getLastRun();
+            final LocalDateTime thisJobStart = LocalDateTime.now();
 
-            final LocalDate today = LocalDate.now();
+            log.info("******** De-allocation Process Started using previousJobStart=" + previousJobStart);
 
-            logEventToAzure(previousJobStart, today);
+            checkMovements(previousJobStart);
 
-            for (int dayNumber = 0; dayNumber >= -lookBackDays; dayNumber--) {
-                final LocalDate movementDate = today.plusDays(dayNumber);
+            deallocateJob.setLastRun(thisJobStart);
+
+            log.info("******** De-allocation Process Ended");
+        } catch (Exception e) {
+            log.error("Batch exception", e);
+            telemetryClient.trackException(e);
+        }
+    }
+
+    public void checkMovements(LocalDateTime previousJobStart) {
+
+        final LocalDate today = LocalDate.now();
+
+        logEventToAzure(previousJobStart, today);
+
+        for (int dayNumber = 0; dayNumber >= -lookBackDays; dayNumber--) {
+
+            final List<PrisonerCustodyStatusDto> prisonerStatuses = getFromNomis(previousJobStart, today, dayNumber);
+
+            prisonerStatuses.forEach(ps -> {
+                final List<OffenderKeyworker> ok = repository.findByActiveAndOffenderNo(true, ps.getOffenderNo());
+                // There shouldnt ever be more than 1, but just in case
+                ok.forEach(offenderKeyworker -> {
+                    if (StringUtils.equals(ps.getToAgency(), offenderKeyworker.getPrisonId())) {
+                        log.warn("Not proceeding with " + ps);
+                    } else {
+                        offenderKeyworker.deallocate(ps.getCreateDateTime(), "REL".equals(ps.getMovementType()) ? DeallocationReason.RELEASED : DeallocationReason.TRANSFER);
+                        log.info("Deallocated offender from KW {} at {} due to record " + ps, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
+                    }
+                });
+            });
+        }
+    }
+
+    private List<PrisonerCustodyStatusDto> getFromNomis(LocalDateTime previousJobStart, LocalDate today, int dayNumber) {
+
+        for (int i = 1; i <= maxAttempts; i++) {
+            final LocalDate movementDate = today.plusDays(dayNumber);
+            try {
 
                 // Use custody-statuses endpoint to get info from offender_external_movements
                 // which matches when the trigger on this table fires to update offender_key_workers
@@ -61,29 +112,36 @@ public class KeyworkerBatchService {
                 final long startTime = System.currentTimeMillis();
                 final List<PrisonerCustodyStatusDto> prisonerStatuses = nomisService.getPrisonerStatuses(previousJobStart, movementDate);
                 final long endTime = System.currentTimeMillis();
+
                 log.info("Day offset {}: {} released or transferred prisoners found", dayNumber, prisonerStatuses.size());
-
                 logSubEventToAzure(dayNumber, prisonerStatuses, endTime - startTime);
+                return prisonerStatuses;
 
-                prisonerStatuses.forEach(ps -> {
-                    final List<OffenderKeyworker> ok = repository.findByActiveAndOffenderNo(true, ps.getOffenderNo());
-                    // There shouldnt ever be more than 1, but just in case
-                    ok.forEach(offenderKeyworker -> {
-                        if (StringUtils.equals(ps.getToAgency(), offenderKeyworker.getPrisonId())) {
-                            log.warn("Not proceeding with " + ps);
-                        } else {
-                            offenderKeyworker.deallocate(ps.getCreateDateTime(), "REL".equals(ps.getMovementType()) ? DeallocationReason.RELEASED : DeallocationReason.TRANSFER);
-                            log.info("Deallocated offender from KW {} at {} due to record " + ps, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
-                        }
-                    });
-                });
+            } catch (HttpServerErrorException e) {
+                // The gateway could timeout
+                if (!e.getMessage().contains("502 Bad Gateway")) {
+                    throw e;
+                } else if (i == maxAttempts) {
+                    log.warn("Detected a gateway timeout for movementDate=" + movementDate + ", attempt " + i + ", aborting", e);
+                    // Throw toys out of pram and leave till next batch run
+                    throw e;
+                } else {
+                    log.warn("Detected a gateway timeout for movementDate=" + movementDate + ", attempt " + i + ", retrying", e);
+                    telemetryClient.trackException(e);
+                    // don't hammer a struggling back end
+                    pause();
+                }
             }
+        }
+        // Should never get here
+        throw new IllegalStateException();
+    }
 
-            log.info("******** De-allocation Process Ended");
-
-        } catch (Exception e) {
-            log.error("Batch exception", e);
-            telemetryClient.trackException(e);
+    private void pause() {
+        try {
+            Thread.sleep(backoffMs);
+        } catch (InterruptedException ie) {
+            log.error("Unexpected error", ie);
         }
     }
 
