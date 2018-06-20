@@ -5,6 +5,8 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "KEY_WORKER")
@@ -33,4 +35,7 @@ public class Keyworker {
     @Column(name = "AUTO_ALLOCATION_FLAG", nullable = false)
     @Builder.Default
     private Boolean autoAllocationFlag = Boolean.TRUE;
+
+    @Column(name = "ACTIVE_DATE")
+    LocalDate activeDate;
 }

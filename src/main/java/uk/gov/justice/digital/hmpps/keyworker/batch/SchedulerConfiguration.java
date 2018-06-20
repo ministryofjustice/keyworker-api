@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.batch;
 
 
 import org.quartz.CronTrigger;
@@ -17,6 +17,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import uk.gov.justice.digital.hmpps.keyworker.batch.DeallocateQuartzJob;
+import uk.gov.justice.digital.hmpps.keyworker.batch.UpdateStatusQuartzJob;
+import uk.gov.justice.digital.hmpps.keyworker.services.AutowiringSpringBeanJobFactory;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -36,7 +39,8 @@ public class SchedulerConfiguration {
 
     @Bean
     public Scheduler schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory,
-                                          @Qualifier("deallocationJobCron") CronTrigger deallocationJobCron) throws Exception {
+                                          @Qualifier("deallocationJobCron") CronTrigger deallocationJobCron,
+                                          @Qualifier("updateStatusJobCron") CronTrigger updateStatusJobCron) throws Exception {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         // this allows to update triggers in DB when updating settings in config file:
         factory.setOverwriteExistingJobs(true);
@@ -49,10 +53,17 @@ public class SchedulerConfiguration {
         Scheduler scheduler = factory.getScheduler();
         scheduler.setJobFactory(jobFactory);
 
-        JobDetail jobDetail = (JobDetail) deallocationJobCron.getJobDataMap().get("jobDetail");
-        if (scheduler.getJobDetail(jobDetail.getKey()) == null) {
-            scheduler.scheduleJob(jobDetail, deallocationJobCron);
+        JobDetail deallocationJobDetail = (JobDetail) deallocationJobCron.getJobDataMap().get("jobDetail");
+        if (scheduler.getJobDetail(deallocationJobDetail.getKey()) == null) {
+            scheduler.scheduleJob(deallocationJobDetail, deallocationJobCron);
         }
+
+        JobDetail updateStatusJobDetail = (JobDetail) updateStatusJobCron.getJobDataMap().get("jobDetail");
+        if (scheduler.getJobDetail(updateStatusJobDetail.getKey()) == null) {
+            scheduler.scheduleJob(updateStatusJobDetail, updateStatusJobCron);
+        }
+
+
 
         scheduler.start();
         return scheduler;
@@ -72,8 +83,23 @@ public class SchedulerConfiguration {
     }
 
     @Bean
+    public JobDetailFactoryBean updateStatusJobDetail() {
+        return createJobDetail(UpdateStatusQuartzJob.class);
+    }
+
+    @Bean
     public CronTriggerFactoryBean deallocationJobCron(@Qualifier("deallocationJobDetail") JobDetail jobDetail,
                                                       @Value("${deallocation.job.cron}") String cronExpression) {
+        return getCronTriggerFactoryBean(jobDetail, cronExpression);
+    }
+
+    @Bean
+    public CronTriggerFactoryBean updateStatusJobCron(@Qualifier("updateStatusJobDetail") JobDetail jobDetail,
+                                                      @Value("${updateStatus.job.cron}") String cronExpression) {
+        return getCronTriggerFactoryBean(jobDetail, cronExpression);
+    }
+
+    private CronTriggerFactoryBean getCronTriggerFactoryBean(JobDetail jobDetail, String cronExpression) {
         CronTriggerFactoryBean factoryBean = new CronTriggerFactoryBean();
         factoryBean.setJobDetail(jobDetail);
         factoryBean.setCronExpression(cronExpression);

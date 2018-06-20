@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.Optional;
 
 @ApiModel(description = "Key worker details")
 @Data
@@ -30,4 +32,7 @@ public class KeyworkerUpdateDto {
 
     @ApiModelProperty(value = "Determines behaviour to apply to auto-allocation")
     private KeyworkerStatusBehaviour behaviour;
+
+    @ApiModelProperty(required = false, value = "Date that the Key worker's status should be updated to Active")
+    private LocalDate activeDate;
 }
