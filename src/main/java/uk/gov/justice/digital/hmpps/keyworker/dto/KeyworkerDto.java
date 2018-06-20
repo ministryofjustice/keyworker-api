@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.NotBlank;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 
 @ApiModel(description = "Key worker details")
 @Data
@@ -58,4 +59,7 @@ public class KeyworkerDto {
 
     @ApiModelProperty(value = "Key worker is eligible for auto allocation.")
     private Boolean autoAllocationAllowed;
+
+    @ApiModelProperty(value = "Date keyworker status should return to active. (returning from annual leave)")
+    private LocalDate activeDate;
 }

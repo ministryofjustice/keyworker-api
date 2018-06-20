@@ -344,6 +344,9 @@ public class KeyworkerService  {
             keyworkerDto.setNumberAllocated(allocationsCount);
             keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
             keyworkerDto.setAutoAllocationAllowed(keyworker != null ? keyworker.getAutoAllocationFlag() : true);
+            if (keyworker !=null) {
+                keyworkerDto.setActiveDate(keyworker.getActiveDate());
+            }
         }
 
         return keyworkerDto;

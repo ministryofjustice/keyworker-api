@@ -119,7 +119,7 @@ public class KeyworkerTestHelper {
         assertThat(keyworkerDetails.getLastName()).isEqualTo(lastName);
     }
 
-    public static void verifyKeyworkerDto(long staffId, Integer capacity, Integer allocations, KeyworkerStatus status, KeyworkerDto keyworkerDetails) {
+    public static void verifyKeyworkerDto(long staffId, Integer capacity, Integer allocations, KeyworkerStatus status, KeyworkerDto keyworkerDetails, LocalDate activeDate) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getNumberAllocated()).isEqualTo(allocations);
         assertThat(keyworkerDetails.getFirstName()).isEqualTo("First");
@@ -129,6 +129,7 @@ public class KeyworkerTestHelper {
         assertThat(keyworkerDetails.getCapacity()).isEqualTo(capacity);
         assertThat(keyworkerDetails.getScheduleType()).isEqualTo("Full Time");
         assertThat(keyworkerDetails.getStatus()).isEqualTo(status);
+        assertThat(keyworkerDetails.getActiveDate()).isEqualTo(activeDate);
     }
 
     private static OffenderLocationDto getOffender(long bookingId, String prisonId) {
