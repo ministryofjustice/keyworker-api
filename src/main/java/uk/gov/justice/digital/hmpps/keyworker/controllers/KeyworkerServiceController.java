@@ -331,11 +331,8 @@ public class KeyworkerServiceController {
 
     @PostMapping(path = "/batch/deallocate")
     @PreAuthorize("hasRole('KW_MIGRATION')")
-    public void runBatchDeallocation(
-            @ApiParam(value = "The date for which to check for movements (ignored if in BATCH_HISTORY)")
-            @RequestParam(value = "checkFromDateTime", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime checkFromDateTime) {
-        keyworkerBatchService.executeDeallocation(checkFromDateTime);
+    public void runBatchDeallocation() {
+        keyworkerBatchService.executeDeallocation();
     }
 
     /* --------------------------------------------------------------------------------*/

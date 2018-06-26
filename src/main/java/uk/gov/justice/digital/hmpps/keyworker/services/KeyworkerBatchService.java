@@ -36,6 +36,8 @@ public class KeyworkerBatchService {
     private int maxAttempts;
     @Value("${api.keyworker.deallocate.backoffMs}")
     private int backoffMs;
+    @Value("${api.keyworker.initial.deallocate.threshold}")
+    private String initialDeallocateThreshold;
 
     public KeyworkerBatchService(OffenderKeyworkerRepository repository,
                                  KeyworkerRepository keyworkerRepository,
@@ -48,13 +50,13 @@ public class KeyworkerBatchService {
         this.batchHistoryRepository = batchHistoryRepository;
     }
 
-    public void executeDeallocation(LocalDateTime previousJobStartParam) {
+    public void executeDeallocation() {
         try {
             BatchHistory deallocateJob = batchHistoryRepository.findByName("DeallocateJob");
             if (deallocateJob == null) {
                 deallocateJob = BatchHistory.builder()
                         .name("DeallocateJob")
-                        .lastRun(previousJobStartParam)
+                        .lastRun(LocalDateTime.parse(initialDeallocateThreshold))
                         .build();
                 batchHistoryRepository.save(deallocateJob);
                 log.warn("Created BatchHistory record");
@@ -75,7 +77,7 @@ public class KeyworkerBatchService {
         }
     }
 
-    public void checkMovements(LocalDateTime previousJobStart) {
+    private void checkMovements(LocalDateTime previousJobStart) {
 
         final LocalDate today = LocalDate.now();
 
@@ -149,12 +151,9 @@ public class KeyworkerBatchService {
         try {
             log.info("******** Update status Process Started");
 
-            logStartEventToAzure();
-
             final List<Long> keyworkerIds = applyKeyworkerActiveDate();
 
-            logEndEventToAzure(keyworkerIds);
-
+            logUpdateStatusEventToAzure(keyworkerIds);
 
             log.info("******** Update Status Process Ended");
 
@@ -182,12 +181,8 @@ public class KeyworkerBatchService {
         return returningKeyworkers.stream().map(Keyworker::getStaffId).collect(Collectors.toList());
     }
 
-    private void logStartEventToAzure() {
-        final Map<String, String> logMap = new HashMap<>();
-        telemetryClient.trackEvent("updateStatus", logMap, null);
-    }
 
-    private void logEndEventToAzure(List keyworkers) {
+    private void logUpdateStatusEventToAzure(List keyworkers) {
         final Map<String, String> logMap = new HashMap<>();
         logMap.put("KeyworkersUpdated", keyworkers.toString());
         telemetryClient.trackEvent("updateStatus", logMap, null);
