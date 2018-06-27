@@ -40,7 +40,7 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         keyWorkerHistory.allocationHistory[1].lastModifiedByUser.username == 'omicadmin'
     }
 
-    def 'Allocating increases the history size'() {
+    def 'Allocation and Deallocation'() {
 
         given:
         migrated("LEI")
@@ -49,10 +49,11 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
         elite2api.stubStaffUserDetails("omicadmin")
         elite2api.stubOffenderLookup("LEI", "A1234XX")
+        elite2api.stubOffenderLookup("LEI", "A1234XZ")
         elite2api.stubStaffUserDetails("ITAG_USER")
+        elite2api.stubStaffUserDetails("ELITE2_API_USER")
 
-        when:
-
+        when: 'Allocating'
         restTemplate.exchange("/key-worker/allocate", HttpMethod.POST, createHeaderEntity("{\"allocationReason\": \"MANUAL\"," +
                 "  \"allocationType\": \"M\"," +
                 "  \"offenderNo\": \"A1234XX\"," +
@@ -61,7 +62,7 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         def response = restTemplate.exchange("/key-worker/allocation-history/A1234XX", HttpMethod.GET,
                 createHeaderEntity(), String.class)
 
-        then:
+        then: 'the history size increases'
         response.statusCode == HttpStatus.OK
         def keyWorkerHistory = jsonSlurper.parseText(response.body)
         keyWorkerHistory.offender.offenderNo == 'A1234XX'
@@ -71,32 +72,22 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         keyWorkerHistory.allocationHistory[0].allocationReason == 'Manual'
         keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
         keyWorkerHistory.allocationHistory[0].createdByUser.username == 'ITAG_USER'
-    }
 
-    def 'Deallocation makes last record inactive'() {
-
-        given:
-        migrated("LEI")
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
-        elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubOffenderLookup("LEI", "A1234XZ")
-        elite2api.stubStaffUserDetails("ELITE2_API_USER")
-
-        when:
-
+       // Note this test depends on the previous allocation
+        when: 'Deallocating'
         restTemplate.exchange("/key-worker/deallocate/A1234XZ", HttpMethod.PUT, createHeaderEntity(), Void.class)
-        def response = restTemplate.exchange("/key-worker/allocation-history/A1234XZ", HttpMethod.GET,
+        def response2 = restTemplate.exchange("/key-worker/allocation-history/A1234XZ", HttpMethod.GET,
                 createHeaderEntity(), String.class)
 
-        then:
-        response.statusCode == HttpStatus.OK
-        def keyWorkerHistory = jsonSlurper.parseText(response.body)
-        keyWorkerHistory.offender.offenderNo == 'A1234XZ'
-        keyWorkerHistory.allocationHistory.size() == 1
-        keyWorkerHistory.allocationHistory[0].staffId == -4
-        keyWorkerHistory.allocationHistory[0].active == false
-        keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
-        keyWorkerHistory.allocationHistory[0].createdByUser.username == 'omicadmin'
-        keyWorkerHistory.allocationHistory[0].deallocationReason == 'Manual'
+        then: 'The last record becomes inactive'
+        response2.statusCode == HttpStatus.OK
+        def keyWorkerHistory2 = jsonSlurper.parseText(response2.body)
+        keyWorkerHistory2.offender.offenderNo == 'A1234XZ'
+        keyWorkerHistory2.allocationHistory.size() == 1
+        keyWorkerHistory2.allocationHistory[0].staffId == -4
+        keyWorkerHistory2.allocationHistory[0].active == false
+        keyWorkerHistory2.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
+        keyWorkerHistory2.allocationHistory[0].createdByUser.username == 'omicadmin'
+        keyWorkerHistory2.allocationHistory[0].deallocationReason == 'Manual'
     }
 }

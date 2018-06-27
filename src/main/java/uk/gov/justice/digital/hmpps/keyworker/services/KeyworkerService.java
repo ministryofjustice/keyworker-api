@@ -60,11 +60,11 @@ public class KeyworkerService  {
 
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
-        returnedList.forEach(keyworkerDto -> keyworkerDto.setAgencyId(prisonId));
-
         return returnedList.stream()
-                .map(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
+                .peek(k -> k.setAgencyId(prisonId))
+                .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
                 .filter(k -> k.getStatus() != INACTIVE)
+                .peek(k -> decorateWithAllocationsCount(k))
                 .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
                                   .thenComparing(KeyworkerService::getKeyWorkerFullName))
                 .collect(Collectors.toList());
@@ -135,7 +135,10 @@ public class KeyworkerService  {
     public KeyworkerDto getKeyworkerDetails(String prisonId, Long staffId) {
         StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElseGet(() -> nomisService.getBasicKeyworkerDtoForStaffId(staffId));
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
-        return decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(staffKeyWorker), prisonCapacityDefault);
+        final KeyworkerDto keyworkerDto = ConversionHelper.getKeyworkerDto(staffKeyWorker);
+        decorateWithKeyworkerData(keyworkerDto, prisonCapacityDefault);
+        decorateWithAllocationsCount(keyworkerDto);
+        return keyworkerDto;
     }
 
     @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
@@ -318,13 +321,16 @@ public class KeyworkerService  {
     }
 
 
-    public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
+    public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, Optional<KeyworkerStatus> statusFilter, PagingAndSortingDto pagingAndSorting) {
 
         ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().distinct()
-                .map(dto -> decorateWithKeyworkerData(ConversionHelper.getKeyworkerDto(dto), prisonCapacityDefault))
+                .map(staffLocationRoleDto -> ConversionHelper.getKeyworkerDto(staffLocationRoleDto))
+                .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
+                .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
+                .peek(t -> decorateWithAllocationsCount(t))
                 .collect(Collectors.toList());
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
     }
@@ -334,24 +340,27 @@ public class KeyworkerService  {
         return prisonDetail != null ? prisonDetail.getCapacityTier1() : 0;
     }
 
-    private KeyworkerDto decorateWithKeyworkerData(KeyworkerDto keyworkerDto, int capacityDefault) {
+    private void decorateWithKeyworkerData(KeyworkerDto keyworkerDto, int capacityDefault) {
         if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
             final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-            final Integer allocationsCount = repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
 
             keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
             keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
-            keyworkerDto.setNumberAllocated(allocationsCount);
             keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
             keyworkerDto.setAutoAllocationAllowed(keyworker != null ? keyworker.getAutoAllocationFlag() : true);
-            if (keyworker !=null) {
+            if (keyworker != null) {
                 keyworkerDto.setActiveDate(keyworker.getActiveDate());
             }
         }
-
-        return keyworkerDto;
     }
 
+    private void decorateWithAllocationsCount(KeyworkerDto keyworkerDto) {
+        if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
+            final Integer allocationsCount = repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
+            keyworkerDto.setNumberAllocated(allocationsCount);
+        }
+
+    }
 
     @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
     public void addOrUpdate(Long staffId, String prisonId, KeyworkerUpdateDto keyworkerUpdateDto) {
