@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 
 import javax.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -493,9 +494,73 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Verify mocks
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
-
     }
 
+    /**
+     * KW search function
+     */
+    @Test
+    public void testGetKeyworkers() {
+
+        final Optional<String> nameFilter = Optional.of("CUser");
+        final Optional<KeyworkerStatus> statusFilter = Optional.of(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
+        final PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
+        final List<StaffLocationRoleDto> nomisList = Arrays.asList(
+                StaffLocationRoleDto.builder()
+                        .staffId(-5L)
+                        .firstName("First")
+                        .lastName("CUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(11))
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .staffId(-6L)
+                        .firstName("Second")
+                        .lastName("DUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(12))
+                        .build()
+        );
+        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting))
+                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+        when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()
+                .staffId(-5L)
+                .status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE)
+                .capacity(5)
+                .autoAllocationFlag(true)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
+                .build()
+        );
+        when(keyworkerRepository.findOne(-6L)).thenReturn(Keyworker.builder()
+                .staffId(-6L)
+                .status(KeyworkerStatus.ACTIVE)
+                .capacity(3)
+                .autoAllocationFlag(true)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+                .build()
+        );
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenReturn(2);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenThrow(new RuntimeException("Should not be needed"));
+
+        final Page<KeyworkerDto> keyworkerList = service.getKeyworkers(TEST_AGENCY, nameFilter, statusFilter, pagingAndSorting);
+
+        assertThat(keyworkerList.getItems()).hasSize(1);
+        final KeyworkerDto result = keyworkerList.getItems().get(0);
+        assertThat(result.getStaffId()).isEqualTo(-5L);
+        assertThat(result.getLastName()).isEqualTo("CUser");
+        assertThat(result.getNumberAllocated()).isEqualTo(2);
+        assertThat(result.getActiveDate()).isEqualTo(LocalDate.of(2018, Month.AUGUST, 12));
+        assertThat(result.getAutoAllocationAllowed()).isTrue();
+        assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
+    }
 
     @Test
     public void testGetAvailableKeyworkers() {
@@ -508,7 +573,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 KeyworkerTestHelper.getKeyworker(6, 0, 0),
                 KeyworkerTestHelper.getKeyworker(7, 0, 0)
                 );
-
 
         when(keyworkerRepository.findOne(1L)).thenReturn(Keyworker.builder().staffId(1L).autoAllocationFlag(true).status(KeyworkerStatus.INACTIVE).build());
         when(keyworkerRepository.findOne(2L)).thenReturn(Keyworker.builder().staffId(2L).autoAllocationFlag(true).status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE).build());

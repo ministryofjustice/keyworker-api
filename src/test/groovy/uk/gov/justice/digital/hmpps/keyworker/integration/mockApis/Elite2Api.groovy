@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.util.UriTemplate
+import uk.gov.justice.digital.hmpps.keyworker.dto.Page
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockResponses.*
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote.RemoteRoleService
 
@@ -38,21 +39,21 @@ class Elite2Api extends WireMockRule {
     def stubAvailableKeyworkers = { prisonId ->
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(StaffLocationRoleDtoListStub.getResponse())
+                .withBody(KeyworkerDtoListStub.getResponse())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
     def stubAvailableKeyworkersForStatusUpdate = { prisonId ->
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(StaffLocationRoleDtoListStub.getResponseForStatusUpdate())
+                .withBody(KeyworkerDtoListStub.getResponseForStatusUpdate())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
     def stubAvailableKeyworkersForAutoAllocation = { prisonId ->
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_AVAILABLE_KEYWORKERS).expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(StaffLocationRoleDtoListStub.getResponseForAutoAllocation())
+                .withBody(KeyworkerDtoListStub.getResponseForAutoAllocation())
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
@@ -61,6 +62,18 @@ class Elite2Api extends WireMockRule {
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(OffenderLocationDtoListStub.getResponseForAutoAllocation(prisonId))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
+    def stubKeyworkerSearch = { String prisonId, String nameFilterPattern ->
+        stubFor(get(urlPathMatching(new UriTemplate(NOMIS_API_PREFIX + GET_STAFF_IN_SPECIFIC_PRISON).expand(prisonId).toString()))
+                .withQueryParam('nameFilter', matching(nameFilterPattern))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(StaffLocationRoleDtoListStub.getResponse())
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .withHeader(Page.HEADER_PAGE_LIMIT, '50')
+                .withHeader(Page.HEADER_PAGE_OFFSET, '0')
+                .withHeader(Page.HEADER_TOTAL_RECORDS, '4')
+        ))
     }
 
     void stubAccessCodeListForKeyRole(String prisonId) {
@@ -79,7 +92,7 @@ class Elite2Api extends WireMockRule {
     void stubKeyworkerDetails(String prisonId, Long staffId) {
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ GET_STAFF_IN_SPECIFIC_PRISON +"?staffId={staffId}&activeOnly=false").expand(prisonId, staffId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withBody(KeyworkerDtoListStub.response)
+                .withBody(StaffLocationRoleDtoListStub.response)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 

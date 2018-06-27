@@ -13,13 +13,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService;
 import uk.gov.justice.digital.hmpps.keyworker.services.*;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -430,6 +430,10 @@ public class KeyworkerServiceController {
             @RequestParam(value = "nameFilter", required = false)
                     Optional<String> nameFilter,
 
+            @ApiParam(value = "Filter results by status of key worker.")
+            @RequestParam(value = "statusFilter", required = false)
+                    Optional<KeyworkerStatus> statusFilter,
+
             @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue="0")
             @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
                     Long pageOffset,
@@ -454,7 +458,7 @@ public class KeyworkerServiceController {
                 .sortOrder(sortOrder)
                 .build();
 
-        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(prisonId, nameFilter, pageDto);
+        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(prisonId, nameFilter, statusFilter, pageDto);
         return new ResponseEntity<>(activeKeyworkerPage.getItems(), activeKeyworkerPage.toHeaders(), HttpStatus.OK);
 
     }
