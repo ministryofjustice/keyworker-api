@@ -76,25 +76,18 @@ jobs:
             - Dockerrun.aws.json
 
   deploy_release:
-    <<: *defaults
-    docker:
-      - image: circleci/python:latest-browsers
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/app
-      - deploy:
-          name: Install elastic beanstalk CLI
-          command: |
-              sudo apt-get install python-pip python-dev build-essential
-              sudo pip install --upgrade pip
-              pip install --user awsebcli --ignore-installed
-              pip install --user pyYAML==4.1 awsebcli --upgrade
-      - deploy:
-          name: Deploy to Elastic Beanstalk Dev
-          command: |
-            VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F":" '{print $2}')
-            ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
+      working_directory: ~/app
+      docker:
+        - image: mojdigitalstudio/circleci-node-awsebcli
+      steps:
+        - checkout
+        - attach_workspace:
+            at: ~/app
+        - deploy:
+            name: Deploy to Elastic Beanstalk Dev
+            command: |
+              VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F":" '{print $2}')
+              ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
 
 workflows:
   version: 2
