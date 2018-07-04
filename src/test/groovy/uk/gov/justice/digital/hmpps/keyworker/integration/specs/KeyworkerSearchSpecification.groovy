@@ -13,6 +13,7 @@ class KeyworkerSearchSpecification extends TestSpecification {
         given:
         migrated("LEI")
         elite2api.stubKeyworkerSearch("LEI", "User")
+        elite2api.stubCaseNoteUsage()
 
         when:
         def response = restTemplate.exchange("/key-worker/LEI/members?nameFilter=User&statusFilter=ACTIVE",
@@ -25,6 +26,7 @@ class KeyworkerSearchSpecification extends TestSpecification {
         keyworkerList[0].lastName == 'CUser'
         keyworkerList[0].capacity == 6
         keyworkerList[0].numberAllocated == 3
+        keyworkerList[0].numKeyWorkerSessions == 4
     }
 }
 
