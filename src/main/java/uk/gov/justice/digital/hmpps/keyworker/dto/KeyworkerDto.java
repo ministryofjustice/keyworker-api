@@ -62,4 +62,7 @@ public class KeyworkerDto {
 
     @ApiModelProperty(value = "Date keyworker status should return to active. (returning from annual leave)")
     private LocalDate activeDate;
+
+    @ApiModelProperty(value = "Number of KW sessions in the time period specified")
+    private Integer numKeyWorkerSessions;
 }

@@ -20,12 +20,14 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE;
+import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE;
 
 @Service
 @Transactional
@@ -53,7 +55,7 @@ public class KeyworkerService  {
         this.nomisService = nomisService;
     }
 
-    public List<KeyworkerDto> getAvailableKeyworkers(String prisonId) {
+    public List<KeyworkerDto> getAvailableKeyworkers(String prisonId, boolean activeOnly) {
 
         ResponseEntity<List<KeyworkerDto>> responseEntity = nomisService.getAvailableKeyworkers(prisonId);
         final List<KeyworkerDto> returnedList = responseEntity.getBody();
@@ -63,8 +65,8 @@ public class KeyworkerService  {
         return returnedList.stream()
                 .peek(k -> k.setAgencyId(prisonId))
                 .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                .filter(k -> k.getStatus() != INACTIVE)
-                .peek(k -> decorateWithAllocationsCount(k))
+                .filter(k -> !activeOnly || k.getStatus() == ACTIVE)
+                .peek(this::decorateWithAllocationsCount)
                 .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
                                   .thenComparing(KeyworkerService::getKeyWorkerFullName))
                 .collect(Collectors.toList());
@@ -75,7 +77,7 @@ public class KeyworkerService  {
     }
 
     public List<KeyworkerDto> getKeyworkersAvailableForAutoAllocation(String prisonId) {
-        final List<KeyworkerDto> availableKeyworkers = getAvailableKeyworkers(prisonId);
+        final List<KeyworkerDto> availableKeyworkers = getAvailableKeyworkers(prisonId, false);
         return availableKeyworkers.stream().filter(KeyworkerDto::getAutoAllocationAllowed).collect(Collectors.toList());
     }
 
@@ -327,12 +329,44 @@ public class KeyworkerService  {
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().distinct()
-                .map(staffLocationRoleDto -> ConversionHelper.getKeyworkerDto(staffLocationRoleDto))
+                .map(ConversionHelper::getKeyworkerDto)
                 .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
                 .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
-                .peek(t -> decorateWithAllocationsCount(t))
+                .peek(this::decorateWithAllocationsCount)
                 .collect(Collectors.toList());
+
+        populateWithCaseNoteCounts(convertedKeyworkerDtoList);
+
         return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
+    }
+
+    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList) {
+        List<Long> activeStaffIds = convertedKeyworkerDtoList.stream().filter(kw -> kw.getStatus() == ACTIVE).map(KeyworkerDto::getStaffId).collect(Collectors.toList());
+
+        if (activeStaffIds.size() >0) {
+            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(activeStaffIds);
+
+            convertedKeyworkerDtoList.stream()
+                    .filter(kw -> kw.getStatus() == ACTIVE)
+                    .forEach(kw -> {
+                        Integer numCaseNotes = kwStats.get(kw.getStaffId());
+                        kw.setNumKeyWorkerSessions(numCaseNotes != null ? numCaseNotes : 0);
+            });
+        }
+    }
+
+    private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds) {
+        LocalDate now = LocalDate.now();
+        LocalDate toDate = now.with(DayOfWeek.SUNDAY);
+        if (toDate.isAfter(now)) {
+            toDate = toDate.minusWeeks(1);
+        }
+        LocalDate fromDate = toDate.minusWeeks(1);
+        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", null, fromDate, toDate);
+
+        return caseNoteUsage.stream()
+                .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
+                        Collectors.summingInt(CaseNoteUsageDto::getNumCaseNotes)));
     }
 
     private int getPrisonCapacityDefault(String prisonId) {

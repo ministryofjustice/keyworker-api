@@ -52,6 +52,14 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
+    protected <T,E> List<T> post(URI uri, E body, ParameterizedTypeReference<List<T>> responseType) {
+        ResponseEntity<List<T>> exchange = restTemplate.exchange(uri.toString(),
+                HttpMethod.POST,
+                new HttpEntity<E>(body, CONTENT_TYPE_APPLICATION_JSON),
+                responseType);
+        return exchange.getBody();
+    }
+
     protected <T> ResponseEntity<T> getWithPagingAndSorting(URI uri, PagingAndSortingDto pagingAndSorting,
                                                             ParameterizedTypeReference<T> responseType) {
         return restTemplate.exchange(

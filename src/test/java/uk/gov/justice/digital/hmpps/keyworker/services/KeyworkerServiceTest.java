@@ -562,6 +562,101 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
     }
 
+
+    /**
+     * KW search function
+     */
+    @Test
+    public void testGetActiveKeyworkersWithCaseNotes() {
+
+        final Optional<String> nameFilter = Optional.of("CUser");
+        final Optional<KeyworkerStatus> statusFilter = Optional.of(KeyworkerStatus.ACTIVE);
+        final PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
+        final List<StaffLocationRoleDto> nomisList = Arrays.asList(
+                StaffLocationRoleDto.builder()
+                        .staffId(-5L)
+                        .firstName("First")
+                        .lastName("CUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(11))
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .staffId(-6L)
+                        .firstName("Second")
+                        .lastName("DUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(12))
+                        .build()
+        );
+        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting))
+                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+        when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()
+                .staffId(-5L)
+                .status(KeyworkerStatus.ACTIVE)
+                .capacity(5)
+                .autoAllocationFlag(true)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
+                .build()
+        );
+        when(keyworkerRepository.findOne(-6L)).thenReturn(Keyworker.builder()
+                .staffId(-6L)
+                .status(KeyworkerStatus.ACTIVE)
+                .capacity(3)
+                .autoAllocationFlag(true)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+                .build()
+        );
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenReturn(2);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenReturn(1);
+
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(Arrays.asList(
+                        CaseNoteUsageDto.builder()
+                                .staffId(-5L)
+                                .caseNoteType("KA")
+                                .caseNoteSubType("KS")
+                                .latestCaseNote(LocalDate.now().minusWeeks(1))
+                                .numCaseNotes(3)
+                                .build(),
+                        CaseNoteUsageDto.builder()
+                                .staffId(-6L)
+                                .caseNoteType("KA")
+                                .caseNoteSubType("KS")
+                                .latestCaseNote(LocalDate.now().minusWeeks(1))
+                                .numCaseNotes(4)
+                                .build(),
+                        CaseNoteUsageDto.builder()
+                                .staffId(-5L)
+                                .caseNoteType("KA")
+                                .caseNoteSubType("KE")
+                                .latestCaseNote(LocalDate.now().minusWeeks(1))
+                                .numCaseNotes(2)
+                                .build()
+                ));
+
+        final Page<KeyworkerDto> keyworkerList = service.getKeyworkers(TEST_AGENCY, nameFilter, statusFilter, pagingAndSorting);
+
+        assertThat(keyworkerList.getItems()).hasSize(2);
+        final KeyworkerDto result = keyworkerList.getItems().get(0);
+        assertThat(result.getStaffId()).isEqualTo(-5L);
+        assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result.getNumKeyWorkerSessions()).isEqualTo(5);
+
+        final KeyworkerDto result2 = keyworkerList.getItems().get(1);
+        assertThat(result2.getStaffId()).isEqualTo(-6L);
+        assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(4);
+    }
+
+
     @Test
     public void testGetAvailableKeyworkers() {
         ImmutableList<KeyworkerDto> keyworkers = ImmutableList.of(
@@ -588,11 +683,11 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(keyworkers, HttpStatus.OK));
         // Invoke service method
-        List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(TEST_AGENCY);
+        List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(TEST_AGENCY, true);
 
         // Verify response
-        assertThat(keyworkerList).hasSize(6);
-        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0,0,0,1,2,2));
+        assertThat(keyworkerList).hasSize(4);
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0,0,1,2));
     }
 
     @Test

@@ -77,7 +77,7 @@ public class KeyworkerServiceController {
 
         log.debug("finding available key-workers for prison Id {}", prisonId);
 
-        return keyworkerService.getAvailableKeyworkers(prisonId);
+        return keyworkerService.getAvailableKeyworkers(prisonId, true);
     }
 
     /* --------------------------------------------------------------------------------*/
