@@ -38,6 +38,9 @@ public class NomisServiceImpl implements NomisService {
     private static final ParameterizedTypeReference<List<PrisonerCustodyStatusDto>> PRISONER_STATUS_DTO_LIST =
             new ParameterizedTypeReference<List<PrisonerCustodyStatusDto>>() {};
 
+    private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
+            new ParameterizedTypeReference<List<CaseNoteUsageDto>>() {};
+
     private final RestCallHelper restCallHelper;
 
     public NomisServiceImpl(RestCallHelper restCallHelper) {
@@ -145,4 +148,21 @@ public class NomisServiceImpl implements NomisService {
         }
         return null;
     }
+
+    @Override
+    public List<CaseNoteUsageDto> getCaseNoteUsage(List<Long> staffIds, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
+        log.info("Getting case note details of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
+        URI uri = new UriTemplate(CASE_NOTE_USAGE).expand();
+
+        CaseNoteUsageRequest body = CaseNoteUsageRequest.builder()
+                .staffIds(staffIds)
+                .type(caseNoteType)
+                .subType(caseNoteSubType)
+                .fromDate(fromDate)
+                .toDate(toDate)
+                .build();
+
+        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_DTO_LIST);
+    }
+
 }

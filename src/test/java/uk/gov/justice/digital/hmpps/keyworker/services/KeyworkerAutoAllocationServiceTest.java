@@ -124,7 +124,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions
         verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), anyString(), any(SortOrder.class));
-        verify(keyworkerService, never()).getAvailableKeyworkers(anyString());
+        verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
 
         assertThat(thrown).isInstanceOf(PrisonNotSupportedException.class);
@@ -148,7 +148,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1))
                 .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
 
-        verify(keyworkerService, never()).getAvailableKeyworkers(anyString());
+        verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
     }
 
