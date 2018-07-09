@@ -336,7 +336,15 @@ public class KeyworkerService  {
 
         populateWithCaseNoteCounts(convertedKeyworkerDtoList);
 
-        return new Page<>(convertedKeyworkerDtoList, response.getHeaders());
+        List<KeyworkerDto> keyworkers = convertedKeyworkerDtoList.stream()
+                .sorted(Comparator
+                        .comparing(KeyworkerDto::getNumberAllocated)
+                        .thenComparing(KeyworkerDto::getLastName)
+                        .thenComparing(KeyworkerDto::getFirstName))
+                .collect(Collectors.toList());
+
+
+        return new Page<>(keyworkers, response.getHeaders());
     }
 
     private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList) {

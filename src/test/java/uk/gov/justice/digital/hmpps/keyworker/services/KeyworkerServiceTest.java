@@ -646,14 +646,15 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         assertThat(keyworkerList.getItems()).hasSize(2);
         final KeyworkerDto result = keyworkerList.getItems().get(0);
-        assertThat(result.getStaffId()).isEqualTo(-5L);
+        assertThat(result.getStaffId()).isEqualTo(-6L);
         assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
-        assertThat(result.getNumKeyWorkerSessions()).isEqualTo(5);
+        assertThat(result.getNumKeyWorkerSessions()).isEqualTo(4);
 
         final KeyworkerDto result2 = keyworkerList.getItems().get(1);
-        assertThat(result2.getStaffId()).isEqualTo(-6L);
+        assertThat(result2.getStaffId()).isEqualTo(-5L);
         assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
-        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(4);
+        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(5);
+
     }
 
 
