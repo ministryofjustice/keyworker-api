@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -356,13 +355,8 @@ public class KeyworkerService  {
     }
 
     private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds) {
-        LocalDate now = LocalDate.now();
-        LocalDate toDate = now.with(DayOfWeek.SUNDAY);
-        if (toDate.isAfter(now)) {
-            toDate = toDate.minusWeeks(1);
-        }
-        LocalDate fromDate = toDate.minusWeeks(1);
-        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", null, fromDate, toDate);
+        final GenerateDateRange dateRange = new GenerateDateRange(1, LocalDate.now());
+        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", null, dateRange.getFromDate(), dateRange.getToDate());
 
         return caseNoteUsage.stream()
                 .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
