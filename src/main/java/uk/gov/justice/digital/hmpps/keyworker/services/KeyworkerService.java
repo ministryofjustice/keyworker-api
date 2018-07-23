@@ -338,7 +338,8 @@ public class KeyworkerService  {
 
         List<KeyworkerDto> keyworkers = convertedKeyworkerDtoList.stream()
                 .sorted(Comparator
-                        .comparing(KeyworkerDto::getNumberAllocated)
+                        .comparing(KeyworkerDto::getStatus)
+                        .thenComparing(KeyworkerDto::getNumberAllocated)
                         .thenComparing(KeyworkerDto::getLastName)
                         .thenComparing(KeyworkerDto::getFirstName))
                 .collect(Collectors.toList());
