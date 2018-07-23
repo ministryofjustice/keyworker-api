@@ -8,18 +8,12 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
-import uk.gov.justice.digital.hmpps.keyworker.utils.ApiGatewayTokenGenerator;
 
 @ContextConfiguration
 public abstract class AbstractServiceTest {
 
     @TestConfiguration
     static class Config {
-        @Bean
-        public ApiGatewayTokenGenerator apiGatewayTokenGenerator() {
-            return new ApiGatewayTokenGenerator("token", "key");
-        }
-
         @Bean
         public ObjectPostProcessor objectPostProcessor() {
             return new ObjectPostProcessor() {

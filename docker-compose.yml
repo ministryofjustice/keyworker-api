@@ -53,7 +53,6 @@ services:
           constraints: [node.role == worker]
     environment:
       - PORT=3000
-      - USE_API_GATEWAY_AUTH=no
       - HOST=omic-ui.hmpps.dsd.test
       - API_ENDPOINT_URL=http://elite2-api:8080/
       - KEYWORKER_API_URL=http://keyworker-api:8080/
