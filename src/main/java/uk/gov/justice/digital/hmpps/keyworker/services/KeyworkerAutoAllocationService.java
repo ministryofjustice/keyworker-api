@@ -62,7 +62,7 @@ public class KeyworkerAutoAllocationService {
         this.prisonSupportedService = prisonSupportedService;
     }
 
-    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
+    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public Long autoAllocate(String prisonId) throws AllocationException {
         // Confirm a valid prison has been supplied.
         Validate.isTrue(StringUtils.isNotBlank(prisonId), "Prison id must be provided.");
@@ -119,7 +119,7 @@ public class KeyworkerAutoAllocationService {
         return calcAndLogAllocationsProcessed(prisonId, startAllocCount);
     }
 
-    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
+    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public Long confirmAllocations(String prisonId) {
         prisonSupportedService.verifyPrisonMigrated(prisonId);
             /* TODO not *entirely sure this isnt needed ...
