@@ -570,7 +570,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testGetActiveKeyworkersWithCaseNotes() {
 
         final Optional<String> nameFilter = Optional.of("CUser");
-        final Optional<KeyworkerStatus> statusFilter = Optional.of(KeyworkerStatus.ACTIVE);
         final PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final List<StaffLocationRoleDto> nomisList = Arrays.asList(
                 StaffLocationRoleDto.builder()
@@ -637,7 +636,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(3);
 
-        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L, -7L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)
@@ -681,7 +680,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result3.getStaffId()).isEqualTo(-7L);
         assertThat(result3.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE);
         assertThat(result3.getNumberAllocated()).isEqualTo(3);
-        assertThat(result3.getNumKeyWorkerSessions()).isNull();
+        assertThat(result3.getNumKeyWorkerSessions()).isEqualTo(0);
 
     }
 
