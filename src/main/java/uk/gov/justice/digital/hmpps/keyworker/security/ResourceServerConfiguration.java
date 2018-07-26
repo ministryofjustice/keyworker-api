@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -25,10 +26,17 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.stereotype.Service;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.justice.digital.hmpps.keyworker.controllers.KeyworkerServiceController;
+
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Optional;
 
 @Configuration
 @EnableSwagger2
@@ -41,6 +49,9 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Autowired
     private SecurityProperties securityProperties;
+
+    @Autowired(required = false)
+    private BuildProperties buildProperties;
 
     @Override
     public void configure(HttpSecurity http) throws Exception{
@@ -83,12 +94,40 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
+
+        ApiInfo apiInfo = new ApiInfo(
+                "Keyworker API Documentation",
+                "REST service for accessing the Keywoker services.",
+                getVersion(), "", contactInfo(), "", "",
+                Collections.emptyList());
+
+        Docket docket = new Docket(DocumentationType.SWAGGER_2)
+                .useDefaultResponseMessages(false)
+                .apiInfo(apiInfo)
                 .select()
-                    .apis(RequestHandlerSelectors.basePackage(KeyworkerServiceController.class.getPackage().getName()))
-                    .paths(PathSelectors.any())
-                    .build()
-                .useDefaultResponseMessages(false);
+                .apis(RequestHandlerSelectors.basePackage(KeyworkerServiceController.class.getPackage().getName()))
+                .paths(PathSelectors.any())
+                .build();
+
+        docket.genericModelSubstitutes(Optional.class);
+        docket.directModelSubstitute(ZonedDateTime.class, java.util.Date.class);
+        docket.directModelSubstitute(LocalDateTime.class, java.util.Date.class);
+
+        return docket;
+    }
+
+    /**
+     * @return health data. Note this is unsecured so no sensitive data allowed!
+     */
+    private String getVersion(){
+        return buildProperties == null ? "version not available" : buildProperties.getVersion();
+    }
+
+    private Contact contactInfo() {
+        return new Contact(
+                "HMPPS Digital Studio",
+                "",
+                "feedback@digital.justice.gov.uk");
     }
 
     @Service(value = "auditorAware")
