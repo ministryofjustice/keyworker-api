@@ -14,9 +14,9 @@ import org.springframework.security.oauth2.client.token.grant.client.ClientCrede
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.justice.digital.hmpps.keyworker.utils.*;
+import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
+import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,25 +25,19 @@ public class RestTemplateConfiguration {
 
     private final OAuth2ClientContext oauth2ClientContext;
     private final ClientCredentialsResourceDetails elite2apiDetails;
-    private final ApiGatewayTokenGenerator apiGatewayTokenGenerator;
 
     @Value("${elite2.uri.root}")
-    private String elit2UriRoot;
+    private String elite2UriRoot;
 
     @Value("${elite2.api.uri.root}")
     private String apiRootUri;
 
-    @Value("${use.api.gateway.auth}")
-    private boolean useApiGateway;
-
     @Autowired
     public RestTemplateConfiguration(
             OAuth2ClientContext oauth2ClientContext,
-            ClientCredentialsResourceDetails elite2apiDetails,
-            ApiGatewayTokenGenerator apiGatewayTokenGenerator) {
+            ClientCredentialsResourceDetails elite2apiDetails) {
         this.oauth2ClientContext = oauth2ClientContext;
         this.elite2apiDetails = elite2apiDetails;
-        this.apiGatewayTokenGenerator = apiGatewayTokenGenerator;
     }
 
     @Bean(name = "elite2ApiRestTemplate")
@@ -53,7 +47,7 @@ public class RestTemplateConfiguration {
 
     @Bean(name = "elite2ApiHealthRestTemplate")
     public RestTemplate elite2ApiHealthRestTemplate(RestTemplateBuilder restTemplateBuilder) {
-        return getRestTemplate(restTemplateBuilder, elit2UriRoot);
+        return getRestTemplate(restTemplateBuilder, elite2UriRoot);
     }
 
     private RestTemplate getRestTemplate(RestTemplateBuilder restTemplateBuilder, String uri) {
@@ -64,15 +58,9 @@ public class RestTemplateConfiguration {
     }
 
     private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
-        if (useApiGateway) {
-            return Arrays.asList(
-                    new UserContextInterceptor(),
-                    new ApiGatewayInterceptor(apiGatewayTokenGenerator));
-        } else {
-            return Arrays.asList(
-                    new UserContextInterceptor(),
-                    new JwtAuthInterceptor());
-        }
+        return Arrays.asList(
+                new UserContextInterceptor(),
+                new JwtAuthInterceptor());
     }
 
     @Bean
@@ -81,14 +69,6 @@ public class RestTemplateConfiguration {
         OAuth2RestTemplate elite2SystemRestTemplate = new OAuth2RestTemplate(elite2apiDetails, oauth2ClientContext);
         List<ClientHttpRequestInterceptor> systemInterceptors = elite2SystemRestTemplate.getInterceptors();
         systemInterceptors.add(new UserContextInterceptor());
-        if (useApiGateway) {
-            systemInterceptors.add(new ApiGatewayBatchRequestInterceptor(apiGatewayTokenGenerator));
-            // The access token provider's rest template also needs to know how to get through the gateway
-            List<ClientHttpRequestInterceptor> tokenProviderInterceptors = ((RestTemplate) accessTokenProvider.getRestTemplate()).getInterceptors();
-            tokenProviderInterceptors.add(new ApiGatewayBatchRequestInterceptor(apiGatewayTokenGenerator));
-        } else {
-            systemInterceptors.add(new JwtAuthInterceptor());
-        }
 
         elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);
 

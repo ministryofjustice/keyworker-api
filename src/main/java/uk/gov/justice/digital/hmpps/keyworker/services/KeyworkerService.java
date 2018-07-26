@@ -142,7 +142,7 @@ public class KeyworkerService  {
         return keyworkerDto;
     }
 
-    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
+    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void allocate(@Valid @NotNull KeyworkerAllocationDto keyworkerAllocation) {
         prisonSupportedService.verifyPrisonMigrated(keyworkerAllocation.getPrisonId());
         doAllocateValidation(keyworkerAllocation);
@@ -185,7 +185,7 @@ public class KeyworkerService  {
      *
      * @param allocation allocation details.
      */
-    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
+    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void allocate(OffenderKeyworker allocation) {
         Validate.notNull(allocation);
 
@@ -338,7 +338,8 @@ public class KeyworkerService  {
 
         List<KeyworkerDto> keyworkers = convertedKeyworkerDtoList.stream()
                 .sorted(Comparator
-                        .comparing(KeyworkerDto::getNumberAllocated)
+                        .comparing(KeyworkerDto::getStatus)
+                        .thenComparing(KeyworkerDto::getNumberAllocated)
                         .thenComparing(KeyworkerDto::getLastName)
                         .thenComparing(KeyworkerDto::getFirstName))
                 .collect(Collectors.toList());
@@ -397,7 +398,7 @@ public class KeyworkerService  {
 
     }
 
-    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
+    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void addOrUpdate(Long staffId, String prisonId, KeyworkerUpdateDto keyworkerUpdateDto) {
 
         Validate.notNull(staffId, "Missing staff id");
@@ -443,7 +444,7 @@ public class KeyworkerService  {
         }
     }
 
-    @PreAuthorize("hasAnyRole('KW_ADMIN', 'OMIC_ADMIN')")
+    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void deallocate(String offenderNo) {
         final List<OffenderKeyworker> offenderKeyworkers = repository.findByActiveAndOffenderNo(true, offenderNo);
 

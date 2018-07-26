@@ -592,10 +592,20 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .role("KW")
                         .scheduleType("FT")
                         .hoursPerWeek(BigDecimal.valueOf(12))
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .staffId(-7L)
+                        .firstName("Third")
+                        .lastName("DUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(12))
                         .build()
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting))
-                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(3, 0, 10), HttpStatus.OK));
         when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()
                 .staffId(-5L)
                 .status(KeyworkerStatus.ACTIVE)
@@ -612,10 +622,20 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
                 .build()
         );
+        when(keyworkerRepository.findOne(-7L)).thenReturn(Keyworker.builder()
+                .staffId(-7L)
+                .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
+                .capacity(2)
+                .autoAllocationFlag(false)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+                .build()
+        );
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(2);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(1);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenReturn(3);
 
         when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
@@ -642,18 +662,26 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                                 .build()
                 ));
 
-        final Page<KeyworkerDto> keyworkerList = service.getKeyworkers(TEST_AGENCY, nameFilter, statusFilter, pagingAndSorting);
+        final Page<KeyworkerDto> keyworkerList = service.getKeyworkers(TEST_AGENCY, nameFilter, Optional.empty(), pagingAndSorting);
 
-        assertThat(keyworkerList.getItems()).hasSize(2);
+        assertThat(keyworkerList.getItems()).hasSize(3);
         final KeyworkerDto result = keyworkerList.getItems().get(0);
         assertThat(result.getStaffId()).isEqualTo(-6L);
         assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result.getNumberAllocated()).isEqualTo(1);
         assertThat(result.getNumKeyWorkerSessions()).isEqualTo(4);
 
         final KeyworkerDto result2 = keyworkerList.getItems().get(1);
         assertThat(result2.getStaffId()).isEqualTo(-5L);
         assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result2.getNumberAllocated()).isEqualTo(2);
         assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(5);
+
+        final KeyworkerDto result3 = keyworkerList.getItems().get(2);
+        assertThat(result3.getStaffId()).isEqualTo(-7L);
+        assertThat(result3.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE);
+        assertThat(result3.getNumberAllocated()).isEqualTo(3);
+        assertThat(result3.getNumKeyWorkerSessions()).isNull();
 
     }
 
