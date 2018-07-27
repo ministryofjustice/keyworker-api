@@ -570,7 +570,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void testGetActiveKeyworkersWithCaseNotes() {
 
         final Optional<String> nameFilter = Optional.of("CUser");
-        final Optional<KeyworkerStatus> statusFilter = Optional.of(KeyworkerStatus.ACTIVE);
         final PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final List<StaffLocationRoleDto> nomisList = Arrays.asList(
                 StaffLocationRoleDto.builder()
@@ -637,7 +636,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(3);
 
-        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L, -7L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)
@@ -681,8 +680,97 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result3.getStaffId()).isEqualTo(-7L);
         assertThat(result3.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE);
         assertThat(result3.getNumberAllocated()).isEqualTo(3);
-        assertThat(result3.getNumKeyWorkerSessions()).isNull();
+        assertThat(result3.getNumKeyWorkerSessions()).isEqualTo(0);
 
+    }
+
+    @Test
+    public void testCountPreviousKeyworkerSessions_WhenStatusIsNotActive() {
+        final PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
+        final List<StaffLocationRoleDto> nomisList = Arrays.asList(
+                StaffLocationRoleDto.builder()
+                        .staffId(-5L)
+                        .firstName("First")
+                        .lastName("CUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(11))
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .staffId(-6L)
+                        .firstName("Second")
+                        .lastName("DUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(12))
+                        .build()
+        );
+        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, Optional.empty(), pagingAndSorting))
+                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+
+        when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()
+                .staffId(-5L)
+                .status(KeyworkerStatus.INACTIVE)
+                .capacity(5)
+                .autoAllocationFlag(true)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
+                .build()
+        );
+        when(keyworkerRepository.findOne(-6L)).thenReturn(Keyworker.builder()
+                .staffId(-6L)
+                .status(KeyworkerStatus.INACTIVE)
+                .capacity(3)
+                .autoAllocationFlag(true)
+                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+                .build()
+        );
+
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenReturn(2);
+        when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
+                .thenReturn(1);
+
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(Arrays.asList(
+                        CaseNoteUsageDto.builder()
+                                .staffId(-5L)
+                                .caseNoteType("KA")
+                                .caseNoteSubType("KS")
+                                .latestCaseNote(LocalDate.now().minusWeeks(1))
+                                .numCaseNotes(3)
+                                .build(),
+                        CaseNoteUsageDto.builder()
+                                .staffId(-6L)
+                                .caseNoteType("KA")
+                                .caseNoteSubType("KS")
+                                .latestCaseNote(LocalDate.now().minusWeeks(1))
+                                .numCaseNotes(4)
+                                .build(),
+                        CaseNoteUsageDto.builder()
+                                .staffId(-5L)
+                                .caseNoteType("KA")
+                                .caseNoteSubType("KE")
+                                .latestCaseNote(LocalDate.now().minusWeeks(1))
+                                .numCaseNotes(2)
+                                .build()
+                ));
+
+        final Page<KeyworkerDto> keyworkerList = service.getKeyworkers(TEST_AGENCY, Optional.empty(), Optional.empty(), pagingAndSorting);
+
+        assertThat(keyworkerList.getItems()).hasSize(2);
+        final KeyworkerDto result = keyworkerList.getItems().get(0);
+        assertThat(result.getStaffId()).isEqualTo(-6L);
+        assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
+        assertThat(result.getNumKeyWorkerSessions()).isEqualTo(4);
+
+        final KeyworkerDto result2 = keyworkerList.getItems().get(1);
+        assertThat(result2.getStaffId()).isEqualTo(-5L);
+        assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
+        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(5);
     }
 
 
