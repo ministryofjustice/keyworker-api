@@ -18,7 +18,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OffenderKeyWorkerHistory {
 
-    private OffenderLocationDto offender;
+    private PrisonerDetail offender;
 
     private List<KeyWorkerAllocation> allocationHistory;
 

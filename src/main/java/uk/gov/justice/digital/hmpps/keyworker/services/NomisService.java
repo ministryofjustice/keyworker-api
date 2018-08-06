@@ -18,9 +18,15 @@ public interface NomisService {
     String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
     String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
     String CASE_NOTE_USAGE = "/case-notes/staff-usage";
+    String URI_PRISONER_LOOKUP = "/prisoners?offenderNo={offenderNo}";
+    String URI_CURRENT_ALLOCATIONS = "/key-worker/{agencyId}/current-allocations";
+    String URI_CURRENT_ALLOCATIONS_BY_OFFENDERS = "/key-worker/{agencyId}/current-allocations/offenders";
+
     List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate);
 
     Optional<OffenderLocationDto> getOffenderForPrison(String prisonId, String offenderNo);
+
+    Optional<PrisonerDetail> getPrisonerDetail(String offenderNo);
 
     ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting);
 
@@ -39,4 +45,9 @@ public interface NomisService {
     StaffUser getStaffDetailByUserId(String userId);
 
     List<CaseNoteUsageDto> getCaseNoteUsage(List<Long> staffIds, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate);
+
+    List<KeyworkerAllocationDetailsDto> getCurrentAllocations(List<Long> staffIds, String agencyId);
+
+    List<KeyworkerAllocationDetailsDto> getCurrentAllocationsByOffenderNos(List<String> offenderNos, String agencyId);
+
 }

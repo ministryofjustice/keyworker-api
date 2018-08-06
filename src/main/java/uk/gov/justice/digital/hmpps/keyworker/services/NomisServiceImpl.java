@@ -32,6 +32,10 @@ public class NomisServiceImpl implements NomisService {
     private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
             new ParameterizedTypeReference<List<OffenderLocationDto>>() {};
 
+    private static final ParameterizedTypeReference<List<PrisonerDetail>> PRISONER_DETAIL_LIST =
+            new ParameterizedTypeReference<List<PrisonerDetail>>() {};
+
+
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
             new ParameterizedTypeReference<List<KeyworkerDto>>() {};
 
@@ -40,6 +44,9 @@ public class NomisServiceImpl implements NomisService {
 
     private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
             new ParameterizedTypeReference<List<CaseNoteUsageDto>>() {};
+
+    private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> LEGACY_KEYWORKER_ALLOCATIONS =
+            new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
 
     private final RestCallHelper restCallHelper;
 
@@ -61,6 +68,15 @@ public class NomisServiceImpl implements NomisService {
 
         List<OffenderLocationDto> offenders = restCallHelper.getForList(uri, OFFENDER_LOCATION_DTO_LIST).getBody();
         return Optional.ofNullable(offenders.size() > 0 ? offenders.get(0) : null);
+    }
+
+    @Override
+    public Optional<PrisonerDetail> getPrisonerDetail(String offenderNo) {
+        log.info("Getting prisoner details for NOMIS No {}", offenderNo);
+        URI uri = new UriTemplate(URI_PRISONER_LOOKUP).expand(offenderNo);
+
+        List<PrisonerDetail> prisonerDetail = restCallHelper.getForList(uri, PRISONER_DETAIL_LIST).getBody();
+        return Optional.ofNullable(prisonerDetail.size() > 0 ? prisonerDetail.get(0) : null);
     }
 
     @Override
@@ -165,4 +181,19 @@ public class NomisServiceImpl implements NomisService {
         return restCallHelper.post(uri, body, CASE_NOTE_USAGE_DTO_LIST);
     }
 
+    @Override
+    public List<KeyworkerAllocationDetailsDto> getCurrentAllocations(List<Long> staffIds, String agencyId) {
+        log.info("Getting Legacy Key worker allocations for {} agencyId by staff IDs", agencyId);
+        URI uri = new UriTemplate(URI_CURRENT_ALLOCATIONS).expand(agencyId);
+
+        return restCallHelper.post(uri, staffIds, LEGACY_KEYWORKER_ALLOCATIONS);
+    }
+
+    @Override
+    public List<KeyworkerAllocationDetailsDto> getCurrentAllocationsByOffenderNos(List<String> offenderNos, String agencyId) {
+        log.info("Getting Legacy Key worker allocations for {} agencyId by offender Nos", agencyId);
+        URI uri = new UriTemplate(URI_CURRENT_ALLOCATIONS_BY_OFFENDERS).expand(agencyId);
+
+        return restCallHelper.post(uri, offenderNos, LEGACY_KEYWORKER_ALLOCATIONS);
+    }
 }

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.WordUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -39,19 +40,22 @@ public class KeyworkerService  {
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
+    private final int keyWorkerPeriod;
 
     public KeyworkerService(AuthenticationFacade authenticationFacade,
                             OffenderKeyworkerRepository repository,
                             KeyworkerRepository keyworkerRepository,
                             KeyworkerAllocationProcessor processor,
                             PrisonSupportedService prisonSupportedService,
-                            NomisService nomisService) {
+                            NomisService nomisService,
+                            @Value("${svc.kw.session.frequency.weeks:1}") int keyWorkerPeriod) {
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
         this.processor = processor;
         this.prisonSupportedService = prisonSupportedService;
         this.nomisService = nomisService;
+        this.keyWorkerPeriod = keyWorkerPeriod;
     }
 
     public List<KeyworkerDto> getAvailableKeyworkers(String prisonId, boolean activeOnly) {
@@ -59,15 +63,28 @@ public class KeyworkerService  {
         ResponseEntity<List<KeyworkerDto>> responseEntity = nomisService.getAvailableKeyworkers(prisonId);
         final List<KeyworkerDto> returnedList = responseEntity.getBody();
 
-        final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
+        List<KeyworkerDto> availableKeyworkerList;
 
-        return returnedList.stream()
-                .peek(k -> k.setAgencyId(prisonId))
-                .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                .filter(k -> !activeOnly || k.getStatus() == ACTIVE)
-                .peek(this::decorateWithAllocationsCount)
+        if (prisonSupportedService.isMigrated(prisonId)) {
+            final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
+
+            availableKeyworkerList = returnedList.stream()
+                    .peek(k -> k.setAgencyId(prisonId))
+                    .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
+                    .filter(k -> !activeOnly || k.getStatus() == ACTIVE)
+                    .peek(this::decorateWithAllocationsCount)
+                    .collect(Collectors.toList());
+        } else {
+            availableKeyworkerList = returnedList.stream()
+                    .peek(k -> k.setAgencyId(prisonId))
+                    .peek(this::decorateWithNomisKeyworkerData)
+              .collect(Collectors.toList());
+            populateWithAllocations(availableKeyworkerList, prisonId);
+        }
+
+        return availableKeyworkerList.stream()
                 .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
-                                  .thenComparing(KeyworkerService::getKeyWorkerFullName))
+                        .thenComparing(KeyworkerService::getKeyWorkerFullName))
                 .collect(Collectors.toList());
     }
 
@@ -105,10 +122,17 @@ public class KeyworkerService  {
 
 
     public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailList(String prisonId, Collection<String> offenderNos) {
-        final List<OffenderKeyworker> results =
-                CollectionUtils.isEmpty(offenderNos)
-                        ? repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL)
-                        : repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
+        List<OffenderKeyworker> results = new ArrayList<>();
+        if (prisonSupportedService.isMigrated(prisonId)) {
+            results = CollectionUtils.isEmpty(offenderNos)
+                            ? repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL)
+                            : repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
+        } else {
+            if (offenderNos.size() > 0) {
+                final List<KeyworkerAllocationDetailsDto> allocations = nomisService.getCurrentAllocationsByOffenderNos(new ArrayList<>(offenderNos), prisonId);
+                results = allocations.stream().map(ConversionHelper::getOffenderKeyworker).collect(Collectors.toList());
+            }
+        }
         return ConversionHelper.convertOffenderKeyworkerModel2Dto(results);
     }
 
@@ -137,8 +161,12 @@ public class KeyworkerService  {
         StaffLocationRoleDto staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElseGet(() -> nomisService.getBasicKeyworkerDtoForStaffId(staffId));
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
         final KeyworkerDto keyworkerDto = ConversionHelper.getKeyworkerDto(staffKeyWorker);
-        decorateWithKeyworkerData(keyworkerDto, prisonCapacityDefault);
-        decorateWithAllocationsCount(keyworkerDto);
+        if (prisonSupportedService.isMigrated(prisonId)) {
+            decorateWithKeyworkerData(keyworkerDto, prisonCapacityDefault);
+            decorateWithAllocationsCount(keyworkerDto);
+        } else {
+            decorateWithNomisKeyworkerData(keyworkerDto);
+        }
         return keyworkerDto;
     }
 
@@ -210,9 +238,10 @@ public class KeyworkerService  {
     public Optional<OffenderKeyWorkerHistory> getFullAllocationHistory(String offenderNo) {
         final List<OffenderKeyworker> keyworkers = repository.findByOffenderNo(offenderNo);
         OffenderKeyWorkerHistory offenderKeyWorkerHistory = null;
+        List<KeyWorkerAllocation> keyWorkerAllocations = new ArrayList<>();
 
         if (!keyworkers.isEmpty()) {
-            List<KeyWorkerAllocation> keyWorkerAllocations = keyworkers.stream()
+            keyWorkerAllocations = keyworkers.stream()
                     .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
                     .map(
                     kw -> {
@@ -242,17 +271,16 @@ public class KeyworkerService  {
             ).sorted(Comparator
                     .comparing(KeyWorkerAllocation::getAssigned).reversed())
                     .collect(Collectors.toList());
-
-            // use prison for most recent allocation
-            OffenderLocationDto offenderDetail = nomisService.getOffenderForPrison(keyWorkerAllocations.get(0).getPrisonId(), offenderNo)
-                    .orElseGet(OffenderLocationDto::new);
-
-            offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
-                    .offender(offenderDetail)
-                    .allocationHistory(keyWorkerAllocations)
-                    .build();
-
         }
+
+        // use prison for most recent allocation
+        PrisonerDetail prisonerDetail = nomisService.getPrisonerDetail(offenderNo).orElseThrow(EntityNotFoundException::new);
+
+        offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
+                .offender(prisonerDetail)
+                .allocationHistory(keyWorkerAllocations)
+                .build();
+
         return Optional.ofNullable(offenderKeyWorkerHistory);
     }
 
@@ -261,32 +289,34 @@ public class KeyworkerService  {
     }
 
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(String prisonId, Long staffId, boolean skipOffenderDetails) {
-
-        prisonSupportedService.verifyPrisonMigrated(prisonId);
-
-        final List<OffenderKeyworker> allocations = repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, prisonId, true, AllocationType.PROVISIONAL);
-
         final List<KeyworkerAllocationDetailsDto> detailsDtoList;
-        if (skipOffenderDetails) {
-            detailsDtoList = allocations.stream()
-                    .map(allocation ->  KeyworkerAllocationDetailsDto.builder()
-                            .offenderNo(allocation.getOffenderNo())
-                            .staffId(allocation.getStaffId())
-                            .agencyId(allocation.getPrisonId()) //TODO: remove
-                            .prisonId(allocation.getPrisonId())
-                            .assigned(allocation.getAssignedDateTime())
-                            .allocationType(allocation.getAllocationType())
-                            .build())
-                    .collect(Collectors.toList());
+        if (prisonSupportedService.isMigrated(prisonId)) {
+            final List<OffenderKeyworker> allocations = repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, prisonId, true, AllocationType.PROVISIONAL);
+
+            if (skipOffenderDetails) {
+                detailsDtoList = allocations.stream()
+                        .map(allocation ->  KeyworkerAllocationDetailsDto.builder()
+                                .offenderNo(allocation.getOffenderNo())
+                                .staffId(allocation.getStaffId())
+                                .agencyId(allocation.getPrisonId()) //TODO: remove
+                                .prisonId(allocation.getPrisonId())
+                                .assigned(allocation.getAssignedDateTime())
+                                .allocationType(allocation.getAllocationType())
+                                .build())
+                        .collect(Collectors.toList());
+            } else {
+                detailsDtoList = allocations.stream()
+                        .map(allocation -> decorateWithOffenderDetails(prisonId, allocation))
+                        //remove allocations from returned list that do not have associated booking records
+                        .filter(dto -> dto.getBookingId() != null)
+                        .sorted(Comparator
+                                .comparing(KeyworkerAllocationDetailsDto::getLastName)
+                                .thenComparing(KeyworkerAllocationDetailsDto::getFirstName))
+                        .collect(Collectors.toList());
+            }
         } else {
-            detailsDtoList = allocations.stream()
-                    .map(allocation -> decorateWithOffenderDetails(prisonId, allocation))
-                    //remove allocations from returned list that do not have associated booking records
-                    .filter(dto -> dto.getBookingId() != null)
-                    .sorted(Comparator
-                            .comparing(KeyworkerAllocationDetailsDto::getLastName)
-                            .thenComparing(KeyworkerAllocationDetailsDto::getFirstName))
-                    .collect(Collectors.toList());
+            detailsDtoList = nomisService.getCurrentAllocations(Collections.singletonList(staffId), prisonId);
+
         }
 
         log.debug("Retrieved allocations for keyworker {}:\n{}", staffId, detailsDtoList);
@@ -327,13 +357,22 @@ public class KeyworkerService  {
         ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
-        final List<KeyworkerDto> convertedKeyworkerDtoList = response.getBody().stream().distinct()
-                .map(ConversionHelper::getKeyworkerDto)
-                .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
-                .peek(this::decorateWithAllocationsCount)
-                .collect(Collectors.toList());
+        final List<KeyworkerDto> convertedKeyworkerDtoList = new ArrayList<>();
+        if (prisonSupportedService.isMigrated(prisonId)) {
+            convertedKeyworkerDtoList.addAll(response.getBody().stream().distinct()
+                    .map(ConversionHelper::getKeyworkerDto)
+                    .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
+                    .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
+                    .peek(this::decorateWithAllocationsCount)
+                    .collect(Collectors.toList()));
+        } else {
+            convertedKeyworkerDtoList.addAll(response.getBody().stream().distinct()
+                    .map(ConversionHelper::getKeyworkerDto)
+                    .peek(this::decorateWithNomisKeyworkerData)
+                    .collect(Collectors.toList()));
 
+           populateWithAllocations(convertedKeyworkerDtoList, prisonId);
+        }
         populateWithCaseNoteCounts(convertedKeyworkerDtoList);
 
         List<KeyworkerDto> keyworkers = convertedKeyworkerDtoList.stream()
@@ -348,11 +387,29 @@ public class KeyworkerService  {
         return new Page<>(keyworkers, response.getHeaders());
     }
 
-    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList) {
-        List<Long> activeStaffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
+    private void populateWithAllocations(List<KeyworkerDto> convertedKeyworkerDtoList, String prisonId) {
+        List<Long> staffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
 
-        if (activeStaffIds.size() >0) {
-            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(activeStaffIds);
+        if (staffIds.size() > 0) {
+            List<KeyworkerAllocationDetailsDto> allocations = nomisService.getCurrentAllocations(staffIds, prisonId);
+
+            Map<Long, Long> allocationMap = allocations.stream()
+                    .collect(Collectors.groupingBy(KeyworkerAllocationDetailsDto::getStaffId,
+                            Collectors.counting()));
+
+            convertedKeyworkerDtoList
+                    .forEach(kw -> {
+                        Long numberAllocated = allocationMap.get(kw.getStaffId());
+                        kw.setNumberAllocated(numberAllocated != null ? numberAllocated.intValue() : 0);
+                    });
+        }
+    }
+
+    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList) {
+        List<Long> staffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
+
+        if (staffIds.size() > 0) {
+            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(staffIds);
 
             convertedKeyworkerDtoList
                     .forEach(kw -> {
@@ -363,7 +420,7 @@ public class KeyworkerService  {
     }
 
     private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds) {
-        final GenerateDateRange dateRange = new GenerateDateRange(1, LocalDate.now());
+        final GenerateDateRange dateRange = new GenerateDateRange(keyWorkerPeriod, LocalDate.now());
         List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", null, dateRange.getFromDate(), dateRange.getToDate());
 
         return caseNoteUsage.stream()
@@ -390,17 +447,25 @@ public class KeyworkerService  {
         }
     }
 
+    private void decorateWithNomisKeyworkerData(KeyworkerDto keyworkerDto) {
+        if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
+            keyworkerDto.setStatus(KeyworkerStatus.ACTIVE);
+            keyworkerDto.setAutoAllocationAllowed(false);
+            keyworkerDto.setNumberAllocated(0);
+        }
+    }
+
     private void decorateWithAllocationsCount(KeyworkerDto keyworkerDto) {
         if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
             final Integer allocationsCount = repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(keyworkerDto.getStaffId(), keyworkerDto.getAgencyId(), true, AllocationType.PROVISIONAL);
             keyworkerDto.setNumberAllocated(allocationsCount);
         }
-
     }
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void addOrUpdate(Long staffId, String prisonId, KeyworkerUpdateDto keyworkerUpdateDto) {
 
+        prisonSupportedService.verifyPrisonMigrated(prisonId);
         Validate.notNull(staffId, "Missing staff id");
         Keyworker keyworker = keyworkerRepository.findOne(staffId);
 
@@ -455,6 +520,8 @@ public class KeyworkerService  {
         // There shouldnt ever be more than 1, but just in case
         final LocalDateTime now = LocalDateTime.now();
         offenderKeyworkers.forEach(offenderKeyworker -> {
+            prisonSupportedService.verifyPrisonMigrated(offenderKeyworker.getPrisonId());
+
             offenderKeyworker.deallocate(now, DeallocationReason.MANUAL);
             log.info("De-allocated offender {} from KW {} at {}", offenderNo, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
         });
