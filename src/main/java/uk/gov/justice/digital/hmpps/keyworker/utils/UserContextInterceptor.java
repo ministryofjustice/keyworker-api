@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils;
 
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -16,7 +17,7 @@ public class UserContextInterceptor implements ClientHttpRequestInterceptor {
             throws IOException {
 
         HttpHeaders headers = request.getHeaders();
-        headers.add(UserContext.CORRELATION_ID, UserContext.getCorrelationId());
+        headers.add(MdcUtility.CORRELATION_ID_HEADER, MDC.get(MdcUtility.CORRELATION_ID_HEADER));
 
         return execution.execute(request, body);
     }
