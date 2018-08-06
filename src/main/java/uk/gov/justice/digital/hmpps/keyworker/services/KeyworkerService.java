@@ -354,7 +354,7 @@ public class KeyworkerService  {
         if (activeStaffIds.size() >0) {
             final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(activeStaffIds);
 
-            convertedKeyworkerDtoList.stream()
+            convertedKeyworkerDtoList
                     .forEach(kw -> {
                         Integer numCaseNotes = kwStats.get(kw.getStaffId());
                         kw.setNumKeyWorkerSessions(numCaseNotes != null ? numCaseNotes : 0);

@@ -21,13 +21,12 @@ public class UserContextFilter implements Filter {
         final String authToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 
         UserContext.setAuthToken(authToken);
-        UserContext.setCorrelationId(httpServletRequest.getHeader(UserContext.CORRELATION_ID));
 
         filterChain.doFilter(httpServletRequest, servletResponse);
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    public void init(FilterConfig filterConfig) {}
 
     @Override
     public void destroy() {}

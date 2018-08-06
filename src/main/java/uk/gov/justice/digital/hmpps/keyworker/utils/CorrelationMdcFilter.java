@@ -6,19 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Optional;
 
-import static uk.gov.justice.digital.hmpps.keyworker.utils.UserContext.CORRELATION_ID;
+import static uk.gov.justice.digital.hmpps.keyworker.utils.MdcUtility.CORRELATION_ID_HEADER;
 
 @Slf4j
 @Component
-public class CorrelationHeaderFilter implements Filter {
+public class CorrelationMdcFilter implements Filter {
 
     private final MdcUtility mdcUtility;
 
     @Autowired
-    public CorrelationHeaderFilter(MdcUtility mdcUtility) {
+    public CorrelationMdcFilter(MdcUtility mdcUtility) {
         this.mdcUtility = mdcUtility;
     }
 
@@ -31,13 +32,13 @@ public class CorrelationHeaderFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        Optional<String> correlationIdOptional = Optional.ofNullable(UserContext.getCorrelationId());
+        Optional<String> correlationIdOptional = Optional.ofNullable(((HttpServletRequest)request).getHeader(CORRELATION_ID_HEADER));
 
         try {
-            MDC.put(CORRELATION_ID, correlationIdOptional.orElseGet(mdcUtility::generateUUID));
+            MDC.put(CORRELATION_ID_HEADER, correlationIdOptional.orElseGet(mdcUtility::generateUUID));
             chain.doFilter(request, response);
         } finally {
-            MDC.remove(CORRELATION_ID);
+            MDC.remove(CORRELATION_ID_HEADER);
         }
     }
 
