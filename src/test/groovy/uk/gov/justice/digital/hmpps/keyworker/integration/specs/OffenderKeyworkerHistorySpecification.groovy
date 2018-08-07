@@ -14,7 +14,7 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         migrated("LEI")
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-5)
         elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubOffenderLookup("LEI", "A6676RS")
+        elite2api.stubPrisonerLookup("A6676RS")
         elite2api.stubStaffUserDetails("ITAG_USER")
 
 
@@ -50,6 +50,8 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         elite2api.stubStaffUserDetails("omicadmin")
         elite2api.stubOffenderLookup("LEI", "A1234XX")
         elite2api.stubOffenderLookup("LEI", "A1234XZ")
+        elite2api.stubPrisonerLookup("A1234XX")
+        elite2api.stubPrisonerLookup("A1234XZ")
         elite2api.stubStaffUserDetails("ITAG_USER")
         elite2api.stubStaffUserDetails("ELITE2_API_USER")
 

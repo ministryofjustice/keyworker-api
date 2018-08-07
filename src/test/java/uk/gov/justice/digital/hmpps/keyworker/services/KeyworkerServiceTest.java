@@ -77,6 +77,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .prisonId(TEST_AGENCY).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
                 .build();
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY)).thenReturn(prisonDetail);
+        when(prisonSupportedService.isMigrated(TEST_AGENCY)).thenReturn(Boolean.TRUE);
     }
     @Test
     public void testGetUnallocatedOffendersForSupportedAgencyNoneAllocated() {
@@ -446,7 +447,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L,62L,63L));
 
         // Verify mocks
-        verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
+        verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
 
     }
 
@@ -467,7 +468,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(allocationList).extracting("offenderNo").isEqualTo(offenderNos.asList());
 
         // Verify mocks
-        verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
+        verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
 
     }
 
@@ -493,7 +494,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L,63L));
 
         // Verify mocks
-        verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
+        verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
     }
 
     /**

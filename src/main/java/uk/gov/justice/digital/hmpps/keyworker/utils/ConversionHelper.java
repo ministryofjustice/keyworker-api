@@ -94,7 +94,7 @@ public final class ConversionHelper {
                     .scheduleType(dto.getScheduleTypeDescription())
                     .agencyDescription(dto.getAgencyDescription())
                     .agencyId(dto.getAgencyId())
-                    .capacity(dto.getHoursPerWeek() != null ? dto.getHoursPerWeek().intValue() : 0)
+                    .capacity(dto.getHoursPerWeek() != null ? dto.getHoursPerWeek().intValue() : null)
                     .build();
         }
         return null;
