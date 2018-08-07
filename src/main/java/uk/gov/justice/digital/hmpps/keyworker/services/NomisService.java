@@ -34,7 +34,7 @@ public interface NomisService {
 
     BasicKeyworkerDto getBasicKeyworkerDtoForOffender(String offenderNo);
 
-    ResponseEntity<List<KeyworkerDto>> getAvailableKeyworkers(String prisonId);
+    List<KeyworkerDto> getAvailableKeyworkers(String prisonId);
 
     List<OffenderLocationDto> getOffendersAtLocation(String prisonId, String sortFields, SortOrder sortOrder);
 

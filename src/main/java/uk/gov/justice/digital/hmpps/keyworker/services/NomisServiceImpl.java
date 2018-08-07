@@ -112,10 +112,10 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public ResponseEntity<List<KeyworkerDto>> getAvailableKeyworkers(String prisonId) {
+    public List<KeyworkerDto> getAvailableKeyworkers(String prisonId) {
         log.info("Getting available KW in prison {}", prisonId);
         URI uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(prisonId);
-        return restCallHelper.getForList(uri, KEYWORKER_DTO_LIST);
+        return restCallHelper.getForList(uri, KEYWORKER_DTO_LIST).getBody();
     }
 
     @Override

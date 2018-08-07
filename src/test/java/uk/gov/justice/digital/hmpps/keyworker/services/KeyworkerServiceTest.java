@@ -44,6 +44,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 @RestClientTest(KeyworkerService.class)
 public class KeyworkerServiceTest extends AbstractServiceTest {
     private static final String TEST_AGENCY = "LEI";
+    private static final String NON_MIGRATED_TEST_AGENCY = "BXI";
     private static final String TEST_USER = "VANILLA";
     private static final Long TEST_STAFF_ID = 67L;
     private static final int TEST_CAPACITY = 5;
@@ -74,10 +75,25 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     public void setup() {
         doThrow(new PrisonNotSupportedException("Agency [MDI] is not supported by this service.")).when(prisonSupportedService).verifyPrisonMigrated(eq("MDI"));
         Prison prisonDetail = Prison.builder()
-                .prisonId(TEST_AGENCY).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
+                .migrated(true)
+                .autoAllocatedSupported(true)
+                .supported(true)
+                .prisonId(TEST_AGENCY)
+                .capacityTier1(CAPACITY_TIER_1)
+                .capacityTier2(CAPACITY_TIER_2)
                 .build();
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY)).thenReturn(prisonDetail);
         when(prisonSupportedService.isMigrated(TEST_AGENCY)).thenReturn(Boolean.TRUE);
+
+        Prison nonMigratedPrison = Prison.builder()
+                .migrated(false)
+                .autoAllocatedSupported(false)
+                .supported(false)
+                .prisonId(NON_MIGRATED_TEST_AGENCY)
+                .build();
+
+        when(prisonSupportedService.getPrisonDetail(NON_MIGRATED_TEST_AGENCY)).thenReturn(nonMigratedPrison);
+        when(prisonSupportedService.isMigrated(NON_MIGRATED_TEST_AGENCY)).thenReturn(Boolean.FALSE);
     }
     @Test
     public void testGetUnallocatedOffendersForSupportedAgencyNoneAllocated() {
@@ -302,6 +318,42 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void testGetOffendersNonMigrated() {
+
+        final List<String> testOffenderNos = Arrays.asList("offender1", "offender2");
+
+        final LocalDateTime time1 = LocalDateTime.of(2018, Month.FEBRUARY, 26, 6, 0);
+        final LocalDateTime time2 = LocalDateTime.of(2018, Month.FEBRUARY, 27, 6, 0);
+
+        ImmutableList<KeyworkerAllocationDetailsDto> allocatedKeyworkers = ImmutableList.of(
+                KeyworkerTestHelper.getKeyworkerAllocations(21L, "offender1", NON_MIGRATED_TEST_AGENCY, time1),
+                KeyworkerTestHelper.getKeyworkerAllocations(22L, "offender2", NON_MIGRATED_TEST_AGENCY, time2)
+        );
+
+        when(nomisService.getCurrentAllocationsByOffenderNos(ImmutableList.of("offender1","offender2"), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
+        final List<OffenderKeyworkerDto> offenders = service.getOffenderKeyworkerDetailList(NON_MIGRATED_TEST_AGENCY, testOffenderNos);
+
+        assertThat(offenders).asList().containsExactly(OffenderKeyworkerDto.builder()
+                        .offenderKeyworkerId(null)
+                        .offenderNo("offender1")
+                        .staffId(21L)
+                        .agencyId(NON_MIGRATED_TEST_AGENCY)
+                        .active("Y")
+                        .assigned(time1)
+                        .build(),
+                OffenderKeyworkerDto.builder()
+                        .offenderKeyworkerId(null)
+                        .offenderNo("offender2")
+                        .agencyId(NON_MIGRATED_TEST_AGENCY)
+                        .staffId(22L)
+                        .assigned(time2)
+                        .active("Y")
+                        .build()
+        );
+        verify(prisonSupportedService, times(1)).isMigrated(eq(NON_MIGRATED_TEST_AGENCY));
+    }
+
+    @Test
     public void testGetKeyworkerDetails() {
         final long staffId = 5L;
         final int CAPACITY = 10;
@@ -422,6 +474,38 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         verify(keyworkerRepository, never()).findOne(Mockito.anyLong());
         verify(repository, never()).countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Mockito.anyLong(), Mockito.anyString(), Mockito.anyBoolean(), Mockito.anyObject());
+    }
+
+    @Test
+    public void testGetKeyworkerDetails_NotMigratedAgency() {
+        final long staffId = 5L;
+        StaffLocationRoleDto staffLocationRoleDto = StaffLocationRoleDto.builder()
+                .firstName("firstName")
+                .lastName("lastName")
+                .agencyId(NON_MIGRATED_TEST_AGENCY)
+                .hoursPerWeek(new BigDecimal("6"))
+                .staffId(staffId)
+                .scheduleType("FT")
+                .build();
+        when(nomisService.getStaffKeyWorkerForPrison(NON_MIGRATED_TEST_AGENCY, staffId)).thenReturn(Optional.ofNullable(staffLocationRoleDto));
+
+        ImmutableList<KeyworkerAllocationDetailsDto> allocatedKeyworkers = ImmutableList.of(
+                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
+        );
+
+        when(nomisService.getCurrentAllocations(ImmutableList.of(staffId), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
+
+        KeyworkerDto keyworkerDetails = service.getKeyworkerDetails(NON_MIGRATED_TEST_AGENCY, staffId);
+
+        assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
+        assertThat(keyworkerDetails.getFirstName()).isEqualTo("firstName");
+        assertThat(keyworkerDetails.getLastName()).isEqualTo("lastName");
+        assertThat(keyworkerDetails.getNumberAllocated()).isEqualTo(4);
+        assertThat(keyworkerDetails.getAgencyId()).isEqualTo(NON_MIGRATED_TEST_AGENCY);
+        assertThat(keyworkerDetails.getCapacity()).isEqualTo(6);
     }
 
     @Test
@@ -563,6 +647,62 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
     }
 
+    @Test
+    public void testGetKeyworkersNonMigrated() {
+
+        final Optional<String> nameFilter = Optional.of("CUser");
+        final Optional<KeyworkerStatus> statusFilter = Optional.of(KeyworkerStatus.ACTIVE);
+        final PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
+        final List<StaffLocationRoleDto> nomisList = Arrays.asList(
+                StaffLocationRoleDto.builder()
+                        .staffId(-5L)
+                        .firstName("First")
+                        .lastName("CUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(5))
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .staffId(-6L)
+                        .firstName("Second")
+                        .lastName("DUser")
+                        .agencyId("LEI")
+                        .position("AO")
+                        .role("KW")
+                        .scheduleType("FT")
+                        .hoursPerWeek(BigDecimal.valueOf(3))
+                        .build()
+        );
+        when(nomisService.getActiveStaffKeyWorkersForPrison(NON_MIGRATED_TEST_AGENCY, nameFilter, pagingAndSorting))
+                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+
+        ImmutableList<KeyworkerAllocationDetailsDto> allocatedKeyworkers = ImmutableList.of(
+                KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
+        );
+
+        when(nomisService.getCurrentAllocations(anyList(), eq(NON_MIGRATED_TEST_AGENCY))).thenReturn(allocatedKeyworkers);
+
+        final Page<KeyworkerDto> keyworkerList = service.getKeyworkers(NON_MIGRATED_TEST_AGENCY, nameFilter, statusFilter, pagingAndSorting);
+
+        assertThat(keyworkerList.getItems()).hasSize(2);
+        final KeyworkerDto result1 = keyworkerList.getItems().get(0);
+        assertThat(result1.getStaffId()).isEqualTo(-6L);
+        assertThat(result1.getLastName()).isEqualTo("DUser");
+        assertThat(result1.getNumberAllocated()).isEqualTo(0);
+        assertThat(result1.getAutoAllocationAllowed()).isFalse();
+        assertThat(result1.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+
+        final KeyworkerDto result2 = keyworkerList.getItems().get(1);
+        assertThat(result2.getStaffId()).isEqualTo(-5L);
+        assertThat(result2.getLastName()).isEqualTo("CUser");
+        assertThat(result2.getNumberAllocated()).isEqualTo(2);
+        assertThat(result2.getAutoAllocationAllowed()).isFalse();
+        assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+
+    }
 
     /**
      * KW search function
@@ -785,7 +925,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 KeyworkerTestHelper.getKeyworker(5, 0, 0),
                 KeyworkerTestHelper.getKeyworker(6, 0, 0),
                 KeyworkerTestHelper.getKeyworker(7, 0, 0)
-                );
+        );
 
         when(keyworkerRepository.findOne(1L)).thenReturn(Keyworker.builder().staffId(1L).autoAllocationFlag(true).status(KeyworkerStatus.INACTIVE).build());
         when(keyworkerRepository.findOne(2L)).thenReturn(Keyworker.builder().staffId(2L).autoAllocationFlag(true).status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE).build());
@@ -799,13 +939,42 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(5L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(0);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(7L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(2);
 
-        when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(keyworkers, HttpStatus.OK));
+        when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(keyworkers);
         // Invoke service method
         List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(TEST_AGENCY, true);
 
         // Verify response
         assertThat(keyworkerList).hasSize(4);
         assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0,0,1,2));
+    }
+
+    @Test
+    public void testGetAvailableKeyworkersNotMigrated() {
+        ImmutableList<KeyworkerDto> keyworkers = ImmutableList.of(
+                KeyworkerTestHelper.getKeyworker(11, 0, 0),
+                KeyworkerTestHelper.getKeyworker(12, 0, 0),
+                KeyworkerTestHelper.getKeyworker(13, 0, 0),
+                KeyworkerTestHelper.getKeyworker(14, 0, 0)
+        );
+
+        when(nomisService.getAvailableKeyworkers(NON_MIGRATED_TEST_AGENCY)).thenReturn(keyworkers);
+
+        ImmutableList<KeyworkerAllocationDetailsDto> allocatedKeyworkers = ImmutableList.of(
+                KeyworkerTestHelper.getKeyworkerAllocations(12, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(13, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+                KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AE", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
+        );
+
+        when(nomisService.getCurrentAllocations(ImmutableList.of(11L,12L,13L,14L), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
+        // Invoke service method
+        List<KeyworkerDto> keyworkerList = service.getAvailableKeyworkers(NON_MIGRATED_TEST_AGENCY, true);
+
+        // Verify response
+        assertThat(keyworkerList).hasSize(4);
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0,1,1,2));
+
+        verify(prisonSupportedService, times(1)).isMigrated(eq(NON_MIGRATED_TEST_AGENCY));
     }
 
     @Test
@@ -828,7 +997,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(3L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(1);
 
 
-        when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(new ResponseEntity<>(allocations, HttpStatus.OK));
+        when(nomisService.getAvailableKeyworkers(TEST_AGENCY)).thenReturn(allocations);
         // Invoke service method
         List<KeyworkerDto> keyworkerList = service.getKeyworkersAvailableForAutoAllocation(TEST_AGENCY);
 

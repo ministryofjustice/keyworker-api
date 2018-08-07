@@ -3,10 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.Validate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.*;
 
 import java.time.LocalDate;
@@ -57,6 +54,20 @@ public class KeyworkerTestHelper {
                 .firstName(RandomStringUtils.randomAscii(35))
                 .lastName(RandomStringUtils.randomAscii(35))
                 .autoAllocationAllowed(true)
+                .build();
+    }
+
+    // Provides a Key worker with specified staff id and number of allocations
+    public static KeyworkerAllocationDetailsDto getKeyworkerAllocations(long staffId, String offenderNo, String prisonId, LocalDateTime assignedTime) {
+        return KeyworkerAllocationDetailsDto.builder()
+                .staffId(staffId)
+                .offenderNo(offenderNo)
+                .agencyId(prisonId)
+                .allocationType(AllocationType.MANUAL)
+                .assigned(assignedTime)
+                .internalLocationDesc("A-1-3")
+                .firstName(RandomStringUtils.randomAscii(35))
+                .lastName(RandomStringUtils.randomAscii(35))
                 .build();
     }
 

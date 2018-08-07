@@ -60,8 +60,7 @@ public class KeyworkerService  {
 
     public List<KeyworkerDto> getAvailableKeyworkers(String prisonId, boolean activeOnly) {
 
-        ResponseEntity<List<KeyworkerDto>> responseEntity = nomisService.getAvailableKeyworkers(prisonId);
-        final List<KeyworkerDto> returnedList = responseEntity.getBody();
+        final List<KeyworkerDto> returnedList = nomisService.getAvailableKeyworkers(prisonId);
 
         List<KeyworkerDto> availableKeyworkerList;
 
@@ -166,6 +165,7 @@ public class KeyworkerService  {
             decorateWithAllocationsCount(keyworkerDto);
         } else {
             decorateWithNomisKeyworkerData(keyworkerDto);
+            populateWithAllocations(Collections.singletonList(keyworkerDto), prisonId);
         }
         return keyworkerDto;
     }
@@ -369,6 +369,7 @@ public class KeyworkerService  {
             convertedKeyworkerDtoList.addAll(response.getBody().stream().distinct()
                     .map(ConversionHelper::getKeyworkerDto)
                     .peek(this::decorateWithNomisKeyworkerData)
+                    .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
                     .collect(Collectors.toList()));
 
            populateWithAllocations(convertedKeyworkerDtoList, prisonId);
@@ -520,8 +521,6 @@ public class KeyworkerService  {
         // There shouldnt ever be more than 1, but just in case
         final LocalDateTime now = LocalDateTime.now();
         offenderKeyworkers.forEach(offenderKeyworker -> {
-            prisonSupportedService.verifyPrisonMigrated(offenderKeyworker.getPrisonId());
-
             offenderKeyworker.deallocate(now, DeallocationReason.MANUAL);
             log.info("De-allocated offender {} from KW {} at {}", offenderNo, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
         });

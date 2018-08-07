@@ -106,9 +106,9 @@ public final class ConversionHelper {
         return OffenderKeyworker.builder()
                 .offenderNo(model.getOffenderNo())
                 .staffId(model.getStaffId())
-                .prisonId(model.getPrisonId())
+                .prisonId(model.getAgencyId())
                 .active(true)
-                .assignedDateTime(LocalDateTime.now())
+                .assignedDateTime(model.getAssigned())
                 .allocationType(model.getAllocationType())
                 .build();
     }
