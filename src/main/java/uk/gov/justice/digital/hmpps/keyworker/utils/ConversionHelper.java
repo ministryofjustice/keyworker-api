@@ -94,8 +94,22 @@ public final class ConversionHelper {
                     .scheduleType(dto.getScheduleTypeDescription())
                     .agencyDescription(dto.getAgencyDescription())
                     .agencyId(dto.getAgencyId())
+                    .capacity(dto.getHoursPerWeek() != null ? dto.getHoursPerWeek().intValue() : null)
                     .build();
         }
         return null;
+    }
+
+    public static OffenderKeyworker getOffenderKeyworker(KeyworkerAllocationDetailsDto model) {
+        Validate.notNull(model);
+
+        return OffenderKeyworker.builder()
+                .offenderNo(model.getOffenderNo())
+                .staffId(model.getStaffId())
+                .prisonId(model.getAgencyId())
+                .active(true)
+                .assignedDateTime(model.getAssigned())
+                .allocationType(model.getAllocationType())
+                .build();
     }
 }

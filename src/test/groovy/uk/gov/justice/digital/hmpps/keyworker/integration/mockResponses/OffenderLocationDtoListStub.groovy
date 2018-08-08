@@ -25,4 +25,25 @@ class OffenderLocationDtoListStub {
  {"offenderNo":"${offenderNo}", "bookingId":-41, "firstName":"MOEEN", "lastName":"LEI","agencyId":"${prisonId}"}
 ]"""
     }
+
+    static getResponsePrisoner(offenderNo) {
+        return """
+[
+ {
+    "offenderNo": "${offenderNo}",
+    "title": "Mr",
+    "firstName": "Michael",
+    "lastName": "Smith",
+    "dateOfBirth": "1970-01-01",
+    "gender": "M",
+    "currentlyInPrison": "Y",
+    "latestBookingId": -20,
+    "latestLocationId": "A-1-1",
+    "latestLocation": "Leeds",
+    "religion": "string",
+    "receptionDate": "2004-01-01"
+  }
+]"""
+    }
+
 }
