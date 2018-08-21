@@ -65,4 +65,7 @@ public class KeyworkerAllocationDetailsDto {
     @ApiModelProperty(required = true, value = "Description of the location within the prison")
     @NotBlank
     private String internalLocationDesc;
+
+    @ApiModelProperty(required = true, value = "Prison different to current - deallocation only allowed")
+    private boolean deallocOnly;
 }

@@ -577,7 +577,7 @@ public class KeyworkerAutoAllocationServiceTest {
         List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
 
         for (int i = 0; i < offNos.length; i++) {
-            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, prisonId, offNos[i], true));
+            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, prisonId, offNos[i]));
         }
 
         when(keyworkerService.getUnallocatedOffenders(eq(prisonId), anyString(), any(SortOrder.class))).thenReturn(unallocatedOffenders);
@@ -592,7 +592,7 @@ public class KeyworkerAutoAllocationServiceTest {
         for (long i = 0; i < Math.min(total, limit); i++) {
             int idx = Long.valueOf(startId + i).intValue() - 1;
 
-            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(startId + i, prisonId, offNos[idx], true));
+            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(startId + i, prisonId, offNos[idx]));
         }
 
         return new Page<>(unallocatedOffenders, total, 0L, limit);

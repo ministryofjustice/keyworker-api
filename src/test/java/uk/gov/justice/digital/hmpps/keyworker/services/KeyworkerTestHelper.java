@@ -144,16 +144,28 @@ public class KeyworkerTestHelper {
     }
 
     private static OffenderLocationDto getOffender(long bookingId, String prisonId) {
-        return getOffender(bookingId, prisonId, getNextOffenderNo(), true);
+        return getOffender(bookingId, prisonId, getNextOffenderNo());
     }
 
-    public static OffenderLocationDto getOffender(long bookingId, String prisonId, String offenderNo, boolean currentlyInPrison) {
+    public static OffenderLocationDto getOffender(long bookingId, String prisonId, String offenderNo) {
         return OffenderLocationDto.builder()
                 .bookingId(bookingId)
                 .agencyId(prisonId)
                 .offenderNo(offenderNo)
                 .lastName("Testlastname")
                 .firstName("TestFirstname")
+                .build();
+    }
+
+    public static PrisonerDetail getPrisonerDetail(long bookingId, String prisonId, String offenderNo, boolean currentlyInPrison, String internalLocation) {
+        return PrisonerDetail.builder()
+                .latestBookingId(bookingId)
+                .latestLocationId(prisonId)
+                .currentlyInPrison(currentlyInPrison ? "Y" : "N")
+                .offenderNo(offenderNo)
+                .lastName("Testlastname")
+                .firstName("TestFirstname")
+                .internalLocation(internalLocation)
                 .build();
     }
 

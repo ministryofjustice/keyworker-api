@@ -61,6 +61,9 @@ public class PrisonerDetail implements Serializable {
     @ApiModelProperty(required = true, value = "Latest location")
     private String latestLocation;
 
+    @ApiModelProperty(required = true, value = "Last Internal location")
+    private String internalLocation;
+
     @ApiModelProperty(required = true, value = "Current Imprisonment Status")
     private String imprisonmentStatus;
 
