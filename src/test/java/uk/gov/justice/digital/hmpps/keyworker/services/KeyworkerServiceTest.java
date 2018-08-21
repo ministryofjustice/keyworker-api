@@ -200,7 +200,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .staffId(staffId)
                 .build();
 
-        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo, true);
+        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo);
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
 
         when(nomisService.getStaffKeyWorkerForPrison(TEST_AGENCY, staffId)).thenReturn(Optional.empty());
@@ -223,7 +223,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .deallocationReason(DeallocationReason.RELEASED)
                 .build();
 
-        OffenderLocationDto offender = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo, true);
+        OffenderLocationDto offender = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo);
 
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offender.getOffenderNo())).thenReturn(Optional.of(offender));
 
@@ -511,17 +511,17 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     public void testGetAllocationsForKeyworkerWithOffenderDetails() {
 
-        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1", true);
-        OffenderLocationDto offender2 = KeyworkerTestHelper.getOffender(62, TEST_AGENCY, "2",true);
-        OffenderLocationDto offender3 = KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true);
+        PrisonerDetail offender1 = KeyworkerTestHelper.getPrisonerDetail(61, TEST_AGENCY, "1", true, TEST_AGENCY+"-A-1-001");
+        PrisonerDetail offender2 = KeyworkerTestHelper.getPrisonerDetail(62, "OUT", "2", false, null);
+        PrisonerDetail offender3 = KeyworkerTestHelper.getPrisonerDetail(63, TEST_AGENCY, "3", true, TEST_AGENCY+"-A-2-001");
 
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
         // Mock allocation lookup
         when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender2.getOffenderNo())).thenReturn(Optional.of(offender2));
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
+        when(nomisService.getPrisonerDetail(offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
+        when(nomisService.getPrisonerDetail(offender2.getOffenderNo())).thenReturn(Optional.of(offender2));
+        when(nomisService.getPrisonerDetail(offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
 
         // Invoke service method
         List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
@@ -559,16 +559,16 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     public void testGetAllocationsForKeyworkerWithOffenderDetails_NoAssociatedEliteBookingRecord() {
 
-        OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, "1",true);
-        OffenderLocationDto offender3 = KeyworkerTestHelper.getOffender(63, TEST_AGENCY, "3",true);
+        PrisonerDetail offender1 = KeyworkerTestHelper.getPrisonerDetail(61, TEST_AGENCY, "1", true,TEST_AGENCY + "-A-1-001");
+        PrisonerDetail offender3 = KeyworkerTestHelper.getPrisonerDetail(63, TEST_AGENCY, "3", true,TEST_AGENCY + "-A-1-002");
 
         final List<OffenderKeyworker> allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
 
         when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
 
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, "2")).thenReturn(Optional.empty());
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
+        when(nomisService.getPrisonerDetail(offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
+        when(nomisService.getPrisonerDetail("2")).thenReturn(Optional.empty());
+        when(nomisService.getPrisonerDetail(offender3.getOffenderNo())).thenReturn(Optional.of(offender3));
 
         // Invoke service method
         List<KeyworkerAllocationDetailsDto> allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);

@@ -237,7 +237,7 @@ public class KeyworkerService  {
 
     public Optional<OffenderKeyWorkerHistory> getFullAllocationHistory(String offenderNo) {
         final List<OffenderKeyworker> keyworkers = repository.findByOffenderNo(offenderNo);
-        OffenderKeyWorkerHistory offenderKeyWorkerHistory = null;
+        OffenderKeyWorkerHistory offenderKeyWorkerHistory;
         List<KeyWorkerAllocation> keyWorkerAllocations = new ArrayList<>();
 
         if (!keyworkers.isEmpty()) {
@@ -327,22 +327,24 @@ public class KeyworkerService  {
     private KeyworkerAllocationDetailsDto decorateWithOffenderDetails(String prisonId, OffenderKeyworker allocation) {
         KeyworkerAllocationDetailsDto dto;
 
-        Optional<OffenderLocationDto> offender = nomisService.getOffenderForPrison(prisonId, allocation.getOffenderNo());
+        Optional<PrisonerDetail> prisoner = nomisService.getPrisonerDetail(allocation.getOffenderNo());
 
-        if (offender.isPresent()) {
-            final OffenderLocationDto offenderSummaryDto = offender.get();
+        if (prisoner.isPresent()) {
+            final PrisonerDetail offenderSummaryDto = prisoner.get();
+            boolean samePrison = allocation.getPrisonId().equals(offenderSummaryDto.getLatestLocationId());
             dto = KeyworkerAllocationDetailsDto.builder()
-                    .bookingId(offenderSummaryDto.getBookingId())
+                    .bookingId(offenderSummaryDto.getLatestBookingId())
                     .offenderNo(allocation.getOffenderNo())
                     .firstName(offenderSummaryDto.getFirstName())
-                    .middleNames(offenderSummaryDto.getMiddleName())
+                    .middleNames(offenderSummaryDto.getMiddleNames())
                     .lastName(offenderSummaryDto.getLastName())
                     .staffId(allocation.getStaffId())
-                    .agencyId(allocation.getPrisonId()) //TODO: remove
-                    .prisonId(allocation.getPrisonId())
+                    .agencyId(offenderSummaryDto.getLatestLocationId()) //TODO: remove
+                    .prisonId(offenderSummaryDto.getLatestLocationId())
                     .assigned(allocation.getAssignedDateTime())
                     .allocationType(allocation.getAllocationType())
-                    .internalLocationDesc(offenderSummaryDto.getAssignedLivingUnitDesc())
+                    .internalLocationDesc(samePrison ? stripAgencyId(offenderSummaryDto.getInternalLocation(), allocation.getPrisonId()) : offenderSummaryDto.getInternalLocation())
+                    .deallocOnly(!samePrison)
                     .build();
         } else {
             log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using nomis service", allocation.getOffenderNo(), prisonId));
@@ -351,6 +353,13 @@ public class KeyworkerService  {
         return dto;
     }
 
+    public static String stripAgencyId(String description, String agencyId) {
+        if (StringUtils.isBlank(agencyId)) {
+            return description;
+        }
+
+        return StringUtils.replaceFirst(description,StringUtils.trimToEmpty(agencyId) + "-", "");
+    }
 
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, Optional<KeyworkerStatus> statusFilter, PagingAndSortingDto pagingAndSorting) {
 
