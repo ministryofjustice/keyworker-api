@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.WordUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -40,22 +39,19 @@ public class KeyworkerService  {
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
-    private final int keyWorkerPeriod;
 
     public KeyworkerService(AuthenticationFacade authenticationFacade,
                             OffenderKeyworkerRepository repository,
                             KeyworkerRepository keyworkerRepository,
                             KeyworkerAllocationProcessor processor,
                             PrisonSupportedService prisonSupportedService,
-                            NomisService nomisService,
-                            @Value("${svc.kw.session.frequency.weeks:1}") int keyWorkerPeriod) {
+                            NomisService nomisService) {
         this.authenticationFacade = authenticationFacade;
         this.repository = repository;
         this.keyworkerRepository = keyworkerRepository;
         this.processor = processor;
         this.prisonSupportedService = prisonSupportedService;
         this.nomisService = nomisService;
-        this.keyWorkerPeriod = keyWorkerPeriod;
     }
 
     public List<KeyworkerDto> getAvailableKeyworkers(String prisonId, boolean activeOnly) {
@@ -367,7 +363,8 @@ public class KeyworkerService  {
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = new ArrayList<>();
-        if (prisonSupportedService.isMigrated(prisonId)) {
+        Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
+        if (prisonDetail.isMigrated()) {
             convertedKeyworkerDtoList.addAll(response.getBody().stream().distinct()
                     .map(ConversionHelper::getKeyworkerDto)
                     .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
@@ -383,7 +380,7 @@ public class KeyworkerService  {
 
            populateWithAllocations(convertedKeyworkerDtoList, prisonId);
         }
-        populateWithCaseNoteCounts(convertedKeyworkerDtoList);
+        populateWithCaseNoteCounts(convertedKeyworkerDtoList, prisonDetail.getKwSessionFrequencyInWeeks());
 
         List<KeyworkerDto> keyworkers = convertedKeyworkerDtoList.stream()
                 .sorted(Comparator
@@ -415,11 +412,11 @@ public class KeyworkerService  {
         }
     }
 
-    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList) {
+    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList, int kwSessionFrequencyInWeeks) {
         List<Long> staffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
 
         if (staffIds.size() > 0) {
-            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(staffIds);
+            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(staffIds, kwSessionFrequencyInWeeks);
 
             convertedKeyworkerDtoList
                     .forEach(kw -> {
@@ -429,9 +426,9 @@ public class KeyworkerService  {
         }
     }
 
-    private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds) {
-        final GenerateDateRange dateRange = new GenerateDateRange(keyWorkerPeriod, LocalDate.now());
-        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", null, dateRange.getFromDate(), dateRange.getToDate());
+    private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds, int kwSessionFrequencyInWeeks) {
+        final GenerateDateRange dateRange = new GenerateDateRange(kwSessionFrequencyInWeeks, LocalDate.now());
+        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", "KS", dateRange.getFromDate(), dateRange.getToDate());
 
         return caseNoteUsage.stream()
                 .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,

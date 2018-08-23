@@ -20,4 +20,5 @@ public class Prison {
     private boolean autoAllocatedSupported;
     private int capacityTier1;
     private int capacityTier2;
+    private int kwSessionFrequencyInWeeks;
 }

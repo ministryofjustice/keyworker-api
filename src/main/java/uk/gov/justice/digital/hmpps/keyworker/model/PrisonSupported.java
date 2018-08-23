@@ -31,12 +31,15 @@ public class PrisonSupported {
     @Column(name = "AUTO_ALLOCATE", nullable = false)
     private boolean autoAllocate;
 
-    @Column(name = "MIGRATED_DATE_TIME", nullable = true)
+    @Column(name = "MIGRATED_DATE_TIME")
     private LocalDateTime migratedDateTime;
 
     @Column(name = "CAPACITY_TIER_1", nullable = false)
     private int capacityTier1;
 
-    @Column(name = "CAPACITY_TIER_2", nullable = true)
+    @Column(name = "CAPACITY_TIER_2")
     private int capacityTier2;
+
+    @Column(name = "KW_SESSION_FREQ_WEEKS", nullable = false)
+    private int kwSessionFrequencyInWeeks;
 }
