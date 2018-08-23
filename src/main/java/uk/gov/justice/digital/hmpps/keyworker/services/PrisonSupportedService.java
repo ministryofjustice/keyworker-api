@@ -22,6 +22,9 @@ public class PrisonSupportedService {
     @Value("${svc.kw.allocation.capacity.tiers:6,9}")
     private List<Integer> capacityTiers;
 
+    @Value("${svc.kw.session.frequency.weeks:1}")
+    private  int keyWorkerSessionDefaultFrequency;
+
     private final PrisonSupportedRepository repository;
 
     @Autowired
@@ -60,12 +63,12 @@ public class PrisonSupportedService {
     @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
     public void updateSupportedPrison(String prisonId, boolean autoAllocate) {
-        updateSupportedPrison(prisonId, autoAllocate, null, null);
+        updateSupportedPrison(prisonId, autoAllocate, capacityTiers.get(0), capacityTiers.get(1), keyWorkerSessionDefaultFrequency);
     }
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
-    public void updateSupportedPrison(String prisonId, boolean autoAllocate, Integer capacityTier1, Integer capacityTier2) {
+    public void updateSupportedPrison(String prisonId, boolean autoAllocate, Integer capacityTier1, Integer capacityTier2, Integer kwSessionFrequencyInWeeks) {
         PrisonSupported prison = repository.findOne(prisonId);
 
         if (prison != null) {
@@ -77,6 +80,9 @@ public class PrisonSupportedService {
             if (capacityTier2 != null) {
                 prison.setCapacityTier2(capacityTier2);
             }
+            if (kwSessionFrequencyInWeeks != null) {
+                prison.setKwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks);
+            }
         } else {
             // create a new entry for a new supported prison
             repository.save(PrisonSupported.builder()
@@ -84,6 +90,7 @@ public class PrisonSupportedService {
                     .autoAllocate(autoAllocate)
                     .capacityTier1(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
                     .capacityTier2(capacityTier2 == null ? capacityTiers.get(1) : capacityTier2)
+                    .kwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks == null ? keyWorkerSessionDefaultFrequency : kwSessionFrequencyInWeeks)
                     .build());
         }
     }
@@ -105,6 +112,7 @@ public class PrisonSupportedService {
                     .autoAllocatedSupported(prison.isAutoAllocate())
                     .capacityTier1(prison.getCapacityTier1())
                     .capacityTier2(prison.getCapacityTier2())
+                    .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
                     .build();
         }
         return null;
