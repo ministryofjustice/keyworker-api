@@ -550,8 +550,10 @@ public class KeyworkerServiceController {
                                                         @ApiParam("migrate") @Param("migrate") boolean migrate,
                                                         @ApiParam(name = "capacity",
                                                                 value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9")
-                                                            @Param("capacity") Integer[] capacity) {
-        return updateAndMigrate(prisonId, migrate, false, capacity);
+                                                            @Param("capacity") Integer[] capacity,
+                                                        @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)")
+                                                        @Param("capacity") Integer frequency) {
+        return updateAndMigrate(prisonId, migrate, false, capacity, frequency);
     }
 
     @ApiOperation(value = "Enable Auto Allocation for specified prison and Migrate", notes = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB")
@@ -565,8 +567,10 @@ public class KeyworkerServiceController {
                                                       @ApiParam("migrate") @Param("migrate") boolean migrate,
                                                       @ApiParam(name = "capacity",
                                                               value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9")
-                                                      @Param("capacity") Integer[] capacity) {
-        return updateAndMigrate(prisonId, migrate, true, capacity);
+                                                      @Param("capacity") Integer[] capacity,
+                                                      @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)")
+                                                      @Param("capacity") Integer frequency) {
+        return updateAndMigrate(prisonId, migrate, true, capacity, frequency);
     }
 
 
@@ -587,11 +591,11 @@ public class KeyworkerServiceController {
         return keyworkerStaffIds;
     }
 
-    private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate, Integer[] capacity) {
+    private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate, Integer[] capacity, Integer kwSessionFrequencyInWeeks) {
 
         if (capacity != null) {
             Validate.isTrue(capacity.length == 2, "Two capacity values must be specified.");
-            prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate, capacity[0], capacity[1]);
+            prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate, capacity[0], capacity[1], kwSessionFrequencyInWeeks);
         } else {
             prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate);
         }

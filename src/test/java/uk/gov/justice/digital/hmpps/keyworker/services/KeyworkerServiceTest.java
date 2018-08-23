@@ -777,7 +777,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(3);
 
-        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L, -7L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L, -7L)), eq("KA"), eq("KS"), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)
@@ -792,13 +792,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                                 .caseNoteSubType("KS")
                                 .latestCaseNote(LocalDate.now().minusWeeks(1))
                                 .numCaseNotes(4)
-                                .build(),
-                        CaseNoteUsageDto.builder()
-                                .staffId(-5L)
-                                .caseNoteType("KA")
-                                .caseNoteSubType("KE")
-                                .latestCaseNote(LocalDate.now().minusWeeks(1))
-                                .numCaseNotes(2)
                                 .build()
                 ));
 
@@ -815,7 +808,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result2.getStaffId()).isEqualTo(-5L);
         assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
         assertThat(result2.getNumberAllocated()).isEqualTo(2);
-        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(5);
+        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(3);
 
         final KeyworkerDto result3 = keyworkerList.getItems().get(2);
         assertThat(result3.getStaffId()).isEqualTo(-7L);
@@ -875,7 +868,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(1);
 
-        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq(null), any(LocalDate.class), any(LocalDate.class)))
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq("KS"), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)
@@ -890,13 +883,6 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                                 .caseNoteSubType("KS")
                                 .latestCaseNote(LocalDate.now().minusWeeks(1))
                                 .numCaseNotes(4)
-                                .build(),
-                        CaseNoteUsageDto.builder()
-                                .staffId(-5L)
-                                .caseNoteType("KA")
-                                .caseNoteSubType("KE")
-                                .latestCaseNote(LocalDate.now().minusWeeks(1))
-                                .numCaseNotes(2)
                                 .build()
                 ));
 
@@ -911,7 +897,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final KeyworkerDto result2 = keyworkerList.getItems().get(1);
         assertThat(result2.getStaffId()).isEqualTo(-5L);
         assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
-        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(5);
+        assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(3);
     }
 
 

@@ -98,7 +98,7 @@ public class PrisonSupportedServiceTest {
         PrisonSupported prison = PrisonSupported.builder().prisonId(TEST_AGENCY).build();
         when(repository.findOne(TEST_AGENCY)).thenReturn(prison);
 
-        prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true, 5, 7);
+        prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true, 5, 7, 1);
 
         verify(repository, never()).save(any(PrisonSupported.class));
         assertThat(prison.getCapacityTier1()).isEqualTo(5);
