@@ -97,8 +97,7 @@ public class PrisonSupportedService {
 
     public boolean isMigrated(String prisonId) {
         // Check remote to determine if prison already migrated
-        Prison prison = getPrisonDetail(prisonId);
-        return prison != null && prison.isMigrated();
+        return getPrisonDetail(prisonId).isMigrated();
     }
 
     public Prison getPrisonDetail(String prisonId) {
@@ -115,7 +114,12 @@ public class PrisonSupportedService {
                     .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
                     .build();
         }
-        return null;
+        return Prison.builder()
+                .prisonId(prisonId)
+                .capacityTier1(capacityTiers.get(0))
+                .capacityTier2(capacityTiers.get(1))
+                .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
+                .build();
     }
 
     private boolean isNotSupported(String prisonId) {
