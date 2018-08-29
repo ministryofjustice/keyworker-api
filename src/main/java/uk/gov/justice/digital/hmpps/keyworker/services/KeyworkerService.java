@@ -233,46 +233,78 @@ public class KeyworkerService  {
 
     public Optional<OffenderKeyWorkerHistory> getFullAllocationHistory(String offenderNo) {
         final List<OffenderKeyworker> keyworkers = repository.findByOffenderNo(offenderNo);
-        OffenderKeyWorkerHistory offenderKeyWorkerHistory;
-        List<KeyWorkerAllocation> keyWorkerAllocations = new ArrayList<>();
 
-        if (!keyworkers.isEmpty()) {
-            keyWorkerAllocations = keyworkers.stream()
-                    .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
-                    .map(
-                    kw -> {
-                        StaffLocationRoleDto staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
+        List<KeyWorkerAllocation> keyWorkerAllocations;
 
-                        String deallocationReason = WordUtils.capitalizeFully(StringUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
-                        return KeyWorkerAllocation.builder()
-                                .offenderKeyworkerId(kw.getOffenderKeyworkerId())
+        // get distinct list of prisons that have been migrated for this offender
+        final List<String> prisonsMigrated = keyworkers.stream().map(OffenderKeyworker::getPrisonId).distinct().collect(Collectors.toList());
+
+        // get the allocations that are in nomis for other prisons
+        List<KeyWorkerAllocation> allocations =
+                nomisService.getAllocationHistoryByOffenderNos(Collections.singletonList(offenderNo))
+                .stream()
+                .filter(a -> !prisonsMigrated.contains(a.getAgencyId()))
+                .map(kw -> {
+                    StaffLocationRoleDto staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
+
+                    return KeyWorkerAllocation.builder()
                                 .firstName(staffKw.getFirstName())
                                 .lastName(staffKw.getLastName())
                                 .staffId(kw.getStaffId())
-                                .active(kw.isActive())
-                                .allocationType(kw.getAllocationType())
-                                .allocationReason(WordUtils.capitalizeFully(kw.getAllocationReason().getReasonCode()))
-                                .assigned(kw.getAssignedDateTime())
-                                .expired(kw.getExpiryDateTime())
-                                .deallocationReason(deallocationReason)
-                                .prisonId(kw.getPrisonId())
+                                .active(kw.getActive().equals("Y"))
+                                .allocationType(AllocationType.MANUAL)
+                                .allocationReason(WordUtils.capitalizeFully(AllocationReason.MANUAL.getReasonCode()))
+                                .assigned(kw.getAssigned())
+                                .expired(kw.getExpired())
+                                .prisonId(kw.getAgencyId())
                                 .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
-                                .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
-                                .creationDateTime(kw.getCreationDateTime())
-                                .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifyUserId()))
-                                .modifyDateTime(kw.getModifyDateTime())
-                                .build();
-                    }
+                                .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreatedBy()))
+                                .creationDateTime(kw.getCreated())
+                                .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifiedBy()))
+                                .modifyDateTime(kw.getModified())
+                                .build(); }
+                                )
+                .collect(Collectors.toList());
 
-            ).sorted(Comparator
-                    .comparing(KeyWorkerAllocation::getAssigned).reversed())
-                    .collect(Collectors.toList());
+        if (!keyworkers.isEmpty()) {
+            allocations.addAll(keyworkers.stream()
+                    .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
+                    .map(
+                            kw -> {
+                                StaffLocationRoleDto staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
+
+                                String deallocationReason = WordUtils.capitalizeFully(StringUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
+                                return KeyWorkerAllocation.builder()
+                                        .offenderKeyworkerId(kw.getOffenderKeyworkerId())
+                                        .firstName(staffKw.getFirstName())
+                                        .lastName(staffKw.getLastName())
+                                        .staffId(kw.getStaffId())
+                                        .active(kw.isActive())
+                                        .allocationType(kw.getAllocationType())
+                                        .allocationReason(WordUtils.capitalizeFully(kw.getAllocationReason().getReasonCode()))
+                                        .assigned(kw.getAssignedDateTime())
+                                        .expired(kw.getExpiryDateTime())
+                                        .deallocationReason(deallocationReason)
+                                        .prisonId(kw.getPrisonId())
+                                        .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
+                                        .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
+                                        .creationDateTime(kw.getCreationDateTime())
+                                        .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifyUserId()))
+                                        .modifyDateTime(kw.getModifyDateTime())
+                                        .build();
+                            }
+
+                    ).collect(Collectors.toList()));
         }
 
+        keyWorkerAllocations = allocations.stream()
+                .sorted(Comparator
+                .comparing(KeyWorkerAllocation::getAssigned).reversed())
+                .collect(Collectors.toList());
         // use prison for most recent allocation
         PrisonerDetail prisonerDetail = nomisService.getPrisonerDetail(offenderNo).orElseThrow(EntityNotFoundException::new);
 
-        offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
+        OffenderKeyWorkerHistory offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
                 .offender(prisonerDetail)
                 .allocationHistory(keyWorkerAllocations)
                 .build();
@@ -303,7 +335,7 @@ public class KeyworkerService  {
             } else {
                 detailsDtoList = allocations.stream()
                         .map(allocation -> decorateWithOffenderDetails(prisonId, allocation))
-                        //remove allocations from returned list that do not have associated booking records
+                        //remove allocations from returned list that do not have associated booking records - these are movements or merges
                         .filter(dto -> dto.getBookingId() != null)
                         .sorted(Comparator
                                 .comparing(KeyworkerAllocationDetailsDto::getLastName)
