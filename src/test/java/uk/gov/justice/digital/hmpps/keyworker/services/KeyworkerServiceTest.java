@@ -900,7 +900,131 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(3);
     }
 
+    @Test
+    public void testFullAllocationHistory() {
+        final String offenderNo = "X5555XX";
 
+        LocalDateTime now = LocalDateTime.now();
+        List<OffenderKeyworker> migratedHistory = Arrays.asList(OffenderKeyworker.builder()
+                .prisonId(TEST_AGENCY)
+                .expiryDateTime(now.minusMonths(1))
+                .assignedDateTime(now.minusMonths(2))
+                .active(false)
+                .allocationReason(AllocationReason.MANUAL)
+                .allocationType(AllocationType.MANUAL)
+                .deallocationReason(DeallocationReason.TRANSFER)
+                .createUserId("staff2")
+                .creationDateTime(now.minusMonths(2))
+                .modifyDateTime(now.minusMonths(1))
+                .modifyUserId("staff2")
+                .offenderKeyworkerId(1L)
+                .offenderNo(offenderNo)
+                .staffId(12L)
+                .userId("staff2")
+                .build());
+
+        when(repository.findByOffenderNo(offenderNo)).thenReturn(migratedHistory);
+
+        Optional<PrisonerDetail> prisonerDetail = Optional.of(PrisonerDetail.builder()
+                .currentlyInPrison("Y")
+                .latestLocationId("HLI")
+                .internalLocation("HLI-A-1-1")
+                .latestLocation("HMP Hull")
+                .latestBookingId(10000L)
+                .dateOfBirth(LocalDate.now().minusYears(30))
+                .firstName("offender1")
+                .lastName("offenderLast1")
+                .gender("M")
+                .offenderNo(offenderNo)
+                .build());
+        when(nomisService.getPrisonerDetail(offenderNo)).thenReturn(prisonerDetail);
+
+
+        List<AllocationHistoryDto> nonMigratedHistory = Arrays.asList(
+                AllocationHistoryDto.builder()
+                        .agencyId("LPI")
+                        .active("N")
+                        .assigned(now.minusMonths(3))
+                        .expired(now.minusMonths(2))
+                        .created(now.minusMonths(3))
+                        .createdBy("staff1")
+                        .modified(now.minusMonths(2))
+                        .modifiedBy("staff1")
+                        .offenderNo(offenderNo)
+                        .staffId(11L)
+                        .userId("staff1")
+                        .build(),
+                AllocationHistoryDto.builder()
+                        .agencyId("LEI")
+                        .active("N")
+                        .assigned(now.minusMonths(2))
+                        .expired(now.minusMonths(1))
+                        .created(now.minusMonths(2))
+                        .createdBy("staff2")
+                        .modified(now.minusMonths(1))
+                        .modifiedBy("staff2")
+                        .offenderNo(offenderNo)
+                        .staffId(12L)
+                        .userId("staff2")
+                        .build(),
+                AllocationHistoryDto.builder()
+                        .agencyId("HLI")
+                        .active("Y")
+                        .assigned(now.minusMonths(1))
+                        .created(now.minusMonths(1))
+                        .createdBy("staff3")
+                        .modified(now.minusMonths(2))
+                        .modifiedBy("staff3")
+                        .offenderNo(offenderNo)
+                        .staffId(13L)
+                        .userId("staff3")
+                        .build()
+        );
+
+        when(nomisService.getAllocationHistoryByOffenderNos(Collections.singletonList(offenderNo))).thenReturn(nonMigratedHistory);
+
+        when(nomisService.getBasicKeyworkerDtoForStaffId(11L)).thenReturn(StaffLocationRoleDto.builder()
+                .staffId(11L)
+                .firstName("kwstaff1")
+                .lastName("lastname-kw1")
+                .agencyId("LPI")
+                .agencyDescription("HMP Liverpool")
+                .build());
+        when(nomisService.getBasicKeyworkerDtoForStaffId(12L)).thenReturn(StaffLocationRoleDto.builder()
+                .staffId(12L)
+                .firstName("kwstaff2")
+                .lastName("lastname-kw2")
+                .agencyId("LEI")
+                .agencyDescription("HMP Leeds")
+                .build());
+        when(nomisService.getBasicKeyworkerDtoForStaffId(13L)).thenReturn(StaffLocationRoleDto.builder()
+                .staffId(13L)
+                .firstName("kwstaff3")
+                .lastName("lastname-kw3")
+                .agencyId("HLI")
+                .agencyDescription("HMP Hull")
+                .build());
+        when(nomisService.getStaffDetailByUserId("staff1")).thenReturn(StaffUser.builder().staffId(1L).username("staff1").firstName("staff1").lastName("lastname1").build());
+        when(nomisService.getStaffDetailByUserId("staff2")).thenReturn(StaffUser.builder().staffId(2L).username("staff2").firstName("staff2").lastName("lastname2").build());
+        when(nomisService.getStaffDetailByUserId("staff3")).thenReturn(StaffUser.builder().staffId(3L).username("staff3").firstName("staff3").lastName("lastname3").build());
+
+        Optional<OffenderKeyWorkerHistory> fullAllocationHistory = service.getFullAllocationHistory(offenderNo);
+
+        assertThat(fullAllocationHistory).isPresent();
+        OffenderKeyWorkerHistory offenderKeyWorkerHistory = fullAllocationHistory.get();
+        PrisonerDetail offender = offenderKeyWorkerHistory.getOffender();
+        assertThat(offender.getLatestLocationId()).isEqualTo("HLI");
+        assertThat(offender.getFirstName()).isEqualTo("offender1");
+        assertThat(offender.getOffenderNo()).isEqualTo(offenderNo);
+
+        List<KeyWorkerAllocation> allocationHistory = offenderKeyWorkerHistory.getAllocationHistory();
+        assertThat(allocationHistory).hasSize(3);
+
+        assertThat(allocationHistory).extracting("staffId").isEqualTo(ImmutableList.of(13L,12L,11L));
+        assertThat(allocationHistory).extracting("prisonId").isEqualTo(ImmutableList.of("HLI",TEST_AGENCY,"LPI"));
+        assertThat(allocationHistory).extracting("assigned").isEqualTo(ImmutableList.of(now.minusMonths(1),now.minusMonths(2),now.minusMonths(3)));
+        assertThat(allocationHistory).extracting("active").isEqualTo(ImmutableList.of(true, false, false));
+    }
     @Test
     public void testGetAvailableKeyworkers() {
         ImmutableList<KeyworkerDto> keyworkers = ImmutableList.of(

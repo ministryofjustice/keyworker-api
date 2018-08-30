@@ -150,4 +150,24 @@ class OffenderKeyworkerDtoListStub {
 """
         return response
     }
+
+    static getResponseAllocationHistory(offenderNo) {
+        return """
+[
+ {
+    "offenderNo": "${offenderNo}",
+    "staffId": "-4",
+    "agencyId": "LEI",
+    "assigned": "2018-05-03T13:35:12.000",
+    "expired": "2018-06-03T13:35:12.000",
+    "userId": "ELITE2_API_USER",
+    "active": "N",
+    "created": "2018-05-03T13:35:12.000",
+    "createdBy": "ELITE2_API_USER",
+    "modified": "2018-06-03T13:35:12.000",
+    "modifiedBy": "ELITE2_API_USER"
+  }
+]"""
+    }
+
 }
