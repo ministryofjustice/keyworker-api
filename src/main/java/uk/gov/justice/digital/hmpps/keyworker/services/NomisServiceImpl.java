@@ -48,6 +48,9 @@ public class NomisServiceImpl implements NomisService {
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> LEGACY_KEYWORKER_ALLOCATIONS =
             new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
 
+    private static final ParameterizedTypeReference<List<AllocationHistoryDto>> ALLOCATION_HISTORY =
+            new ParameterizedTypeReference<List<AllocationHistoryDto>>() {};
+
     private final RestCallHelper restCallHelper;
 
     public NomisServiceImpl(RestCallHelper restCallHelper) {
@@ -195,5 +198,13 @@ public class NomisServiceImpl implements NomisService {
         URI uri = new UriTemplate(URI_CURRENT_ALLOCATIONS_BY_OFFENDERS).expand(agencyId);
 
         return restCallHelper.post(uri, offenderNos, LEGACY_KEYWORKER_ALLOCATIONS);
+    }
+
+    @Override
+    public List<AllocationHistoryDto> getAllocationHistoryByOffenderNos(List<String> offenderNos) {
+        log.info("Getting Key worker allocations for offender Nos {}", offenderNos);
+        URI uri = new UriTemplate(URI_OFFENDERS_ALLOCATION_HISTORY).expand();
+
+        return restCallHelper.post(uri, offenderNos, ALLOCATION_HISTORY);
     }
 }

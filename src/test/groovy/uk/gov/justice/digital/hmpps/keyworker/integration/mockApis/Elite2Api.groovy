@@ -151,4 +151,12 @@ class Elite2Api extends WireMockRule {
                 .withBody(OffenderLocationDtoListStub.getResponsePrisoner(offenderNo))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
+
+    void stubOffenderAllocationHistory(String offenderNo) {
+        stubFor(post(urlPathMatching(new UriTemplate(NOMIS_API_PREFIX + URI_OFFENDERS_ALLOCATION_HISTORY).expand().toString()))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(OffenderKeyworkerDtoListStub.getResponseAllocationHistory(offenderNo))
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+        ))
+    }
 }
