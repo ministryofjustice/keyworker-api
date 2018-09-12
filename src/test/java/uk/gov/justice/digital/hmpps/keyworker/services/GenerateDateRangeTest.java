@@ -33,6 +33,14 @@ public class GenerateDateRangeTest {
     }
 
     @Test
+    public void testDateGenerationForRangeWith11Weeks() {
+        GenerateDateRange dateRange1 = new GenerateDateRange(11, LocalDate.of(2018, 9, 12));
+
+        assertThat(dateRange1.getFromDate()).isEqualTo(LocalDate.of(2018, 6, 24));
+        assertThat(dateRange1.getToDate()).isEqualTo(LocalDate.of(2018, 9, 9));
+    }
+
+    @Test
     public void testDateGenerationLastWeekFutureDate() {
         GenerateDateRange dateRange1 = new GenerateDateRange(1, LocalDate.of(2018, 7, 14));
 
