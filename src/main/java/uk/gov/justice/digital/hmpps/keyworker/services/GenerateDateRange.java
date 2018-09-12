@@ -13,8 +13,9 @@ class GenerateDateRange {
     public GenerateDateRange(int numWeeks, final LocalDate startDate) {
 
         final LocalDate workingDate = startDate.with(DayOfWeek.SUNDAY);
+        //workingDate will be next sunday (unless the startDate fell on a Sunday) -  need to adjust to last sunday
         if (workingDate.isAfter(startDate)) {
-            toDate = workingDate.minusWeeks(numWeeks);
+            toDate = workingDate.minusWeeks(1);
         } else {
             toDate = workingDate;
         }
