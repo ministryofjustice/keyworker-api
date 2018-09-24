@@ -96,9 +96,9 @@ dependencies {
     compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.8.3")
     compile("net.logstash.logback:logstash-logback-encoder:4.8")
     compile("com.pauldijou:jwt-core_2.11:0.15.0")
-    compile("com.microsoft.azure:applicationinsights-core:2.1.1")
-    compile("com.microsoft.azure:applicationinsights-web:2.1.1")
-    compile("com.microsoft.azure:applicationinsights-logging-logback:2.1.1")
+    compile("com.microsoft.azure:applicationinsights-core:2.1.2")
+    compile("com.microsoft.azure:applicationinsights-web:2.1.2")
+    compile("com.microsoft.azure:applicationinsights-logging-logback:2.1.2")
 
     compile("org.flywaydb:flyway-core:5.0.2")
     compile("org.hsqldb:hsqldb:2.4.0")
