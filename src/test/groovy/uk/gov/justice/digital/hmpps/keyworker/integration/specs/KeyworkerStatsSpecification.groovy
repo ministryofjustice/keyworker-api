@@ -13,7 +13,7 @@ class KeyworkerStatsSpecification extends TestSpecification {
         elite2api.stubKeyworkerDetails_basicDetailsOnly(staffId)
 
         when: "a request for stats is made for the a member of staff"
-        def response = restTemplate.exchange("/key-worker/${staffId}/prison/LEI/stats", HttpMethod.GET, createHeaderEntity("headers"), String.class)
+        def response = restTemplate.exchange("/key-worker-stats/${staffId}/prison/LEI", HttpMethod.GET, createHeaderEntity("headers"), String.class)
 
         then: "the response status code should be 400"
         response.statusCode.value() == 400
@@ -40,7 +40,7 @@ class KeyworkerStatsSpecification extends TestSpecification {
         elite2api.stubCaseNoteUsageFor(staffId, "KA", "KA", fromDate, toDate,entryCaseNotes)
 
         when: "a request for stats is made for the a member of staff"
-        def response = restTemplate.exchange("/key-worker/${staffId}/prison/LEI/stats?fromDate=${fromDate}&toDate=${toDate}", HttpMethod.GET, createHeaderEntity("headers"), String.class)
+        def response = restTemplate.exchange("/key-worker-stats/${staffId}/prison/LEI?fromDate=${fromDate}&toDate=${toDate}", HttpMethod.GET, createHeaderEntity("headers"), String.class)
 
         then: "a count of entry and session case notes is returned"
         def stats = jsonSlurper.parseText(response.body)
