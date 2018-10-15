@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.*;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -40,18 +41,21 @@ public class KeyworkerServiceController {
     private final UserRolesMigrationService roleMigrationService;
     private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
     private final PrisonSupportedService prisonSupportedService;
+    private final KeyworkerStatsService keyworkerStatsService;
 
     public KeyworkerServiceController(KeyworkerService keyworkerService,
                                       KeyworkerBatchService keyworkerBatchService, KeyworkerMigrationService keyworkerMigrationService,
                                       KeyworkerAutoAllocationService keyworkerAutoAllocationService,
                                       UserRolesMigrationService roleMigrationService,
-                                      PrisonSupportedService prisonSupportedService) {
+                                      PrisonSupportedService prisonSupportedService,
+                                      KeyworkerStatsService keyworkerStatsService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerBatchService = keyworkerBatchService;
         this.keyworkerMigrationService = keyworkerMigrationService;
         this.keyworkerAutoAllocationService = keyworkerAutoAllocationService;
         this.roleMigrationService = roleMigrationService;
         this.prisonSupportedService = prisonSupportedService;
+        this.keyworkerStatsService = keyworkerStatsService;
     }
 
     /* --------------------------------------------------------------------------------*/
@@ -607,4 +611,38 @@ public class KeyworkerServiceController {
 
         return prisonSupportedService.getPrisonDetail(prisonId);
     }
+
+    @ApiOperation(
+            value = "Return key worker stats",
+            notes = "Can only be run with the key worker role",
+            nickname="getKeyworkerStats")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = String.class),
+            @ApiResponse(code = 400, message = "Invalid request", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping(path = "/{staffId}/prison/{prisonId}/stats")
+    public KeyworkerStatsDto getKeyworkerStats(
+            @ApiParam("staffId") @NotNull @PathVariable("staffId")
+                    Long staffId,
+
+            @ApiParam("prisonId") @NotNull @PathVariable("prisonId")
+                    String prisonId,
+
+            @ApiParam(value = "Calculate stats on or after this date (in YYYY-MM-DD format).")
+            @RequestParam(value = "fromDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate fromDate,
+
+            @ApiParam(value = "Calculate stats on or before this date (in YYYY-MM-DD format).")
+            @RequestParam(value = "toDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate toDate )
+    {
+
+          return keyworkerStatsService.getStatsFor(staffId, prisonId, fromDate, toDate);
+
+    }
+
 }
