@@ -19,37 +19,29 @@ public class KeyworkerStatsService {
         this.nomisService = nomisService;
     }
 
-    public KeyworkerStatsDto getStatsFor(Long staffId, String prisonId, LocalDate fromDate, LocalDate toDate) {
+    public KeyworkerStatsDto getStatsForStaff(Long staffId, String prisonId, LocalDate fromDate, LocalDate toDate) {
 
         Validate.notNull(staffId, "staffId");
         Validate.notNull(prisonId,"prisonId");
         Validate.notNull(fromDate, "fromDate");
         Validate.notNull(toDate, "toDate");
 
-        Integer caseNoteSessionCount = countCaseNotesForStaff(staffId, "KA", "KS", fromDate, toDate);
-        Integer caseNoteEntryCount = countCaseNotesForStaff(staffId, "KA", "KA", fromDate, toDate);
+        List<CaseNoteUsageDto> usageCounts =
+                nomisService.getCaseNoteUsage(Arrays.asList(staffId), "KA", null, fromDate, toDate);
+
+        Map<String, Integer> usageGroupedBySubType =  usageCounts.stream()
+                .collect(Collectors.groupingBy(CaseNoteUsageDto::getCaseNoteSubType,
+                        Collectors.summingInt(CaseNoteUsageDto::getNumCaseNotes)));
+
+        Integer entryCount = usageGroupedBySubType.get("KA");
+        Integer sessionCount = usageGroupedBySubType.get("KS");
 
         return KeyworkerStatsDto.builder()
                 .projectedKeyworkerSessions(0)
                 .complianceRate(0)
-                .caseNoteEntryCount(caseNoteEntryCount)
-                .caseNoteSessionCount(caseNoteSessionCount)
+                .caseNoteEntryCount(entryCount != null ? entryCount : 0)
+                .caseNoteSessionCount(sessionCount != null ? sessionCount :0)
                 .build();
     }
 
-    private Integer countCaseNotesForStaff(long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
-        List<CaseNoteUsageDto> usageCounts =
-                nomisService.getCaseNoteUsage(Arrays.asList(staffId), caseNoteType, caseNoteSubType, fromDate, toDate);
-
-        Map<Long, Integer> groupedCounts =  usageCounts.stream()
-                .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
-                        Collectors.summingInt(CaseNoteUsageDto::getNumCaseNotes)));
-
-        Integer result = groupedCounts.get(staffId);
-
-        if(result == null)
-            return 0;
-
-        return result;
-    }
 }
