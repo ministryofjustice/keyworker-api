@@ -34,56 +34,46 @@ public class KeyworkerStatsServiceTest extends AbstractServiceTest {
 
     @Test(expected = NullPointerException.class)
     public void testShouldThrowIfRequiredParametersAreMissing() {
-        service.getStatsFor(null, null, null, null);
+        service.getStatsForStaff(null, null, null, null);
     }
 
     @Test
     public void testThatNomisServiceIsCalledWithTheCorrectParameters() {
         when(nomisService.getCaseNoteUsage(
-                Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE, TEST_SESSION_CASE_NOTE_SUBTYPE, fromDate,toDate))
+                Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE, null, fromDate,toDate))
                     .thenReturn(new ArrayList<>());
 
-        when(nomisService.getCaseNoteUsage(
-                Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE, TEST_ENTRY_CASE_NOTE_SUBTYPE, fromDate, toDate))
-                    .thenReturn(new ArrayList<>());
 
-        service.getStatsFor(TEST_STAFF_ID, TEST_AGENCY_ID, fromDate, toDate);
+        service.getStatsForStaff(TEST_STAFF_ID, TEST_AGENCY_ID, fromDate, toDate);
 
         verify(nomisService).getCaseNoteUsage(Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE,
-                TEST_SESSION_CASE_NOTE_SUBTYPE, fromDate, toDate);
-
-        verify(nomisService).getCaseNoteUsage(Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE,
-                TEST_ENTRY_CASE_NOTE_SUBTYPE, fromDate, toDate);
+                null, fromDate, toDate);
     }
 
     @Test
     public void testThatTheResponseGetsMappedCorrectly() {
-        ArrayList<CaseNoteUsageDto> sessions = new ArrayList<>();
-        ArrayList<CaseNoteUsageDto> entries = new ArrayList<>();
+        ArrayList<CaseNoteUsageDto> usageCounts = new ArrayList<>();
 
-        sessions.add(CaseNoteUsageDto.builder()
+        usageCounts.add(CaseNoteUsageDto.builder()
                 .caseNoteSubType(TEST_CASE_NOTE_TYPE)
                 .caseNoteSubType(TEST_SESSION_CASE_NOTE_SUBTYPE)
                 .staffId(TEST_STAFF_ID)
                 .numCaseNotes(10)
                 .build());
 
-        entries.add(CaseNoteUsageDto.builder()
+        usageCounts.add(CaseNoteUsageDto.builder()
                 .caseNoteSubType(TEST_CASE_NOTE_TYPE)
                 .caseNoteSubType(TEST_ENTRY_CASE_NOTE_SUBTYPE)
                 .staffId(TEST_STAFF_ID)
                 .numCaseNotes(11)
                 .build());
 
-        when(nomisService.getCaseNoteUsage(
-                Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE, TEST_SESSION_CASE_NOTE_SUBTYPE, fromDate, toDate))
-                    .thenReturn(sessions);
 
         when(nomisService.getCaseNoteUsage(
-                Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE, TEST_ENTRY_CASE_NOTE_SUBTYPE, fromDate, toDate))
-                    .thenReturn(entries);
+                Collections.singletonList(TEST_STAFF_ID), TEST_CASE_NOTE_TYPE, null, fromDate, toDate))
+                    .thenReturn(usageCounts);
 
-        KeyworkerStatsDto stats = service.getStatsFor(
+        KeyworkerStatsDto stats = service.getStatsForStaff(
                 TEST_STAFF_ID,
                 TEST_AGENCY_ID,
                 fromDate,

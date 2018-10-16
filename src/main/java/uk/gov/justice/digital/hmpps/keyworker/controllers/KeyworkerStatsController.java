@@ -27,35 +27,35 @@ public class KeyworkerStatsController {
     }
 
     @ApiOperation(
-            value = "Return key worker stats",
+            value = "Return staff members stats",
             notes = "Can only be run with the key worker role",
-            nickname="getKeyworkerStats")
+            nickname="getStatsForStaff")
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = String.class),
+            @ApiResponse(code = 200, message = "OK", response = KeyworkerStatsDto.class),
             @ApiResponse(code = 400, message = "Invalid request", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @GetMapping(path = "/{staffId}/prison/{prisonId}")
-    public KeyworkerStatsDto getKeyworkerStats(
+    public KeyworkerStatsDto getStatsForStaff(
             @ApiParam("staffId") @NotNull @PathVariable("staffId")
                     Long staffId,
 
             @ApiParam("prisonId") @NotNull @PathVariable("prisonId")
                     String prisonId,
 
-            @ApiParam(value = "Calculate stats on or after this date (in YYYY-MM-DD format).")
+            @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).")
             @RequestParam(value = "fromDate")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate fromDate,
 
-            @ApiParam(value = "Calculate stats on or before this date (in YYYY-MM-DD format).")
+            @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).")
             @RequestParam(value = "toDate")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate )
     {
 
-        return keyworkerStatsService.getStatsFor(staffId, prisonId, fromDate, toDate);
+        return keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate);
 
     }
 

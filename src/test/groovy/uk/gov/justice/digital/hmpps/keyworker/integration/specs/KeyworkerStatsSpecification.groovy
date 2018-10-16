@@ -19,25 +19,20 @@ class KeyworkerStatsSpecification extends TestSpecification {
         response.statusCode.value() == 400
     }
 
-    def "should return the correct case note counts"() {
+    def "should return a staff members stats"() {
 
         def jsonSlurper = new JsonSlurper()
         def fromDate = "2018-07-10"
         def toDate = "2018-07-10"
 
-        def sessionCaseNotes = [
+        def caseNoteUsageCounts = [
                 [ "staffId": staffId,"caseNoteType": "KA", "caseNoteSubType": "KS","latestCaseNote": toDate, "numCaseNotes": 3 ],
+                [ "staffId": staffId,"caseNoteType": "KA", "caseNoteSubType": "KA","latestCaseNote": toDate, "numCaseNotes": 2 ]
         ]
-
-        def entryCaseNotes = [
-                [ "staffId": staffId,"caseNoteType": "KA", "caseNoteSubType": "KA","latestCaseNote": toDate, "numCaseNotes": 2 ],
-        ]
-
         given:
         migrated("LEI")
         elite2api.stubKeyworkerDetails_basicDetailsOnly(staffId)
-        elite2api.stubCaseNoteUsageFor(staffId, "KA", "KS", fromDate, toDate,sessionCaseNotes)
-        elite2api.stubCaseNoteUsageFor(staffId, "KA", "KA", fromDate, toDate,entryCaseNotes)
+        elite2api.stubCaseNoteUsageFor(staffId, "KA", fromDate, toDate,caseNoteUsageCounts)
 
         when: "a request for stats is made for the a member of staff"
         def response = restTemplate.exchange("/key-worker-stats/${staffId}/prison/LEI?fromDate=${fromDate}&toDate=${toDate}", HttpMethod.GET, createHeaderEntity("headers"), String.class)
