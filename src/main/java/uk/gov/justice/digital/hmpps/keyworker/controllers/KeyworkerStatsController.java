@@ -44,12 +44,12 @@ public class KeyworkerStatsController {
             @ApiParam("prisonId") @NotNull @PathVariable("prisonId")
                     String prisonId,
 
-            @ApiParam(value = "Calculate a staff members stats on or after this date (in YYYY-MM-DD format).")
+            @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).")
             @RequestParam(value = "fromDate")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate fromDate,
 
-            @ApiParam(value = "Calculate a staff members stats on or before this date (in YYYY-MM-DD format).")
+            @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).")
             @RequestParam(value = "toDate")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate )
