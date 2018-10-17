@@ -32,7 +32,7 @@ public class Elite2ApiHealth implements HealthIndicator {
 
     private Health health(HttpStatus code) {
         return health (
-                code.is2xxSuccessful() ? Health.up(): Health.down(),
+                Health.up(),
                 code);
     }
 

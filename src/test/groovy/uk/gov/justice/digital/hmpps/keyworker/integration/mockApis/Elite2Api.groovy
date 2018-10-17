@@ -138,6 +138,13 @@ class Elite2Api extends WireMockRule {
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
+    void stubHealthElite2DownResponse() {
+        stubFor(get(urlEqualTo("/health"))
+                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .withBody("""{"status":"DOWN","HttpStatus":503}""")
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
     void stubOffenderLookup(String prisonId, String offenderNo) {
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ URI_ACTIVE_OFFENDER_BY_AGENCY).expand(prisonId, offenderNo).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
