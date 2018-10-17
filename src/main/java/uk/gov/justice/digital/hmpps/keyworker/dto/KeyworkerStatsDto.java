@@ -7,28 +7,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-@ApiModel(description = "Key worker Stats")
+@ApiModel(description = "KeyworkerStats")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyworkerStatsDto {
-
-    private Integer numActiveKeyworkers;
-    private Integer percentagePrisonersWithKeyworker;
-    private Integer numProjectedKeyworkerSessions;
-    private Integer numRecordedKeyworkerSessions;
-    private BigDecimal complianceRate;
-    private Integer avgTimeReceptionToAllocation;
-    private Integer avgTimeReceptionToKeyworkSession;
-
-    private List<KeyworkerDataTimelineValue> complianceTimeline;
-    private BigDecimal avgOverallCompliance;
-    private List<KeyworkerDataTimelineValue> keyworkerSessionsTimeline;
-    private Integer avgOverallKeyworkerSessions;
-
+    private long caseNoteSessionCount;
+    private long caseNoteEntryCount;
+    private long projectedKeyworkerSessions;
+    private long complianceRate;
 }

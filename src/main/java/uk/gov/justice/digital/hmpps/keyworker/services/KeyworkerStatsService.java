@@ -1,18 +1,49 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
+import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
 
 import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
-@Validated
-@Slf4j
+@Transactional(readOnly = true)
 public class KeyworkerStatsService {
+    private final NomisService nomisService;
+
+    public KeyworkerStatsService(NomisService nomisService) {
+        this.nomisService = nomisService;
+    }
+
+    public KeyworkerStatsDto getStatsForStaff(Long staffId, String prisonId, LocalDate fromDate, LocalDate toDate) {
+
+        Validate.notNull(staffId, "staffId");
+        Validate.notNull(prisonId,"prisonId");
+        Validate.notNull(fromDate, "fromDate");
+        Validate.notNull(toDate, "toDate");
+
+        List<CaseNoteUsageDto> usageCounts =
+                nomisService.getCaseNoteUsage(Arrays.asList(staffId), "KA", null, fromDate, toDate);
+
+        Map<String, Integer> usageGroupedBySubType =  usageCounts.stream()
+                .collect(Collectors.groupingBy(CaseNoteUsageDto::getCaseNoteSubType,
+                        Collectors.summingInt(CaseNoteUsageDto::getNumCaseNotes)));
+
+        Integer entryCount = usageGroupedBySubType.get("KA");
+        Integer sessionCount = usageGroupedBySubType.get("KS");
+
+        return KeyworkerStatsDto.builder()
+                .projectedKeyworkerSessions(0)
+                .complianceRate(0)
+                .caseNoteEntryCount(entryCount != null ? entryCount : 0)
+                .caseNoteSessionCount(sessionCount != null ? sessionCount :0)
+                .build();
+    }
+
     public KeyworkerStatsDto getStats(String prisonId, LocalDate startDate, LocalDate endDate) {
         return KeyworkerStatsDto.builder().build();
     }

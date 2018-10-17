@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.mockApis
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule
+import groovy.json.JsonOutput
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.util.UriTemplate
@@ -84,6 +85,18 @@ class Elite2Api extends WireMockRule {
         ))
     }
 
+    void stubCaseNoteUsageFor(int staffId, String type, String fromDate, String toDate, def response) {
+
+        def body = [staffIds: [staffId], type: type, fromDate: fromDate, toDate: toDate]
+
+        stubFor(post(urlPathMatching(new UriTemplate(NOMIS_API_PREFIX + CASE_NOTE_USAGE).expand().toString()))
+                .withRequestBody(equalTo(JsonOutput.toJson(body)))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(JsonOutput.toJson(response))
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+        ))
+    }
+
     void stubAccessCodeListForKeyRole(String prisonId) {
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ RemoteRoleService.STAFF_ACCESS_CODES_LIST_URL).expand(prisonId, "KEY_WORK").toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
@@ -122,6 +135,13 @@ class Elite2Api extends WireMockRule {
         stubFor(get(urlEqualTo("/health"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody("""{"status":"UP","HttpStatus":200}""")
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
+    void stubHealthElite2DownResponse() {
+        stubFor(get(urlEqualTo("/health"))
+                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .withBody("""{"status":"DOWN","HttpStatus":503}""")
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
