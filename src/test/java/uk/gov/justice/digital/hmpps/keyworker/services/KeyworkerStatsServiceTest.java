@@ -1,20 +1,38 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
-public class KeyworkerStatsServiceTest extends AbstractServiceTest {
+@RunWith(MockitoJUnitRunner.class)
+public class KeyworkerStatsServiceTest {
+
+    @Mock
     private NomisService nomisService;
+
+    @Mock
+    private OffenderKeyworkerRepository repository;
+
+    @Mock
+    private PrisonSupportedService prisonSupportedService;
+
     private KeyworkerStatsService service;
+
     private LocalDate fromDate;
     private LocalDate toDate;
 
@@ -26,8 +44,8 @@ public class KeyworkerStatsServiceTest extends AbstractServiceTest {
 
     @Before
     public void setUp() {
-        nomisService = mock(NomisService.class);
-        service = new KeyworkerStatsService(nomisService);
+
+        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository);
         fromDate = LocalDate.now();
         toDate = LocalDate.now();
     }
@@ -81,7 +99,7 @@ public class KeyworkerStatsServiceTest extends AbstractServiceTest {
 
         assertThat(stats.getCaseNoteEntryCount()).isEqualTo(11);
         assertThat(stats.getCaseNoteSessionCount()).isEqualTo(10);
-        assertThat(stats.getComplianceRate()).isEqualTo(0);
+        assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
         assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(0);
     }
 }

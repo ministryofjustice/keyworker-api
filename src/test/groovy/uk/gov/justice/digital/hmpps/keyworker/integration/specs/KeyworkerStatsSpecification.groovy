@@ -42,7 +42,7 @@ class KeyworkerStatsSpecification extends TestSpecification {
         stats.caseNoteSessionCount == 3
         stats.caseNoteEntryCount == 2
         stats.projectedKeyworkerSessions == 0
-        stats.complianceRate == 0
+        stats.complianceRate == 100.00
     }
 
 }
