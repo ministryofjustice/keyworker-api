@@ -1,138 +1,41 @@
 version: '3.1'
 services:
-  elite2-web:
-    image: sysconjusticesystems/elite2-web:latest
-    networks:
-      - hmpps
-    depends_on:
-      - elite2-api
-      - keyworker-api
-    container_name: elite2-web
+  oauth-server:
+    image: mojdigitalstudio/nomis-oauth2-server:latest
+    container_name: oauth-server
     ports:
-      - "3000:3000"
+      - "9090:8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-    deploy:
-        replicas: 1
-        update_config:
-          parallelism: 1
-          delay: 10s
-        restart_policy:
-          condition: on-failure
-        placement:
-          constraints: [node.role == worker]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
     environment:
-      - PORT=3000
-      - USE_API_GATEWAY_AUTH=no
-      - HOST=elite2-web.hmpps.dsd.test
-      - API_ENDPOINT_URL=http://elite2-api:8080/
-      - KEYWORKER_API_URL=http://keyworker-api:8080/
-      - HMPPS_COOKIE_DOMAIN=hmpps.dsd.test
-      - HMPPS_COOKIE_NAME=hmpps-session-dev
-      - HMPPS_COOKIE_SECRET=acookiesecret
-
-  omic-ui:
-    image: mojdigitalstudio/omic-ui:latest
-    networks:
-      - hmpps
-    depends_on:
-      - elite2-api
-      - keyworker-api
-    ports:
-      - "3001:3000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-    deploy:
-        replicas: 1
-        update_config:
-          parallelism: 1
-          delay: 10s
-        restart_policy:
-          condition: on-failure
-        placement:
-          constraints: [node.role == worker]
-    environment:
-      - PORT=3000
-      - HOST=omic-ui.hmpps.dsd.test
-      - API_ENDPOINT_URL=http://elite2-api:8080/
-      - KEYWORKER_API_URL=http://keyworker-api:8080/
-      - HMPPS_COOKIE_DOMAIN=hmpps.dsd.test
-      - HMPPS_COOKIE_NAME=hmpps-session-dev
-      - HMPPS_COOKIE_SECRET=acookiesecret
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=dev
 
   elite2-api:
-    image: sysconjusticesystems/elite2-api:latest
-    networks:
-      - hmpps
+    image: mojdigitalstudio/elite2-api:latest
     container_name: elite2-api
+    depends_on:
+    - oauth-server
     ports:
       - "8080:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-    deploy:
-        replicas: 1
-        update_config:
-          parallelism: 1
-          delay: 10s
-        restart_policy:
-          condition: on-failure
-        placement:
-          constraints: [node.role == worker]
     environment:
-      - JAVA_OPTS=-Xms256m -Xmx256m
       - SERVER_PORT=8080
       - SPRING_PROFILES_ACTIVE=nomis-hsqldb
-      - JWT_SIGNING_KEY=d2Vmd2VpZmp3ZXBvZ3dbZWloZ293ZXVyZ2gzNGhnOTM4NHQtOWg4ZzM0ZzM0ZzM1aHc0NWp3NDVqaDQ1NDV3aDR3NWg=
-      - OAUTH_CLIENT_DATA=W3siY2xpZW50SWQiOiJlbGl0ZTJhcGl0cnVzdGVkY2xpZW50IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9TWVNURU1fVVNFUiJdLCJjbGllbnRTZWNyZXQiOiJjbGllbnRzZWNyZXQiLCJzY29wZSI6WyJyZWFkIiwiYWRtaW4iXSwiYXV0aG9yaXplZEdyYW50VHlwZXMiOlsiY2xpZW50X2NyZWRlbnRpYWxzIl0sImF1dG9BcHByb3ZlIjpbInJlYWQiXSwiYWNjZXNzVG9rZW5WYWxpZGl0eSI6MTgwMH0seyJjbGllbnRJZCI6Im9taWNhZG1pbiIsImF1dGhvcml0aWVzIjpbIlJPTEVfTUFJTlRBSU5fQUNDRVNTX1JPTEVTIiwiUk9MRV9LV19NSUdSQVRJT04iLCJST0xFX1NZU1RFTV9VU0VSIl0sImNsaWVudFNlY3JldCI6ImNsaWVudHNlY3JldCIsInNjb3BlIjpbInJlYWQiXSwiYXV0aG9yaXplZEdyYW50VHlwZXMiOlsiY2xpZW50X2NyZWRlbnRpYWxzIl0sImF1dG9BcHByb3ZlIjpbInJlYWQiXSwiYWNjZXNzVG9rZW5WYWxpZGl0eSI6MTgwMH0seyJjbGllbnRJZCI6ImxpY2VuY2VzYWRtaW4iLCJhdXRob3JpdGllcyI6WyJST0xFX1NZU1RFTV9VU0VSIiwiTElDRU5DRV9STyJdLCJjbGllbnRTZWNyZXQiOiJjbGllbnRzZWNyZXQiLCJzY29wZSI6WyJyZWFkIiwiYWRtaW4iXSwiYXV0aG9yaXplZEdyYW50VHlwZXMiOlsiY2xpZW50X2NyZWRlbnRpYWxzIl0sImF1dG9BcHByb3ZlIjpbImFkbWluIl0sImFjY2Vzc1Rva2VuVmFsaWRpdHkiOjE4MDB9LHsiY2xpZW50SWQiOiJlbGl0ZTJhcGljbGllbnQiLCJjbGllbnRTZWNyZXQiOiJjbGllbnRzZWNyZXQiLCJzY29wZSI6WyJyZWFkIiwid3JpdGUiXSwiYWNjZXNzVG9rZW5WYWxpZGl0eSI6Mjg4MDAsInJlZnJlc2hUb2tlblZhbGlkaXR5Ijo0MzIwMCwiYXV0aG9yaXplZEdyYW50VHlwZXMiOlsicGFzc3dvcmQiLCJhdXRob3JpemF0aW9uX2NvZGUiLCJyZWZyZXNoX3Rva2VuIl0sImF1dG9BcHByb3ZlIjpbInJlYWQiLCJ3cml0ZSJdfSx7ImNsaWVudElkIjoib21pYyIsImNsaWVudFNlY3JldCI6ImNsaWVudHNlY3JldCIsImF1dGhvcml0aWVzIjpbIlJPTEVfS1dfTUlHUkFUSU9OIl0sInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJhY2Nlc3NUb2tlblZhbGlkaXR5IjoyODgwMCwicmVmcmVzaFRva2VuVmFsaWRpdHkiOjQzMjAwLCJhdXRob3JpemVkR3JhbnRUeXBlcyI6WyJwYXNzd29yZCIsImF1dGhvcml6YXRpb25fY29kZSIsInJlZnJlc2hfdG9rZW4iXSwiYXV0b0FwcHJvdmUiOlsicmVhZCIsIndyaXRlIl19LHsiY2xpZW50SWQiOiJsaWNlbmNlcyIsImNsaWVudFNlY3JldCI6ImNsaWVudHNlY3JldCIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJhY2Nlc3NUb2tlblZhbGlkaXR5IjoyODgwMCwicmVmcmVzaFRva2VuVmFsaWRpdHkiOjQzMjAwLCJhdXRob3JpemVkR3JhbnRUeXBlcyI6WyJwYXNzd29yZCIsImF1dGhvcml6YXRpb25fY29kZSIsInJlZnJlc2hfdG9rZW4iXSwiYXV0b0FwcHJvdmUiOlsicmVhZCIsIndyaXRlIl19XQo=
-      - JWT_KEYSTORE_PASSWORD=s3cre3tK3y
-      - JWT_KEYSTORE_ALIAS=elite2api
-      - JWT_SIGNING_KEY_PAIR=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
-
 
   keyworker-api:
     image: mojdigitalstudio/keyworker-api:latest
     depends_on:
       - elite2-api
-      - keyworker-db
-    networks:
-      - hmpps
+      - oauth-server
     container_name: keyworker-api
     ports:
       - "8081:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-    deploy:
-        replicas: 1
-        update_config:
-          parallelism: 1
-          delay: 10s
-        restart_policy:
-          condition: on-failure
-        placement:
-          constraints: [node.role == worker]
     environment:
-      - JAVA_OPTS=-Xms256m -Xmx256m
       - SERVER_PORT=8080
-      - APP_DB_URL=jdbc:postgresql://keyworker-db:5432/keyworker_api_db
-      - ELITE2_API_URI_ROOT=http://elite2-api:8080/api
-      - JWT_PUBLIC_KEY=LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0NCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMW44Z3R6MGs4T01ScCtQOTM4bTUNCmNuMFYrWHZmTW5WaWIrV1I1SVBUQnQyYXUwSTJPdDBoQUYycGpXRnlYM0hRN2M3YzVjYUJVTEdhSjNRTmZIVEoNClZwbTdZTWc0NnF2MEtRaUh4YXVjbGw3ZzZ5Y3Y3d090ZzNyQW9aK1cyZ0thaE1SVDlGV214MVhCYUdxd05wT0YNCm5pYWphQXhIUERTOE4zSkpaTTRYbVRiQUlwdGJTSUdXRDN0N1U0US9FMUJueHRVMm5VR2VOUEtaeDEzbTVaK0MNCklZOTkxdDg5UHNPek5CMzJwZmhEbnJHVmdtMXM3UmtYeW1hYlMwcXViYjhJejQydUFucm15Rm9hanpaeUpIaW0NCnA4YzdYQytWU2ZzT2Z6b0dZVmUxYmNDN1hBaDVTZ0M0dnc1V1JON1pHVDhmRUFxRDFFUEZBcUcwcVl2Y2pCbDANCm53SURBUUFCDQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0\=
-      - SPRING_DATASOURCE_PASSWORD=keyworker
-      - SPRING_DATASOURCE_USERNAME=keyworker
-      - SPRING_PROFILES_ACTIVE=batch
+      - ELITE2_URI_ROOT=http://elite2-api:8080
+      - AUTH_URI_ROOT=http://oauth-server:8080/auth
       - security.require-ssl=false
-
-  keyworker-db:
-    image: postgres
-    networks:
-      - hmpps
-    container_name: keyworker-db
-    restart: always
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=keyworker
-      - POSTGRES_USER=keyworker
-      - POSTGRES_DB=keyworker_api_db
-
-networks:
-  hmpps:
