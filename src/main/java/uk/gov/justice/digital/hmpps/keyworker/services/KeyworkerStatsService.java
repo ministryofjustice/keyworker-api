@@ -5,9 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStatsDto;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +30,7 @@ public class KeyworkerStatsService {
         Validate.notNull(toDate, "toDate");
 
         List<CaseNoteUsageDto> usageCounts =
-                nomisService.getCaseNoteUsage(Arrays.asList(staffId), "KA", null, fromDate, toDate);
+                nomisService.getCaseNoteUsage(Collections.singletonList(staffId), "KA", null, fromDate, toDate);
 
         Map<String, Integer> usageGroupedBySubType =  usageCounts.stream()
                 .collect(Collectors.groupingBy(CaseNoteUsageDto::getCaseNoteSubType,
@@ -44,7 +47,7 @@ public class KeyworkerStatsService {
                 .build();
     }
 
-    public KeyworkerStatsDto getStats(String prisonId, LocalDate startDate, LocalDate endDate) {
-        return KeyworkerStatsDto.builder().build();
+    public PrisonStatsDto getPrisonStats(String prisonId, LocalDate startDate, LocalDate endDate) {
+        return PrisonStatsDto.builder().build();
     }
 }
