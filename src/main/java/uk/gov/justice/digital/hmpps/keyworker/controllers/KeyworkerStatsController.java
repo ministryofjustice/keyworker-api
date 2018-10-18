@@ -66,7 +66,7 @@ public class KeyworkerStatsController {
     @ApiOperation(
             value = "Get Keyworker stats at specified prison.",
             notes = "Get Keyworker stats at specified prison.",
-            nickname="getKeyworkerStats")
+            nickname="getPrisonStats")
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = PrisonStatsDto.class),
@@ -75,7 +75,7 @@ public class KeyworkerStatsController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @GetMapping(path = "/{prisonId}")
-    public PrisonStatsDto getKeyworkerStats(
+    public PrisonStatsDto getPrisonStats(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
             @PathVariable(name = "prisonId")
