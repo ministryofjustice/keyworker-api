@@ -33,6 +33,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2016-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "N",
+        "expired": "2018-06-01T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },
@@ -43,6 +44,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2017-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "N",
+         "expired": "2018-07-01T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },
@@ -63,6 +65,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2017-01-01T11:14:00",
         "userId": "ITAG_USER",
         "active": "N",
+        "expired": "2018-09-01T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },
@@ -73,6 +76,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2017-01-01T12:14:00",
         "userId": "ITAG_USER",
         "active": "N",
+        "expired": "2018-05-01T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },
@@ -83,6 +87,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2017-01-01T12:14:00",
         "userId": "ITAG_USER",
         "active": "N",
+        "expired": "2018-02-01T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },
@@ -93,6 +98,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2017-01-01T12:13:00",
         "userId": "ITAG_USER",
         "active": "N",
+        "expired": "2018-05-01T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },
@@ -103,6 +109,7 @@ class OffenderKeyworkerDtoListStub {
         "assigned": "2017-01-01T12:00:00",
         "userId": "ITAG_USER",
         "active": "N",
+        "expired": "2018-07-02T08:30:00",
         "created": "2018-04-12T14:08:37.766",
         "createdBy": "SA"
     },

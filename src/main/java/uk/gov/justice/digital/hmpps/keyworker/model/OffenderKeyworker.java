@@ -105,8 +105,9 @@ public class OffenderKeyworker {
         setDeallocationReason(deallocationReason);
     }
 
-    public long getDaysAllocated() {
-        LocalDate endTime = expiryDateTime != null ? expiryDateTime.toLocalDate() : LocalDate.now();
-        return DAYS.between(assignedDateTime.toLocalDate(), endTime.plusDays(1));
+    public long getDaysAllocated(LocalDate fromDate, LocalDate toDate) {
+        LocalDate endTime = expiryDateTime != null ? expiryDateTime.toLocalDate() : toDate;
+        LocalDate startTime = assignedDateTime.compareTo(fromDate.atStartOfDay()) > 0 ? assignedDateTime.toLocalDate() : fromDate;
+        return DAYS.between(startTime, endTime);
     }
 }
