@@ -97,6 +97,18 @@ class Elite2Api extends WireMockRule {
         ))
     }
 
+    void stubCaseNoteUsagePrisonerFor(List<String> offendersNos, String type, String fromDate, String toDate, def response) {
+
+        def body = [offenderNos: offendersNos, type: type, fromDate: fromDate, toDate: toDate]
+
+        stubFor(post(urlPathMatching(new UriTemplate(NOMIS_API_PREFIX + CASE_NOTE_USAGE_BY_PRISONER).expand().toString()))
+                .withRequestBody(equalTo(JsonOutput.toJson(body)))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withBody(JsonOutput.toJson(response))
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+        ))
+    }
+
     void stubAccessCodeListForKeyRole(String prisonId) {
         stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ RemoteRoleService.STAFF_ACCESS_CODES_LIST_URL).expand(prisonId, "KEY_WORK").toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())

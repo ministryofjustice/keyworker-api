@@ -34,6 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.*;
 import static uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_CASENOTE_TYPE;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_SESSION_SUB_TYPE;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_2;
 
@@ -777,19 +779,19 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(3);
 
-        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L, -7L)), eq("KA"), eq("KS"), any(LocalDate.class), any(LocalDate.class)))
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L, -7L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)
-                                .caseNoteType("KA")
-                                .caseNoteSubType("KS")
+                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                                 .latestCaseNote(LocalDate.now().minusWeeks(1))
                                 .numCaseNotes(3)
                                 .build(),
                         CaseNoteUsageDto.builder()
                                 .staffId(-6L)
-                                .caseNoteType("KA")
-                                .caseNoteSubType("KS")
+                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                                 .latestCaseNote(LocalDate.now().minusWeeks(1))
                                 .numCaseNotes(4)
                                 .build()
@@ -868,19 +870,19 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(1);
 
-        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq("KA"), eq("KS"), any(LocalDate.class), any(LocalDate.class)))
+        when(nomisService.getCaseNoteUsage(eq(Arrays.asList(-5L, -6L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(Arrays.asList(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)
-                                .caseNoteType("KA")
-                                .caseNoteSubType("KS")
+                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                                 .latestCaseNote(LocalDate.now().minusWeeks(1))
                                 .numCaseNotes(3)
                                 .build(),
                         CaseNoteUsageDto.builder()
                                 .staffId(-6L)
-                                .caseNoteType("KA")
-                                .caseNoteSubType("KS")
+                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                                 .latestCaseNote(LocalDate.now().minusWeeks(1))
                                 .numCaseNotes(4)
                                 .build()

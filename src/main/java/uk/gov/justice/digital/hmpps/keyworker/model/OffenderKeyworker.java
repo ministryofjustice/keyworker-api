@@ -11,7 +11,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Entity
 @Table(name = "OFFENDER_KEY_WORKER")
@@ -100,5 +103,11 @@ public class OffenderKeyworker {
         active = false;
         setExpiryDateTime(expiryDateTime);
         setDeallocationReason(deallocationReason);
+    }
+
+    public long getDaysAllocated(LocalDate fromDate, LocalDate toDate) {
+        LocalDate endTime = expiryDateTime != null ? expiryDateTime.toLocalDate() : toDate;
+        LocalDate startTime = assignedDateTime.compareTo(fromDate.atStartOfDay()) > 0 ? assignedDateTime.toLocalDate() : fromDate;
+        return DAYS.between(startTime, endTime);
     }
 }

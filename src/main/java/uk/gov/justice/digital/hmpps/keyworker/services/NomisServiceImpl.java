@@ -45,6 +45,9 @@ public class NomisServiceImpl implements NomisService {
     private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
             new ParameterizedTypeReference<List<CaseNoteUsageDto>>() {};
 
+    private static final ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>> CASE_NOTE_USAGE_PRISONERS_DTO_LIST =
+            new ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>>() {};
+
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> LEGACY_KEYWORKER_ALLOCATIONS =
             new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
 
@@ -182,6 +185,22 @@ public class NomisServiceImpl implements NomisService {
                 .build();
 
         return restCallHelper.post(uri, body, CASE_NOTE_USAGE_DTO_LIST);
+    }
+
+    @Override
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
+        log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
+        URI uri = new UriTemplate(CASE_NOTE_USAGE_BY_PRISONER).expand();
+
+        CaseNoteUsagePrisonersRequest body = CaseNoteUsagePrisonersRequest.builder()
+                .offenderNos(offenderNos)
+                .type(caseNoteType)
+                .subType(caseNoteSubType)
+                .fromDate(fromDate)
+                .toDate(toDate)
+                .build();
+
+        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST);
     }
 
     @Override

@@ -33,6 +33,10 @@ import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIV
 @Validated
 @Slf4j
 public class KeyworkerService  {
+    public static final String KEYWORKER_ENTRY_SUB_TYPE = "KE";
+    public static final String KEYWORKER_SESSION_SUB_TYPE = "KS";
+    public static final String KEYWORKER_CASENOTE_TYPE = "KA";
+
     private final AuthenticationFacade authenticationFacade;
     private final OffenderKeyworkerRepository repository;
     private final KeyworkerRepository keyworkerRepository;
@@ -460,7 +464,7 @@ public class KeyworkerService  {
 
     private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds, int kwSessionFrequencyInWeeks) {
         final GenerateDateRange dateRange = new GenerateDateRange(kwSessionFrequencyInWeeks, LocalDate.now());
-        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, "KA", "KS", dateRange.getFromDate(), dateRange.getToDate());
+        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, dateRange.getFromDate(), dateRange.getToDate());
 
         return caseNoteUsage.stream()
                 .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
