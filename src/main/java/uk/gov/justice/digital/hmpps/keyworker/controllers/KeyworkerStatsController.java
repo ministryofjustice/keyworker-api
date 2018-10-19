@@ -47,12 +47,12 @@ public class KeyworkerStatsController {
                     String prisonId,
 
             @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).")
-            @RequestParam(value = "fromDate")
+            @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate fromDate,
 
             @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).")
-            @RequestParam(value = "toDate")
+            @RequestParam(value = "toDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate )
     {
@@ -80,15 +80,17 @@ public class KeyworkerStatsController {
             @NotEmpty
             @PathVariable(name = "prisonId")
                     String prisonId,
-            @ApiParam(value = "Start Date of Stats, optional, will chose previous start of last Month")
-            @RequestParam(value = "startDate", required = false)
-                    LocalDate startDate,
-            @ApiParam(value = "End Date of Stats, optional, will chose previous end of last Month")
-            @RequestParam(value = "endDate", required = false)
-                    LocalDate endDate) {
+            @ApiParam(value = "Start Date of Stats, optional, will chose one month before toDate (in YYYY-MM-DD format)")
+            @RequestParam(value = "fromDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate fromDate,
+            @ApiParam(value = "End Date of Stats, optional, will chose yesterday if not provided (in YYYY-MM-DD format)")
+            @RequestParam(value = "toDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate toDate) {
 
         log.debug("getting key-workers stats for prison Id {}", prisonId);
 
-        return keyworkerStatsService.getPrisonStats(prisonId, startDate, endDate);
+        return keyworkerStatsService.getPrisonStats(prisonId, fromDate, toDate);
     }
 }

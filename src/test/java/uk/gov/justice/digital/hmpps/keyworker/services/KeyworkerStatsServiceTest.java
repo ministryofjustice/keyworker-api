@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,6 +34,9 @@ public class KeyworkerStatsServiceTest {
     private OffenderKeyworkerRepository repository;
 
     @Mock
+    private PrisonKeyWorkerStatisticRepository statisticRepository;
+
+    @Mock
     private PrisonSupportedService prisonSupportedService;
 
     private KeyworkerStatsService service;
@@ -50,7 +54,7 @@ public class KeyworkerStatsServiceTest {
 
     @Before
     public void setUp() {
-        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository);
+        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).build());

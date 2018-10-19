@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @ApiModel(description = "KeyworkerStats")
 @Data
@@ -16,6 +17,10 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyworkerStatsDto {
+    private Long staffId;
+    private LocalDate fromDate;
+    private LocalDate toDate;
+
     private int caseNoteSessionCount;
     private int caseNoteEntryCount;
     private int projectedKeyworkerSessions;

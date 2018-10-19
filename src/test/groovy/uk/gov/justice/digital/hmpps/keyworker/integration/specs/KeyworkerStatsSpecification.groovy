@@ -12,18 +12,6 @@ class KeyworkerStatsSpecification extends TestSpecification {
 
     int staffId = -5
 
-    def "should get a bad request when the date parameters are missing from the request"() {
-        given:
-        migrated("LEI")
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(staffId)
-
-        when: "a request for stats is made for the a member of staff"
-        def response = restTemplate.exchange("/key-worker-stats/${staffId}/prison/LEI", HttpMethod.GET, createHeaderEntity("headers"), String.class)
-
-        then: "the response status code should be 400"
-        response.statusCode.value() == 400
-    }
-
     def "should return a staff members stats"() {
 
         def formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
