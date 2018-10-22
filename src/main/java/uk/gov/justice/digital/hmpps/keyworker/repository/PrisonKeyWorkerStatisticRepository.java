@@ -14,6 +14,8 @@ public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<Priso
     List<PrisonKeyWorkerStatistic> findByPrisonIdAndSnapshotDateBetween(String prisonId, LocalDate fromDate, LocalDate toDate);
 
     @Query("select new uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAgregatedStats(s.prisonId, " +
+            "min(s.snapshotDate), " +
+            "max(s.snapshotDate), " +
             "sum(s.numberKeyWorkeringSessions), " +
             "sum(s.numberKeyWorkerEntries), " +
             "avg(s.numberOfActiveKeyworkers), " +

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @ApiModel(description = "SummaryStatistic")
 @Data
@@ -16,6 +17,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SummaryStatistic {
+    private LocalDate dataRangeFrom;
+    private LocalDate dataRangeTo;
+
     private Integer numPrisonersAssignedKeyWorker;
     private Integer totalNumPrisoners;
     private Integer numberKeyWorkeringSessions;

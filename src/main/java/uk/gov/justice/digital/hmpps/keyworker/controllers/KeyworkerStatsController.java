@@ -30,7 +30,7 @@ public class KeyworkerStatsController {
 
     @ApiOperation(
             value = "Return staff members stats",
-            notes = "Can only be run with the key worker role",
+            notes = "Statistic for key workers and the prisoners that they support",
             nickname="getStatsForStaff")
 
     @ApiResponses(value = {

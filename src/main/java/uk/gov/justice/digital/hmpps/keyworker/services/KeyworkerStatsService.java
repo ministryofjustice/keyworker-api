@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -15,14 +14,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.LongSummaryStatistics;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
+import static java.util.stream.Collectors.averagingDouble;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.*;
 
 @Service
@@ -102,7 +99,7 @@ public class KeyworkerStatsService {
         Validate.notNull(prisonId,"prisonId");
 
         CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        Prison prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
+        final Prison prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
 
         LocalDate nextDay = range.getEndDate().plusDays(1);
 
@@ -114,37 +111,33 @@ public class KeyworkerStatsService {
 
         List<PrisonKeyWorkerStatistic> dailyStats = statisticRepository.findByPrisonIdAndSnapshotDateBetween(prisonId, nextDay.minusYears(1), nextDay);
 
-        Map<LocalDate, LongSummaryStatistics> kwSummary = dailyStats.stream().collect(
+        SortedMap<LocalDate, Double> kwSummary = new TreeMap<>(dailyStats.stream().collect(
                 Collectors.groupingBy(s -> s.getSnapshotDate().with(nextDay.getDayOfWeek()),
-                        Collectors.summarizingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkeringSessions))
-        );
+                        Collectors.averagingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkeringSessions))
+        ));
 
-        Map<LocalDate, LongSummaryStatistics> compliance = dailyStats.stream().collect(
+        SortedMap<LocalDate, Double> compliance = new TreeMap<>(dailyStats.stream().collect(
                 Collectors.groupingBy(s -> s.getSnapshotDate().with(nextDay.getDayOfWeek()),
-                        Collectors.summarizingLong(p ->
-                                getComplianceRate(p.getNumberKeyWorkeringSessions(), p.getNumPrisonersAssignedKeyWorker()).multiply(HUNDRED).longValue()))
-        );
+                        Collectors.averagingDouble(p ->
+                        {
+                            int projectedKeyworkerSessions = Math.floorDiv(p.getNumPrisonersAssignedKeyWorker(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
+                            return getComplianceRate(p.getNumberKeyWorkeringSessions(), projectedKeyworkerSessions).doubleValue();
+                        }))
+                ));
 
-        List<ImmutablePair<LocalDate, Long>> keyworkerSessionsTimeline = kwSummary.entrySet()
-                .stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> new ImmutablePair<>(e.getKey(), (long)Math.floor(e.getValue().getAverage())))
-                .collect(Collectors.toList());
-
-        List<ImmutablePair<LocalDate, BigDecimal>> complianceTimeline = compliance.entrySet()
-                .stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> new ImmutablePair<>(e.getKey(), new BigDecimal(e.getValue().getAverage() / 100.00).setScale(2, BigDecimal.ROUND_HALF_UP)))
-                .collect(Collectors.toList());
+        BigDecimal avgOverallCompliance = new BigDecimal(compliance.values().stream().collect(averagingDouble(p -> p))).setScale(2, BigDecimal.ROUND_HALF_UP);
+        int avgOverallKeyworkerSessions = (int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p)));
 
         return PrisonStatsDto.builder()
                 .prisonId(prisonId)
-                .fromDate(range.getStartDate())
-                .toDate(range.getEndDate())
+                .requestedFromDate(range.getStartDate())
+                .requestedToDate(range.getEndDate())
                 .current(current)
                 .previous(previous)
-                .keyworkerSessionsTimeline(keyworkerSessionsTimeline)
-                .complianceTimeline(complianceTimeline)
+                .keyworkerSessionsTimeline(kwSummary)
+                .avgOverallKeyworkerSessions(avgOverallKeyworkerSessions)
+                .complianceTimeline(compliance)
+                .avgOverallCompliance(avgOverallCompliance)
                 .build();
     }
 
@@ -156,6 +149,8 @@ public class KeyworkerStatsService {
             long projectedSessions = Math.round(prisonStats.getNumPrisonersAssignedKeyWorker() * sessionMultiplier);
 
             return SummaryStatistic.builder()
+                    .dataRangeFrom(prisonStats.getStartDate())
+                    .dataRangeTo(prisonStats.getEndDate())
                     .avgNumDaysFromReceptionToAlliocationDays(prisonStats.getAvgNumDaysFromReceptionToAlliocationDays().intValue())
                     .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue())
                     .numberKeyWorkerEntries(prisonStats.getNumberKeyWorkerEntries().intValue())
@@ -171,11 +166,11 @@ public class KeyworkerStatsService {
         return null;
     }
 
-    private BigDecimal getComplianceRate(long sessionCount, long projectedKeyworkerSessions) {
+    private BigDecimal getComplianceRate(long sessionCount, double projectedKeyworkerSessions) {
         BigDecimal complianceRate = HUNDRED;
 
         if (projectedKeyworkerSessions > 0)  {
-            complianceRate = new BigDecimal(sessionCount * 100.00 / (float)projectedKeyworkerSessions).setScale(2, RoundingMode.HALF_UP);
+            complianceRate = new BigDecimal(sessionCount * 100.00 / projectedKeyworkerSessions).setScale(2, RoundingMode.HALF_UP);
         }
         return complianceRate;
     }

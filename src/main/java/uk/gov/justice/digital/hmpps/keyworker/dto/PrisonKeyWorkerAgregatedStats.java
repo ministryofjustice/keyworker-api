@@ -3,11 +3,15 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.time.LocalDate;
+
 @Getter
 @EqualsAndHashCode(of = {"prisonId"})
 public class PrisonKeyWorkerAgregatedStats {
 
     private final String prisonId;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
     private final Long numberKeyWorkeringSessions;
     private final Long numberKeyWorkerEntries;
     private final Double numberOfActiveKeyworkers;
@@ -17,6 +21,8 @@ public class PrisonKeyWorkerAgregatedStats {
     private final Double avgNumDaysFromReceptionToKeyWorkingSession;
 
     public PrisonKeyWorkerAgregatedStats(String prisonId,
+                                         LocalDate startDate,
+                                         LocalDate endDate,
                                          Long numberKeyWorkeringSessions,
                                          Long numberKeyWorkerEntries,
                                          Double numberOfActiveKeyworkers,
@@ -25,6 +31,8 @@ public class PrisonKeyWorkerAgregatedStats {
                                          Double avgNumDaysFromReceptionToAlliocationDays,
                                          Double avgNumDaysFromReceptionToKeyWorkingSession) {
         this.prisonId = prisonId;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.numberKeyWorkeringSessions = numberKeyWorkeringSessions;
         this.numberKeyWorkerEntries = numberKeyWorkerEntries;
         this.numberOfActiveKeyworkers = numberOfActiveKeyworkers;

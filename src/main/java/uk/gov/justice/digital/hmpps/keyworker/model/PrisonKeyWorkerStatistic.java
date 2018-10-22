@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
 import lombok.*;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"prisonId", "snapshotDate"})
-public class PrisonKeyWorkerStatistic {
+public class PrisonKeyWorkerStatistic implements Comparable<PrisonKeyWorkerStatistic> {
 
     @Id()
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -52,4 +53,12 @@ public class PrisonKeyWorkerStatistic {
 
     @Column(name = "RECPT_TO_KW_SESSION_DAYS")
     private Integer avgNumDaysFromReceptionToKeyWorkingSession;
+
+    @Override
+    public int compareTo(PrisonKeyWorkerStatistic stat) {
+        return new CompareToBuilder()
+                        .append(prisonId, stat.prisonId)
+                        .append(snapshotDate, stat.snapshotDate)
+                        .toComparison();
+    }
 }
