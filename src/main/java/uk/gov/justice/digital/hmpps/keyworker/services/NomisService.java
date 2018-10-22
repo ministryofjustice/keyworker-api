@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface NomisService {
     String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
     String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
-    String URI_CUSTODY_STATUSES = "/custody-statuses?fromDateTime={fromDateTime}&movementDate={movementDate}";
+    String URI_MOVEMENTS = "/movements?fromDateTime={fromDateTime}&movementDate={movementDate}";
     String URI_STAFF = "/staff/{staffId}";
     String GET_USER_DETAILS = "/users/{username}";
     String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
@@ -19,7 +19,7 @@ public interface NomisService {
     String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
     String CASE_NOTE_USAGE = "/case-notes/staff-usage";
     String CASE_NOTE_USAGE_BY_PRISONER = "/case-notes/usage";
-    String URI_PRISONER_LOOKUP = "/prisoners?offenderNo={offenderNo}";
+    String URI_PRISONER_LOOKUP = "/prisoners/{offenderNo}";
     String URI_CURRENT_ALLOCATIONS = "/key-worker/{agencyId}/current-allocations";
     String URI_CURRENT_ALLOCATIONS_BY_OFFENDERS = "/key-worker/{agencyId}/current-allocations/offenders";
     String URI_OFFENDERS_ALLOCATION_HISTORY = "/key-worker/offenders/allocationHistory";

@@ -108,7 +108,7 @@ public class KeyworkerBatchService {
             final LocalDate movementDate = today.plusDays(dayNumber);
             try {
 
-                // Use custody-statuses endpoint to get info from offender_external_movements
+                // Use /movements endpoint to get info from offender_external_movements
                 // which matches when the trigger on this table fires to update offender_key_workers
 
                 final long startTime = System.currentTimeMillis();
