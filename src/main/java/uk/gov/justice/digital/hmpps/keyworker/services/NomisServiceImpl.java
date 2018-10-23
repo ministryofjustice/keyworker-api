@@ -62,7 +62,7 @@ public class NomisServiceImpl implements NomisService {
 
     @Override
     public List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate) {
-        URI uri = new UriTemplate(URI_CUSTODY_STATUSES).expand(threshold, movementDate);
+        URI uri = new UriTemplate(URI_MOVEMENTS).expand(threshold, movementDate);
 
         return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST).getBody();
     }
