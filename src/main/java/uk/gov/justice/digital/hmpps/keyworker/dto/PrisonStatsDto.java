@@ -8,7 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
+import java.util.SortedMap;
 
 @ApiModel(description = "Prison Level Key worker Stats")
 @Data
@@ -19,17 +20,15 @@ import java.util.List;
 public class PrisonStatsDto {
 
     private String prisonId;
-    private Integer numActiveKeyworkers;
-    private Integer percentagePrisonersWithKeyworker;
-    private Integer numProjectedKeyworkerSessions;
-    private Integer numRecordedKeyworkerSessions;
-    private BigDecimal complianceRate;
-    private Integer avgTimeReceptionToAllocation;
-    private Integer avgTimeReceptionToKeyworkSession;
+    private LocalDate requestedFromDate;
+    private LocalDate requestedToDate;
 
-    private List<KeyworkerDataTimelineValue> complianceTimeline;
+    private SummaryStatistic current;
+    private SummaryStatistic previous;
+
+    private SortedMap<LocalDate, Double> complianceTimeline;
     private BigDecimal avgOverallCompliance;
-    private List<KeyworkerDataTimelineValue> keyworkerSessionsTimeline;
+    private SortedMap<LocalDate, Double> keyworkerSessionsTimeline;
     private Integer avgOverallKeyworkerSessions;
 
 }
