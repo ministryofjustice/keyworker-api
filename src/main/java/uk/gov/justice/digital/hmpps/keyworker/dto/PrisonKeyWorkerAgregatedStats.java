@@ -17,7 +17,7 @@ public class PrisonKeyWorkerAgregatedStats {
     private final Double numberOfActiveKeyworkers;
     private final Double numPrisonersAssignedKeyWorker;
     private final Double totalNumPrisoners;
-    private final Double avgNumDaysFromReceptionToAlliocationDays;
+    private final Double avgNumDaysFromReceptionToAllocationDays;
     private final Double avgNumDaysFromReceptionToKeyWorkingSession;
 
     public PrisonKeyWorkerAgregatedStats(String prisonId,
