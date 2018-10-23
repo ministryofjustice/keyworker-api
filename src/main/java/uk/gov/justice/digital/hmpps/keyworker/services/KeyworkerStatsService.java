@@ -151,7 +151,7 @@ public class KeyworkerStatsService {
             return SummaryStatistic.builder()
                     .dataRangeFrom(prisonStats.getStartDate())
                     .dataRangeTo(prisonStats.getEndDate())
-                    .avgNumDaysFromReceptionToAlliocationDays(prisonStats.getAvgNumDaysFromReceptionToAlliocationDays().intValue())
+                    .avgNumDaysFromReceptionToAlliocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue())
                     .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue())
                     .numberKeyWorkerEntries(prisonStats.getNumberKeyWorkerEntries().intValue())
                     .numberKeyWorkeringSessions(prisonStats.getNumberKeyWorkeringSessions().intValue())

@@ -80,11 +80,11 @@ public class KeyworkerStatsController {
             @NotEmpty
             @PathVariable(name = "prisonId")
                     String prisonId,
-            @ApiParam(value = "Start Date of Stats, optional, will chose one month before toDate (in YYYY-MM-DD format)")
+            @ApiParam(value = "Start Date of Stats, optional, will chosse one month before toDate (in YYYY-MM-DD format)")
             @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate fromDate,
-            @ApiParam(value = "End Date of Stats, optional, will chose yesterday if not provided (in YYYY-MM-DD format)")
+            @ApiParam(value = "End Date of Stats, optional, will chosse yesterday if not provided (in YYYY-MM-DD format)")
             @RequestParam(value = "toDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate) {

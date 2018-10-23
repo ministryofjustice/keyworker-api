@@ -28,7 +28,7 @@ public class PrisonKeyWorkerAgregatedStats {
                                          Double numberOfActiveKeyworkers,
                                          Double numPrisonersAssignedKeyWorker,
                                          Double totalNumPrisoners,
-                                         Double avgNumDaysFromReceptionToAlliocationDays,
+                                         Double avgNumDaysFromReceptionToAllocationDays,
                                          Double avgNumDaysFromReceptionToKeyWorkingSession) {
         this.prisonId = prisonId;
         this.startDate = startDate;
@@ -38,7 +38,7 @@ public class PrisonKeyWorkerAgregatedStats {
         this.numberOfActiveKeyworkers = numberOfActiveKeyworkers;
         this.numPrisonersAssignedKeyWorker = numPrisonersAssignedKeyWorker;
         this.totalNumPrisoners = totalNumPrisoners;
-        this.avgNumDaysFromReceptionToAlliocationDays = avgNumDaysFromReceptionToAlliocationDays;
+        this.avgNumDaysFromReceptionToAllocationDays = avgNumDaysFromReceptionToAllocationDays;
         this.avgNumDaysFromReceptionToKeyWorkingSession = avgNumDaysFromReceptionToKeyWorkingSession;
     }
 }
