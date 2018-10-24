@@ -89,7 +89,7 @@ public class KeyworkerStatsService {
                 .fromDate(range.getStartDate())
                 .toDate(range.getEndDate())
                 .projectedKeyworkerSessions(0)
-                .complianceRate(HUNDRED)
+                .complianceRate(BigDecimal.ZERO)
                 .caseNoteEntryCount(0)
                 .caseNoteSessionCount(0)
                 .build();
@@ -176,7 +176,7 @@ public class KeyworkerStatsService {
     }
 
     private BigDecimal getComplianceRate(long sessionCount, double projectedKeyworkerSessions) {
-        BigDecimal complianceRate = BigDecimal.ZERO;
+        BigDecimal complianceRate = HUNDRED;
 
         if (projectedKeyworkerSessions > 0)  {
             complianceRate = new BigDecimal(sessionCount * 100.00 / projectedKeyworkerSessions).setScale(2, RoundingMode.HALF_UP);
