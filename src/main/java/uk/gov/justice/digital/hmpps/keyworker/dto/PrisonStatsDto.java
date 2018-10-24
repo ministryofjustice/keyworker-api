@@ -26,9 +26,9 @@ public class PrisonStatsDto {
     private SummaryStatistic current;
     private SummaryStatistic previous;
 
-    private SortedMap<LocalDate, Double> complianceTimeline;
+    private SortedMap<LocalDate, BigDecimal> complianceTimeline;
     private BigDecimal avgOverallCompliance;
-    private SortedMap<LocalDate, Double> keyworkerSessionsTimeline;
+    private SortedMap<LocalDate, Long> keyworkerSessionsTimeline;
     private Integer avgOverallKeyworkerSessions;
 
 }
