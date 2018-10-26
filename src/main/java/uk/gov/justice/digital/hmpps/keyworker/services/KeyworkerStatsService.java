@@ -60,7 +60,7 @@ public class KeyworkerStatsService {
 
         if (!prisonerNosList.isEmpty()) {
             List<CaseNoteUsagePrisonersDto> usageCounts =
-                    nomisService.getCaseNoteUsageForPrisoners(prisonerNosList, KEYWORKER_CASENOTE_TYPE, null, range.getStartDate(), range.getEndDate());
+                    nomisService.getCaseNoteUsageForPrisoners(prisonerNosList, staffId, KEYWORKER_CASENOTE_TYPE, null, range.getStartDate(), range.getEndDate());
 
             Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
@@ -150,10 +150,10 @@ public class KeyworkerStatsService {
         return totalWithCount[0].divide(totalWithCount[1], RoundingMode.HALF_UP);
     }
 
-    private SummaryStatistic getSummaryStatistic(List<PrisonKeyWorkerAgregatedStats> statList, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
+    private SummaryStatistic getSummaryStatistic(List<PrisonKeyWorkerAggregatedStats> statList, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
 
         if (!statList.isEmpty()) {
-            final PrisonKeyWorkerAgregatedStats prisonStats = statList.get(0);
+            final PrisonKeyWorkerAggregatedStats prisonStats = statList.get(0);
             long sessionMultiplier = Math.floorDiv(WEEKS.between(startDate, endDate), kwSessionFrequencyInWeeks);
             long projectedSessions = Math.round(prisonStats.getNumPrisonersAssignedKeyWorker() * sessionMultiplier);
 
@@ -167,7 +167,7 @@ public class KeyworkerStatsService {
                     .numberOfActiveKeyworkers(prisonStats.getNumberOfActiveKeyworkers().intValue())
                     .totalNumPrisoners(prisonStats.getTotalNumPrisoners().intValue())
                     .numPrisonersAssignedKeyWorker(prisonStats.getNumPrisonersAssignedKeyWorker().intValue())
-                    .percentagePrisonersWithKeyworker((int) (prisonStats.getNumPrisonersAssignedKeyWorker() * 100.00 / prisonStats.getTotalNumPrisoners()))
+                    .percentagePrisonersWithKeyworker(new BigDecimal(prisonStats.getNumPrisonersAssignedKeyWorker() * 100.00 / prisonStats.getTotalNumPrisoners()).setScale(2, BigDecimal.ROUND_HALF_UP))
                     .numProjectedKeyworkerSessions((int) projectedSessions)
                     .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkeringSessions(), projectedSessions))
                     .build();

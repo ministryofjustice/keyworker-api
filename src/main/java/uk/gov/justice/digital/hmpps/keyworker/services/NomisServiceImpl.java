@@ -188,12 +188,13 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
         log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
         URI uri = new UriTemplate(CASE_NOTE_USAGE_BY_PRISONER).expand();
 
         CaseNoteUsagePrisonersRequest body = CaseNoteUsagePrisonersRequest.builder()
                 .offenderNos(offenderNos)
+                .staffId(staffId)
                 .type(caseNoteType)
                 .subType(caseNoteSubType)
                 .fromDate(fromDate)

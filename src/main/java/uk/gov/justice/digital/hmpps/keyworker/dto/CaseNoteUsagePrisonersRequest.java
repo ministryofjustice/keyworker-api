@@ -25,6 +25,9 @@ public class CaseNoteUsagePrisonersRequest {
     @NotEmpty
     private List<String> offenderNos;
 
+    @ApiModelProperty(required = true, value = "Staff Id linked to these case notes (optional)")
+    private Long staffId;
+
     @ApiModelProperty(required = true, value = "Case Note Type")
     @NotNull
     private String type;

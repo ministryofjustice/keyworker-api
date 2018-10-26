@@ -34,7 +34,7 @@ class KeyworkerStatsSpecification extends TestSpecification {
         given:
         migrated("LEI")
         elite2api.stubKeyworkerDetails_basicDetailsOnly(staffId)
-        elite2api.stubCaseNoteUsagePrisonerFor(offenderNos, KEYWORKER_CASENOTE_TYPE, fromDateStr, toDateStr, caseNoteUsageCounts)
+        elite2api.stubCaseNoteUsagePrisonerFor(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, fromDateStr, toDateStr, caseNoteUsageCounts)
 
         when: "a request for stats is made for the a member of staff"
         def response = restTemplate.exchange("/key-worker-stats/${staffId}/prison/LEI?fromDate=${fromDateStr}&toDate=${toDateStr}", HttpMethod.GET, createHeaderEntity("headers"), String.class)

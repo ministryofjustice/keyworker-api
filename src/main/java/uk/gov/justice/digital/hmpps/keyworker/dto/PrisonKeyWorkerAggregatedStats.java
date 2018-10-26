@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 @EqualsAndHashCode(of = {"prisonId"})
-public class PrisonKeyWorkerAgregatedStats {
+public class PrisonKeyWorkerAggregatedStats {
 
     private final String prisonId;
     private final LocalDate startDate;
@@ -20,16 +20,16 @@ public class PrisonKeyWorkerAgregatedStats {
     private final Double avgNumDaysFromReceptionToAllocationDays;
     private final Double avgNumDaysFromReceptionToKeyWorkingSession;
 
-    public PrisonKeyWorkerAgregatedStats(String prisonId,
-                                         LocalDate startDate,
-                                         LocalDate endDate,
-                                         Long numberKeyWorkeringSessions,
-                                         Long numberKeyWorkerEntries,
-                                         Double numberOfActiveKeyworkers,
-                                         Double numPrisonersAssignedKeyWorker,
-                                         Double totalNumPrisoners,
-                                         Double avgNumDaysFromReceptionToAllocationDays,
-                                         Double avgNumDaysFromReceptionToKeyWorkingSession) {
+    public PrisonKeyWorkerAggregatedStats(String prisonId,
+                                          LocalDate startDate,
+                                          LocalDate endDate,
+                                          Long numberKeyWorkeringSessions,
+                                          Long numberKeyWorkerEntries,
+                                          Double numberOfActiveKeyworkers,
+                                          Double numPrisonersAssignedKeyWorker,
+                                          Double totalNumPrisoners,
+                                          Double avgNumDaysFromReceptionToAllocationDays,
+                                          Double avgNumDaysFromReceptionToKeyWorkingSession) {
         this.prisonId = prisonId;
         this.startDate = startDate;
         this.endDate = endDate;
