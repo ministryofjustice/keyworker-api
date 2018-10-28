@@ -145,8 +145,8 @@ public class KeyworkerStatsService {
                     .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
                     .numberKeyWorkeringSessions(caseNoteSummary.sessionsDone)
                     .numberOfActiveKeyworkers(activeKeyWorkers.getBody().size())
-                    .avgNumDaysFromReceptionToAlliocationDays(0)
-                    .avgNumDaysFromReceptionToKeyWorkingSession(0)
+                    .avgNumDaysFromReceptionToAlliocationDays(null)
+                    .avgNumDaysFromReceptionToKeyWorkingSession(null)
                     .build();
 
             statisticRepository.save(dailyStat);
@@ -202,12 +202,15 @@ public class KeyworkerStatsService {
     }
 
     private BigDecimal getAverageCompliance(Collection<BigDecimal> complianceValues) {
-        BigDecimal[] totalWithCount
-                = complianceValues.stream()
-                .map(bd -> new BigDecimal[]{bd, BigDecimal.ONE})
-                .reduce((a, b) -> new BigDecimal[]{a[0].add(b[0]), a[1].add(BigDecimal.ONE)})
-                .get();
-        return totalWithCount[0].divide(totalWithCount[1], RoundingMode.HALF_UP);
+        if (complianceValues != null && !complianceValues.isEmpty()) {
+            BigDecimal[] totalWithCount
+                    = complianceValues.stream()
+                    .map(bd -> new BigDecimal[]{bd, BigDecimal.ONE})
+                    .reduce((a, b) -> new BigDecimal[]{a[0].add(b[0]), a[1].add(BigDecimal.ONE)})
+                    .get();
+            return totalWithCount[0].divide(totalWithCount[1], RoundingMode.HALF_UP);
+        }
+        return null;
     }
 
     private SummaryStatistic getSummaryStatistic(List<PrisonKeyWorkerAggregatedStats> statList, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
@@ -220,8 +223,8 @@ public class KeyworkerStatsService {
             return SummaryStatistic.builder()
                     .dataRangeFrom(prisonStats.getStartDate())
                     .dataRangeTo(prisonStats.getEndDate())
-                    .avgNumDaysFromReceptionToAlliocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue())
-                    .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue())
+                    .avgNumDaysFromReceptionToAlliocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays() != null ? prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue() : null)
+                    .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession() != null ? prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue() : null)
                     .numberKeyWorkerEntries(prisonStats.getNumberKeyWorkerEntries().intValue())
                     .numberKeyWorkeringSessions(prisonStats.getNumberKeyWorkeringSessions().intValue())
                     .numberOfActiveKeyworkers(prisonStats.getNumberOfActiveKeyworkers().intValue())
