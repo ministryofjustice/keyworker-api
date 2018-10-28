@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -24,20 +27,21 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.*
 
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class KeyworkerStatsService {
 
     private final NomisService nomisService;
-    private final OffenderKeyworkerRepository repository;
+    private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
 
     private final BigDecimal HUNDRED = new BigDecimal("100.00");
 
     public KeyworkerStatsService(NomisService nomisService, PrisonSupportedService prisonSupportedService,
-                                 OffenderKeyworkerRepository repository,
+                                 OffenderKeyworkerRepository offenderKeyworkerRepository,
                                  PrisonKeyWorkerStatisticRepository statisticRepository) {
         this.nomisService = nomisService;
-        this.repository = repository;
+        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
         this.statisticRepository = statisticRepository;
     }
@@ -50,7 +54,7 @@ public class KeyworkerStatsService {
         CalcDateRange range = new CalcDateRange(fromDate, toDate);
         final LocalDateTime nextEndDate = range.getEndDate().atStartOfDay().plusDays(1);
 
-        List<OffenderKeyworker> applicableAssignments = repository.findByStaffIdAndPrisonId(staffId, prisonId).stream()
+        List<OffenderKeyworker> applicableAssignments = offenderKeyworkerRepository.findByStaffIdAndPrisonId(staffId, prisonId).stream()
                 .filter(kw ->
                         kw.getAssignedDateTime().compareTo(nextEndDate) < 0 &&
                                 (kw.getExpiryDateTime() == null || kw.getExpiryDateTime().compareTo(range.getStartDate().atStartOfDay()) >= 0))
@@ -59,20 +63,9 @@ public class KeyworkerStatsService {
         List<String> prisonerNosList = applicableAssignments.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
 
         if (!prisonerNosList.isEmpty()) {
-            List<CaseNoteUsagePrisonersDto> usageCounts =
-                    nomisService.getCaseNoteUsageForPrisoners(prisonerNosList, staffId, KEYWORKER_CASENOTE_TYPE, null, range.getStartDate(), range.getEndDate());
-
-            Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
-                    .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
-                            Collectors.summingInt(CaseNoteUsagePrisonersDto::getNumCaseNotes)));
-
-            Integer sessionCount = usageGroupedBySubType.get(KEYWORKER_SESSION_SUB_TYPE);
-            int sessionsDone = sessionCount != null ? sessionCount : 0;
-
+            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(prisonerNosList, range.startDate, range.endDate, staffId);
             int projectedKeyworkerSessions = getProjectedKeyworkerSessions(applicableAssignments, staffId, prisonId, range.getStartDate(), nextEndDate);
-            final BigDecimal complianceRate = getComplianceRate(sessionsDone, projectedKeyworkerSessions);
-
-            Integer entryCount = usageGroupedBySubType.get(KEYWORKER_ENTRY_SUB_TYPE);
+            final BigDecimal complianceRate = getComplianceRate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
 
             return KeyworkerStatsDto.builder()
                     .staffId(staffId)
@@ -80,8 +73,8 @@ public class KeyworkerStatsService {
                     .toDate(range.getEndDate())
                     .projectedKeyworkerSessions(projectedKeyworkerSessions)
                     .complianceRate(complianceRate)
-                    .caseNoteEntryCount(entryCount != null ? entryCount : 0)
-                    .caseNoteSessionCount(sessionsDone)
+                    .caseNoteEntryCount(caseNoteSummary.getEntriesDone())
+                    .caseNoteSessionCount(caseNoteSummary.getSessionsDone())
                     .build();
         }
         return KeyworkerStatsDto.builder()
@@ -93,6 +86,73 @@ public class KeyworkerStatsService {
                 .caseNoteEntryCount(0)
                 .caseNoteSessionCount(0)
                 .build();
+    }
+
+    @Transactional
+    public PrisonKeyWorkerStatistic generatePrisonStats(String prisonId) {
+        Validate.notNull(prisonId,"prisonId");
+
+        final LocalDate snapshotDate = LocalDate.now().minusDays(1);
+
+        PrisonKeyWorkerStatistic dailyStat = null;
+        // check if snapshot already taken for this date
+        boolean exists = statisticRepository.existsByPrisonIdAndSnapshotDate(prisonId, snapshotDate);
+        if (exists) {
+            log.warn("Statistics have already been generated for {} on {}", prisonId, snapshotDate);
+
+        } else {
+            // get all offenders in prison at the moment
+            final List<OffenderLocationDto> activePrisoners = nomisService.getOffendersAtLocation(prisonId, "bookingId", SortOrder.ASC);
+
+            // get a distinct list of offenderNos
+            final List<String> offenderNos = activePrisoners.stream().map(OffenderLocationDto::getOffenderNo).distinct().collect(Collectors.toList());
+
+            // list of active key workers
+            final List<OffenderKeyworker> allocatedKeyWorkers = offenderKeyworkerRepository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
+
+            PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder()
+                    .pageLimit(3000L)
+                    .pageOffset(0L)
+                    .sortFields("staffId")
+                    .sortOrder(SortOrder.ASC)
+                    .build();
+            ResponseEntity<List<StaffLocationRoleDto>> activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting);
+
+            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(offenderNos, snapshotDate, snapshotDate, null);
+
+            List<String> offendersWithSessions = caseNoteSummary.usageCounts.stream()
+                    .filter(cn -> cn.getCaseNoteSubType().equals(KEYWORKER_SESSION_SUB_TYPE))
+                    .map(CaseNoteUsagePrisonersDto::getOffenderNo)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            List<OffenderKeyworker> allocatedToday = offenderKeyworkerRepository.findByAssignedDateTimeBetween(snapshotDate.atStartOfDay(), snapshotDate.plusDays(1).atStartOfDay());
+
+            List<String> allocatedTodayOffenderNos = allocatedToday.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
+
+            // find out when each prisoner entered this prison from this `offendersWithSessions` list
+
+            // find out if this KW session is the first
+
+            // calc average time to this session
+
+
+            dailyStat = PrisonKeyWorkerStatistic.builder()
+                    .prisonId(prisonId)
+                    .snapshotDate(snapshotDate)
+                    .numPrisonersAssignedKeyWorker(allocatedKeyWorkers.size())
+                    .totalNumPrisoners(activePrisoners.size())
+                    .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
+                    .numberKeyWorkeringSessions(caseNoteSummary.sessionsDone)
+                    .numberOfActiveKeyworkers(activeKeyWorkers.getBody().size())
+                    .avgNumDaysFromReceptionToAlliocationDays(0)
+                    .avgNumDaysFromReceptionToKeyWorkingSession(0)
+                    .build();
+
+            statisticRepository.save(dailyStat);
+        }
+
+        return dailyStat;
     }
 
     public PrisonStatsDto getPrisonStats(String prisonId, final LocalDate fromDate, final LocalDate toDate) {
@@ -219,6 +279,28 @@ public class KeyworkerStatsService {
                 endDate = LocalDate.now().minusDays(1);
                 startDate = endDate.minusMonths(1);
             }
+        }
+    }
+
+    @Getter
+    private class KeyWorkingCaseNoteSummary {
+        private final int sessionsDone;
+        private final int entriesDone;
+        private final List<CaseNoteUsagePrisonersDto> usageCounts;
+
+        KeyWorkingCaseNoteSummary(List<String> offenderNos, LocalDate start, LocalDate end, Long staffId) {
+
+           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
+
+            final Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
+                    .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
+                            Collectors.summingInt(CaseNoteUsagePrisonersDto::getNumCaseNotes)));
+
+            Integer sessionCount = usageGroupedBySubType.get(KEYWORKER_SESSION_SUB_TYPE);
+            Integer entryCount = usageGroupedBySubType.get(KEYWORKER_ENTRY_SUB_TYPE);
+
+            sessionsDone = sessionCount != null ? sessionCount : 0;
+            entriesDone = entryCount != null ? entryCount : 0;
         }
     }
 }

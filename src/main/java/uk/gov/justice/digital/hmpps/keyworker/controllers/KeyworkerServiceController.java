@@ -323,6 +323,7 @@ public class KeyworkerServiceController {
     @ApiOperation(
             value = "Force Runs the Batch De-allocation process",
             notes = "Can only be run with KW_MIGRATION role",
+            authorizations = { @Authorization("KW_MIGRATION") },
             nickname="runBatchDeallocation")
 
     @ApiResponses(value = {
@@ -362,6 +363,7 @@ public class KeyworkerServiceController {
     @ApiOperation(
             value = "Deallocate a key worker from an offender",
             notes = "Marks the offender with expired time on active record",
+            authorizations = { @Authorization("OMIC_ADMIN") },
             nickname="deallocate")
 
     @ApiResponses(value = {
@@ -384,6 +386,7 @@ public class KeyworkerServiceController {
     @ApiOperation(
             value = "Process manual allocation of an offender to a Key worker.",
             notes = "Process manual allocation of an offender to a Key worker.",
+            authorizations = { @Authorization("OMIC_ADMIN") },
             nickname="allocate")
 
     @ApiResponses(value = {
@@ -497,6 +500,7 @@ public class KeyworkerServiceController {
     @ApiOperation(
             value = "Add or update a key worker record",
             notes = "Staff members available capacity",
+            authorizations = { @Authorization("OMIC_ADMIN") },
             nickname="addOrUpdateKeyworker")
 
     @ApiResponses(value = {
@@ -577,6 +581,7 @@ public class KeyworkerServiceController {
     @ApiOperation(
             value = "Checks for non active keyworkers with a reached active_date and updates the status to active",
             notes = "Can only be run with KW_MIGRATION role",
+            authorizations = { @Authorization("KW_MIGRATION") },
             nickname="runBatchUpdateStatus")
 
     @ApiResponses(value = {
