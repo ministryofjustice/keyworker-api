@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,16 +38,19 @@ public class KeyworkerStatsService {
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
+    private final TelemetryClient telemetryClient;
 
     private final BigDecimal HUNDRED = new BigDecimal("100.00");
 
     public KeyworkerStatsService(NomisService nomisService, PrisonSupportedService prisonSupportedService,
                                  OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                 PrisonKeyWorkerStatisticRepository statisticRepository) {
+                                 PrisonKeyWorkerStatisticRepository statisticRepository,
+                                 TelemetryClient telemetryClient) {
         this.nomisService = nomisService;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
         this.statisticRepository = statisticRepository;
+        this.telemetryClient = telemetryClient;
     }
 
     public KeyworkerStatsDto getStatsForStaff(Long staffId, String prisonId, final LocalDate fromDate, final LocalDate toDate) {
@@ -96,9 +101,8 @@ public class KeyworkerStatsService {
 
         final LocalDate snapshotDate = LocalDate.now().minusDays(1);
 
-        PrisonKeyWorkerStatistic dailyStat = null;
-        // check if snapshot already taken for this date
-        dailyStat = statisticRepository.findOneByPrisonIdAndSnapshotDate(prisonId, snapshotDate);
+        PrisonKeyWorkerStatistic dailyStat = statisticRepository.findOneByPrisonIdAndSnapshotDate(prisonId, snapshotDate);
+
         if (dailyStat != null) {
             log.warn("Statistics have already been generated for {} on {}", prisonId, snapshotDate);
 
@@ -164,11 +168,13 @@ public class KeyworkerStatsService {
                     .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
                     .numberKeyWorkeringSessions(caseNoteSummary.sessionsDone)
                     .numberOfActiveKeyworkers(activeKeyWorkers.getBody().size())
-                    .avgNumDaysFromReceptionToAlliocationDays(averageDaysToAllocation)
+                    .avgNumDaysFromReceptionToAllocationDays(averageDaysToAllocation)
                     .avgNumDaysFromReceptionToKeyWorkingSession(avgDaysReceptionToKWSession)
                     .build();
 
             statisticRepository.save(dailyStat);
+
+            logEventToAzure(dailyStat);
         }
 
         return dailyStat;
@@ -314,7 +320,7 @@ public class KeyworkerStatsService {
             return SummaryStatistic.builder()
                     .dataRangeFrom(prisonStats.getStartDate())
                     .dataRangeTo(prisonStats.getEndDate())
-                    .avgNumDaysFromReceptionToAlliocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays() != null ? prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue() : null)
+                    .avgNumDaysFromReceptionToAllocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays() != null ? prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue() : null)
                     .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession() != null ? prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue() : null)
                     .numberKeyWorkerEntries(prisonStats.getNumberKeyWorkerEntries().intValue())
                     .numberKeyWorkeringSessions(prisonStats.getNumberKeyWorkeringSessions().intValue())
@@ -396,5 +402,26 @@ public class KeyworkerStatsService {
             sessionsDone = sessionCount != null ? sessionCount : 0;
             entriesDone = entryCount != null ? entryCount : 0;
         }
+    }
+
+    private void logEventToAzure(PrisonKeyWorkerStatistic stats) {
+        final Map<String, String> logMap = new HashMap<>();
+        logMap.put("snapshotDate", stats.getSnapshotDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        logMap.put("prisonId", stats.getPrisonId());
+
+        final Map<String, Double> metrics = new HashMap<>();
+        metrics.put("totalNumPrisoners", stats.getTotalNumPrisoners().doubleValue());
+        metrics.put("numPrisonersAssignedKeyWorker", stats.getNumPrisonersAssignedKeyWorker().doubleValue());
+        metrics.put("numberOfActiveKeyworkers", stats.getNumberOfActiveKeyworkers().doubleValue());
+        metrics.put("numberKeyWorkerEntries", stats.getNumberKeyWorkerEntries().doubleValue());
+        metrics.put("numberKeyWorkeringSessions", stats.getNumberKeyWorkeringSessions().doubleValue());
+
+        if (stats.getAvgNumDaysFromReceptionToAllocationDays() != null) {
+            metrics.put("avgNumDaysFromReceptionToAllocationDays", stats.getAvgNumDaysFromReceptionToAllocationDays().doubleValue());
+        }
+        if (stats.getAvgNumDaysFromReceptionToKeyWorkingSession() != null) {
+            metrics.put("avgNumDaysFromReceptionToKeyWorkingSession", stats.getAvgNumDaysFromReceptionToKeyWorkingSession().doubleValue());
+        }
+        telemetryClient.trackEvent("kwStatsGenerated", logMap, metrics);
     }
 }

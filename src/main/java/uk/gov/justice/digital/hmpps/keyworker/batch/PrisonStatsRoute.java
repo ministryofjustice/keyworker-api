@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch;
 
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 public class PrisonStatsRoute extends RouteBuilder {
     static final String DIRECT_PRISON_STATS = "direct:prisonStats";
     private static final String QUARTZ_PRISON_STATS_URI = "quartz2://application/prisonStats?cron=";
+    private static final String DIRECT_GENERATE_STATS = "direct:generate-stats";
+    private static final String DIRECT_LOG_ERROR = "direct:log-error";
 
     @Value("${prisonStats.job.cron}")
     private String cronExpression;
@@ -44,11 +47,18 @@ public class PrisonStatsRoute extends RouteBuilder {
                 .bean(prisonSupportedService, "getMigratedPrisons")
                 .log("There are ${body.size} migrated prisons")
                 .split(body())
-                    .log("Gathering stats for ${body.prisonId}")
-                    .bean(keyworkerStatsService, "generatePrisonStats(${body.prisonId})")
-                    .log("Stats completed for ${body.prisonId}")
+                    .to(DIRECT_GENERATE_STATS)
                 .end()
                 .log("Complete: Daily Prison Statistics");
+
+        from(DIRECT_GENERATE_STATS)
+                .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
+                .log("Gathering stats for ${body.prisonId}")
+                .bean(keyworkerStatsService, "generatePrisonStats(${body.prisonId})")
+                .log("Stats completed for ${body.prisonId}");
+
+        from(DIRECT_LOG_ERROR)
+                .log(LoggingLevel.ERROR, "Error occurred processing ${body.prisonId}");
 
     }
 }

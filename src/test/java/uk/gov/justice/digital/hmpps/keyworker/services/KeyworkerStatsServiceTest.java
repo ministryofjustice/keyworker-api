@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,9 @@ public class KeyworkerStatsServiceTest {
     @Mock
     private PrisonSupportedService prisonSupportedService;
 
+    @Mock
+    private TelemetryClient telemetryClient;
+
     private KeyworkerStatsService service;
 
     private LocalDate fromDate;
@@ -54,7 +58,7 @@ public class KeyworkerStatsServiceTest {
 
     @Before
     public void setUp() {
-        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository);
+        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, telemetryClient);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).build());
