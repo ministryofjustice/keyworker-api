@@ -104,7 +104,7 @@ public class KeyworkerStatsService {
 
         } else {
             // get all offenders in prison at the moment
-            final List<OffenderLocationDto> activePrisoners = nomisService.getOffendersAtLocation(prisonId, "bookingId", SortOrder.ASC);
+            final List<OffenderLocationDto> activePrisoners = nomisService.getOffendersAtLocation(prisonId, "bookingId", SortOrder.ASC, true);
             log.info("There are currently {} prisoners in {}", activePrisoners.size(), prisonId);
 
             // get a distinct list of offenderNos
@@ -120,7 +120,7 @@ public class KeyworkerStatsService {
                     .sortFields("staffId")
                     .sortOrder(SortOrder.ASC)
                     .build();
-            ResponseEntity<List<StaffLocationRoleDto>> activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting);
+            ResponseEntity<List<StaffLocationRoleDto>> activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting, true);
             log.info("There are currently {} active key workers in {}", activeKeyWorkers.getBody().size(), prisonId);
 
             List<OffenderKeyworker> newAllocationsOnly = getNewAllocations(prisonId, snapshotDate);
@@ -204,13 +204,13 @@ public class KeyworkerStatsService {
         LocalDateTime furthestCaseNoteTime = prison.getMigratedDateTime().isBefore(earliestDate) ? earliestDate : prison.getMigratedDateTime();
         log.info("Looking back to {} for transfers into prison {}", furthestCaseNoteTime, prisonId);
 
-        return nomisService.getCaseNoteUsageForPrisoners(receptionCheckList, null, "TRANSFER", null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1));
+        return nomisService.getCaseNoteUsageForPrisoners(receptionCheckList, null, "TRANSFER", null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1), true);
     }
 
     private Integer getAvgDaysReceptionToKWSession(LocalDate snapshotDate, KeyWorkingCaseNoteSummary caseNoteSummary, List<String> offendersWithSessions, Map<String, LocalDate> offenderReceptionMap) {
         Double avgDaysReceptionToKWSession;// find out if this KW session is the first - look for case notes before this date.
         List<CaseNoteUsagePrisonersDto> previousCaseNotes = nomisService.getCaseNoteUsageForPrisoners(offendersWithSessions, null,
-                KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1));
+                KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1), true);
 
         Map<String, LocalDate> previousCaseNoteMap = previousCaseNotes.stream().collect(
                         Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
@@ -384,7 +384,7 @@ public class KeyworkerStatsService {
 
         KeyWorkingCaseNoteSummary(List<String> offenderNos, LocalDate start, LocalDate end, Long staffId) {
 
-           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
+           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end, false);
 
             final Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,

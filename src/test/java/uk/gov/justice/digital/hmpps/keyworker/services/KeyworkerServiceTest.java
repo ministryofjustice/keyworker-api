@@ -103,7 +103,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         List<OffenderLocationDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
 
-        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, null)).thenReturn(testDtos);
+        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, null, false)).thenReturn(testDtos);
 
         // Allocation processor mock setup - returning same DTOs
         when(processor.filterByUnallocated(eq(testDtos))).thenReturn(testDtos);
@@ -125,7 +125,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         Long count = 10L;
 
         List<OffenderLocationDto> testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
-        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, SortOrder.ASC)).thenReturn(testDtos);
+        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, SortOrder.ASC, false)).thenReturn(testDtos);
 
         // Allocation processor mock setup - return empty list
         when(processor.filterByUnallocated(eq(testDtos))).thenReturn(Collections.emptyList());
@@ -614,7 +614,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .hoursPerWeek(BigDecimal.valueOf(12))
                         .build()
         );
-        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting))
+        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting, false))
                 .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
         when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()
                 .staffId(-5L)
@@ -677,7 +677,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .hoursPerWeek(BigDecimal.valueOf(3))
                         .build()
         );
-        when(nomisService.getActiveStaffKeyWorkersForPrison(NON_MIGRATED_TEST_AGENCY, nameFilter, pagingAndSorting))
+        when(nomisService.getActiveStaffKeyWorkersForPrison(NON_MIGRATED_TEST_AGENCY, nameFilter, pagingAndSorting, false))
                 .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
 
         ImmutableList<KeyworkerAllocationDetailsDto> allocatedKeyworkers = ImmutableList.of(
@@ -746,7 +746,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .hoursPerWeek(BigDecimal.valueOf(12))
                         .build()
         );
-        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting))
+        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting, false))
                 .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(3, 0, 10), HttpStatus.OK));
         when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()
                 .staffId(-5L)
@@ -845,7 +845,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                         .hoursPerWeek(BigDecimal.valueOf(12))
                         .build()
         );
-        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, Optional.empty(), pagingAndSorting))
+        when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, Optional.empty(), pagingAndSorting, false))
                 .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
 
         when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder()

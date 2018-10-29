@@ -128,7 +128,7 @@ public class KeyworkerStatsServiceTest {
                 .build());
 
 
-        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
+        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
         KeyworkerStatsDto stats = service.getStatsForStaff(
@@ -143,7 +143,7 @@ public class KeyworkerStatsServiceTest {
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
 
         verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate);
+                null, fromDate, toDate, false);
     }
 
     @Test
@@ -261,7 +261,7 @@ public class KeyworkerStatsServiceTest {
                 .numCaseNotes(2)
                 .build());
 
-        when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
+        when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
         KeyworkerStatsDto stats = service.getStatsForStaff(
@@ -276,6 +276,6 @@ public class KeyworkerStatsServiceTest {
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
 
         verify(nomisService).getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate);
+                null, fromDate, toDate, false);
     }
 }

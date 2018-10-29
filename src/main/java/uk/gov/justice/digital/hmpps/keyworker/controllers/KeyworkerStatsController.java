@@ -100,7 +100,7 @@ public class KeyworkerStatsController {
             value = "Generate prison stats at specified prison.",
             notes = "Requires KW Migration Privilege",
             nickname = "runBatchPrisonStats",
-            authorizations = { @Authorization("KW_BATCH") },
+            authorizations = { @Authorization("KW_MIGRATION") },
             hidden = true)
 
     @ApiResponses(value = {
@@ -110,7 +110,7 @@ public class KeyworkerStatsController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @PostMapping(path = "/batch/{prisonId}")
-    @PreAuthorize("hasRole('KW_BATCH')")
+    @PreAuthorize("hasRole('KW_MIGRATION')")
     public PrisonKeyWorkerStatistic runBatchPrisonStats(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty

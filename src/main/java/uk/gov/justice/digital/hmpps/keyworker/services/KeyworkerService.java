@@ -104,7 +104,7 @@ public class KeyworkerService  {
                         repository.findByActiveAndPrisonIdAndAllocationType(true, prisonId, allocationFilter.getAllocationType().get())
                         :
                         repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL);
-        List<OffenderLocationDto> allOffenders = nomisService.getOffendersAtLocation(prisonId, pagingAndSorting.getSortFields(), pagingAndSorting.getSortOrder());
+        List<OffenderLocationDto> allOffenders = nomisService.getOffendersAtLocation(prisonId, pagingAndSorting.getSortFields(), pagingAndSorting.getSortOrder(), false);
 
         final List<KeyworkerAllocationDetailsDto> results = processor.decorateAllocated(allocations, allOffenders);
 
@@ -115,7 +115,7 @@ public class KeyworkerService  {
     public List<OffenderLocationDto> getUnallocatedOffenders(String prisonId, String sortFields, SortOrder sortOrder) {
 
         prisonSupportedService.verifyPrisonMigrated(prisonId);
-        List<OffenderLocationDto> allOffenders = nomisService.getOffendersAtLocation(prisonId, sortFields, sortOrder);
+        List<OffenderLocationDto> allOffenders = nomisService.getOffendersAtLocation(prisonId, sortFields, sortOrder, false);
         return processor.filterByUnallocated(allOffenders);
     }
 
@@ -395,7 +395,7 @@ public class KeyworkerService  {
 
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, Optional<KeyworkerStatus> statusFilter, PagingAndSortingDto pagingAndSorting) {
 
-        ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting);
+        ResponseEntity<List<StaffLocationRoleDto>> response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting, false);
         final int prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
         final List<KeyworkerDto> convertedKeyworkerDtoList = new ArrayList<>();

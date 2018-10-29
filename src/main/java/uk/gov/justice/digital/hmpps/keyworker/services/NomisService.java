@@ -30,7 +30,7 @@ public interface NomisService {
 
     Optional<PrisonerDetail> getPrisonerDetail(String offenderNo);
 
-    ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting);
+    ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting, boolean admin);
 
     Optional<StaffLocationRoleDto> getStaffKeyWorkerForPrison(String prisonId, Long staffId);
 
@@ -38,7 +38,7 @@ public interface NomisService {
 
     List<KeyworkerDto> getAvailableKeyworkers(String prisonId);
 
-    List<OffenderLocationDto> getOffendersAtLocation(String prisonId, String sortFields, SortOrder sortOrder);
+    List<OffenderLocationDto> getOffendersAtLocation(String prisonId, String sortFields, SortOrder sortOrder, boolean admin);
 
     StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(Long staffId);
 
@@ -48,7 +48,7 @@ public interface NomisService {
 
     List<CaseNoteUsageDto> getCaseNoteUsage(List<Long> staffIds, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate);
 
-    List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate);
+    List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate, boolean admin);
 
     List<KeyworkerAllocationDetailsDto> getCurrentAllocations(List<Long> staffIds, String agencyId);
 
