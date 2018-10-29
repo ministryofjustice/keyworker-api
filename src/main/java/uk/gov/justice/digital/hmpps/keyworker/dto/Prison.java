@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @ApiModel(description = "Prison")
 @Data
 @Builder
@@ -19,4 +21,5 @@ public class Prison {
     private int capacityTier1;
     private int capacityTier2;
     private int kwSessionFrequencyInWeeks;
+    private LocalDateTime migratedDateTime;
 }

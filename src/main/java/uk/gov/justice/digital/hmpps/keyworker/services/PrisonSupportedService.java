@@ -128,6 +128,7 @@ public class PrisonSupportedService {
                 .capacityTier1(prison.getCapacityTier1())
                 .capacityTier2(prison.getCapacityTier2())
                 .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
+                .migratedDateTime(prison.getMigratedDateTime())
                 .build();
     }
 
