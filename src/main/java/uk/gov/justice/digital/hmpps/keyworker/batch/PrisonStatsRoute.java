@@ -58,7 +58,8 @@ public class PrisonStatsRoute extends RouteBuilder {
                 .log("Stats completed for ${body.prisonId}");
 
         from(DIRECT_LOG_ERROR)
-                .log(LoggingLevel.ERROR, "Error occurred processing ${body.prisonId}");
+                .log(LoggingLevel.ERROR, "Error occurred processing ${body.prisonId}")
+                .bean(keyworkerStatsService , "raiseStatsProcessingError(${body.prisonId})");
 
     }
 }

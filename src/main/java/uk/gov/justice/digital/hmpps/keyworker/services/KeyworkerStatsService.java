@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -423,5 +424,13 @@ public class KeyworkerStatsService {
             metrics.put("avgNumDaysFromReceptionToKeyWorkingSession", stats.getAvgNumDaysFromReceptionToKeyWorkingSession().doubleValue());
         }
         telemetryClient.trackEvent("kwStatsGenerated", logMap, metrics);
+    }
+
+    public void raiseStatsProcessingError(String prisonId, Exchange exchange) {
+        final Map<String, String> logMap = new HashMap<>();
+        logMap.put("snapshotDate", LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE));
+        logMap.put("prisonId", prisonId);
+
+        telemetryClient.trackException(exchange.getException(), logMap, null);
     }
 }

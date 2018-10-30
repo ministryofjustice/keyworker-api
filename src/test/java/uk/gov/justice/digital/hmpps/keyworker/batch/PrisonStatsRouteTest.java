@@ -155,6 +155,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
 
         verify(prisonSupportedService).getMigratedPrisons();
         verify(keyworkerStatsService, times(5)).generatePrisonStats(isA(String.class));
+        verify(keyworkerStatsService).raiseStatsProcessingError(eq(MDI.getPrisonId()), isA(Exchange.class));
     }
 
 
