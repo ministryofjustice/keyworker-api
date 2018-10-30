@@ -13,6 +13,8 @@ public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<Priso
 
     List<PrisonKeyWorkerStatistic> findByPrisonIdAndSnapshotDateBetween(String prisonId, LocalDate fromDate, LocalDate toDate);
 
+    PrisonKeyWorkerStatistic findOneByPrisonIdAndSnapshotDate(String prisonId, LocalDate snapshotDate);
+
     @Query("select new uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats(s.prisonId, " +
             "min(s.snapshotDate), " +
             "max(s.snapshotDate), " +
@@ -21,7 +23,7 @@ public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<Priso
             "avg(s.numberOfActiveKeyworkers), " +
             "avg(s.numPrisonersAssignedKeyWorker), " +
             "avg(s.totalNumPrisoners), " +
-            "avg(s.avgNumDaysFromReceptionToAlliocationDays), " +
+            "avg(s.avgNumDaysFromReceptionToAllocationDays), " +
             "avg(s.avgNumDaysFromReceptionToKeyWorkingSession)) " +
             "from PrisonKeyWorkerStatistic s " +
             "where s.prisonId = :prisonId " +

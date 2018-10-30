@@ -50,7 +50,7 @@ public class SummaryStatistic {
 
     @ApiModelProperty(required = true, value = "Average number of days between a prisoner entering this prison and being allocated a key worker.",
             notes = "This only included prisoners who entered the after key working began in this prison", example = "5")
-    private Integer avgNumDaysFromReceptionToAlliocationDays;
+    private Integer avgNumDaysFromReceptionToAllocationDays;
 
     @ApiModelProperty(required = true, value = "Average number of days between a prisoner entering this prison and receiving a session from key worker",
             notes = "This only included prisoners who entered the after key working began in this prison", example = "10")

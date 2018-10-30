@@ -49,7 +49,7 @@ public class PrisonKeyWorkerStatistic implements Comparable<PrisonKeyWorkerStati
     private Integer numberOfActiveKeyworkers;
 
     @Column(name = "RECPT_TO_ALLOC_DAYS")
-    private Integer avgNumDaysFromReceptionToAlliocationDays;
+    private Integer avgNumDaysFromReceptionToAllocationDays;
 
     @Column(name = "RECPT_TO_KW_SESSION_DAYS")
     private Integer avgNumDaysFromReceptionToKeyWorkingSession;

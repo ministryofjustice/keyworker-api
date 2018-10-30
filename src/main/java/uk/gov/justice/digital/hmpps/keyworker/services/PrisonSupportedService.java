@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -100,25 +101,34 @@ public class PrisonSupportedService {
         return getPrisonDetail(prisonId).isMigrated();
     }
 
+    public List<Prison> getMigratedPrisons() {
+        return repository.findAllByMigratedEquals(true).stream().map(this::buildPrison).collect(Collectors.toList());
+    }
+
     public Prison getPrisonDetail(String prisonId) {
         PrisonSupported prison = repository.findOne(prisonId);
 
         if (prison != null) {
-            return Prison.builder()
-                    .prisonId(prisonId)
-                    .migrated(prison.isMigrated())
-                    .supported(true)
-                    .autoAllocatedSupported(prison.isAutoAllocate())
-                    .capacityTier1(prison.getCapacityTier1())
-                    .capacityTier2(prison.getCapacityTier2())
-                    .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
-                    .build();
+            return buildPrison(prison);
         }
         return Prison.builder()
                 .prisonId(prisonId)
                 .capacityTier1(capacityTiers.get(0))
                 .capacityTier2(capacityTiers.get(1))
                 .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
+                .build();
+    }
+
+    private Prison buildPrison(PrisonSupported prison) {
+        return Prison.builder()
+                .prisonId(prison.getPrisonId())
+                .migrated(prison.isMigrated())
+                .supported(true)
+                .autoAllocatedSupported(prison.isAutoAllocate())
+                .capacityTier1(prison.getCapacityTier1())
+                .capacityTier2(prison.getCapacityTier2())
+                .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
+                .migratedDateTime(prison.getMigratedDateTime())
                 .build();
     }
 

@@ -36,7 +36,7 @@ public class RestCallHelper {
     }
 
     protected <T> ResponseEntity<T> getForListWithAuthentication(URI uri, ParameterizedTypeReference<T> responseType) {
-        return elite2SystemRestTemplate.exchange(
+        return getRestTemplate(true).exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 null,
@@ -52,8 +52,8 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
-    protected <T,E> List<T> post(URI uri, E body, ParameterizedTypeReference<List<T>> responseType) {
-        ResponseEntity<List<T>> exchange = restTemplate.exchange(uri.toString(),
+    protected <T,E> List<T> post(URI uri, E body, ParameterizedTypeReference<List<T>> responseType, boolean admin) {
+        ResponseEntity<List<T>> exchange = getRestTemplate(admin).exchange(uri.toString(),
                 HttpMethod.POST,
                 new HttpEntity<E>(body, CONTENT_TYPE_APPLICATION_JSON),
                 responseType);
@@ -61,8 +61,8 @@ public class RestCallHelper {
     }
 
     protected <T> ResponseEntity<T> getWithPagingAndSorting(URI uri, PagingAndSortingDto pagingAndSorting,
-                                                            ParameterizedTypeReference<T> responseType) {
-        return restTemplate.exchange(
+                                                            ParameterizedTypeReference<T> responseType, boolean admin) {
+        return getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 withPagingAndSorting(pagingAndSorting),
@@ -79,7 +79,7 @@ public class RestCallHelper {
     }
 
     protected <T> List<T> getAllWithSorting(URI uri, String sortFields, SortOrder sortOrder,
-                                            ParameterizedTypeReference<List<T>> responseType) {
+                                            ParameterizedTypeReference<List<T>> responseType, boolean admin) {
         final long initialPageSize = Integer.MAX_VALUE;
 
         PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder()
@@ -89,7 +89,7 @@ public class RestCallHelper {
                 .pageLimit(initialPageSize)
                 .build();
 
-        ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, responseType);
+        ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, responseType, admin);
 
         return new ArrayList<>(response.getBody());
     }
@@ -129,5 +129,9 @@ public class RestCallHelper {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(contentType);
         return httpHeaders;
+    }
+
+    private RestTemplate getRestTemplate(boolean admin) {
+        return admin ? elite2SystemRestTemplate : restTemplate;
     }
 }

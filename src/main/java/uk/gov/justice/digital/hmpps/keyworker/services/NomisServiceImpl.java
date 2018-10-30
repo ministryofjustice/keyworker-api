@@ -86,14 +86,14 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting) {
+    public ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting, boolean admin) {
         log.info("Getting KW Staff in prison {}", prisonId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(GET_STAFF_IN_SPECIFIC_PRISON);
         nameFilter.ifPresent(filter -> uriBuilder.queryParam("nameFilter", filter));
         URI uri = uriBuilder.buildAndExpand(prisonId).toUri();
 
-        return restCallHelper.getWithPagingAndSorting(uri, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST);
+        return restCallHelper.getWithPagingAndSorting(uri, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST, admin);
     }
 
     @Override
@@ -125,13 +125,13 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<OffenderLocationDto> getOffendersAtLocation(String prisonId, String sortFields, SortOrder sortOrder) {
+    public List<OffenderLocationDto> getOffendersAtLocation(String prisonId, String sortFields, SortOrder sortOrder, boolean admin) {
         log.info("Getting offenders in prison {}", prisonId);
         URI uri = new UriTemplate(URI_ACTIVE_OFFENDERS_BY_AGENCY).expand(prisonId);
 
         return restCallHelper.getAllWithSorting(
                 uri, sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderLocationDto>>() {
-                });
+                }, admin);
     }
 
     @Override
@@ -184,11 +184,11 @@ public class NomisServiceImpl implements NomisService {
                 .toDate(toDate)
                 .build();
 
-        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_DTO_LIST);
+        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_DTO_LIST, false);
     }
 
     @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate, boolean admin) {
         log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
         URI uri = new UriTemplate(CASE_NOTE_USAGE_BY_PRISONER).expand();
 
@@ -201,7 +201,7 @@ public class NomisServiceImpl implements NomisService {
                 .toDate(toDate)
                 .build();
 
-        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST);
+        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, admin);
     }
 
     @Override
@@ -209,7 +209,7 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting Legacy Key worker allocations for {} agencyId by staff IDs", agencyId);
         URI uri = new UriTemplate(URI_CURRENT_ALLOCATIONS).expand(agencyId);
 
-        return restCallHelper.post(uri, staffIds, LEGACY_KEYWORKER_ALLOCATIONS);
+        return restCallHelper.post(uri, staffIds, LEGACY_KEYWORKER_ALLOCATIONS, false);
     }
 
     @Override
@@ -217,7 +217,7 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting Legacy Key worker allocations for {} agencyId by offender Nos", agencyId);
         URI uri = new UriTemplate(URI_CURRENT_ALLOCATIONS_BY_OFFENDERS).expand(agencyId);
 
-        return restCallHelper.post(uri, offenderNos, LEGACY_KEYWORKER_ALLOCATIONS);
+        return restCallHelper.post(uri, offenderNos, LEGACY_KEYWORKER_ALLOCATIONS, false);
     }
 
     @Override
@@ -225,6 +225,6 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting Key worker allocations for offender Nos {}", offenderNos);
         URI uri = new UriTemplate(URI_OFFENDERS_ALLOCATION_HISTORY).expand();
 
-        return restCallHelper.post(uri, offenderNos, ALLOCATION_HISTORY);
+        return restCallHelper.post(uri, offenderNos, ALLOCATION_HISTORY, false);
     }
 }

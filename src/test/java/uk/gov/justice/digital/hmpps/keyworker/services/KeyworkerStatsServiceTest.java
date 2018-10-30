@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,9 @@ public class KeyworkerStatsServiceTest {
     @Mock
     private PrisonSupportedService prisonSupportedService;
 
+    @Mock
+    private TelemetryClient telemetryClient;
+
     private KeyworkerStatsService service;
 
     private LocalDate fromDate;
@@ -54,7 +58,7 @@ public class KeyworkerStatsServiceTest {
 
     @Before
     public void setUp() {
-        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository);
+        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, telemetryClient);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).build());
@@ -128,7 +132,7 @@ public class KeyworkerStatsServiceTest {
                 .build());
 
 
-        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
+        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
         KeyworkerStatsDto stats = service.getStatsForStaff(
@@ -143,7 +147,7 @@ public class KeyworkerStatsServiceTest {
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
 
         verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate);
+                null, fromDate, toDate, false);
     }
 
     @Test
@@ -261,7 +265,7 @@ public class KeyworkerStatsServiceTest {
                 .numCaseNotes(2)
                 .build());
 
-        when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
+        when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
         KeyworkerStatsDto stats = service.getStatsForStaff(
@@ -276,6 +280,6 @@ public class KeyworkerStatsServiceTest {
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
 
         verify(nomisService).getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate);
+                null, fromDate, toDate, false);
     }
 }
