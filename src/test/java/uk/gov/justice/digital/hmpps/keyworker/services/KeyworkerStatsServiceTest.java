@@ -18,10 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisti
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
@@ -68,7 +65,7 @@ public class KeyworkerStatsServiceTest {
         service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, telemetryClient);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
-        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(6).atStartOfDay()).build());
+        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(10).atStartOfDay()).build());
     }
 
     @Test(expected = NullPointerException.class)
@@ -110,6 +107,7 @@ public class KeyworkerStatsServiceTest {
                 .caseNoteSubType(KEYWORKER_CASENOTE_TYPE)
                 .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                 .offenderNo(offenderNos.get(0))
+                .latestCaseNote(toDate)
                 .numCaseNotes(2)
                 .build());
 
@@ -118,6 +116,7 @@ public class KeyworkerStatsServiceTest {
                 .caseNoteSubType(KEYWORKER_ENTRY_SUB_TYPE)
                 .offenderNo(offenderNos.get(0))
                 .numCaseNotes(3)
+                .latestCaseNote(toDate)
                 .build());
 
         usageCounts.add(CaseNoteUsagePrisonersDto.builder()
@@ -125,6 +124,7 @@ public class KeyworkerStatsServiceTest {
                 .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                 .offenderNo(offenderNos.get(1))
                 .numCaseNotes(1)
+                .latestCaseNote(toDate)
                 .build());
 
         usageCounts.add(CaseNoteUsagePrisonersDto.builder()
@@ -132,6 +132,7 @@ public class KeyworkerStatsServiceTest {
                 .caseNoteSubType(KEYWORKER_ENTRY_SUB_TYPE)
                 .offenderNo(offenderNos.get(1))
                 .numCaseNotes(2)
+                .latestCaseNote(toDate)
                 .build());
 
         usageCounts.add(CaseNoteUsagePrisonersDto.builder()
@@ -139,6 +140,7 @@ public class KeyworkerStatsServiceTest {
                 .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
                 .offenderNo(offenderNos.get(2))
                 .numCaseNotes(1)
+                .latestCaseNote(toDate)
                 .build());
         return usageCounts;
     }
@@ -336,12 +338,56 @@ public class KeyworkerStatsServiceTest {
                 eq(toDate.minusDays(1)), eq(true)))
                 .thenReturn(getCaseNoteUsagePrisonersDtos());
 
+        List<OffenderKeyworker> assignedOffenders = Arrays.asList(
+                OffenderKeyworker.builder()
+                        .offenderNo(offenderNos.get(2))
+                        .staffId(TEST_STAFF_ID)
+                        .assignedDateTime(toDate.atStartOfDay())
+                        .expiryDateTime(null)
+                        .build(),
+                OffenderKeyworker.builder()
+                        .offenderNo(offenderNos.get(1))
+                        .staffId(TEST_STAFF_ID)
+                        .assignedDateTime(toDate.atStartOfDay())
+                        .build());
+        when(repository.findByPrisonIdAndAssignedDateTimeBetween(eq(TEST_AGENCY_ID), eq(toDate.atStartOfDay().minusDays(1)), eq(toDate.atStartOfDay())))
+                .thenReturn(assignedOffenders);
+
+        when(repository.findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(eq(TEST_AGENCY_ID), eq(toDate.minusDays(1).atStartOfDay()),
+                eq(new HashSet<>(Arrays.asList(offenderNos.get(2), offenderNos.get(1)))), eq(AllocationType.PROVISIONAL)))
+                .thenReturn(assignedOffenders.subList(0,1));
+
+        when(nomisService.getCaseNoteUsageForPrisoners(eq(Arrays.asList(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(Long.class), eq("TRANSFER"),
+                isNull(String.class), eq(toDate.minusMonths(6)), eq(toDate), eq(true)))
+                .thenReturn(Arrays.asList(
+                        CaseNoteUsagePrisonersDto.builder()
+                                .caseNoteSubType("TRANSFER")
+                                .caseNoteSubType("IN")
+                                .offenderNo(offenderNos.get(2))
+                                .latestCaseNote(toDate.minusDays(2))
+                                .numCaseNotes(1)
+                                .build(),
+                        CaseNoteUsagePrisonersDto.builder()
+                                .caseNoteSubType("TRANSFER")
+                                .caseNoteSubType("IN")
+                                .offenderNo(offenderNos.get(1))
+                                .latestCaseNote(toDate.minusDays(3))
+                                .numCaseNotes(1)
+                                .build())
+                );
         PrisonKeyWorkerStatistic statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
+        assertThat(statsResult.getNumberKeyWorkeringSessions()).isEqualTo(4);
+        assertThat(statsResult.getNumberKeyWorkerEntries()).isEqualTo(5);
+        assertThat(statsResult.getAvgNumDaysFromReceptionToAllocationDays()).isEqualTo(3);
+        assertThat(statsResult.getAvgNumDaysFromReceptionToKeyWorkingSession()).isEqualTo(2);
+        assertThat(statsResult.getNumPrisonersAssignedKeyWorker()).isEqualTo(3);
+        assertThat(statsResult.getNumberOfActiveKeyworkers()).isEqualTo(2);
 
         verify(statisticRepository).findOneByPrisonIdAndSnapshotDate(eq(TEST_AGENCY_ID), eq(toDate.minusDays(1)));
         verify(nomisService).getOffendersAtLocation(eq(TEST_AGENCY_ID), isA(String.class), isA(SortOrder.class), eq(true));
+        verify(repository).findByPrisonIdAndAssignedDateTimeBetween(eq(TEST_AGENCY_ID), eq(toDate.atStartOfDay().minusDays(1)), eq(toDate.atStartOfDay()));
 
     }
 }

@@ -233,7 +233,7 @@ public class KeyworkerStatsService {
 
     private List<OffenderKeyworker> getNewAllocations(String prisonId, LocalDate snapshotDate) {
 
-        List<OffenderKeyworker> allocatedThisPeriod = offenderKeyworkerRepository.findByAssignedDateTimeBetween(snapshotDate.atStartOfDay(), snapshotDate.plusDays(1).atStartOfDay());
+        List<OffenderKeyworker> allocatedThisPeriod = offenderKeyworkerRepository.findByPrisonIdAndAssignedDateTimeBetween(prisonId, snapshotDate.atStartOfDay(), snapshotDate.plusDays(1).atStartOfDay());
         log.info("There were {} key worker allocations done in {} on {}", allocatedThisPeriod.size(), prisonId, snapshotDate);
 
         final List<OffenderKeyworker> newAllocationsOnly = new ArrayList<>();
