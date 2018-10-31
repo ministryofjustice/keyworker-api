@@ -391,7 +391,7 @@ public class KeyworkerStatsService {
 
         KeyWorkingCaseNoteSummary(List<String> offenderNos, LocalDate start, LocalDate end, Long staffId) {
 
-           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end, false);
+           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end, true);
 
             final Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
