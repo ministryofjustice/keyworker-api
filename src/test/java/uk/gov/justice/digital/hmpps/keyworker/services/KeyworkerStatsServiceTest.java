@@ -5,11 +5,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
@@ -18,8 +21,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.*;
@@ -58,10 +64,11 @@ public class KeyworkerStatsServiceTest {
 
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
         service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, telemetryClient);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
-        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).build());
+        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(6).atStartOfDay()).build());
     }
 
     @Test(expected = NullPointerException.class)
@@ -73,27 +80,30 @@ public class KeyworkerStatsServiceTest {
     @Test
     public void testThatCorrectCalculationsAreMadeForAnActiveSetOfOffenders() {
 
-        when(repository.findByStaffIdAndPrisonId(TEST_STAFF_ID, TEST_AGENCY_ID)).thenReturn(Arrays.asList(
-                OffenderKeyworker.builder()
-                        .offenderNo(offenderNos.get(0))
-                        .staffId(TEST_STAFF_ID)
-                        .assignedDateTime(fromDate.plusDays(1).atStartOfDay())
-                        .expiryDateTime(toDate.minusDays(5).atStartOfDay())
-                        .build(),
-                OffenderKeyworker.builder()
-                        .offenderNo(offenderNos.get(1))
-                        .staffId(TEST_STAFF_ID)
-                        .assignedDateTime(fromDate.plusDays(20).atStartOfDay())
-                        .expiryDateTime(toDate.minusDays(1).atStartOfDay())
-                        .build(),
-                OffenderKeyworker.builder()
-                        .offenderNo(offenderNos.get(2))
-                        .staffId(TEST_STAFF_ID)
-                        .assignedDateTime(toDate.minusWeeks(1).atStartOfDay())
-                        .expiryDateTime(null)
-                        .build()
-        ));
+        when(repository.findByStaffIdAndPrisonId(TEST_STAFF_ID, TEST_AGENCY_ID)).thenReturn(getDefaultOffenderKeyworkers());
 
+        final List<CaseNoteUsagePrisonersDto> usageCounts = getCaseNoteUsagePrisonersDtos();
+
+
+        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+                .thenReturn(usageCounts);
+
+        KeyworkerStatsDto stats = service.getStatsForStaff(
+                TEST_STAFF_ID,
+                TEST_AGENCY_ID,
+                fromDate,
+                toDate);
+
+        assertThat(stats.getCaseNoteEntryCount()).isEqualTo(5);
+        assertThat(stats.getCaseNoteSessionCount()).isEqualTo(4);
+        assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(5);
+        assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
+
+        verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
+                null, fromDate, toDate, false);
+    }
+
+    private List<CaseNoteUsagePrisonersDto> getCaseNoteUsagePrisonersDtos() {
         final List<CaseNoteUsagePrisonersDto> usageCounts = new ArrayList<>();
 
         usageCounts.add(CaseNoteUsagePrisonersDto.builder()
@@ -130,24 +140,30 @@ public class KeyworkerStatsServiceTest {
                 .offenderNo(offenderNos.get(2))
                 .numCaseNotes(1)
                 .build());
+        return usageCounts;
+    }
 
-
-        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
-                .thenReturn(usageCounts);
-
-        KeyworkerStatsDto stats = service.getStatsForStaff(
-                TEST_STAFF_ID,
-                TEST_AGENCY_ID,
-                fromDate,
-                toDate);
-
-        assertThat(stats.getCaseNoteEntryCount()).isEqualTo(5);
-        assertThat(stats.getCaseNoteSessionCount()).isEqualTo(4);
-        assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(5);
-        assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
-
-        verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate, false);
+    private List<OffenderKeyworker> getDefaultOffenderKeyworkers() {
+        return Arrays.asList(
+                OffenderKeyworker.builder()
+                        .offenderNo(offenderNos.get(0))
+                        .staffId(TEST_STAFF_ID)
+                        .assignedDateTime(fromDate.plusDays(1).atStartOfDay())
+                        .expiryDateTime(toDate.minusDays(5).atStartOfDay())
+                        .build(),
+                OffenderKeyworker.builder()
+                        .offenderNo(offenderNos.get(1))
+                        .staffId(TEST_STAFF_ID)
+                        .assignedDateTime(fromDate.plusDays(20).atStartOfDay())
+                        .expiryDateTime(toDate.minusDays(1).atStartOfDay())
+                        .build(),
+                OffenderKeyworker.builder()
+                        .offenderNo(offenderNos.get(2))
+                        .staffId(TEST_STAFF_ID)
+                        .assignedDateTime(toDate.minusWeeks(1).atStartOfDay())
+                        .expiryDateTime(null)
+                        .build()
+        );
     }
 
     @Test
@@ -281,5 +297,51 @@ public class KeyworkerStatsServiceTest {
 
         verify(nomisService).getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
                 null, fromDate, toDate, false);
+    }
+
+    @Test
+    public void testHappyPathGeneratePrisonStats() {
+
+        when(statisticRepository.findOneByPrisonIdAndSnapshotDate(TEST_AGENCY_ID, toDate.minusDays(1)))
+                .thenReturn(null);
+
+        List<OffenderLocationDto> offenderLocations = offenderNos.stream().map(offenderNo ->
+                OffenderLocationDto.builder()
+                        .agencyId(TEST_AGENCY_ID)
+                        .offenderNo(offenderNo)
+                        .build()).collect(Collectors.toList());
+
+        when(nomisService.getOffendersAtLocation(eq(TEST_AGENCY_ID), isA(String.class), isA(SortOrder.class), eq(true)))
+                .thenReturn(offenderLocations);
+
+        when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(eq(true), eq(TEST_AGENCY_ID), eq(offenderNos), eq(AllocationType.PROVISIONAL)))
+                .thenReturn(getDefaultOffenderKeyworkers());
+
+        List<StaffLocationRoleDto> staffLocationRoleDtos = Arrays.asList(
+                StaffLocationRoleDto.builder()
+                        .agencyId(TEST_AGENCY_ID)
+                        .staffId(-5L)
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .agencyId(TEST_AGENCY_ID)
+                        .staffId(-4L)
+                        .build()
+        );
+        when(nomisService.getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true)))
+                .thenReturn(new ResponseEntity<>(staffLocationRoleDtos, HttpStatus.OK));
+
+
+        when(nomisService.getCaseNoteUsageForPrisoners(eq(offenderNos), isNull(Long.class),
+                eq(KEYWORKER_CASENOTE_TYPE), isNull(String.class), eq(toDate.minusDays(1)),
+                eq(toDate.minusDays(1)), eq(true)))
+                .thenReturn(getCaseNoteUsagePrisonersDtos());
+
+        PrisonKeyWorkerStatistic statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
+
+        assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
+
+        verify(statisticRepository).findOneByPrisonIdAndSnapshotDate(eq(TEST_AGENCY_ID), eq(toDate.minusDays(1)));
+        verify(nomisService).getOffendersAtLocation(eq(TEST_AGENCY_ID), isA(String.class), isA(SortOrder.class), eq(true));
+
     }
 }
