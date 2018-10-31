@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.*;
@@ -132,7 +134,7 @@ public class KeyworkerStatsServiceTest {
                 .build());
 
 
-        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+        when(nomisService.getCaseNoteUsageForPrisoners( eq(offenderNos), eq(TEST_STAFF_ID), eq(KEYWORKER_CASENOTE_TYPE), isNull(String.class), eq(fromDate), eq(toDate), eq(false)))
                 .thenReturn(usageCounts);
 
         KeyworkerStatsDto stats = service.getStatsForStaff(
@@ -146,8 +148,7 @@ public class KeyworkerStatsServiceTest {
         assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(5);
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
 
-        verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate, false);
+        verify(nomisService).getCaseNoteUsageForPrisoners( eq(offenderNos), eq(TEST_STAFF_ID), eq(KEYWORKER_CASENOTE_TYPE), isNull(String.class), eq(fromDate), eq(toDate), eq(false));
     }
 
     @Test
@@ -265,7 +266,7 @@ public class KeyworkerStatsServiceTest {
                 .numCaseNotes(2)
                 .build());
 
-        when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+        when(nomisService.getCaseNoteUsageForPrisoners( eq(otherOffenderNos), eq(TEST_STAFF_ID2), eq(KEYWORKER_CASENOTE_TYPE), isNull(String.class), eq(fromDate), eq(toDate), eq(false)))
                 .thenReturn(usageCounts);
 
         KeyworkerStatsDto stats = service.getStatsForStaff(
@@ -279,7 +280,6 @@ public class KeyworkerStatsServiceTest {
         assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(12);
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
 
-        verify(nomisService).getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate, false);
+        verify(nomisService).getCaseNoteUsageForPrisoners(eq(otherOffenderNos), eq(TEST_STAFF_ID2), eq(KEYWORKER_CASENOTE_TYPE), isNull(String.class), eq(fromDate), eq(toDate), eq(false));
     }
 }

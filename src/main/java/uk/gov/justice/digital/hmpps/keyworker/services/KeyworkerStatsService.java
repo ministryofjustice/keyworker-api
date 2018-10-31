@@ -71,7 +71,7 @@ public class KeyworkerStatsService {
         List<String> prisonerNosList = applicableAssignments.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
 
         if (!prisonerNosList.isEmpty()) {
-            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(prisonerNosList, range.startDate, range.endDate, staffId);
+            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(prisonerNosList, range.startDate, range.endDate, staffId, false);
             int projectedKeyworkerSessions = getProjectedKeyworkerSessions(applicableAssignments, staffId, prisonId, range.getStartDate(), nextEndDate);
             final BigDecimal complianceRate = getComplianceRate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
 
@@ -130,7 +130,7 @@ public class KeyworkerStatsService {
 
             List<OffenderKeyworker> newAllocationsOnly = getNewAllocations(prisonId, snapshotDate);
 
-            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(offenderNos, snapshotDate, snapshotDate, null);
+            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(offenderNos, snapshotDate, snapshotDate, null, true);
             log.info("There were {} Key Working Sessions and {} Key working entries on {}", caseNoteSummary.sessionsDone, caseNoteSummary.entriesDone, snapshotDate);
 
             final List<String> offendersWithSessions = getOffendersWithKeyWorkerSessions(snapshotDate, caseNoteSummary);
@@ -389,9 +389,9 @@ public class KeyworkerStatsService {
         private final int entriesDone;
         private final List<CaseNoteUsagePrisonersDto> usageCounts;
 
-        KeyWorkingCaseNoteSummary(List<String> offenderNos, LocalDate start, LocalDate end, Long staffId) {
+        KeyWorkingCaseNoteSummary(List<String> offenderNos, LocalDate start, LocalDate end, Long staffId, boolean admin) {
 
-           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end, true);
+           usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end, admin);
 
             final Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
