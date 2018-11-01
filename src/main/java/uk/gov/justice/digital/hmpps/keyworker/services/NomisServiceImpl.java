@@ -172,8 +172,8 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<CaseNoteUsageDto> getCaseNoteUsage(List<Long> staffIds, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate) {
-        log.info("Getting case note details of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
+    public List<CaseNoteUsageDto> getCaseNoteUsage(List<Long> staffIds, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate, Integer numMonths) {
+        log.info("Getting case note details of type {} sub type {}, from {}, to {} for {} months", caseNoteType, caseNoteSubType, fromDate, toDate);
         URI uri = new UriTemplate(CASE_NOTE_USAGE).expand();
 
         CaseNoteUsageRequest body = CaseNoteUsageRequest.builder()
@@ -182,6 +182,7 @@ public class NomisServiceImpl implements NomisService {
                 .subType(caseNoteSubType)
                 .fromDate(fromDate)
                 .toDate(toDate)
+                .numMonths(numMonths)
                 .build();
 
         return restCallHelper.post(uri, body, CASE_NOTE_USAGE_DTO_LIST, false);

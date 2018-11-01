@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -416,7 +415,7 @@ public class KeyworkerService  {
 
            populateWithAllocations(convertedKeyworkerDtoList, prisonId);
         }
-        populateWithCaseNoteCounts(convertedKeyworkerDtoList, prisonDetail.getKwSessionFrequencyInWeeks());
+        populateWithCaseNoteCounts(convertedKeyworkerDtoList);
 
         List<KeyworkerDto> keyworkers = convertedKeyworkerDtoList.stream()
                 .sorted(Comparator
@@ -448,11 +447,11 @@ public class KeyworkerService  {
         }
     }
 
-    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList, int kwSessionFrequencyInWeeks) {
+    private void populateWithCaseNoteCounts(List<KeyworkerDto> convertedKeyworkerDtoList) {
         List<Long> staffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
 
         if (staffIds.size() > 0) {
-            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(staffIds, kwSessionFrequencyInWeeks);
+            final Map<Long, Integer> kwStats = getCaseNoteUsageByStaffId(staffIds);
 
             convertedKeyworkerDtoList
                     .forEach(kw -> {
@@ -462,9 +461,8 @@ public class KeyworkerService  {
         }
     }
 
-    private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds, int kwSessionFrequencyInWeeks) {
-        final GenerateDateRange dateRange = new GenerateDateRange(kwSessionFrequencyInWeeks, LocalDate.now());
-        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, dateRange.getFromDate(), dateRange.getToDate());
+    private Map<Long, Integer> getCaseNoteUsageByStaffId(List<Long> activeStaffIds) {
+        List<CaseNoteUsageDto> caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, null, null, 1);
 
         return caseNoteUsage.stream()
                 .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
