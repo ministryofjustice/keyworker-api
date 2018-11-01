@@ -155,14 +155,13 @@ public class KeyworkerStatsService {
                 if (offendersToIncludeInAverage.size() > 0) {
                     Double days = offendersToIncludeInAverage.stream()
                             .collect(averagingLong(okw -> DAYS.between(offenderReceptionMap.get(okw.getOffenderNo()), okw.getAssignedDateTime())));
+                    log.info("Average number of days until allocation {}", days);
+                    averageDaysToAllocation = days != null ? (int)Math.round(days): null;
 
-                    averageDaysToAllocation = days != null ? days.intValue() : null;
-                    log.info("Average number of days until allocation {}", averageDaysToAllocation);
                 }
 
                 if (offendersWithSessions.size() > 0) {
                     avgDaysReceptionToKWSession = getAvgDaysReceptionToKWSession(snapshotDate, caseNoteSummary, offendersWithSessions, offenderReceptionMap);
-                    log.info("Average number of days until first KW Session {}", avgDaysReceptionToKWSession);
                 }
             }
 
@@ -237,9 +236,10 @@ public class KeyworkerStatsService {
         Double avgDaysReceptionToKWSession = null;
         if (caseNotesToConsider.size() > 0) {
             avgDaysReceptionToKWSession = caseNotesToConsider.stream().collect(averagingLong(cn -> DAYS.between(offenderReceptionMap.get(cn.getOffenderNo()), cn.getLatestCaseNote())));
+            log.info("Average number of days until first KW Session {}", avgDaysReceptionToKWSession);
         }
 
-        return avgDaysReceptionToKWSession != null ? avgDaysReceptionToKWSession.intValue() : null;
+        return avgDaysReceptionToKWSession != null ? (int)Math.round(avgDaysReceptionToKWSession) : null;
     }
 
     private List<OffenderKeyworker> getNewAllocations(String prisonId, LocalDate snapshotDate) {

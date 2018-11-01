@@ -332,7 +332,7 @@ public class KeyworkerStatsServiceTest {
         assertThat(statsResult.getNumPrisonersAssignedKeyWorker()).isEqualTo(3);
         assertThat(statsResult.getNumberOfActiveKeyworkers()).isEqualTo(2);
         assertThat(statsResult.getAvgNumDaysFromReceptionToAllocationDays()).isEqualTo(3);
-        assertThat(statsResult.getAvgNumDaysFromReceptionToKeyWorkingSession()).isEqualTo(2);
+        assertThat(statsResult.getAvgNumDaysFromReceptionToKeyWorkingSession()).isEqualTo(3);
 
         verifyChecks();
 
