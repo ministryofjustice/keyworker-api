@@ -35,6 +35,7 @@ public class KeyworkerService  {
     public static final String KEYWORKER_ENTRY_SUB_TYPE = "KE";
     public static final String KEYWORKER_SESSION_SUB_TYPE = "KS";
     public static final String KEYWORKER_CASENOTE_TYPE = "KA";
+    public static final String TRANSFER_CASENOTE_TYPE = "TRANSFER";
 
     private final AuthenticationFacade authenticationFacade;
     private final OffenderKeyworkerRepository repository;
