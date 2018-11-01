@@ -148,16 +148,20 @@ public class KeyworkerStatsService {
                         Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
 
                 // calc average time to this allocation from reception
-                Double days = newAllocationsOnly.stream()
+                List<OffenderKeyworker> offendersToIncludeInAverage = newAllocationsOnly.stream()
                         .filter(okw -> offenderReceptionMap.get(okw.getOffenderNo()) != null)
-                        .collect(averagingLong(okw -> DAYS.between(offenderReceptionMap.get(okw.getOffenderNo()), okw.getAssignedDateTime())));
+                        .collect(Collectors.toList());
 
-                averageDaysToAllocation = days != null ? days.intValue() : null;
-                log.info("Average number of days until allocation {}", averageDaysToAllocation);
+                if (offendersToIncludeInAverage.size() > 0) {
+                    Double days = offendersToIncludeInAverage.stream()
+                            .collect(averagingLong(okw -> DAYS.between(offenderReceptionMap.get(okw.getOffenderNo()), okw.getAssignedDateTime())));
+                    log.info("Average number of days until allocation {}", days);
+                    averageDaysToAllocation = days != null ? (int)Math.round(days): null;
+
+                }
 
                 if (offendersWithSessions.size() > 0) {
                     avgDaysReceptionToKWSession = getAvgDaysReceptionToKWSession(snapshotDate, caseNoteSummary, offendersWithSessions, offenderReceptionMap);
-                    log.info("Average number of days until first KW Session {}", avgDaysReceptionToKWSession);
                 }
             }
 
@@ -211,24 +215,31 @@ public class KeyworkerStatsService {
         LocalDateTime furthestCaseNoteTime = prison.getMigratedDateTime().isBefore(earliestDate) ? earliestDate : prison.getMigratedDateTime();
         log.info("Looking back to {} for transfers into prison {}", furthestCaseNoteTime, prisonId);
 
-        return nomisService.getCaseNoteUsageForPrisoners(receptionCheckList, null, "TRANSFER", null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1), true);
+        return nomisService.getCaseNoteUsageForPrisoners(receptionCheckList, null, TRANSFER_CASENOTE_TYPE, null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1), true);
     }
 
     private Integer getAvgDaysReceptionToKWSession(LocalDate snapshotDate, KeyWorkingCaseNoteSummary caseNoteSummary, List<String> offendersWithSessions, Map<String, LocalDate> offenderReceptionMap) {
-        Double avgDaysReceptionToKWSession;// find out if this KW session is the first - look for case notes before this date.
+        // find out if this KW session is the first - look for case notes before this date.
         List<CaseNoteUsagePrisonersDto> previousCaseNotes = nomisService.getCaseNoteUsageForPrisoners(offendersWithSessions, null,
                 KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1), true);
 
         Map<String, LocalDate> previousCaseNoteMap = previousCaseNotes.stream().collect(
                         Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
 
-        avgDaysReceptionToKWSession = caseNoteSummary.usageCounts.stream()
+        List<CaseNoteUsagePrisonersDto> caseNotesToConsider = caseNoteSummary.usageCounts.stream()
                 .filter(cn -> cn.getCaseNoteSubType().equals(KEYWORKER_SESSION_SUB_TYPE))
                 .filter(cn -> offenderReceptionMap.get(cn.getOffenderNo()) != null)
                 .filter(cn -> previousCaseNoteMap.get(cn.getOffenderNo()) == null ||
                         previousCaseNoteMap.get(cn.getOffenderNo()).isBefore(offenderReceptionMap.get(cn.getOffenderNo())))
-                .collect(averagingLong(cn -> DAYS.between(offenderReceptionMap.get(cn.getOffenderNo()), cn.getLatestCaseNote())));
-        return avgDaysReceptionToKWSession != null ? avgDaysReceptionToKWSession.intValue() : null;
+                .collect(Collectors.toList());
+
+        Double avgDaysReceptionToKWSession = null;
+        if (caseNotesToConsider.size() > 0) {
+            avgDaysReceptionToKWSession = caseNotesToConsider.stream().collect(averagingLong(cn -> DAYS.between(offenderReceptionMap.get(cn.getOffenderNo()), cn.getLatestCaseNote())));
+            log.info("Average number of days until first KW Session {}", avgDaysReceptionToKWSession);
+        }
+
+        return avgDaysReceptionToKWSession != null ? (int)Math.round(avgDaysReceptionToKWSession) : null;
     }
 
     private List<OffenderKeyworker> getNewAllocations(String prisonId, LocalDate snapshotDate) {
@@ -243,10 +254,10 @@ public class KeyworkerStatsService {
 
             // find out if this is the first allocation to a KW in this prison
             List<OffenderKeyworker> previousAllocations = offenderKeyworkerRepository.findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(prisonId, snapshotDate.atStartOfDay(), offenderNosAllocatedThisPeriod, AllocationType.PROVISIONAL);
-            log.info("Of these allocations {} had previous allocations in this {} prison, and will be excluded.", previousAllocations.size(), prisonId);
+            List<String> offendersAlreadyAllocated = previousAllocations.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
+            log.info("Of these allocations {} had previous offender allocations in this {} prison, and will be excluded.", offendersAlreadyAllocated.size(), prisonId);
 
-            newAllocationsOnly.addAll(allocatedThisPeriod);
-            newAllocationsOnly.removeAll(previousAllocations);
+            newAllocationsOnly.addAll(allocatedThisPeriod.stream().filter(okw -> !offendersAlreadyAllocated.contains(okw.getOffenderNo())).collect(Collectors.toList()));
         }
         log.info("Therefore there are {} new allocations in {} prison", newAllocationsOnly.size(), prisonId);
         return newAllocationsOnly;
