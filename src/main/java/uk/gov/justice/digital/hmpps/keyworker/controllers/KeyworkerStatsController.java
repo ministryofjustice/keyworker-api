@@ -66,8 +66,8 @@ public class KeyworkerStatsController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Get Keyworker stats at specified prison.",
-            notes = "Get Keyworker stats at specified prison.",
+            value = "Get Key Worker stats at specified prison.",
+            notes = "Get Key Worker stats at specified prison.",
             nickname="getPrisonStats")
 
     @ApiResponses(value = {
@@ -94,6 +94,34 @@ public class KeyworkerStatsController {
         log.debug("getting key-workers stats for prison Id {}", prisonId);
 
         return keyworkerStatsService.getPrisonStats(prisonId, fromDate, toDate);
+    }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Get Key Worker stats for all prisons.",
+            nickname="getAllPrisonStats")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", responseContainer = "Map", response = PrisonStatsDto.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class ),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+
+    @GetMapping
+    public PrisonStatsDto getAllPrisonStats(
+            @ApiParam(value = "Start Date of Stats, optional, will chosse one month before toDate (in YYYY-MM-DD format)")
+            @RequestParam(value = "fromDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate fromDate,
+            @ApiParam(value = "End Date of Stats, optional, will chosse yesterday if not provided (in YYYY-MM-DD format)")
+            @RequestParam(value = "toDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate toDate) {
+
+        log.debug("getting key-workers stats for all prisons");
+
+        return keyworkerStatsService.getPrisonStats(fromDate, toDate);
     }
 
     @ApiOperation(
