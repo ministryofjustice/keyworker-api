@@ -327,7 +327,7 @@ public class KeyworkerStatsServiceTest {
         PrisonKeyWorkerStatistic statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
-        assertThat(statsResult.getNumberKeyWorkeringSessions()).isEqualTo(4);
+        assertThat(statsResult.getNumberKeyWorkerSessions()).isEqualTo(4);
         assertThat(statsResult.getNumberKeyWorkerEntries()).isEqualTo(5);
         assertThat(statsResult.getNumPrisonersAssignedKeyWorker()).isEqualTo(3);
         assertThat(statsResult.getNumberOfActiveKeyworkers()).isEqualTo(2);
@@ -350,7 +350,7 @@ public class KeyworkerStatsServiceTest {
         PrisonKeyWorkerStatistic statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
-        assertThat(statsResult.getNumberKeyWorkeringSessions()).isEqualTo(4);
+        assertThat(statsResult.getNumberKeyWorkerSessions()).isEqualTo(4);
         assertThat(statsResult.getNumberKeyWorkerEntries()).isEqualTo(5);
         assertThat(statsResult.getNumPrisonersAssignedKeyWorker()).isEqualTo(3);
         assertThat(statsResult.getNumberOfActiveKeyworkers()).isEqualTo(2);

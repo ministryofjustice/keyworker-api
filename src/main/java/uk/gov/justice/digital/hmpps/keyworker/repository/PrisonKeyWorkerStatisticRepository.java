@@ -11,14 +11,14 @@ import java.util.List;
 
 public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<PrisonKeyWorkerStatistic, Long> {
 
-    List<PrisonKeyWorkerStatistic> findByPrisonIdAndSnapshotDateBetween(String prisonId, LocalDate fromDate, LocalDate toDate);
+    List<PrisonKeyWorkerStatistic> findByPrisonIdInAndSnapshotDateBetween(List<String> prisonIds, LocalDate fromDate, LocalDate toDate);
 
     PrisonKeyWorkerStatistic findOneByPrisonIdAndSnapshotDate(String prisonId, LocalDate snapshotDate);
 
     @Query("select new uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats(s.prisonId, " +
             "min(s.snapshotDate), " +
             "max(s.snapshotDate), " +
-            "sum(s.numberKeyWorkeringSessions), " +
+            "sum(s.numberKeyWorkerSessions), " +
             "sum(s.numberKeyWorkerEntries), " +
             "avg(s.numberOfActiveKeyworkers), " +
             "avg(s.numPrisonersAssignedKeyWorker), " +
@@ -26,8 +26,9 @@ public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<Priso
             "avg(s.avgNumDaysFromReceptionToAllocationDays), " +
             "avg(s.avgNumDaysFromReceptionToKeyWorkingSession)) " +
             "from PrisonKeyWorkerStatistic s " +
-            "where s.prisonId = :prisonId " +
+            "where s.prisonId IN (:prisonIds) " +
             "and s.snapshotDate between :fromDate and :toDate "+
             "group by s.prisonId ")
-    List<PrisonKeyWorkerAggregatedStats> getAggregatedData(@Param("prisonId") String prisonId, @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+    List<PrisonKeyWorkerAggregatedStats> getAggregatedData(@Param("prisonIds") List<String> prisonIds, @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+
 }

@@ -8,13 +8,18 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatSummary;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStatsDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsService;
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Api(tags = {"key-worker-stats"})
 
@@ -25,9 +30,11 @@ import java.time.LocalDate;
 @Slf4j
 public class KeyworkerStatsController {
     private final KeyworkerStatsService keyworkerStatsService;
+    private final PrisonSupportedService prisonSupportedService;
 
-    public KeyworkerStatsController(KeyworkerStatsService keyworkerStatsService) {
+    public KeyworkerStatsController(KeyworkerStatsService keyworkerStatsService, PrisonSupportedService prisonSupportedService) {
         this.keyworkerStatsService = keyworkerStatsService;
+        this.prisonSupportedService = prisonSupportedService;
     }
 
     @ApiOperation(
@@ -66,22 +73,20 @@ public class KeyworkerStatsController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Get Keyworker stats at specified prison.",
-            notes = "Get Keyworker stats at specified prison.",
-            nickname="getPrisonStats")
+            value = "Get Key Worker stats for any prison.",
+            nickname="getAllPrisonStats")
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = PrisonStatsDto.class),
+            @ApiResponse(code = 200, message = "OK", responseContainer = "Map", response = KeyworkerStatSummary.class),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class ),
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
-    @GetMapping(path = "/{prisonId}")
-    public PrisonStatsDto getPrisonStats(
-            @ApiParam(value = "prisonId", required = true)
-            @NotEmpty
-            @PathVariable(name = "prisonId")
-                    String prisonId,
+    @GetMapping
+    public KeyworkerStatSummary getPrisonStats(
+            @ApiParam(value = "List of prisonIds", allowMultiple = true, example = "prisonId=MDI&prisonId=LEI")
+            @RequestParam(value = "prisonId", required = false)
+                    List<String> prisonIdList,
             @ApiParam(value = "Start Date of Stats, optional, will chosse one month before toDate (in YYYY-MM-DD format)")
             @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -91,9 +96,17 @@ public class KeyworkerStatsController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate) {
 
-        log.debug("getting key-workers stats for prison Id {}", prisonId);
+        log.debug("getting key-workers stats for all prisons");
 
-        return keyworkerStatsService.getPrisonStats(prisonId, fromDate, toDate);
+        final List<String> prisonIds = new ArrayList<>();
+        if (prisonIdList == null || prisonIdList.isEmpty()) {
+            List<Prison> migratedPrisons = prisonSupportedService.getMigratedPrisons();
+            prisonIds.addAll(migratedPrisons.stream().map(Prison::getPrisonId).collect(Collectors.toList()));
+        } else {
+            prisonIds.addAll(prisonIdList);
+        }
+
+        return keyworkerStatsService.getPrisonStats(prisonIds, fromDate, toDate);
     }
 
     @ApiOperation(

@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -171,7 +172,7 @@ public class KeyworkerStatsService {
                     .numPrisonersAssignedKeyWorker(allocatedKeyWorkers.size())
                     .totalNumPrisoners(activePrisoners.size())
                     .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
-                    .numberKeyWorkeringSessions(caseNoteSummary.sessionsDone)
+                    .numberKeyWorkerSessions(caseNoteSummary.sessionsDone)
                     .numberOfActiveKeyworkers(activeKeyWorkers.getBody().size())
                     .avgNumDaysFromReceptionToAllocationDays(averageDaysToAllocation)
                     .avgNumDaysFromReceptionToKeyWorkingSession(avgDaysReceptionToKWSession)
@@ -183,6 +184,49 @@ public class KeyworkerStatsService {
         }
 
         return dailyStat;
+    }
+
+    public KeyworkerStatSummary getPrisonStats(List<String> prisonIds, final LocalDate fromDate, final LocalDate toDate) {
+        Map<String, PrisonStatsDto> statsMap = getStatsMap(fromDate, toDate, prisonIds);
+
+        SummaryStatistic current = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getCurrent() != null).map(PrisonStatsDto::getCurrent).collect(Collectors.toList()));
+        SummaryStatistic previous = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getPrevious() != null).map(PrisonStatsDto::getPrevious).collect(Collectors.toList()));
+
+        CalcDateRange range = new CalcDateRange(fromDate, toDate);
+        OptionalDouble avgSessions = statsMap.values().stream().mapToInt(PrisonStatsDto::getAvgOverallKeyworkerSessions).average();
+        OptionalDouble avgCompliance = statsMap.values().stream().mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
+
+
+        final SortedMap<LocalDate, BigDecimal> complianceTimeline = new TreeMap<>();
+        final SortedMap<LocalDate, Long> complianceCount = new TreeMap<>();
+
+        statsMap.values().forEach(s -> s.getComplianceTimeline().forEach((key, value) -> {
+            complianceTimeline.merge(key, value, (a, b) -> b.add(a));
+            complianceCount.merge(key, 1L, (a, b) -> a + b);
+        }));
+
+        final SortedMap<LocalDate, BigDecimal> averageComplianceTimeline = new TreeMap<>();
+        complianceTimeline.forEach((k, v) ->
+            averageComplianceTimeline.put(k, v.divide(new BigDecimal(complianceCount.get(k)), RoundingMode.HALF_UP)));
+
+        final SortedMap<LocalDate, Long> keyworkerSessionsTimeline = new TreeMap<>();
+        statsMap.values().forEach(s -> s.getKeyworkerSessionsTimeline().forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
+
+        PrisonStatsDto prisonStatsDto = PrisonStatsDto.builder()
+                .requestedFromDate(range.getStartDate())
+                .requestedToDate(range.getEndDate())
+                .current(current)
+                .previous(previous)
+                .complianceTimeline(averageComplianceTimeline)
+                .keyworkerSessionsTimeline(keyworkerSessionsTimeline)
+                .avgOverallKeyworkerSessions(avgSessions.isPresent() ? (int) Math.ceil(avgSessions.getAsDouble()) : 0)
+                .avgOverallCompliance(avgCompliance.isPresent() ? new BigDecimal(avgCompliance.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
+                .build();
+
+        return KeyworkerStatSummary.builder()
+                .summary(prisonStatsDto)
+                .prisons(statsMap)
+                .build();
     }
 
     private List<String> getReceptionDatesForOffenders(List<OffenderKeyworker> newAllocationsOnly, List<String> offendersWithSessions) {
@@ -224,7 +268,7 @@ public class KeyworkerStatsService {
                 KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1), true);
 
         Map<String, LocalDate> previousCaseNoteMap = previousCaseNotes.stream().collect(
-                        Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
+                Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
 
         List<CaseNoteUsagePrisonersDto> caseNotesToConsider = caseNoteSummary.usageCounts.stream()
                 .filter(cn -> cn.getCaseNoteSubType().equals(KEYWORKER_SESSION_SUB_TYPE))
@@ -264,25 +308,49 @@ public class KeyworkerStatsService {
 
     }
 
-    public PrisonStatsDto getPrisonStats(String prisonId, final LocalDate fromDate, final LocalDate toDate) {
-        Validate.notNull(prisonId,"prisonId");
+    private SummaryStatistic getSummaryStatistic(List<SummaryStatistic> stats) {
+        OptionalDouble currSessionAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToKeyWorkingSession() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToKeyWorkingSession).average();
+        OptionalDouble currAllocAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToAllocationDays() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToAllocationDays).average();
+        OptionalDouble currAvgCompliance = stats.stream().filter(s -> s.getComplianceRate() != null).mapToDouble(s -> s.getComplianceRate().doubleValue()).average();
+        OptionalDouble currPerKw = stats.stream().filter(s -> s.getPercentagePrisonersWithKeyworker() != null).mapToDouble(s -> s.getPercentagePrisonersWithKeyworker().doubleValue()).average();
 
+        return SummaryStatistic.builder()
+                .totalNumPrisoners(stats.stream().mapToInt(SummaryStatistic::getTotalNumPrisoners).sum())
+                .numberOfActiveKeyworkers(stats.stream().mapToInt(SummaryStatistic::getNumberOfActiveKeyworkers).sum())
+                .numberKeyWorkerEntries(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkerEntries).sum())
+                .numberKeyWorkerSessions(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkerSessions).sum())
+                .numPrisonersAssignedKeyWorker(stats.stream().mapToInt(SummaryStatistic::getNumPrisonersAssignedKeyWorker).sum())
+                .numProjectedKeyworkerSessions(stats.stream().mapToInt(SummaryStatistic::getNumProjectedKeyworkerSessions).sum())
+                .avgNumDaysFromReceptionToKeyWorkingSession(currSessionAvg.isPresent() ? (int)Math.round(currSessionAvg.getAsDouble()) : null)
+                .avgNumDaysFromReceptionToAllocationDays(currAllocAvg.isPresent() ? (int)Math.round(currAllocAvg.getAsDouble()) : null)
+                .complianceRate(currAvgCompliance.isPresent() ? new BigDecimal(currAvgCompliance.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
+                .percentagePrisonersWithKeyworker(currPerKw.isPresent() ? new BigDecimal(currPerKw.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
+                .build();
+    }
+
+    private Map<String, PrisonStatsDto> getStatsMap(LocalDate fromDate, LocalDate toDate, List<String> prisonIds) {
         CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        final Prison prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
-
         LocalDate nextDay = range.getEndDate().plusDays(1);
+        Map<String, PrisonKeyWorkerAggregatedStats> currentData = statisticRepository.getAggregatedData(prisonIds, range.getStartDate(), nextDay)
+                .stream().collect(Collectors.toMap(PrisonKeyWorkerAggregatedStats::getPrisonId, Function.identity()));
+        Map<String, PrisonKeyWorkerAggregatedStats> previousData = statisticRepository.getAggregatedData(prisonIds, range.getStartDate().minusMonths(1), nextDay.minusMonths(1))
+                .stream().collect(Collectors.toMap(PrisonKeyWorkerAggregatedStats::getPrisonId, Function.identity()));
+        Map<String, List<PrisonKeyWorkerStatistic>> dailyStats = statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, nextDay.minusYears(1), nextDay)
+                .stream().collect(Collectors.groupingBy(PrisonKeyWorkerStatistic::getPrisonId));
 
-        SummaryStatistic current = getSummaryStatistic(statisticRepository.getAggregatedData(prisonId, range.getStartDate(), nextDay),
-                range.getStartDate(), nextDay, prisonConfig.getKwSessionFrequencyInWeeks());
+        return prisonIds.stream()
+                .collect(Collectors.toMap(p -> p, p ->
+                        getPrisonStatsDto(p, range, nextDay, currentData.get(p), previousData.get(p), dailyStats.get(p))));
+    }
 
-        SummaryStatistic previous = getSummaryStatistic(statisticRepository.getAggregatedData(prisonId, range.getStartDate().minusMonths(1), nextDay.minusMonths(1)),
-                range.getStartDate().minusMonths(1), nextDay.minusMonths(1), prisonConfig.getKwSessionFrequencyInWeeks());
-
-        List<PrisonKeyWorkerStatistic> dailyStats = statisticRepository.findByPrisonIdAndSnapshotDateBetween(prisonId, nextDay.minusYears(1), nextDay);
+    private PrisonStatsDto getPrisonStatsDto(String prisonId, CalcDateRange range, LocalDate nextDay, PrisonKeyWorkerAggregatedStats currentData, PrisonKeyWorkerAggregatedStats previousData, List<PrisonKeyWorkerStatistic> dailyStats) {
+        final Prison prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
+        SummaryStatistic current = getSummaryStatistic(currentData,range.getStartDate(), nextDay, prisonConfig.getKwSessionFrequencyInWeeks());
+        SummaryStatistic previous = getSummaryStatistic(previousData, range.getStartDate().minusMonths(1), nextDay.minusMonths(1), prisonConfig.getKwSessionFrequencyInWeeks());
 
         SortedMap<LocalDate, Long> kwSummary = new TreeMap<>(dailyStats.stream().collect(
                 Collectors.groupingBy(s -> s.getSnapshotDate().with(nextDay.getDayOfWeek()),
-                        Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkeringSessions))
+                        Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkerSessions))
         ));
 
         TreeMap<LocalDate, BigDecimal> compliance = new TreeMap<>(dailyStats.stream().collect(
@@ -290,15 +358,14 @@ public class KeyworkerStatsService {
                         Collectors.averagingDouble(p ->
                         {
                             int projectedKeyworkerSessions = Math.floorDiv(p.getNumPrisonersAssignedKeyWorker(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
-                            return getComplianceRate(p.getNumberKeyWorkeringSessions(), projectedKeyworkerSessions).doubleValue();
+                            return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
                         }))
-        ).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+        ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
                 e -> new BigDecimal(e.getValue()).setScale(2, BigDecimal.ROUND_HALF_UP))));
 
         int avgOverallKeyworkerSessions = (int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p)));
 
         return PrisonStatsDto.builder()
-                .prisonId(prisonId)
                 .requestedFromDate(range.getStartDate())
                 .requestedToDate(range.getEndDate())
                 .current(current)
@@ -310,23 +377,21 @@ public class KeyworkerStatsService {
                 .build();
     }
 
-    private BigDecimal getAverageCompliance(Collection<BigDecimal> complianceValues) {
-        if (complianceValues != null && !complianceValues.isEmpty()) {
-            BigDecimal[] totalWithCount
-                    = complianceValues.stream()
-                    .map(bd -> new BigDecimal[]{bd, BigDecimal.ONE})
-                    .reduce((a, b) -> new BigDecimal[]{a[0].add(b[0]), a[1].add(BigDecimal.ONE)})
-                    .get();
-            return totalWithCount[0].divide(totalWithCount[1], RoundingMode.HALF_UP);
+    private BigDecimal getAverageCompliance(Collection <BigDecimal> values) {
+        BigDecimal sum = BigDecimal.ZERO;
+        if (!values.isEmpty()) {
+            for (BigDecimal val : values) {
+                sum = sum.add(val);
+            }
+            return sum.divide(new BigDecimal(values.size()), RoundingMode.HALF_UP);
         }
         return null;
     }
 
-    private SummaryStatistic getSummaryStatistic(List<PrisonKeyWorkerAggregatedStats> statList, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
+    private SummaryStatistic getSummaryStatistic(PrisonKeyWorkerAggregatedStats prisonStats, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
 
-        if (!statList.isEmpty()) {
-            final PrisonKeyWorkerAggregatedStats prisonStats = statList.get(0);
-            long sessionMultiplier = Math.floorDiv(WEEKS.between(startDate, endDate), kwSessionFrequencyInWeeks);
+        if (prisonStats != null) {
+            double sessionMultiplier = DAYS.between(startDate, endDate) / (double)(kwSessionFrequencyInWeeks * 7);
             long projectedSessions = Math.round(prisonStats.getNumPrisonersAssignedKeyWorker() * sessionMultiplier);
 
             return SummaryStatistic.builder()
@@ -335,13 +400,13 @@ public class KeyworkerStatsService {
                     .avgNumDaysFromReceptionToAllocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays() != null ? prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue() : null)
                     .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession() != null ? prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue() : null)
                     .numberKeyWorkerEntries(prisonStats.getNumberKeyWorkerEntries().intValue())
-                    .numberKeyWorkeringSessions(prisonStats.getNumberKeyWorkeringSessions().intValue())
+                    .numberKeyWorkerSessions(prisonStats.getNumberKeyWorkerSessions().intValue())
                     .numberOfActiveKeyworkers(prisonStats.getNumberOfActiveKeyworkers().intValue())
                     .totalNumPrisoners(prisonStats.getTotalNumPrisoners().intValue())
                     .numPrisonersAssignedKeyWorker(prisonStats.getNumPrisonersAssignedKeyWorker().intValue())
                     .percentagePrisonersWithKeyworker(new BigDecimal(prisonStats.getNumPrisonersAssignedKeyWorker() * 100.00 / prisonStats.getTotalNumPrisoners()).setScale(2, BigDecimal.ROUND_HALF_UP))
                     .numProjectedKeyworkerSessions((int) projectedSessions)
-                    .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkeringSessions(), projectedSessions))
+                    .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkerSessions(), projectedSessions))
                     .build();
         }
         return null;
@@ -426,7 +491,7 @@ public class KeyworkerStatsService {
         metrics.put("numPrisonersAssignedKeyWorker", stats.getNumPrisonersAssignedKeyWorker().doubleValue());
         metrics.put("numberOfActiveKeyworkers", stats.getNumberOfActiveKeyworkers().doubleValue());
         metrics.put("numberKeyWorkerEntries", stats.getNumberKeyWorkerEntries().doubleValue());
-        metrics.put("numberKeyWorkeringSessions", stats.getNumberKeyWorkeringSessions().doubleValue());
+        metrics.put("numberKeyWorkerSessions", stats.getNumberKeyWorkerSessions().doubleValue());
 
         if (stats.getAvgNumDaysFromReceptionToAllocationDays() != null) {
             metrics.put("avgNumDaysFromReceptionToAllocationDays", stats.getAvgNumDaysFromReceptionToAllocationDays().doubleValue());
