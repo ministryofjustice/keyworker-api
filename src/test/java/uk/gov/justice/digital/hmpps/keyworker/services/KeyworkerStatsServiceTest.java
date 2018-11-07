@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
@@ -360,6 +361,95 @@ public class KeyworkerStatsServiceTest {
         verifyChecks();
     }
 
+    @Test
+    public void testPrisonStats() {
+        List<String> prisonIds = Collections.singletonList(TEST_AGENCY_ID);
+
+        LocalDate now = LocalDate.now();
+        LocalDate fromDate = now.minusDays(1).minusMonths(1);
+        LocalDate toDate = fromDate.plusMonths(1).plusDays(1);
+
+        when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(toDate))).thenReturn(
+                Arrays.asList(
+                        new PrisonKeyWorkerAggregatedStats(
+                                TEST_AGENCY_ID,
+                                fromDate,
+                                toDate,
+                                229L,
+                                50L,
+                                7D,
+                                50D,
+                                50D,
+                                3D,
+                                5D)
+                        )
+                );
+
+        when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate.minusMonths(1)), eq(toDate.minusMonths(1)))).thenReturn(
+                Arrays.asList(
+                        new PrisonKeyWorkerAggregatedStats(
+                                TEST_AGENCY_ID,
+                                fromDate.minusMonths(1),
+                                toDate.minusMonths(1),
+                                71L,
+                                25L,
+                                5D,
+                                32D,
+                                40D,
+                                4D,
+                                6D)
+                )
+        );
+
+        List<PrisonKeyWorkerStatistic> timeline = new ArrayList<>();
+
+        int day = 0;
+        long between = DAYS.between(fromDate, toDate.minusDays(1));
+        while (day < between) {
+            timeline.add(PrisonKeyWorkerStatistic.builder()
+                    .prisonId(TEST_AGENCY_ID)
+                    .snapshotDate(fromDate.plusDays(day))
+                    .totalNumPrisoners(50)
+                    .numPrisonersAssignedKeyWorker(50)
+                    .numberOfActiveKeyworkers(7)
+                    .numberKeyWorkerEntries((int)(50 / (double)between))
+                    .numberKeyWorkerSessions((int)(229 / (double)between))
+                    .avgNumDaysFromReceptionToKeyWorkingSession(5)
+                    .avgNumDaysFromReceptionToAllocationDays(3)
+                    .build());
+            day++;
+        }
+
+        day = 0;
+        between = DAYS.between(fromDate.minusMonths(1), toDate.minusMonths(1).minusDays(1));
+        while (day < between) {
+            timeline.add(PrisonKeyWorkerStatistic.builder()
+                    .prisonId(TEST_AGENCY_ID)
+                    .snapshotDate(fromDate.minusMonths(1).plusDays(day))
+                    .totalNumPrisoners(40)
+                    .numPrisonersAssignedKeyWorker(32)
+                    .numberOfActiveKeyworkers(5)
+                    .numberKeyWorkerEntries((int)(25 / (double)between))
+                    .numberKeyWorkerSessions((int)(71 / (double)between))
+                    .avgNumDaysFromReceptionToKeyWorkingSession(6)
+                    .avgNumDaysFromReceptionToAllocationDays(4)
+                    .build());
+            day++;
+        }
+        when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
+
+        KeyworkerStatSummary prisonStats = service.getPrisonStats(prisonIds, null, null);
+
+        assertThat(prisonStats.getPrisons()).hasSize(1);
+
+        assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
+        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(229);
+        assertThat(prisonStats.getSummary().getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("50.00"));
+        assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(142);
+
+        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("76.43"));
+        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(27);
+    }
     private void basicSetup() {
         when(statisticRepository.findOneByPrisonIdAndSnapshotDate(TEST_AGENCY_ID, toDate.minusDays(1)))
                 .thenReturn(null);
