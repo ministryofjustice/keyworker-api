@@ -278,11 +278,28 @@ public class KeyworkerStatsService {
         OptionalDouble avgCompliance = statsMap.values().stream().mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
 
 
+        final SortedMap<LocalDate, BigDecimal> complianceTimeline = new TreeMap<>();
+        final SortedMap<LocalDate, Long> complianceCount = new TreeMap<>();
+
+        statsMap.values().forEach(s -> s.getComplianceTimeline().forEach((key, value) -> {
+            complianceTimeline.merge(key, value, (a, b) -> b.add(a));
+            complianceCount.merge(key, 1L, (a, b) -> a + b);
+        }));
+
+        final SortedMap<LocalDate, BigDecimal> averageComplianceTimeline = new TreeMap<>();
+        complianceTimeline.forEach((k, v) ->
+            averageComplianceTimeline.put(k, v.divide(new BigDecimal(complianceCount.get(k)), RoundingMode.HALF_UP)));
+
+        final SortedMap<LocalDate, Long> keyworkerSessionsTimeline = new TreeMap<>();
+        statsMap.values().forEach(s -> s.getKeyworkerSessionsTimeline().forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
+
         return PrisonStatsDto.builder()
                 .requestedFromDate(range.getStartDate())
                 .requestedToDate(range.getEndDate())
                 .current(current)
                 .previous(previous)
+                .complianceTimeline(averageComplianceTimeline)
+                .keyworkerSessionsTimeline(keyworkerSessionsTimeline)
                 .avgOverallKeyworkerSessions(avgSessions.isPresent() ? (int)Math.ceil(avgSessions.getAsDouble()) : 0)
                 .avgOverallCompliance(avgCompliance.isPresent() ? new BigDecimal(avgCompliance.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
                 .build();
@@ -346,7 +363,7 @@ public class KeyworkerStatsService {
                             int projectedKeyworkerSessions = Math.floorDiv(p.getNumPrisonersAssignedKeyWorker(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
                             return getComplianceRate(p.getNumberKeyWorkeringSessions(), projectedKeyworkerSessions).doubleValue();
                         }))
-        ).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+        ).entrySet().stream().filter(e -> e.getValue() != 0).collect(Collectors.toMap(Map.Entry::getKey,
                 e -> new BigDecimal(e.getValue()).setScale(2, BigDecimal.ROUND_HALF_UP))));
 
         int avgOverallKeyworkerSessions = (int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p)));
@@ -364,16 +381,15 @@ public class KeyworkerStatsService {
                 .build();
     }
 
-    private BigDecimal getAverageCompliance(Collection<BigDecimal> complianceValues) {
-        if (complianceValues != null && !complianceValues.isEmpty()) {
-            BigDecimal[] totalWithCount
-                    = complianceValues.parallelStream()
-                    .map(bd -> new BigDecimal[]{bd, BigDecimal.ONE})
-                    .reduce((a, b) -> new BigDecimal[]{a[0].add(b[0]), a[1].add(BigDecimal.ONE)})
-                    .get();
-            return totalWithCount[0].divide(totalWithCount[1], RoundingMode.HALF_UP);
+    private BigDecimal getAverageCompliance(Collection <BigDecimal> values) {
+        BigDecimal sum = BigDecimal.ZERO;
+        if (!values.isEmpty()) {
+            for (BigDecimal val : values) {
+                sum = sum.add(val);
+            }
+            return sum.divide(new BigDecimal(values.size()), RoundingMode.HALF_UP);
         }
-        return null;
+        return sum;
     }
 
     private SummaryStatistic getSummaryStatistic(PrisonKeyWorkerAggregatedStats prisonStats, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
