@@ -96,8 +96,6 @@ public class KeyworkerStatsController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate) {
 
-        log.debug("getting key-workers stats for all prisons");
-
         final List<String> prisonIds = new ArrayList<>();
         if (prisonIdList == null || prisonIdList.isEmpty()) {
             List<Prison> migratedPrisons = prisonSupportedService.getMigratedPrisons();
@@ -105,7 +103,7 @@ public class KeyworkerStatsController {
         } else {
             prisonIds.addAll(prisonIdList);
         }
-
+        log.debug("getting key-workers stats for prisons {}", prisonIds);
         return keyworkerStatsService.getPrisonStats(prisonIds, fromDate, toDate);
     }
 
