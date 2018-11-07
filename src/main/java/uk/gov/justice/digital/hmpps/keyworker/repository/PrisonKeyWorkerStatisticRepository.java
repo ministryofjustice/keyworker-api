@@ -18,7 +18,7 @@ public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<Priso
     @Query("select new uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats(s.prisonId, " +
             "min(s.snapshotDate), " +
             "max(s.snapshotDate), " +
-            "sum(s.numberKeyWorkeringSessions), " +
+            "sum(s.numberKeyWorkerSessions), " +
             "sum(s.numberKeyWorkerEntries), " +
             "avg(s.numberOfActiveKeyworkers), " +
             "avg(s.numPrisonersAssignedKeyWorker), " +

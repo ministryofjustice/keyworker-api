@@ -34,7 +34,7 @@ public class SummaryStatistic {
     private Integer totalNumPrisoners;
 
     @ApiModelProperty(required = true, value = "Average number of Key Working Sessions done over this time range", example = "354", position = 4)
-    private Integer numberKeyWorkeringSessions;
+    private Integer numberKeyWorkerSessions;
 
     @ApiModelProperty(required = true, value = "Average number of Key Worker Entries made over this time range", example = "232", position = 5)
     private Integer numberKeyWorkerEntries;

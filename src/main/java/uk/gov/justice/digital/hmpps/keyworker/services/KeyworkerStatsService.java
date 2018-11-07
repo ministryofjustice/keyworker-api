@@ -172,7 +172,7 @@ public class KeyworkerStatsService {
                     .numPrisonersAssignedKeyWorker(allocatedKeyWorkers.size())
                     .totalNumPrisoners(activePrisoners.size())
                     .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
-                    .numberKeyWorkeringSessions(caseNoteSummary.sessionsDone)
+                    .numberKeyWorkerSessions(caseNoteSummary.sessionsDone)
                     .numberOfActiveKeyworkers(activeKeyWorkers.getBody().size())
                     .avgNumDaysFromReceptionToAllocationDays(averageDaysToAllocation)
                     .avgNumDaysFromReceptionToKeyWorkingSession(avgDaysReceptionToKWSession)
@@ -315,7 +315,7 @@ public class KeyworkerStatsService {
                 .totalNumPrisoners(stats.stream().mapToInt(SummaryStatistic::getTotalNumPrisoners).sum())
                 .numberOfActiveKeyworkers(stats.stream().mapToInt(SummaryStatistic::getNumberOfActiveKeyworkers).sum())
                 .numberKeyWorkerEntries(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkerEntries).sum())
-                .numberKeyWorkeringSessions(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkeringSessions).sum())
+                .numberKeyWorkerSessions(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkerSessions).sum())
                 .numPrisonersAssignedKeyWorker(stats.stream().mapToInt(SummaryStatistic::getNumPrisonersAssignedKeyWorker).sum())
                 .numProjectedKeyworkerSessions(stats.stream().mapToInt(SummaryStatistic::getNumProjectedKeyworkerSessions).sum())
                 .avgNumDaysFromReceptionToKeyWorkingSession(currSessionAvg.isPresent() ? (int)Math.round(currSessionAvg.getAsDouble()) : null)
@@ -353,7 +353,7 @@ public class KeyworkerStatsService {
 
         SortedMap<LocalDate, Long> kwSummary = new TreeMap<>(dailyStats.stream().collect(
                 Collectors.groupingBy(s -> s.getSnapshotDate().with(nextDay.getDayOfWeek()),
-                        Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkeringSessions))
+                        Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkerSessions))
         ));
 
         TreeMap<LocalDate, BigDecimal> compliance = new TreeMap<>(dailyStats.stream().collect(
@@ -361,9 +361,9 @@ public class KeyworkerStatsService {
                         Collectors.averagingDouble(p ->
                         {
                             int projectedKeyworkerSessions = Math.floorDiv(p.getNumPrisonersAssignedKeyWorker(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
-                            return getComplianceRate(p.getNumberKeyWorkeringSessions(), projectedKeyworkerSessions).doubleValue();
+                            return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
                         }))
-        ).entrySet().stream().filter(e -> e.getValue() != 0).collect(Collectors.toMap(Map.Entry::getKey,
+        ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
                 e -> new BigDecimal(e.getValue()).setScale(2, BigDecimal.ROUND_HALF_UP))));
 
         int avgOverallKeyworkerSessions = (int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p)));
@@ -389,7 +389,7 @@ public class KeyworkerStatsService {
             }
             return sum.divide(new BigDecimal(values.size()), RoundingMode.HALF_UP);
         }
-        return sum;
+        return null;
     }
 
     private SummaryStatistic getSummaryStatistic(PrisonKeyWorkerAggregatedStats prisonStats, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
@@ -404,13 +404,13 @@ public class KeyworkerStatsService {
                     .avgNumDaysFromReceptionToAllocationDays(prisonStats.getAvgNumDaysFromReceptionToAllocationDays() != null ? prisonStats.getAvgNumDaysFromReceptionToAllocationDays().intValue() : null)
                     .avgNumDaysFromReceptionToKeyWorkingSession(prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession() != null ? prisonStats.getAvgNumDaysFromReceptionToKeyWorkingSession().intValue() : null)
                     .numberKeyWorkerEntries(prisonStats.getNumberKeyWorkerEntries().intValue())
-                    .numberKeyWorkeringSessions(prisonStats.getNumberKeyWorkeringSessions().intValue())
+                    .numberKeyWorkerSessions(prisonStats.getNumberKeyWorkerSessions().intValue())
                     .numberOfActiveKeyworkers(prisonStats.getNumberOfActiveKeyworkers().intValue())
                     .totalNumPrisoners(prisonStats.getTotalNumPrisoners().intValue())
                     .numPrisonersAssignedKeyWorker(prisonStats.getNumPrisonersAssignedKeyWorker().intValue())
                     .percentagePrisonersWithKeyworker(new BigDecimal(prisonStats.getNumPrisonersAssignedKeyWorker() * 100.00 / prisonStats.getTotalNumPrisoners()).setScale(2, BigDecimal.ROUND_HALF_UP))
                     .numProjectedKeyworkerSessions((int) projectedSessions)
-                    .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkeringSessions(), projectedSessions))
+                    .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkerSessions(), projectedSessions))
                     .build();
         }
         return null;
@@ -495,7 +495,7 @@ public class KeyworkerStatsService {
         metrics.put("numPrisonersAssignedKeyWorker", stats.getNumPrisonersAssignedKeyWorker().doubleValue());
         metrics.put("numberOfActiveKeyworkers", stats.getNumberOfActiveKeyworkers().doubleValue());
         metrics.put("numberKeyWorkerEntries", stats.getNumberKeyWorkerEntries().doubleValue());
-        metrics.put("numberKeyWorkeringSessions", stats.getNumberKeyWorkeringSessions().doubleValue());
+        metrics.put("numberKeyWorkerSessions", stats.getNumberKeyWorkerSessions().doubleValue());
 
         if (stats.getAvgNumDaysFromReceptionToAllocationDays() != null) {
             metrics.put("avgNumDaysFromReceptionToAllocationDays", stats.getAvgNumDaysFromReceptionToAllocationDays().doubleValue());
