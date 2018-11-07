@@ -22,10 +22,6 @@ import java.util.SortedMap;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PrisonStatsDto {
 
-    @ApiModelProperty(required = true, value = "Identifies prison.", example = "MDI", position = 0)
-    @NotBlank
-    private String prisonId;
-
     @ApiModelProperty(required = true, value = "Requested start date for data set", example = "2018-04-01", dataType = "LocalDate", position = 1)
     @NotBlank
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

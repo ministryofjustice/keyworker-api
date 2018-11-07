@@ -186,6 +186,49 @@ public class KeyworkerStatsService {
         return dailyStat;
     }
 
+    public KeyworkerStatSummary getPrisonStats(List<String> prisonIds, final LocalDate fromDate, final LocalDate toDate) {
+        Map<String, PrisonStatsDto> statsMap = getStatsMap(fromDate, toDate, prisonIds);
+
+        SummaryStatistic current = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getCurrent() != null).map(PrisonStatsDto::getCurrent).collect(Collectors.toList()));
+        SummaryStatistic previous = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getPrevious() != null).map(PrisonStatsDto::getPrevious).collect(Collectors.toList()));
+
+        CalcDateRange range = new CalcDateRange(fromDate, toDate);
+        OptionalDouble avgSessions = statsMap.values().stream().mapToInt(PrisonStatsDto::getAvgOverallKeyworkerSessions).average();
+        OptionalDouble avgCompliance = statsMap.values().stream().mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
+
+
+        final SortedMap<LocalDate, BigDecimal> complianceTimeline = new TreeMap<>();
+        final SortedMap<LocalDate, Long> complianceCount = new TreeMap<>();
+
+        statsMap.values().forEach(s -> s.getComplianceTimeline().forEach((key, value) -> {
+            complianceTimeline.merge(key, value, (a, b) -> b.add(a));
+            complianceCount.merge(key, 1L, (a, b) -> a + b);
+        }));
+
+        final SortedMap<LocalDate, BigDecimal> averageComplianceTimeline = new TreeMap<>();
+        complianceTimeline.forEach((k, v) ->
+            averageComplianceTimeline.put(k, v.divide(new BigDecimal(complianceCount.get(k)), RoundingMode.HALF_UP)));
+
+        final SortedMap<LocalDate, Long> keyworkerSessionsTimeline = new TreeMap<>();
+        statsMap.values().forEach(s -> s.getKeyworkerSessionsTimeline().forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
+
+        PrisonStatsDto prisonStatsDto = PrisonStatsDto.builder()
+                .requestedFromDate(range.getStartDate())
+                .requestedToDate(range.getEndDate())
+                .current(current)
+                .previous(previous)
+                .complianceTimeline(averageComplianceTimeline)
+                .keyworkerSessionsTimeline(keyworkerSessionsTimeline)
+                .avgOverallKeyworkerSessions(avgSessions.isPresent() ? (int) Math.ceil(avgSessions.getAsDouble()) : 0)
+                .avgOverallCompliance(avgCompliance.isPresent() ? new BigDecimal(avgCompliance.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
+                .build();
+
+        return KeyworkerStatSummary.builder()
+                .summary(prisonStatsDto)
+                .prisons(statsMap)
+                .build();
+    }
+
     private List<String> getReceptionDatesForOffenders(List<OffenderKeyworker> newAllocationsOnly, List<String> offendersWithSessions) {
         final List<String> receptionCheckList = new ArrayList<>();
         if (offendersWithSessions.size() > 0 || newAllocationsOnly.size() > 0) {
@@ -225,7 +268,7 @@ public class KeyworkerStatsService {
                 KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1), true);
 
         Map<String, LocalDate> previousCaseNoteMap = previousCaseNotes.stream().collect(
-                        Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
+                Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
 
         List<CaseNoteUsagePrisonersDto> caseNotesToConsider = caseNoteSummary.usageCounts.stream()
                 .filter(cn -> cn.getCaseNoteSubType().equals(KEYWORKER_SESSION_SUB_TYPE))
@@ -265,46 +308,6 @@ public class KeyworkerStatsService {
 
     }
 
-    public PrisonStatsDto getPrisonStats(final LocalDate fromDate, final LocalDate toDate) {
-        List<Prison> migratedPrisons = prisonSupportedService.getMigratedPrisons();
-        List<String> prisonIds = migratedPrisons.stream().map(Prison::getPrisonId).collect(Collectors.toList());
-        Map<String, PrisonStatsDto> statsMap = getStatsMap(fromDate, toDate, prisonIds);
-
-        SummaryStatistic current = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getCurrent() != null).map(PrisonStatsDto::getCurrent).collect(Collectors.toList()));
-        SummaryStatistic previous = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getPrevious() != null).map(PrisonStatsDto::getPrevious).collect(Collectors.toList()));
-
-        CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        OptionalDouble avgSessions = statsMap.values().stream().mapToInt(PrisonStatsDto::getAvgOverallKeyworkerSessions).average();
-        OptionalDouble avgCompliance = statsMap.values().stream().mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
-
-
-        final SortedMap<LocalDate, BigDecimal> complianceTimeline = new TreeMap<>();
-        final SortedMap<LocalDate, Long> complianceCount = new TreeMap<>();
-
-        statsMap.values().forEach(s -> s.getComplianceTimeline().forEach((key, value) -> {
-            complianceTimeline.merge(key, value, (a, b) -> b.add(a));
-            complianceCount.merge(key, 1L, (a, b) -> a + b);
-        }));
-
-        final SortedMap<LocalDate, BigDecimal> averageComplianceTimeline = new TreeMap<>();
-        complianceTimeline.forEach((k, v) ->
-            averageComplianceTimeline.put(k, v.divide(new BigDecimal(complianceCount.get(k)), RoundingMode.HALF_UP)));
-
-        final SortedMap<LocalDate, Long> keyworkerSessionsTimeline = new TreeMap<>();
-        statsMap.values().forEach(s -> s.getKeyworkerSessionsTimeline().forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
-
-        return PrisonStatsDto.builder()
-                .requestedFromDate(range.getStartDate())
-                .requestedToDate(range.getEndDate())
-                .current(current)
-                .previous(previous)
-                .complianceTimeline(averageComplianceTimeline)
-                .keyworkerSessionsTimeline(keyworkerSessionsTimeline)
-                .avgOverallKeyworkerSessions(avgSessions.isPresent() ? (int)Math.ceil(avgSessions.getAsDouble()) : 0)
-                .avgOverallCompliance(avgCompliance.isPresent() ? new BigDecimal(avgCompliance.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
-                .build();
-    }
-
     private SummaryStatistic getSummaryStatistic(List<SummaryStatistic> stats) {
         OptionalDouble currSessionAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToKeyWorkingSession() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToKeyWorkingSession).average();
         OptionalDouble currAllocAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToAllocationDays() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToAllocationDays).average();
@@ -323,12 +326,6 @@ public class KeyworkerStatsService {
                 .complianceRate(currAvgCompliance.isPresent() ? new BigDecimal(currAvgCompliance.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
                 .percentagePrisonersWithKeyworker(currPerKw.isPresent() ? new BigDecimal(currPerKw.getAsDouble()).setScale(2, BigDecimal.ROUND_HALF_UP) : null)
                 .build();
-    }
-
-    public PrisonStatsDto getPrisonStats(String prisonId, final LocalDate fromDate, final LocalDate toDate) {
-        Validate.notNull(prisonId,"prisonId");
-        Map<String, PrisonStatsDto> statsMap = getStatsMap(fromDate, toDate, Collections.singletonList(prisonId));
-        return statsMap.get(prisonId);
     }
 
     private Map<String, PrisonStatsDto> getStatsMap(LocalDate fromDate, LocalDate toDate, List<String> prisonIds) {
@@ -369,7 +366,6 @@ public class KeyworkerStatsService {
         int avgOverallKeyworkerSessions = (int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p)));
 
         return PrisonStatsDto.builder()
-                .prisonId(prisonId)
                 .requestedFromDate(range.getStartDate())
                 .requestedToDate(range.getEndDate())
                 .current(current)
