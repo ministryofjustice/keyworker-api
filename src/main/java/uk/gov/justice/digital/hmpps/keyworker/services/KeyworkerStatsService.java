@@ -395,7 +395,7 @@ public class KeyworkerStatsService {
     private SummaryStatistic getSummaryStatistic(PrisonKeyWorkerAggregatedStats prisonStats, LocalDate startDate, LocalDate endDate, int kwSessionFrequencyInWeeks) {
 
         if (prisonStats != null) {
-            long sessionMultiplier = Math.floorDiv(WEEKS.between(startDate, endDate), kwSessionFrequencyInWeeks);
+            double sessionMultiplier = DAYS.between(startDate, endDate) / (double)(kwSessionFrequencyInWeeks * 7);
             long projectedSessions = Math.round(prisonStats.getNumPrisonersAssignedKeyWorker() * sessionMultiplier);
 
             return SummaryStatistic.builder()
