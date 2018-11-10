@@ -335,12 +335,12 @@ public class KeyworkerStatsService {
 
     private Map<String, PrisonStatsDto> getStatsMap(LocalDate fromDate, LocalDate toDate, List<String> prisonIds) {
         CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        Map<String, PrisonKeyWorkerAggregatedStats> currentData = statisticRepository.getAggregatedData(prisonIds, range.getStartDate(), range.getNextDay())
+        Map<String, PrisonKeyWorkerAggregatedStats> currentData = statisticRepository.getAggregatedData(prisonIds, range.getStartDate(), range.getEndDate())
                 .stream().collect(Collectors.toMap(PrisonKeyWorkerAggregatedStats::getPrisonId, Function.identity()));
 
-        Map<String, PrisonKeyWorkerAggregatedStats> previousData = statisticRepository.getAggregatedData(prisonIds, range.getPreviousStartDate(), range.getStartDate())
+        Map<String, PrisonKeyWorkerAggregatedStats> previousData = statisticRepository.getAggregatedData(prisonIds, range.getPreviousStartDate(), range.getStartDate().minusDays(1))
                 .stream().collect(Collectors.toMap(PrisonKeyWorkerAggregatedStats::getPrisonId, Function.identity()));
-        Map<String, List<PrisonKeyWorkerStatistic>> dailyStats = statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, range.getNextDay().minusYears(1), range.getNextDay())
+        Map<String, List<PrisonKeyWorkerStatistic>> dailyStats = statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, range.getEndDate().minusYears(1), range.getEndDate())
                 .stream().collect(Collectors.groupingBy(PrisonKeyWorkerStatistic::getPrisonId));
 
         return prisonIds.stream()

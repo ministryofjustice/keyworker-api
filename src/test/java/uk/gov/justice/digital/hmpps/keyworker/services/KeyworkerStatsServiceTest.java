@@ -368,7 +368,7 @@ public class KeyworkerStatsServiceTest {
 
         LocalDate now = LocalDate.now();
         LocalDate fromDate = now.minusMonths(1);
-        LocalDate toDate = now.plusDays(1);
+        LocalDate toDate = now;
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(toDate))).thenReturn(
                 Arrays.asList(
@@ -386,8 +386,8 @@ public class KeyworkerStatsServiceTest {
                         )
                 );
 
-        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate));
-        when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate))).thenReturn(
+        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate)+1);
+        when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate.minusDays(1)))).thenReturn(
                 Arrays.asList(
                         new PrisonKeyWorkerAggregatedStats(
                                 TEST_AGENCY_ID,
@@ -405,7 +405,7 @@ public class KeyworkerStatsServiceTest {
 
         List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, toDate, previousFromDate, TEST_AGENCY_ID,
                 50, 229, 25, 71);
-        assertThat(timeline.size()).isEqualTo(63);
+        assertThat(timeline.size()).isEqualTo(62);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
 
@@ -424,7 +424,7 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(146);
 
         assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.57"));
-        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(28);
+        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(27);
 
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getDataRangeFrom()).isEqualTo(fromDate);
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getDataRangeTo()).isEqualTo(now);
@@ -437,7 +437,7 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(146);
 
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.57"));
-        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallKeyworkerSessions()).isEqualTo(28);
+        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallKeyworkerSessions()).isEqualTo(27);
     }
 
     @Test
@@ -446,7 +446,7 @@ public class KeyworkerStatsServiceTest {
 
         LocalDate now = LocalDate.now();
         LocalDate fromDate = now.minusWeeks(2);
-        LocalDate toDate = now.plusDays(1);
+        LocalDate toDate = now;
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(toDate))).thenReturn(
                 Arrays.asList(
@@ -464,8 +464,8 @@ public class KeyworkerStatsServiceTest {
                 )
         );
 
-        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate));
-        when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate))).thenReturn(
+        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate)+1);
+        when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate.minusDays(1)))).thenReturn(
                 Arrays.asList(
                         new PrisonKeyWorkerAggregatedStats(
                                 "MDI",
@@ -483,7 +483,7 @@ public class KeyworkerStatsServiceTest {
 
         List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, toDate, previousFromDate, "MDI",
                 20, 40, 6, 15);
-        assertThat(timeline.size()).isEqualTo(29);
+        assertThat(timeline.size()).isEqualTo(28);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
 
@@ -501,8 +501,8 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(34);
         assertThat(prisonStats.getSummary().getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("44.12"));
 
-        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("57.62"));
-        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(8);
+        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("72.86"));
+        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(10);
 
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeFrom()).isEqualTo(fromDate);
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeTo()).isEqualTo(now);
@@ -515,8 +515,8 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("44.12"));
         assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(34);
 
-        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("57.62"));
-        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(8);
+        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("72.86"));
+        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(10);
     }
 
     @Test
@@ -525,7 +525,7 @@ public class KeyworkerStatsServiceTest {
 
         LocalDate now = LocalDate.now();
         LocalDate fromDate = now.minusDays(2);
-        LocalDate toDate = now.plusDays(1);
+        LocalDate toDate = now;
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(toDate))).thenReturn(
                 Arrays.asList(
@@ -543,12 +543,12 @@ public class KeyworkerStatsServiceTest {
                 )
         );
 
-        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate));
+        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate)+1);
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate))).thenReturn(new ArrayList<>());
 
         List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, toDate, previousFromDate, "MDI",
                 2, 5, 0, 0);
-        assertThat(timeline.size()).isEqualTo(2);
+        assertThat(timeline.size()).isEqualTo(1);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
 
@@ -563,8 +563,8 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(11);
         assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("45.45"));
 
-        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("66.67"));
-        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(4);
+        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("166.67"));
+        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(5);
 
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeFrom()).isEqualTo(fromDate);
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeTo()).isEqualTo(now);
@@ -573,8 +573,8 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(11);
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("45.45"));
 
-        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("66.67"));
-        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(4);
+        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("166.67"));
+        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(5);
     }
 
     private List<PrisonKeyWorkerStatistic> getTimeline(LocalDate fromDate, LocalDate toDate, LocalDate previousFromDate, String prisonId, int kwEntriesCurrent, int kwSessionsCurrent, int kwEntriesPrevious, int kwSessionsPrevious) {
