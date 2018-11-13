@@ -376,7 +376,7 @@ public class KeyworkerStatsServiceTest {
                                 TEST_AGENCY_ID,
                                 fromDate,
                                 now,
-                                229L,
+                                221L,
                                 50L,
                                 7D,
                                 50D,
@@ -404,7 +404,7 @@ public class KeyworkerStatsServiceTest {
         );
 
         List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, toDate, previousFromDate, TEST_AGENCY_ID,
-                50, 229, 25, 71);
+                50, 221, 25, 71);
         assertThat(timeline.size()).isEqualTo(62);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
@@ -419,12 +419,12 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getSummary().getPrevious().getDataRangeTo()).isEqualTo(fromDate.minusDays(1));
 
         assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
-        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(229);
-        assertThat(prisonStats.getSummary().getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("48.63"));
-        assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(146);
+        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(221);
+        assertThat(prisonStats.getSummary().getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("50.00"));
+        assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(142);
 
-        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.57"));
-        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(27);
+        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.81"));
+        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(30);
 
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getDataRangeFrom()).isEqualTo(fromDate);
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getDataRangeTo()).isEqualTo(now);
@@ -432,12 +432,12 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getPrevious().getDataRangeTo()).isEqualTo(fromDate.minusDays(1));
 
         assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
-        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(229);
-        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("48.63"));
-        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(146);
+        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(221);
+        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("50.00"));
+        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(142);
 
-        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.57"));
-        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallKeyworkerSessions()).isEqualTo(27);
+        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.81"));
+        assertThat(prisonStats.getPrisons().get(TEST_AGENCY_ID).getAvgOverallKeyworkerSessions()).isEqualTo(30);
     }
 
     @Test
@@ -496,27 +496,27 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getSummary().getPrevious().getDataRangeFrom()).isEqualTo(previousFromDate);
         assertThat(prisonStats.getSummary().getPrevious().getDataRangeTo()).isEqualTo(fromDate.minusDays(1));
 
-        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(54);
-        assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("74.07"));
-        assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(34);
-        assertThat(prisonStats.getSummary().getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("44.12"));
+        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(50);
+        assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
+        assertThat(prisonStats.getSummary().getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(32);
+        assertThat(prisonStats.getSummary().getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("46.88"));
 
-        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("72.86"));
-        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(10);
+        assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.22"));
+        assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(13);
 
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeFrom()).isEqualTo(fromDate);
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeTo()).isEqualTo(now);
         assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getDataRangeFrom()).isEqualTo(previousFromDate);
         assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getDataRangeTo()).isEqualTo(fromDate.minusDays(1));
 
-        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(54);
-        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("74.07"));
+        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(50);
+        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
 
-        assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("44.12"));
-        assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(34);
+        assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getComplianceRate()).isEqualTo(new BigDecimal("46.88"));
+        assertThat(prisonStats.getPrisons().get("MDI").getPrevious().getNumProjectedKeyworkerSessions()).isEqualTo(32);
 
-        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("72.86"));
-        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(10);
+        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("73.22"));
+        assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(13);
     }
 
     @Test
@@ -560,8 +560,8 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getSummary().getCurrent().getDataRangeTo()).isEqualTo(now);
         assertThat(prisonStats.getSummary().getPrevious()).isNull();
 
-        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(11);
-        assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("45.45"));
+        assertThat(prisonStats.getSummary().getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(7);
+        assertThat(prisonStats.getSummary().getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("71.43"));
 
         assertThat(prisonStats.getSummary().getAvgOverallCompliance()).isEqualTo(new BigDecimal("166.67"));
         assertThat(prisonStats.getSummary().getAvgOverallKeyworkerSessions()).isEqualTo(5);
@@ -570,8 +570,8 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getDataRangeTo()).isEqualTo(now);
         assertThat(prisonStats.getPrisons().get("MDI").getPrevious()).isNull();
 
-        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(11);
-        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("45.45"));
+        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getNumProjectedKeyworkerSessions()).isEqualTo(7);
+        assertThat(prisonStats.getPrisons().get("MDI").getCurrent().getComplianceRate()).isEqualTo(new BigDecimal("71.43"));
 
         assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallCompliance()).isEqualTo(new BigDecimal("166.67"));
         assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(5);
