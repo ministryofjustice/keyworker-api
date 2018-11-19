@@ -362,7 +362,7 @@ public class KeyworkerStatsService {
                 Collectors.groupingBy(s -> s.getSnapshotDate().with(range.getNextDay().getDayOfWeek()),
                         Collectors.averagingDouble(p ->
                         {
-                            int projectedKeyworkerSessions = Math.floorDiv(p.getNumPrisonersAssignedKeyWorker(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
+                            int projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
                             return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
                         }))
         ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
@@ -397,7 +397,7 @@ public class KeyworkerStatsService {
 
         if (prisonStats != null) {
             double sessionMultiplier = (DAYS.between(prisonStats.getStartDate(), prisonStats.getEndDate())+1) / (double)(kwSessionFrequencyInWeeks * 7);
-            long projectedSessions = Math.round(Math.floor(prisonStats.getNumPrisonersAssignedKeyWorker()) * sessionMultiplier);
+            long projectedSessions = Math.round(Math.floor(prisonStats.getTotalNumPrisoners()) * sessionMultiplier);
 
             return SummaryStatistic.builder()
                     .dataRangeFrom(prisonStats.getStartDate())
