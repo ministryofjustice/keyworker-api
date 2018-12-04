@@ -9,17 +9,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class KeyworkerStatsService {
 
     private final NomisService nomisService;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private final KeyworkerRepository keyworkerRepository;
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
     private final TelemetryClient telemetryClient;
@@ -47,11 +50,13 @@ public class KeyworkerStatsService {
     public KeyworkerStatsService(NomisService nomisService, PrisonSupportedService prisonSupportedService,
                                  OffenderKeyworkerRepository offenderKeyworkerRepository,
                                  PrisonKeyWorkerStatisticRepository statisticRepository,
+                                 KeyworkerRepository keyworkerRepository,
                                  TelemetryClient telemetryClient) {
         this.nomisService = nomisService;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
         this.statisticRepository = statisticRepository;
+        this.keyworkerRepository = keyworkerRepository;
         this.telemetryClient = telemetryClient;
     }
 
@@ -127,7 +132,15 @@ public class KeyworkerStatsService {
                     .sortOrder(SortOrder.ASC)
                     .build();
             ResponseEntity<List<StaffLocationRoleDto>> activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting, true);
-            log.info("There are currently {} active key workers in {}", activeKeyWorkers.getBody().size(), prisonId);
+
+            // remove key workers not active
+            List<StaffLocationRoleDto> keyWorkers = activeKeyWorkers.getBody().stream().filter(
+                    kw -> {
+                        Keyworker keyworker = keyworkerRepository.findOne(kw.getStaffId());
+                        return keyworker == null || keyworker.getStatus() == KeyworkerStatus.ACTIVE;
+                    }
+            ).collect(Collectors.toList());
+            log.info("There are currently {} active key workers in {}", keyWorkers.size(), prisonId);
 
             List<OffenderKeyworker> newAllocationsOnly = getNewAllocations(prisonId, snapshotDate);
 
@@ -173,7 +186,7 @@ public class KeyworkerStatsService {
                     .totalNumPrisoners(activePrisoners.size())
                     .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
                     .numberKeyWorkerSessions(caseNoteSummary.sessionsDone)
-                    .numberOfActiveKeyworkers(activeKeyWorkers.getBody().size())
+                    .numberOfActiveKeyworkers(keyWorkers.size())
                     .avgNumDaysFromReceptionToAllocationDays(averageDaysToAllocation)
                     .avgNumDaysFromReceptionToKeyWorkingSession(avgDaysReceptionToKWSession)
                     .build();
@@ -353,13 +366,15 @@ public class KeyworkerStatsService {
         SummaryStatistic current = getSummaryStatistic(currentData,range.getStartDate(), range.getNextDay(), prisonConfig.getKwSessionFrequencyInWeeks());
         SummaryStatistic previous = getSummaryStatistic(previousData, range.getPreviousStartDate(), range.getStartDate(), prisonConfig.getKwSessionFrequencyInWeeks());
 
+        final TemporalAdjuster weekAdjuster = TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY);
+
         SortedMap<LocalDate, Long> kwSummary = new TreeMap<>(dailyStats.stream().collect(
-                Collectors.groupingBy(s -> s.getSnapshotDate().with(range.getNextDay().getDayOfWeek()),
+                Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
                         Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkerSessions))
         ));
 
         TreeMap<LocalDate, BigDecimal> compliance = new TreeMap<>(dailyStats.stream().collect(
-                Collectors.groupingBy(s -> s.getSnapshotDate().with(range.getNextDay().getDayOfWeek()),
+                Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
                         Collectors.averagingDouble(p ->
                         {
                             int projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);

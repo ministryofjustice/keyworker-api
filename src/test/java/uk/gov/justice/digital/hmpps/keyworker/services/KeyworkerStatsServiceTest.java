@@ -10,14 +10,15 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,9 @@ public class KeyworkerStatsServiceTest {
     private PrisonKeyWorkerStatisticRepository statisticRepository;
 
     @Mock
+    private KeyworkerRepository keyworkerRepository;
+
+    @Mock
     private PrisonSupportedService prisonSupportedService;
 
     @Mock
@@ -63,7 +67,7 @@ public class KeyworkerStatsServiceTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, telemetryClient);
+        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, keyworkerRepository, telemetryClient);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(10).atStartOfDay()).build());
@@ -366,7 +370,7 @@ public class KeyworkerStatsServiceTest {
     public void testPrisonStats() {
         List<String> prisonIds = Collections.singletonList(TEST_AGENCY_ID);
 
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         LocalDate fromDate = now.minusWeeks(4);
         LocalDate toDate = now.minusDays(1);
 
@@ -445,7 +449,7 @@ public class KeyworkerStatsServiceTest {
     public void testPrisonStatsWeekOnly() {
         List<String> prisonIds = Collections.singletonList("MDI");
 
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         LocalDate toDate = now.minusDays(1);
         LocalDate fromDate = now.minusWeeks(2);
 
@@ -524,7 +528,7 @@ public class KeyworkerStatsServiceTest {
     public void testPrisonStatsSmallData() {
         List<String> prisonIds = Collections.singletonList("MDI");
 
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         LocalDate fromDate = now.minusDays(1);
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(now))).thenReturn(
@@ -644,11 +648,17 @@ public class KeyworkerStatsServiceTest {
                 StaffLocationRoleDto.builder()
                         .agencyId(TEST_AGENCY_ID)
                         .staffId(-4L)
+                        .build(),
+                StaffLocationRoleDto.builder()
+                        .agencyId(TEST_AGENCY_ID)
+                        .staffId(-3L)
                         .build()
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true)))
                 .thenReturn(new ResponseEntity<>(staffLocationRoleDtos, HttpStatus.OK));
 
+        when(keyworkerRepository.findOne(-5L)).thenReturn(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build());
+        when(keyworkerRepository.findOne(-3L)).thenReturn(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build());
 
         when(nomisService.getCaseNoteUsageForPrisoners(eq(offenderNos), isNull(Long.class),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(String.class), eq(toDate.minusDays(1)),
