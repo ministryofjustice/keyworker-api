@@ -1,31 +1,15 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.TypeConverter;
 import org.apache.camel.component.quartz2.QuartzComponent;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
-import org.quartz.spi.JobFactory;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
-import org.springframework.jdbc.support.incrementer.PostgreSQLSequenceMaxValueIncrementer;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.web.client.RestTemplate;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Properties;
 
 /* requires postgres db - does not work with in memory database */
@@ -95,11 +79,6 @@ class CamelQuartzConfigurationFactory {
     @Bean
     public ProducerTemplate producerTemplate() {
         return camelContext.createProducerTemplate();
-    }
-
-    @Bean
-    public TypeConverter typeConverter() {
-        return camelContext.getTypeConverter();
     }
 
     @Bean
