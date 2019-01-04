@@ -10,9 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class HealthInfo implements HealthIndicator {
 
-    /**
-     * This reads info set up in config.yml
-     */
     @Autowired(required = false)
     private BuildProperties buildProperties;
 
@@ -21,10 +18,8 @@ public class HealthInfo implements HealthIndicator {
         return Health.up().withDetail("version", getVersion()).build();
     }
 
-    /**
-     * @return health data. Note this is unsecured so no sensitive data allowed!
-     */
     private String getVersion(){
         return buildProperties == null ? "version not available" : buildProperties.getVersion();
     }
+
 }

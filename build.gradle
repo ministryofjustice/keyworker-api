@@ -29,15 +29,23 @@ ext {
     }
 }
 
-def today = java.time.Instant.now()
-group = 'uk.gov.justice.digital.hmpps'
 project.sourceCompatibility = 11
 project.targetCompatibility = 11
 
+def applicationName = 'keyworker-api'
+def today = java.time.Instant.now()
 def todayDate = java.time.LocalDate.now()
 def formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+group = 'uk.gov.justice.digital.hmpps'
 version todayDate.format(formatter)
 
+jar {
+    baseName = applicationName
+    manifest {
+        attributes 'Implementation-Title': applicationName,
+                'Implementation-Version': System.getenv('CI') ? "${version}.${System.getenv('CIRCLE_BUILD_NUM')}" : version
+    }
+}
 
 springBoot {
     buildInfo {
@@ -64,8 +72,6 @@ configurations {
 dependencies {
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     annotationProcessor('org.projectlombok:lombok:1.18.4')
-
-    runtime("org.springframework.boot:spring-boot-properties-migrator")
 
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-devtools")
@@ -109,7 +115,7 @@ dependencies {
 
     runtime('org.hsqldb:hsqldb:2.4.1')
     runtime("org.flywaydb:flyway-core:5.2.4")
-    runtime("org.postgresql:postgresql:42.2.1")
+    runtime("org.postgresql:postgresql:42.2.5")
 
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("org.assertj:assertj-core:3.11.1")
