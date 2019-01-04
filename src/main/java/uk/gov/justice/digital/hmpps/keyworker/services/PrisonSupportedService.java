@@ -42,7 +42,7 @@ public class PrisonSupportedService {
         }
     }
 
-    public void verifyPrisonMigrated(String prisonId) {
+    void verifyPrisonMigrated(String prisonId) {
         Validate.notBlank(prisonId, "Prison id is required.");
         verifyPrisonSupported(prisonId);
 
@@ -52,7 +52,7 @@ public class PrisonSupportedService {
         }
     }
 
-    public void verifyPrisonSupportsAutoAllocation(String prisonId) {
+    void verifyPrisonSupportsAutoAllocation(String prisonId) {
         verifyPrisonSupported(prisonId);
         Prison prison = getPrisonDetail(prisonId);
 
@@ -70,33 +70,34 @@ public class PrisonSupportedService {
     @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
     public void updateSupportedPrison(String prisonId, boolean autoAllocate, Integer capacityTier1, Integer capacityTier2, Integer kwSessionFrequencyInWeeks) {
-        PrisonSupported prison = repository.findOne(prisonId);
 
-        if (prison != null) {
-            // update entry
-            prison.setAutoAllocate(autoAllocate);
-            if (capacityTier1 != null) {
-                prison.setCapacityTier1(capacityTier1);
-            }
-            if (capacityTier2 != null) {
-                prison.setCapacityTier2(capacityTier2);
-            }
-            if (kwSessionFrequencyInWeeks != null) {
-                prison.setKwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks);
-            }
-        } else {
-            // create a new entry for a new supported prison
-            repository.save(PrisonSupported.builder()
-                    .prisonId(prisonId)
-                    .autoAllocate(autoAllocate)
-                    .capacityTier1(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
-                    .capacityTier2(capacityTier2 == null ? capacityTiers.get(1) : capacityTier2)
-                    .kwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks == null ? keyWorkerSessionDefaultFrequency : kwSessionFrequencyInWeeks)
-                    .build());
-        }
+        repository.findById(prisonId)
+                .ifPresentOrElse(prison -> {
+                    prison.setAutoAllocate(autoAllocate);
+                    if (capacityTier1 != null) {
+                        prison.setCapacityTier1(capacityTier1);
+                    }
+                    if (capacityTier2 != null) {
+                        prison.setCapacityTier2(capacityTier2);
+                    }
+                    if (kwSessionFrequencyInWeeks != null) {
+                        prison.setKwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks);
+                    }
+                }, () -> {
+                    PrisonSupported prisonSupported = PrisonSupported.builder()
+                            .prisonId(prisonId)
+                            .autoAllocate(autoAllocate)
+                            .capacityTier1(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
+                            .capacityTier2(capacityTier2 == null ? capacityTiers.get(1) : capacityTier2)
+                            .kwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks == null ? keyWorkerSessionDefaultFrequency : kwSessionFrequencyInWeeks)
+                            .build();
+
+                    // create a new entry for a new supported prison
+                    repository.save(prisonSupported);
+                });
     }
 
-    public boolean isMigrated(String prisonId) {
+    boolean isMigrated(String prisonId) {
         // Check remote to determine if prison already migrated
         return getPrisonDetail(prisonId).isMigrated();
     }
@@ -106,17 +107,15 @@ public class PrisonSupportedService {
     }
 
     public Prison getPrisonDetail(String prisonId) {
-        PrisonSupported prison = repository.findOne(prisonId);
+        return repository.findById(prisonId).map(this::buildPrison)
+                .orElseGet(() ->  Prison.builder()
+                    .prisonId(prisonId)
+                    .capacityTier1(capacityTiers.get(0))
+                    .capacityTier2(capacityTiers.get(1))
+                    .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
+                    .build()
+                );
 
-        if (prison != null) {
-            return buildPrison(prison);
-        }
-        return Prison.builder()
-                .prisonId(prisonId)
-                .capacityTier1(capacityTiers.get(0))
-                .capacityTier2(capacityTiers.get(1))
-                .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
-                .build();
     }
 
     private Prison buildPrison(PrisonSupported prison) {

@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -40,7 +39,7 @@ public class ConversionHelperTest {
         OffenderKeyworkerDto testActiveDto = getActiveOffenderKeyworkerDto();
         OffenderKeyworkerDto testExpiredDto = getExpiredOffenderKeyworkerDto();
 
-        List<OffenderKeyworkerDto> testDtos = Arrays.asList(testActiveDto, testExpiredDto);
+        List<OffenderKeyworkerDto> testDtos = List.of(testActiveDto, testExpiredDto);
 
         Set<OffenderKeyworker> okws = ConversionHelper.convertOffenderKeyworkerDto2Model(testDtos);
 

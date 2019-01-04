@@ -88,7 +88,7 @@ public class KeyworkerService  {
     }
 
     private static String getKeyWorkerFullName(KeyworkerDto keyworkerDto) {
-        return StringUtils.lowerCase(StringUtils.join(Arrays.asList(keyworkerDto.getLastName(), keyworkerDto.getFirstName()), " "));
+        return StringUtils.lowerCase(StringUtils.join(List.of(keyworkerDto.getLastName(), keyworkerDto.getFirstName()), " "));
     }
 
     public List<KeyworkerDto> getKeyworkersAvailableForAutoAllocation(String prisonId) {
@@ -477,15 +477,22 @@ public class KeyworkerService  {
 
     private void decorateWithKeyworkerData(KeyworkerDto keyworkerDto, int capacityDefault) {
         if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
-            final Keyworker keyworker = keyworkerRepository.findOne(keyworkerDto.getStaffId());
-
-            keyworkerDto.setCapacity((keyworker != null && keyworker.getCapacity() != null) ? keyworker.getCapacity() : capacityDefault);
-            keyworkerDto.setStatus(keyworker != null ? keyworker.getStatus() : KeyworkerStatus.ACTIVE);
-            keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
-            keyworkerDto.setAutoAllocationAllowed(keyworker != null ? keyworker.getAutoAllocationFlag() : true);
-            if (keyworker != null) {
-                keyworkerDto.setActiveDate(keyworker.getActiveDate());
-            }
+            keyworkerRepository.findById(keyworkerDto.getStaffId())
+                .ifPresentOrElse(
+                    keyworker -> {
+                        keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
+                        keyworkerDto.setStatus(keyworker.getStatus());
+                        keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
+                        keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocationFlag());
+                        keyworkerDto.setActiveDate(keyworker.getActiveDate());
+                    },
+                    () -> {
+                        keyworkerDto.setCapacity(capacityDefault);
+                        keyworkerDto.setStatus(KeyworkerStatus.ACTIVE);
+                        keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
+                        keyworkerDto.setAutoAllocationAllowed(true);
+                    }
+                );
         }
     }
 
@@ -509,26 +516,22 @@ public class KeyworkerService  {
 
         prisonSupportedService.verifyPrisonMigrated(prisonId);
         Validate.notNull(staffId, "Missing staff id");
-        Keyworker keyworker = keyworkerRepository.findOne(staffId);
 
-        if (keyworker == null) {
-
-            keyworkerRepository.save(Keyworker.builder()
-                    .staffId(staffId)
-                    .capacity(keyworkerUpdateDto.getCapacity())
-                    .status(keyworkerUpdateDto.getStatus())
-                    .autoAllocationFlag(true)
-                    .activeDate(keyworkerUpdateDto.getActiveDate())
-                    .build());
-
-        } else {
+        keyworkerRepository.findById(staffId).ifPresentOrElse( keyworker -> {
             keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
             keyworker.setStatus(keyworkerUpdateDto.getStatus());
             keyworker.setActiveDate(keyworkerUpdateDto.getActiveDate());
-            if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE){
+            if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
                 keyworker.setAutoAllocationFlag(true);
             }
-        }
+        },
+        () -> keyworkerRepository.save(Keyworker.builder()
+                .staffId(staffId)
+                .capacity(keyworkerUpdateDto.getCapacity())
+                .status(keyworkerUpdateDto.getStatus())
+                .autoAllocationFlag(true)
+                .activeDate(keyworkerUpdateDto.getActiveDate())
+                .build()));
 
         final KeyworkerStatusBehaviour behaviour = keyworkerUpdateDto.getBehaviour();
         if (behaviour != null) applyStatusChangeBehaviour(staffId, prisonId, behaviour);
@@ -547,7 +550,7 @@ public class KeyworkerService  {
         }
 
         if (behaviour.isRemoveFromAutoAllocation()) {
-            keyworkerRepository.findOne(staffId).setAutoAllocationFlag(false);
+            keyworkerRepository.findById(staffId).ifPresent(kw -> kw.setAutoAllocationFlag(false));
         }
     }
 

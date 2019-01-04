@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.security;
 
-
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +12,7 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
@@ -47,22 +46,24 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Value("${jwt.public.key}")
     private String jwtPublicKey;
 
-    @Autowired
-    private SecurityProperties securityProperties;
-
     @Autowired(required = false)
     private BuildProperties buildProperties;
 
     @Override
     public void configure(HttpSecurity http) throws Exception{
-        if (securityProperties.isRequireSsl()) http.requiresChannel().antMatchers("/key-worker/**").requiresSecure();
 
         http
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                // Can't have CSRF protection as requires session
+                .and().csrf().disable()
         .authorizeRequests()
-                .antMatchers("/health").permitAll()
-                .antMatchers("/swagger*").permitAll()
-                .antMatchers("/webjars/**").permitAll()
-                .antMatchers("/v2/**").permitAll()
+                .antMatchers("/webjars/**", "/favicon.ico", "/csrf",
+                        "/health", "/info",
+                        "/v2/api-docs",
+                        "/swagger-ui.html", "/swagger-resources", "/swagger-resources/configuration/ui",
+                        "/swagger-resources/configuration/security").permitAll()
           .anyRequest()
           .authenticated();
     }
@@ -96,8 +97,8 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     public Docket api() {
 
         ApiInfo apiInfo = new ApiInfo(
-                "Keyworker API Documentation",
-                "REST service for accessing the Keywoker services.",
+                "Key Worker API Documentation",
+                "API for accessing the Key Worker services.",
                 getVersion(), "", contactInfo(), "", "",
                 Collections.emptyList());
 
@@ -138,8 +139,8 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         }
 
         @Override
-        public String getCurrentAuditor() {
-             return authenticationFacade.getCurrentUsername();
+        public Optional<String> getCurrentAuditor() {
+             return Optional.ofNullable(authenticationFacade.getCurrentUsername());
         }
     }
 

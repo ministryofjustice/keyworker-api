@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
-import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +26,11 @@ public class PrisonSupportedTest {
     @Test
     public void givenATransientKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
-        val transientEntity = transientEntity();
+        var transientEntity = transientEntity();
 
-        val entity = transientEntity.toBuilder().build();
+        var entity = transientEntity.toBuilder().build();
 
-        val persistedEntity = repository.save(entity);
+        var persistedEntity = repository.save(entity);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -40,7 +39,7 @@ public class PrisonSupportedTest {
 
         TestTransaction.start();
 
-        val retrievedEntity = repository.findOne(entity.getPrisonId());
+        var retrievedEntity = repository.findById(entity.getPrisonId()).orElseThrow();
 
         // equals only compares the business key columns: prisonId
         assertThat(retrievedEntity).isEqualTo(transientEntity);

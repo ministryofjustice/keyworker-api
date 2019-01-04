@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 
 class AutoAllocationSpecification extends TestSpecification {
 
-    final TODAY = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+    final static TODAY = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
     def jsonSlurper = new JsonSlurper()
 
     def "Allocation service reports ok"() {

@@ -17,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
 import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -58,7 +57,7 @@ public class RestTemplateConfiguration {
     }
 
     private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
-        return Arrays.asList(
+        return List.of(
                 new UserContextInterceptor(),
                 new JwtAuthInterceptor());
     }

@@ -1,11 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.Metric;
-import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +17,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -30,15 +30,12 @@ import java.util.List;
 @Transactional(noRollbackFor = {AllocationException.class})
 @Slf4j
 public class KeyworkerAutoAllocationService {
-    static final String COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS = "counter.keyworker.allocations.auto";
     private static final String OUTCOME_NO_UNALLOCATED_OFFENDERS = "No unallocated offenders.";
-    public static final String OUTCOME_NO_AVAILABLE_KEY_WORKERS = "No Key workers available for allocation.";
+    static final String OUTCOME_NO_AVAILABLE_KEY_WORKERS = "No Key workers available for allocation.";
     private static final String OUTCOME_AUTO_ALLOCATION_SUCCESS = "Offender with bookingId [{}] successfully auto-allocated to Key worker with staffId [{}].";
 
     private final KeyworkerService keyworkerService;
     private final KeyworkerPoolFactory keyworkerPoolFactory;
-    private final CounterService counterService;
-    private final BufferMetricReader metricReader;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
 
@@ -50,20 +47,16 @@ public class KeyworkerAutoAllocationService {
      */
     public KeyworkerAutoAllocationService(KeyworkerService keyworkerService,
                                           KeyworkerPoolFactory keyworkerPoolFactory,
-                                          CounterService counterService,
-                                          BufferMetricReader metricReader,
                                           OffenderKeyworkerRepository offenderKeyworkerRepository,
                                           PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
-        this.counterService = counterService;
-        this.metricReader = metricReader;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
     }
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
-    public Long autoAllocate(String prisonId) throws AllocationException {
+    public double autoAllocate(String prisonId) throws AllocationException {
         // Confirm a valid prison has been supplied.
         Validate.isTrue(StringUtils.isNotBlank(prisonId), "Prison id must be provided.");
 
@@ -78,7 +71,8 @@ public class KeyworkerAutoAllocationService {
         }
 
         // Get initial counter metric
-        long startAllocCount = getCurrentAllocationCount();
+        var counterName = createCounterName(prisonId);
+        double startAllocCount = getCurrentAllocationCount(counterName);
 
         // Get all unallocated offenders for agency
         List<OffenderLocationDto> unallocatedOffenders = getUnallocatedOffenders(prisonId);
@@ -105,9 +99,9 @@ public class KeyworkerAutoAllocationService {
             // Continue processing allocations for unallocated offenders until no further unallocated offenders exist
             // or Key workers no longer have capacity.
             try {
-                processAllocations(unallocatedOffenders, keyworkerPool);
+                processAllocations(unallocatedOffenders, keyworkerPool, counterName);
             } catch(AllocationException aex) {
-                long allocCount = calcAndLogAllocationsProcessed(prisonId, startAllocCount);
+                double allocCount = calcAndLogAllocationsProcessed(prisonId, startAllocCount, counterName);
 
                 log.info("Key worker auto-allocation terminated after processing {} allocations.", allocCount);
                 log.error("Reason for termination: {}", aex.getMessage());
@@ -116,25 +110,19 @@ public class KeyworkerAutoAllocationService {
             }
         }
 
-        return calcAndLogAllocationsProcessed(prisonId, startAllocCount);
+        return calcAndLogAllocationsProcessed(prisonId, startAllocCount, counterName);
+    }
+
+    private String createCounterName(String prisonId) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        LocalDateTime now = LocalDateTime.now();
+
+        return String.format("auto.alloc.%s.%s", prisonId, now.format(formatter));
     }
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public Long confirmAllocations(String prisonId) {
         prisonSupportedService.verifyPrisonMigrated(prisonId);
-            /* TODO not *entirely sure this isnt needed ...
-        (List<KeyworkerAllocationDto> allocations) {
-        final AtomicInteger numberConfirmed = new AtomicInteger(0);
-        allocations.forEach(a -> {
-            final List<OffenderKeyworker> offenderKeyworkers = offenderKeyworkerRepository.findByAllocationTypeAndOffenderNoAndStaffId(
-                    AllocationType.PROVISIONAL, a.getOffenderNo(), a.getStaffId());
-            if (offenderKeyworkers.size() == 1) {
-                offenderKeyworkers.get(0).setAllocationType(AllocationType.AUTO);
-                numberConfirmed.incrementAndGet();
-            }
-            // else ... Not found, or more than one. Either way leave alone and emit warning
-        });
-        return numberConfirmed.get();*/
         return (long)offenderKeyworkerRepository.confirmProvisionals(prisonId);
     }
 
@@ -142,18 +130,18 @@ public class KeyworkerAutoAllocationService {
         return offenderKeyworkerRepository.deleteExistingProvisionals(prisonId);
     }
 
-    private void processAllocations(List<OffenderLocationDto> offenders, KeyworkerPool keyworkerPool) {
+    private void processAllocations(List<OffenderLocationDto> offenders, KeyworkerPool keyworkerPool, String counterName) {
         // Process allocation for each unallocated offender
         for (OffenderLocationDto offender : offenders) {
-            processAllocation(offender, keyworkerPool);
+            processAllocation(offender, keyworkerPool, counterName);
         }
     }
 
-    private void processAllocation(OffenderLocationDto offender, KeyworkerPool keyworkerPool) {
+    private void processAllocation(OffenderLocationDto offender, KeyworkerPool keyworkerPool, String counterName) {
         KeyworkerDto keyworker = keyworkerPool.getKeyworker(offender.getOffenderNo());
 
         // At this point, Key worker to which offender will be allocated has been identified - create provisional allocation
-        storeAllocation(offender, keyworker);
+        storeAllocation(offender, keyworker, counterName);
 
         // Update Key worker pool with refreshed Key worker (following successful allocation)
         keyworkerPool.incrementAndRefreshKeyworker(keyworker);
@@ -163,12 +151,13 @@ public class KeyworkerAutoAllocationService {
         return keyworkerService.getUnallocatedOffenders(prisonId, null,null);
     }
 
-    private void storeAllocation(OffenderLocationDto offender, KeyworkerDto keyworker) {
+    private void storeAllocation(OffenderLocationDto offender, KeyworkerDto keyworker, String counterName) {
         OffenderKeyworker keyWorkerAllocation = buildKeyWorkerAllocation(offender, keyworker);
 
         keyworkerService.allocate(keyWorkerAllocation);
 
-        counterService.increment(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS);
+        Counter counter = Metrics.counter(counterName);
+        counter.increment();
 
         log.info(OUTCOME_AUTO_ALLOCATION_SUCCESS, offender.getBookingId(), keyworker.getStaffId());
     }
@@ -185,24 +174,16 @@ public class KeyworkerAutoAllocationService {
                 .build();
     }
 
-    private Long calcAndLogAllocationsProcessed(String prisonId, long startAllocCount) {
+    private double calcAndLogAllocationsProcessed(String prisonId, double startAllocCount, String counterName) {
         // Determine total allocations for this execution of auto-allocation process.
-        long allocCount = getCurrentAllocationCount() - startAllocCount;
+        double allocCount = getCurrentAllocationCount(counterName) - startAllocCount;
 
         log.info("Processed {} allocations for agency [{}].", allocCount, prisonId);
 
         return allocCount;
     }
 
-    private long getCurrentAllocationCount() {
-        long allocCount = 0;
-
-        Metric metricAllocCount = metricReader.findOne(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS);
-
-        if (metricAllocCount != null) {
-            allocCount = metricAllocCount.getValue().longValue();
-        }
-
-        return allocCount;
+    private double getCurrentAllocationCount(String counterName) {
+        return Metrics.counter(counterName).count();
     }
 }

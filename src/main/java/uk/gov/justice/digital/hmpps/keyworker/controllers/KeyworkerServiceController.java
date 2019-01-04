@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.*;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -291,7 +291,7 @@ public class KeyworkerServiceController {
 
     @PostMapping(path = "/{prisonId}/allocate/start")
 
-    public Long startAutoAllocation(
+    public double startAutoAllocation(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
             @PathVariable("prisonId") String prisonId) {

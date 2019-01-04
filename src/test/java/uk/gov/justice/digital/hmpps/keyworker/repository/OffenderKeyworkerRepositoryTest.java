@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
-import lombok.val;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,11 +42,11 @@ public class OffenderKeyworkerRepositoryTest {
     @Test
     public void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
-        val transientEntity = transientEntity();
+        var transientEntity = transientEntity();
 
-        val entity = transientEntity.toBuilder().build();
+        var entity = transientEntity.toBuilder().build();
 
-        val persistedEntity = repository.save(entity);
+        var persistedEntity = repository.save(entity);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -56,7 +55,7 @@ public class OffenderKeyworkerRepositoryTest {
 
         TestTransaction.start();
 
-        val retrievedEntity = repository.findOne(entity.getOffenderKeyworkerId());
+        var retrievedEntity = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
 
         // equals only compares the business key columns: offenderBookingId, staffId and assignedDateTime
         assertThat(retrievedEntity).isEqualTo(transientEntity);
@@ -78,13 +77,13 @@ public class OffenderKeyworkerRepositoryTest {
     @Test
     public void givenAPersistentInstanceThenNullableValuesAreUpdateable() throws InterruptedException {
 
-        val entity = repository.save(transientEntity());
+        var entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("Modify User Id", "pw"));
         TestTransaction.start();
-        val retrievedEntity = repository.findOne(entity.getOffenderKeyworkerId());
+        var retrievedEntity = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
 
         assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(retrievedEntity.getCreationDateTime());
         assertThat(retrievedEntity.getModifyUserId()).isEqualTo(retrievedEntity.getCreateUserId());
@@ -96,7 +95,7 @@ public class OffenderKeyworkerRepositoryTest {
         Thread.sleep(2L); // just long enough to make the modifyDateTime different to the creationDateTime
         TestTransaction.start();
 
-        val persistedUpdates = repository.findOne(entity.getOffenderKeyworkerId());
+        var persistedUpdates = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
 
         assertThat(persistedUpdates.getModifyDateTime()).isAfter(persistedUpdates.getCreationDateTime());
         assertThat(persistedUpdates.getModifyUserId()).isEqualTo("Modify User Id");
@@ -142,8 +141,8 @@ public class OffenderKeyworkerRepositoryTest {
         TestTransaction.flagForCommit();
         TestTransaction.end();
         TestTransaction.start();
-        assertThat(repository.findOne(entity1.getOffenderKeyworkerId())).isNull();
-        assertThat(repository.findOne(entity2.getOffenderKeyworkerId())).isNull();
+        assertThat(repository.findById(entity1.getOffenderKeyworkerId())).isEmpty();
+        assertThat(repository.findById(entity2.getOffenderKeyworkerId())).isEmpty();
     }
 
     @Test
@@ -163,8 +162,8 @@ public class OffenderKeyworkerRepositoryTest {
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
-        assertThat(repository.findOne(entity1.getOffenderKeyworkerId()).getAllocationType()).isEqualTo(AllocationType.AUTO);
-        assertThat(repository.findOne(entity2.getOffenderKeyworkerId()).getAllocationType()).isEqualTo(AllocationType.AUTO);
+        assertThat(repository.findById(entity1.getOffenderKeyworkerId()).orElseThrow().getAllocationType()).isEqualTo(AllocationType.AUTO);
+        assertThat(repository.findById(entity2.getOffenderKeyworkerId()).orElseThrow().getAllocationType()).isEqualTo(AllocationType.AUTO);
     }
 
     private OffenderKeyworker transientEntity() {

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
-import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +25,11 @@ public class KeyworkerRepositoryTest {
     @Test
     public void givenATransientKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
-        val transientEntity = transientEntity();
+        var transientEntity = transientEntity();
 
-        val entity = transientEntity.toBuilder().build();
+        var entity = transientEntity.toBuilder().build();
 
-        val persistedEntity = repository.save(entity);
+        var persistedEntity = repository.save(entity);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -39,7 +38,7 @@ public class KeyworkerRepositoryTest {
 
         TestTransaction.start();
 
-        val retrievedEntity = repository.findOne(entity.getStaffId());
+        var retrievedEntity = repository.findById(entity.getStaffId()).orElseThrow();
 
         // equals only compares the business key columns: staffId
         assertThat(retrievedEntity).isEqualTo(transientEntity);
@@ -51,19 +50,19 @@ public class KeyworkerRepositoryTest {
     @Test
     public void givenAPersistentInstanceThenNullableValuesAreUpdateable() {
 
-        val entity = repository.save(transientEntity());
+        var entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
         TestTransaction.start();
-        val retrievedEntity = repository.findOne(entity.getStaffId());
+        repository.findById(entity.getStaffId());
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
         TestTransaction.start();
 
-        val persistedUpdates = repository.findOne(entity.getStaffId());
+        repository.findById(entity.getStaffId());
     }
 
     private Keyworker transientEntity() {

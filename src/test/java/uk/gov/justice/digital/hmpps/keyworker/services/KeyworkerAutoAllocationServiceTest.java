@@ -1,18 +1,17 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.boot.actuate.metrics.CounterService;
-import org.springframework.boot.actuate.metrics.Metric;
-import org.springframework.boot.actuate.metrics.buffer.BufferMetricReader;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
@@ -32,9 +31,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.longThat;
+import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.*;
-import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService.COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.*;
 
 /**
@@ -53,7 +51,7 @@ public class KeyworkerAutoAllocationServiceTest {
     private KeyworkerPoolFactory keyworkerPoolFactory;
 
     @Mock
-    private BufferMetricReader metricReader;
+    private MeterRegistry metricReader;
 
     @Mock
     private PrisonSupportedService prisonSupportedService;
@@ -65,32 +63,6 @@ public class KeyworkerAutoAllocationServiceTest {
 
     @Before
     public void setUp() {
-        // Initialise a counter service
-        final CounterService counterService = new CounterService() {
-            @Override
-            public void increment(String metricName) {
-                if (StringUtils.equals(metricName, COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS)) {
-                    allocCount++;
-                }
-            }
-
-            @Override
-            public void decrement(String metricName) {
-                if (StringUtils.equals(metricName, COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS)) {
-                    allocCount--;
-                }
-            }
-
-            @Override
-            public void reset(String metricName) {
-                if (StringUtils.equals(metricName, COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS)) {
-                    allocCount = 0;
-                }
-            }
-        };
-
-        doAnswer((InvocationOnMock invocation) -> new Metric(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS, allocCount))
-                .when(metricReader).findOne(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS);
 
         // Construct service under test (using mock collaborators)
         Set<String> aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
@@ -101,7 +73,7 @@ public class KeyworkerAutoAllocationServiceTest {
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
 
         keyworkerAutoAllocationService =
-                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, counterService, metricReader, offenderKeyworkerRepository, prisonSupportedService);
+                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -123,7 +95,7 @@ public class KeyworkerAutoAllocationServiceTest {
         Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         // Verify collaborator interactions
-        verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), anyString(), any(SortOrder.class));
+        verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), isNull(), isNull());
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
 
@@ -146,7 +118,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
@@ -173,7 +145,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
@@ -210,7 +182,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -261,7 +233,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -326,7 +298,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -378,7 +350,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
 
@@ -448,7 +420,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -493,7 +465,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -551,7 +523,7 @@ public class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), anyString(), any(SortOrder.class));
+                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -580,7 +552,7 @@ public class KeyworkerAutoAllocationServiceTest {
             unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, prisonId, offNos[i]));
         }
 
-        when(keyworkerService.getUnallocatedOffenders(eq(prisonId), anyString(), any(SortOrder.class))).thenReturn(unallocatedOffenders);
+        when(keyworkerService.getUnallocatedOffenders(eq(prisonId), isNull(), isNull())).thenReturn(unallocatedOffenders);
     }
 
     // Provides page of unallocated offenders (consistent with supplied pagination parameters)
@@ -649,26 +621,5 @@ public class KeyworkerAutoAllocationServiceTest {
                 (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId))).thenReturn(allocationHistory);
-    }
-
-    class IsLongBetween extends ArgumentMatcher<Long> {
-        private final long lowerBound;
-        private final long upperBound;
-
-        IsLongBetween(long lowerBound, long upperBound) {
-            this.lowerBound = lowerBound;
-            this.upperBound = upperBound;
-        }
-
-        @Override
-        public boolean matches(Object argument) {
-            long argVal = (Long) argument;
-
-            return (argVal >= lowerBound) && (argVal <= upperBound);
-        }
-    }
-
-    private long isLongBetween(long lowerBound, long upperBound) {
-        return longThat(new IsLongBetween(lowerBound, upperBound));
     }
 }

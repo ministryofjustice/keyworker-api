@@ -11,13 +11,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
 
-import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +52,7 @@ public class UpdateStatusRouteTest extends CamelTestSupport {
     @Test
     public void testUpdateStatus() throws Exception {
 
-        when(service.executeUpdateStatus()).thenReturn(Arrays.asList(8L,9L));
+        when(service.executeUpdateStatus()).thenReturn(List.of(8L,9L));
 
         template.send(UpdateStatusRoute.DIRECT_UPDATE_STATUS, exchange -> {
         });

@@ -38,4 +38,3 @@ services:
       - SERVER_PORT=8080
       - ELITE2_URI_ROOT=http://elite2-api:8080
       - AUTH_URI_ROOT=http://oauth-server:8080/auth
-      - security.require-ssl=false
