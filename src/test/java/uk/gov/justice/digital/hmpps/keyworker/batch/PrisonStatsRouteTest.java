@@ -11,15 +11,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsService;
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 
-import java.sql.SQLDataException;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.isA;
@@ -80,7 +78,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
     @Test
     public void testGenerateStatsCall() throws Exception {
 
-        final List<Prison> prisons = Arrays.asList(
+        final List<Prison> prisons = List.of(
                 MDI,
                 LEI,
                 LPI
@@ -124,7 +122,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
     @Test
     public void testGenerateStatsCallError() throws Exception {
 
-        final List<Prison> prisons = Arrays.asList(
+        final List<Prison> prisons = List.of(
                 MDI,
                 LEI,
                 LPI
@@ -132,7 +130,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
 
         when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
 
-        when(keyworkerStatsService.generatePrisonStats(MDI.getPrisonId())).thenThrow(SQLDataException.class);
+        when(keyworkerStatsService.generatePrisonStats(MDI.getPrisonId())).thenThrow(NullPointerException.class);
         when(keyworkerStatsService.generatePrisonStats(LEI.getPrisonId())).thenReturn(PrisonKeyWorkerStatistic.builder().prisonId(LEI.getPrisonId()).build());
         when(keyworkerStatsService.generatePrisonStats(LPI.getPrisonId())).thenReturn(PrisonKeyWorkerStatistic.builder().prisonId(LPI.getPrisonId()).build());
 

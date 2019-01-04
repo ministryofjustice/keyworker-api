@@ -5,12 +5,14 @@ spring:
     hibernate:
       ddl-auto: none
 
+  flyway:
+    enabled: true
+
   datasource:
     url: ${app.db.url}
     username: sa
     password:
     continueOnError: true
-    initialize: false
 
     hikari:
       pool-name: Keyworker-CP
@@ -24,7 +26,12 @@ spring:
 
 server:
   port: 8080
-  context-path: /
+  servlet:
+    context-path: /
+  use-forward-headers: true
+  tomcat:
+    remote-ip-header: x-forwarded-for
+    protocol_header: x-forwarded-proto
 
 logging:
   level:
@@ -32,7 +39,12 @@ logging:
     org.springframework.security: INFO
     uk.gov.justice.digital: DEBUG
 
-roleMigration:
+management:
+  endpoints:
+    web:
+      base-path: /
+
+role-migration:
   rolesToMatch:
     - KW_ADMIN
     - KEY_WORK

@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
@@ -185,7 +185,7 @@ public class KeyworkerPoolTest {
         final long staffId2 = 2L;
         final long staffId3 = 3L;
 
-        List<KeyworkerDto> keyworkers = Arrays.asList(
+        List<KeyworkerDto> keyworkers = List.of(
                 getKeyworker(1, lowAllocCount, CAPACITY_TIER_1),
                 getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
                 getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
@@ -211,8 +211,7 @@ public class KeyworkerPoolTest {
         staff3IrrelevantAllocationM.setAllocationType(AllocationType.MANUAL);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId1))).thenReturn(Collections.singletonList(staff1Allocation));
-        when(keyworkerService.getAllocationsForKeyworker(eq(staffId2))).thenReturn(Collections.singletonList(staff2Allocation));
-        when(keyworkerService.getAllocationsForKeyworker(eq(staffId3))).thenReturn(Arrays.asList(
+        when(keyworkerService.getAllocationsForKeyworker(eq(staffId3))).thenReturn(List.of(
                 staff3Allocation, staff3IrrelevantAllocationP, staff3IrrelevantAllocationM));
 
         // Request KW from pool for offender

@@ -7,16 +7,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerCustodyStatusDto;
-import uk.gov.justice.digital.hmpps.keyworker.model.BatchHistory;
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.*;
 import uk.gov.justice.digital.hmpps.keyworker.repository.BatchHistoryRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -26,7 +22,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +47,7 @@ public class KeyworkerBatchServiceTest {
 
     final private LocalDateTime threshold = LocalDateTime.of(2018, Month.JANUARY, 14, 12, 0);
 
-    final private List<PrisonerCustodyStatusDto> prisonerStatusesDay0 = Arrays.asList(
+    final private List<PrisonerCustodyStatusDto> prisonerStatusesDay0 = List.of(
             PrisonerCustodyStatusDto.builder()
                     .offenderNo("AA1111A")
                     .toAgency("LEI")
@@ -158,7 +153,6 @@ public class KeyworkerBatchServiceTest {
 
         // Ensure threshold from database is used when present in the batch_history db table (otherwise RuntimeException)
         when(nomisService.getPrisonerStatuses(eq(dbThreshold), any(LocalDate.class))).thenReturn(Collections.emptyList());
-        when(nomisService.getPrisonerStatuses(eq(threshold), any(LocalDate.class))).thenThrow(new RuntimeException("Failed"));
 
         batchService.executeDeallocation(); // should ignore this param
     }

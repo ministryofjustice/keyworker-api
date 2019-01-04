@@ -10,8 +10,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-import javax.servlet.Filter;
-
 @Configuration
 public class ApplicationInsightsConfiguration {
 
@@ -24,8 +22,8 @@ public class ApplicationInsightsConfiguration {
 
     @Bean
     @Conditional(AppInsightKeyPresentCondition.class)
-    public FilterRegistrationBean aiFilterRegistration(Filter webRequestTrackingFilter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
+    public FilterRegistrationBean aiFilterRegistration(WebRequestTrackingFilter webRequestTrackingFilter) {
+        var registration = new FilterRegistrationBean<>();
         registration.setFilter(webRequestTrackingFilter);
         registration.addUrlPatterns("/**");
         registration.setOrder(1);
@@ -34,7 +32,7 @@ public class ApplicationInsightsConfiguration {
 
     @Bean(name = "webRequestTrackingFilter")
     @Conditional(AppInsightKeyPresentCondition.class)
-    public Filter webRequestTrackingFilter() {
+    public WebRequestTrackingFilter webRequestTrackingFilter() {
         return new WebRequestTrackingFilter();
     }
 

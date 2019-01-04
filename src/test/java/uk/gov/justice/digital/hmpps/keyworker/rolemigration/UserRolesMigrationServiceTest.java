@@ -3,9 +3,12 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -25,7 +28,7 @@ public class UserRolesMigrationServiceTest {
 
     private static final List<String> SINGLE_ROLE_TO_MATCH = Collections.singletonList(ROLE_TO_MATCH_1);
     private static final List<String> SINGLE_ROLE_TO_MATCH_2 = Collections.singletonList(ROLE_TO_MATCH_2);
-    private static final List<String> TWO_ROLES_TO_MATCH = Arrays.asList(ROLE_TO_MATCH_1, ROLE_TO_MATCH_2);
+    private static final List<String> TWO_ROLES_TO_MATCH = List.of(ROLE_TO_MATCH_1, ROLE_TO_MATCH_2);
 
     private static final List<String> SINGLE_ROLE_TO_ASSIGN = Collections.singletonList(ROLE_TO_ASSIGN_1);
     private static final List<String> SINGLE_ROLE_TO_MIGRATE = Collections.singletonList(ROLE_TO_MIGRATE_1);
@@ -129,7 +132,7 @@ public class UserRolesMigrationServiceTest {
     }
 
     private Set<String> setOf(String... usernames) {
-        return new HashSet<>(Arrays.asList(usernames));
+        return new HashSet<>(List.of(usernames));
     }
 
     private void initialiseService(List<String> sourceRoles, List<String> targetRoles, List<String> migrateRoles) {

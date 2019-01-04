@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
@@ -46,12 +45,13 @@ public class KeyworkerMigrationService {
         final List<OffenderKeyworkerDto> allocations = nomisService.getOffenderKeyWorkerPage(prisonId, 0, Integer.MAX_VALUE);
         log.debug("[{}] allocations retrieved for agency [{}]", allocations.size(), prisonId);
         // persist all allocations
-        offenderKeyworkerRepository.save(translate(allocations));
+        offenderKeyworkerRepository.saveAll(translate(allocations));
 
         // Mark prison as migrated
-        PrisonSupported prison = repository.findOne(prisonId);
-        prison.setMigrated(true);
-        prison.setMigratedDateTime(LocalDateTime.now());
+        repository.findById(prisonId).ifPresent(prison -> {
+            prison.setMigrated(true);
+            prison.setMigratedDateTime(LocalDateTime.now());
+        });
     }
 
     private Set<OffenderKeyworker> translate(List<OffenderKeyworkerDto> dtos) {

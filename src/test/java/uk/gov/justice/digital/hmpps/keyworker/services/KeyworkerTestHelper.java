@@ -204,7 +204,7 @@ public class KeyworkerTestHelper {
     public static void mockPrisonerAllocationHistory(KeyworkerService keyworkerService,
                                                      OffenderKeyworker... allocations) {
         List<OffenderKeyworker> allocationHistory =
-                (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
+                (allocations == null) ? Collections.emptyList() : List.of(allocations);
 
         when(keyworkerService.getAllocationHistoryForPrisoner(anyString())).thenReturn(allocationHistory);
     }

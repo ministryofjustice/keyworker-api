@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedReposito
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.*;
 public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private static final String TEST_AGENCY = "LEI";
     private static final int TEST_PAGE_SIZE = Integer.MAX_VALUE;
-    public static final String INVALID_AGENCY_ID = "XXX";
+    private static final String INVALID_AGENCY_ID = "XXX";
 
     @Autowired
     private KeyworkerMigrationService service;
@@ -42,14 +43,14 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private PrisonSupportedService prisonSupportedService;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         doThrow(new PrisonNotSupportedException(INVALID_AGENCY_ID)).when(prisonSupportedService).verifyPrisonMigrated(eq(INVALID_AGENCY_ID));
     }
 
     // When request made to check and migrate agency that is not eligible for migration
     // Then migration does not start and PrisonNotSupportedException is thrown
     @Test(expected = PrisonNotSupportedException.class)
-    public void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() throws Exception {
+    public void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() {
         when(prisonSupportedService.isMigrated(eq(INVALID_AGENCY_ID))).thenThrow(PrisonNotSupportedException.class);
         service.migrateKeyworkerByPrison(INVALID_AGENCY_ID);
     }
@@ -57,7 +58,7 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     // When request made to check and migrate agency that is eligible for migration and has already been migrated
     // Then migration does not start but no error is thrown
     @Test
-    public void testCheckAndMigrateOffenderKeyWorkerAgencyAlreadyMigrated() throws Exception {
+    public void testCheckAndMigrateOffenderKeyWorkerAgencyAlreadyMigrated() {
         when(prisonSupportedService.isMigrated(eq(TEST_AGENCY))).thenReturn(true);
 
         service.migrateKeyworkerByPrison(TEST_AGENCY);
@@ -68,26 +69,26 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     // When request made to check and migrate agency that is eligible for migration but has not yet been migrated
     // Then migration completes successfully
     @Test
-    public void testCheckAndMigrateOffenderKeyWorker() throws Exception {
+    public void testCheckAndMigrateOffenderKeyWorker() {
         final Long count = 39L;
 
-        List<OffenderKeyworkerDto> testDtos = getTestOffenderKeyworkerDtos(TEST_AGENCY, count);
+        List<OffenderKeyworkerDto> testDtos = getTestOffenderKeyworkerDtos(count);
 
         when(nomisService.getOffenderKeyWorkerPage(TEST_AGENCY, 0, TEST_PAGE_SIZE)).thenReturn(testDtos);
 
-        when(prisonSupportedRepository.findOne(eq(TEST_AGENCY))).thenReturn(PrisonSupported.builder().prisonId(TEST_AGENCY).build());
+        when(prisonSupportedRepository.findById(eq(TEST_AGENCY))).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).build()));
         service.migrateKeyworkerByPrison(TEST_AGENCY);
 
-        verify(prisonSupportedRepository, times(1)).findOne(eq(TEST_AGENCY));
-        verify(offenderKeyworkerRepository).save(anySet());
+        verify(prisonSupportedRepository, times(1)).findById(eq(TEST_AGENCY));
+        verify(offenderKeyworkerRepository).saveAll(anySet());
     }
 
-    private List<OffenderKeyworkerDto> getTestOffenderKeyworkerDtos(String prisonId, long count) {
+    private List<OffenderKeyworkerDto> getTestOffenderKeyworkerDtos(long count) {
         List<OffenderKeyworkerDto> dtoList = new ArrayList<>();
 
         for (long i = 1; i <= count; i++) {
             dtoList.add(OffenderKeyworkerDto.builder()
-                    .agencyId(prisonId)
+                    .agencyId(TEST_AGENCY)
                     .staffId(i)
                     .offenderNo("A" + (1000 + i) + "AA")
                     .active(RandomStringUtils.random(1, "YN"))
