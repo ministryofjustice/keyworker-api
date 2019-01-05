@@ -461,7 +461,9 @@ public class KeyworkerAutoAllocationServiceTest {
         mockPrisonerAllocationHistory(null);
 
         // Invoke auto-allocate
-        keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
+        long allocated = keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
+
+        assertThat(allocated).isEqualTo(25);
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
