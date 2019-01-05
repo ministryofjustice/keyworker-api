@@ -197,7 +197,7 @@ public class KeyworkerPool {
         final List<OffenderKeyworker> savedOldAllocationsList = keyworkerAllocations.get(keyworker.getStaffId());
 
         // Remove Key worker from pool (throwing exception if Key worker not in pool)
-        if (!removeKeyworker(keyworker.getStaffId()).isPresent()) {
+        if (removeKeyworker(keyworker.getStaffId()).isEmpty()) {
             log.error("Key worker with staffId [{}] not in pool.", keyworker.getStaffId());
 
             throw new IllegalStateException("Key worker to refresh is not in Key worker pool.");
