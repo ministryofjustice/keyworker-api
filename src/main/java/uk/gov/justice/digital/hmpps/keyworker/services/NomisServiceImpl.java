@@ -13,8 +13,10 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -24,35 +26,37 @@ public class NomisServiceImpl implements NomisService {
     private static final String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 
     private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFFENDER_KEY_WORKER =
-            new ParameterizedTypeReference<List<OffenderKeyworkerDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<List<StaffLocationRoleDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<List<OffenderLocationDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<PrisonerDetail>> PRISONER_DETAIL_LIST =
-            new ParameterizedTypeReference<List<PrisonerDetail>>() {};
-
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
-            new ParameterizedTypeReference<List<KeyworkerDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<PrisonerCustodyStatusDto>> PRISONER_STATUS_DTO_LIST =
-            new ParameterizedTypeReference<List<PrisonerCustodyStatusDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
-            new ParameterizedTypeReference<List<CaseNoteUsageDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>> CASE_NOTE_USAGE_PRISONERS_DTO_LIST =
-            new ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> LEGACY_KEYWORKER_ALLOCATIONS =
-            new ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>>() {};
+            new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<AllocationHistoryDto>> ALLOCATION_HISTORY =
-            new ParameterizedTypeReference<List<AllocationHistoryDto>>() {};
+            new ParameterizedTypeReference<>() {};
+
+    private static final ParameterizedTypeReference<List<PrisonContactDetailDto>> PRISON_LIST = new ParameterizedTypeReference<>() {};
+
 
     private final RestCallHelper restCallHelper;
 
@@ -227,5 +231,24 @@ public class NomisServiceImpl implements NomisService {
         URI uri = new UriTemplate(URI_OFFENDERS_ALLOCATION_HISTORY).expand();
 
         return restCallHelper.post(uri, offenderNos, ALLOCATION_HISTORY, false);
+    }
+
+    @Override
+    public List<Prison> getAllPrisons() {
+        log.info("Getting all prisons");
+        var uri = new UriTemplate(URI_GET_ALL_PRISONS).expand();
+
+        var prisonListResponse = restCallHelper.getForListWithAuthentication(uri, PRISON_LIST);
+        return prisonListResponse.getBody() != null ?
+                prisonListResponse.getBody().stream()
+                        .map(p -> Prison.builder().prisonId(p.getAgencyId()).build())
+                        .collect(Collectors.toList()) : Collections.emptyList();
+    }
+
+    @Override
+    public int enableNewNomisForCaseload(String caseload) {
+        log.info("Enabling New Nomis for caseload {}", caseload);
+        var uri = new UriTemplate(URI_ENABLE_USERS_WITH_CASELOAD).expand();
+        return restCallHelper.put(uri, Integer.class, true);
     }
 }

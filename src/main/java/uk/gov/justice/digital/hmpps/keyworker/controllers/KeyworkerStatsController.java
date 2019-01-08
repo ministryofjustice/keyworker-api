@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsService;
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;

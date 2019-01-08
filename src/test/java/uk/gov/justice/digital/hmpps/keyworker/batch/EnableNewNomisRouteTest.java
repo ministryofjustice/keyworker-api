@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
@@ -73,7 +74,7 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
 
 
     @Test
-    public void testGenerateStatsCall() throws Exception {
+    public void testEnabledNewNomisCamelRoute() throws Exception {
 
         var prisons = List.of( MDI, LEI, LPI );
 
@@ -106,7 +107,10 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
         assertEquals(receivedExchanges2.get(2).getIn().getBody(Integer.class), Integer.valueOf(14));
 
         verify(nomisService).getAllPrisons();
-        verify(nomisService, times(3)).enableNewNomisForCaseload(isA(String.class));
+        verify(nomisService).enableNewNomisForCaseload(eq(MDI.getPrisonId()));
+        verify(nomisService).enableNewNomisForCaseload(eq(LEI.getPrisonId()));
+        verify(nomisService).enableNewNomisForCaseload(eq(LPI.getPrisonId()));
+        verify(telemetryClient, times(3)).trackEvent(eq("NewNomisUserEnabled"), isA(Map.class), isNull());
     }
 
 

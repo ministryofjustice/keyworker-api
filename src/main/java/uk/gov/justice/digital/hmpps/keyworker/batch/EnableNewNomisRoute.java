@@ -18,10 +18,10 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService;
 @Component
 @ConditionalOnProperty(name = "quartz.enabled")
 public class EnableNewNomisRoute extends RouteBuilder {
-    static final String ENABLE_NEW_NOMIS = "direct:enableNewNomis";
+    public static final String ENABLE_NEW_NOMIS = "direct:enableNewNomis";
     private static final String QUARTZ_ENABLE_NEW_NOMIS_URI = "quartz2://application/enableNewNomis?cron=";
     private static final String ADD_NWEB_CASELOAD = "direct:add-nweb-caseload";
-    private static final String DIRECT_LOG_ERROR = "direct:log-error";
+    private static final String DLQ = "direct:dlq";
 
     @Value("${enable-new-nomis.job.cron}")
     private String cronExpression;
@@ -44,7 +44,7 @@ public class EnableNewNomisRoute extends RouteBuilder {
         }
 
         from(ENABLE_NEW_NOMIS)
-                .log("Starting: Checking for new Users and Enabling in New Nomis")
+                .log("Starting: Checking for new users and enabling in New Nomis")
                 .bean(nomisService, "getAllPrisons")
                 .log("There are ${body.size} prisons")
                 .split(body())
@@ -53,19 +53,19 @@ public class EnableNewNomisRoute extends RouteBuilder {
                 .log("Complete: Checking for new Users and Enabling in New Nomis");
 
         from(ADD_NWEB_CASELOAD)
-                .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(5000).backOffMultiplier(0.29).maximumRedeliveries(2))
+                .errorHandler(deadLetterChannel(DLQ).redeliveryDelay(5000).backOffMultiplier(0.29).maximumRedeliveries(2))
                 .setProperty("prisonId", simple("${body.prisonId}"))
-                .log("Enabling New Nomis for all active used in prison ${body.prisonId}")
+                .log("Enabling New Nomis for all active users in prison ${body.prisonId}")
                 .bean(nomisService, "enableNewNomisForCaseload(${body.prisonId})")
                 .log("Enabled ${body} new users")
                 .process(p -> {
-                    var infoMap = ImmutableMap.of("prisonId", exchangeProperty("prisonId").toString(),
+                    var infoMap = ImmutableMap.of("prisonId", p.getProperty("prisonId", String.class),
                             "numNewUsers", String.valueOf(p.getIn().getBody(Integer.class)));
                     telemetryClient.trackEvent("NewNomisUserEnabled", infoMap,null);
                 })
         ;
 
-        from(DIRECT_LOG_ERROR)
+        from(DLQ)
                 .log(LoggingLevel.ERROR, "Error occurred processing ${body.prisonId}")
                 .to("log:stats-error?level=ERROR&showCaughtException=true&showStackTrace=true&showAll=true");
 
