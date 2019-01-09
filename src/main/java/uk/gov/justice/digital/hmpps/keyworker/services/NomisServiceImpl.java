@@ -246,9 +246,8 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public int enableNewNomisForCaseload(String caseload) {
-        log.info("Enabling New Nomis for caseload {}", caseload);
-        var uri = new UriTemplate(URI_ENABLE_USERS_WITH_CASELOAD).expand();
-        return restCallHelper.put(uri, Integer.class, true);
+    public CaseloadUpdate enableNewNomisForCaseload(String caseload) {
+        var uri = new UriTemplate(URI_ENABLE_USERS_WITH_CASELOAD).expand(caseload);
+        return restCallHelper.put(uri, CaseloadUpdate.class, true);
     }
 }

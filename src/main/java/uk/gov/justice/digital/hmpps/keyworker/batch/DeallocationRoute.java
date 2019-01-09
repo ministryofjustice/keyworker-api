@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
 @Component
 @ConditionalOnProperty(name = "quartz.enabled")
 public class DeallocationRoute extends RouteBuilder {
-    static final String DIRECT_DEALLOCATION = "direct:deallocation";
+    public static final String DIRECT_DEALLOCATION = "direct:deallocation";
     private static final String QUARTZ_UPDATE_STATUS_URI = "quartz2://application/deallocation?cron=";
 
     @Value("${deallocation.job.cron}")

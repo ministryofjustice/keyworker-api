@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService;
 
@@ -79,9 +80,12 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
         var prisons = List.of( MDI, LEI, LPI );
 
         when(nomisService.getAllPrisons()).thenReturn(prisons);
-        when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId()))).thenReturn(2);
-        when(nomisService.enableNewNomisForCaseload(eq(LEI.getPrisonId()))).thenReturn(0);
-        when(nomisService.enableNewNomisForCaseload(eq(LPI.getPrisonId()))).thenReturn(14);
+        var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
+        when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId()))).thenReturn(MDIResponse);
+        var LEIResponse = CaseloadUpdate.builder().caseload(LEI.getPrisonId()).numUsersEnabled(0).build();
+        when(nomisService.enableNewNomisForCaseload(eq(LEI.getPrisonId()))).thenReturn(LEIResponse);
+        var LPIResponse = CaseloadUpdate.builder().caseload(LPI.getPrisonId()).numUsersEnabled(14).build();
+        when(nomisService.enableNewNomisForCaseload(eq(LPI.getPrisonId()))).thenReturn(LPIResponse);
 
 
         template.send(EnableNewNomisRoute.ENABLE_NEW_NOMIS, exchange -> {
@@ -102,15 +106,15 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
         final List<Exchange> receivedExchanges2 = mockEndpoint2.getReceivedExchanges();
         assertEquals(3, receivedExchanges2.size());
 
-        assertEquals(receivedExchanges2.get(0).getIn().getBody(Integer.class), Integer.valueOf(2));
-        assertEquals(receivedExchanges2.get(1).getIn().getBody(Integer.class), Integer.valueOf(0));
-        assertEquals(receivedExchanges2.get(2).getIn().getBody(Integer.class), Integer.valueOf(14));
+        assertEquals(receivedExchanges2.get(0).getIn().getBody(CaseloadUpdate.class), MDIResponse);
+        assertEquals(receivedExchanges2.get(1).getIn().getBody(CaseloadUpdate.class), LEIResponse);
+        assertEquals(receivedExchanges2.get(2).getIn().getBody(CaseloadUpdate.class), LPIResponse);
 
         verify(nomisService).getAllPrisons();
         verify(nomisService).enableNewNomisForCaseload(eq(MDI.getPrisonId()));
         verify(nomisService).enableNewNomisForCaseload(eq(LEI.getPrisonId()));
         verify(nomisService).enableNewNomisForCaseload(eq(LPI.getPrisonId()));
-        verify(telemetryClient, times(3)).trackEvent(eq("NewNomisUserEnabled"), isA(Map.class), isNull());
+        verify(telemetryClient, times(2)).trackEvent(eq("ApiUsersEnabled"), isA(Map.class), isNull());
     }
 
 

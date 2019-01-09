@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService;
 
 
@@ -44,25 +45,30 @@ public class EnableNewNomisRoute extends RouteBuilder {
         }
 
         from(ENABLE_NEW_NOMIS)
-                .log("Starting: Checking for new users and enabling in New Nomis")
+                .log("Starting: Checking for new users and enabling user access to API")
                 .bean(nomisService, "getAllPrisons")
                 .log("There are ${body.size} prisons")
                 .split(body())
                     .to(ADD_NWEB_CASELOAD)
                 .end()
-                .log("Complete: Checking for new Users and Enabling in New Nomis");
+                .log("Complete: Checking for new Users and Enabling User access to API");
 
         from(ADD_NWEB_CASELOAD)
-                .errorHandler(deadLetterChannel(DLQ).redeliveryDelay(5000).backOffMultiplier(0.29).maximumRedeliveries(2))
+                .errorHandler(deadLetterChannel(DLQ).logRetryAttempted(true).redeliveryDelay(5000).backOffMultiplier(0.29).maximumRedeliveries(2))
                 .setProperty("prisonId", simple("${body.prisonId}"))
-                .log("Enabling New Nomis for all active users in prison ${body.prisonId}")
-                .bean(nomisService, "enableNewNomisForCaseload(${body.prisonId})")
-                .log("Enabled ${body} new users")
-                .process(p -> {
-                    var infoMap = ImmutableMap.of("prisonId", p.getProperty("prisonId", String.class),
-                            "numNewUsers", String.valueOf(p.getIn().getBody(Integer.class)));
-                    telemetryClient.trackEvent("NewNomisUserEnabled", infoMap,null);
-                })
+                .log("Starting: Enabling API access for all active users in prison ${property.prisonId}")
+                .bean(nomisService, "enableNewNomisForCaseload(${property.prisonId})")
+                .choice().when(simple("${body.numUsersEnabled} > 0"))
+                    .log("Enabled ${body.numUsersEnabled} new users for API access")
+                    .process(p -> {
+                        CaseloadUpdate caseloadRes = p.getIn().getBody(CaseloadUpdate.class);
+                        var infoMap = ImmutableMap.of(
+                                "prisonId", caseloadRes.getCaseload(),
+                                "numUsersEnabled", String.valueOf(caseloadRes.getNumUsersEnabled()));
+                        telemetryClient.trackEvent("ApiUsersEnabled", infoMap,null);                //-
+                    })
+                .end()
+                .log("Complete: Enabling API access for all active users in prison ${property.prisonId}")
         ;
 
         from(DLQ)

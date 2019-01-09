@@ -4,17 +4,14 @@ import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatSummary;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsService;
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -107,26 +104,6 @@ public class KeyworkerStatsController {
         return keyworkerStatsService.getPrisonStats(prisonIds, fromDate, toDate);
     }
 
-    @ApiOperation(
-            value = "Generate prison stats at specified prison.",
-            notes = "Requires KW Migration Privilege",
-            nickname = "runBatchPrisonStats",
-            authorizations = { @Authorization("KW_MIGRATION") },
-            hidden = true)
 
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = PrisonKeyWorkerStatistic.class),
-            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class ),
-            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
-
-    @PostMapping(path = "/batch/{prisonId}")
-    @PreAuthorize("hasRole('KW_MIGRATION')")
-    public PrisonKeyWorkerStatistic runBatchPrisonStats(
-            @ApiParam(value = "prisonId", required = true)
-            @NotEmpty
-            @PathVariable(name = "prisonId") String prisonId) {
-        return keyworkerStatsService.generatePrisonStats(prisonId);
-    }
 
 }

@@ -23,8 +23,8 @@ public interface NomisService {
     String URI_CURRENT_ALLOCATIONS = "/key-worker/{agencyId}/current-allocations";
     String URI_CURRENT_ALLOCATIONS_BY_OFFENDERS = "/key-worker/{agencyId}/current-allocations/offenders";
     String URI_OFFENDERS_ALLOCATION_HISTORY = "/key-worker/offenders/allocationHistory";
-    String URI_GET_ALL_PRISONS = "/prisons";
-    String URI_ENABLE_USERS_WITH_CASELOAD = "/add/default/{caseload}";
+    String URI_GET_ALL_PRISONS = "/agencies/prison";
+    String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
 
     List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate);
 
@@ -60,5 +60,5 @@ public interface NomisService {
 
     List<Prison> getAllPrisons();
 
-    int enableNewNomisForCaseload(String caseload);
+    CaseloadUpdate enableNewNomisForCaseload(String caseload);
 }
