@@ -8,13 +8,15 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService;
-import uk.gov.justice.digital.hmpps.keyworker.services.*;
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService;
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService;
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -35,19 +37,17 @@ import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 public class KeyworkerServiceController {
 
     private final KeyworkerService keyworkerService;
-    private final KeyworkerBatchService keyworkerBatchService;
     private final KeyworkerMigrationService keyworkerMigrationService;
     private final UserRolesMigrationService roleMigrationService;
     private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
     private final PrisonSupportedService prisonSupportedService;
 
     public KeyworkerServiceController(KeyworkerService keyworkerService,
-                                      KeyworkerBatchService keyworkerBatchService, KeyworkerMigrationService keyworkerMigrationService,
+                                      KeyworkerMigrationService keyworkerMigrationService,
                                       KeyworkerAutoAllocationService keyworkerAutoAllocationService,
                                       UserRolesMigrationService roleMigrationService,
                                       PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
-        this.keyworkerBatchService = keyworkerBatchService;
         this.keyworkerMigrationService = keyworkerMigrationService;
         this.keyworkerAutoAllocationService = keyworkerAutoAllocationService;
         this.roleMigrationService = roleMigrationService;
@@ -321,24 +321,6 @@ public class KeyworkerServiceController {
     /* --------------------------------------------------------------------------------*/
 
     @ApiOperation(
-            value = "Force Runs the Batch De-allocation process",
-            notes = "Can only be run with KW_MIGRATION role",
-            authorizations = { @Authorization("KW_MIGRATION") },
-            nickname="runBatchDeallocation")
-
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Batch process complete", response = String.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
-
-    @PostMapping(path = "/batch/deallocate")
-    @PreAuthorize("hasRole('KW_MIGRATION')")
-    public void runBatchDeallocation() {
-        keyworkerBatchService.executeDeallocation();
-    }
-
-    /* --------------------------------------------------------------------------------*/
-
-    @ApiOperation(
             value = "Gets a complete history of the offenders allocations",
             notes = "Order by most recent first",
             nickname="getKeyWorkerHistoryForPrisoner")
@@ -421,8 +403,6 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)  })
 
     @GetMapping(path="/{prisonId}/members")
-
-
     public ResponseEntity keyworkerSearch(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
@@ -577,24 +557,6 @@ public class KeyworkerServiceController {
         return updateAndMigrate(prisonId, migrate, true, capacity, frequency);
     }
 
-
-    @ApiOperation(
-            value = "Checks for non active keyworkers with a reached active_date and updates the status to active",
-            notes = "Can only be run with KW_MIGRATION role",
-            authorizations = { @Authorization("KW_MIGRATION") },
-            nickname="runBatchUpdateStatus")
-
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Update status process complete", response = String.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
-
-    @PostMapping(path = "/batch/update-status")
-    @PreAuthorize("hasRole('KW_MIGRATION')")
-    public List<Long> runBatchUpdateStatus() {
-        final List<Long> keyworkerStaffIds = keyworkerBatchService.executeUpdateStatus();
-        log.info("processed /batch/updateStatus call. The following key workers have been set to status active: {}", keyworkerStaffIds);
-        return keyworkerStaffIds;
-    }
 
     private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate, Integer[] capacity, Integer kwSessionFrequencyInWeeks) {
 

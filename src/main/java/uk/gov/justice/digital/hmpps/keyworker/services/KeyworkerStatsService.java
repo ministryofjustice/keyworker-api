@@ -509,7 +509,7 @@ public class KeyworkerStatsService {
     }
 
     private void logEventToAzure(PrisonKeyWorkerStatistic stats) {
-        final Map<String, String> logMap = new HashMap<>();
+        var logMap = new HashMap<String, String>();
         logMap.put("snapshotDate", stats.getSnapshotDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
         logMap.put("prisonId", stats.getPrisonId());
 
@@ -530,7 +530,7 @@ public class KeyworkerStatsService {
     }
 
     public void raiseStatsProcessingError(String prisonId, Exchange exchange) {
-        final Map<String, String> logMap = new HashMap<>();
+        var logMap = new HashMap<String, String>();
         logMap.put("snapshotDate", LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE));
         logMap.put("prisonId", prisonId);
 

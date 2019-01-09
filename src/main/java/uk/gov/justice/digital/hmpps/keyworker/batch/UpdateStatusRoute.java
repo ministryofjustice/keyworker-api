@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
 @Component
 @ConditionalOnProperty(name = "quartz.enabled")
 public class UpdateStatusRoute extends RouteBuilder {
-    static final String DIRECT_UPDATE_STATUS = "direct:updateStatus";
+    public static final String DIRECT_UPDATE_STATUS = "direct:updateStatus";
     private static final String QUARTZ_UPDATE_STATUS_URI = "quartz2://application/updateStatus?cron=";
 
     @Value("${updateStatus.job.cron}")

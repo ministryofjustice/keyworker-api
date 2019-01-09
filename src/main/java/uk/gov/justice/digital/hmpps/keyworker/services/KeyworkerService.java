@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.WordUtils;
@@ -277,7 +278,7 @@ public class KeyworkerService  {
                             kw -> {
                                 StaffLocationRoleDto staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
 
-                                String deallocationReason = WordUtils.capitalizeFully(StringUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
+                                String deallocationReason = WordUtils.capitalizeFully(RegExUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
                                 return KeyWorkerAllocation.builder()
                                         .offenderKeyworkerId(kw.getOffenderKeyworkerId())
                                         .firstName(staffKw.getFirstName())
@@ -390,7 +391,7 @@ public class KeyworkerService  {
             return description;
         }
 
-        return StringUtils.replaceFirst(description,StringUtils.trimToEmpty(agencyId) + "-", "");
+        return RegExUtils.replaceFirst(description,StringUtils.trimToEmpty(agencyId) + "-", "");
     }
 
     public Page<KeyworkerDto> getKeyworkers(String prisonId, Optional<String> nameFilter, Optional<KeyworkerStatus> statusFilter, PagingAndSortingDto pagingAndSorting) {

@@ -91,7 +91,12 @@ public class RestCallHelper {
 
         ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, responseType, admin);
 
-        return new ArrayList<>(response.getBody());
+        return response.getBody() != null ? new ArrayList<>(response.getBody()) : new ArrayList<>();
+    }
+
+    <T> T put(URI uri, Class<T> responseType, boolean admin) {
+        ResponseEntity<T> exchange = getRestTemplate(admin).exchange(uri.toString(), HttpMethod.PUT, new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON), responseType);
+        return exchange.getBody();
     }
 
     protected <T> ResponseEntity<T> getForList(URI uri, ParameterizedTypeReference<T> responseType) {

@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 @Component
 @ConditionalOnProperty(name = "quartz.enabled")
 public class PrisonStatsRoute extends RouteBuilder {
-    static final String DIRECT_PRISON_STATS = "direct:prisonStats";
+    public static final String DIRECT_PRISON_STATS = "direct:prisonStats";
     private static final String QUARTZ_PRISON_STATS_URI = "quartz2://application/prisonStats?cron=";
     private static final String DIRECT_GENERATE_STATS = "direct:generate-stats";
     private static final String DIRECT_LOG_ERROR = "direct:log-error";
