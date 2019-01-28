@@ -84,11 +84,11 @@ public class KeyworkerStatsController {
             @ApiParam(value = "List of prisonIds", allowMultiple = true, example = "prisonId=MDI&prisonId=LEI")
             @RequestParam(value = "prisonId", required = false)
                     List<String> prisonIdList,
-            @ApiParam(value = "Start Date of Stats, optional, will chosse one month before toDate (in YYYY-MM-DD format)")
+            @ApiParam(value = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)")
             @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate fromDate,
-            @ApiParam(value = "End Date of Stats, optional, will chosse yesterday if not provided (in YYYY-MM-DD format)")
+            @ApiParam(value = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)")
             @RequestParam(value = "toDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate) {

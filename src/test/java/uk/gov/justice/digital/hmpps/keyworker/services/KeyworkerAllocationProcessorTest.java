@@ -17,8 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyCollectionOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -63,7 +62,7 @@ public class KeyworkerAllocationProcessorTest {
                 .offenderNo(offNos.iterator().next())
                 .allocationType(AllocationType.PROVISIONAL)
                 .build();
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(Collections.singletonList(ok));
+        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(Collections.singletonList(ok));
 
         // Invoke service
         List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
@@ -87,7 +86,7 @@ public class KeyworkerAllocationProcessorTest {
         // Mock remote to return active allocations for all offender numbers.
         List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
 
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(allocs);
+        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
         List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
@@ -111,7 +110,7 @@ public class KeyworkerAllocationProcessorTest {
 
         allocs.add(allocs.get(0));
 
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(allocs);
+        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
         List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
@@ -139,7 +138,7 @@ public class KeyworkerAllocationProcessorTest {
         // Mock remote to return active allocations for 3 offender numbers.
         List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, allocatedOffNos);
 
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollectionOf(String.class))).thenReturn(allocs);
+        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
         List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);

@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.*;
 
 
