@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
@@ -32,6 +33,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_CASENOTE_TYPE;
@@ -116,7 +118,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Verify mocks
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
-        verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderLocationDto.class));
+        verify(processor, times(1)).filterByUnallocated(anyList());
 
     }
 
@@ -138,7 +140,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Verify mocks
         verify(prisonSupportedService, times(1)).verifyPrisonMigrated(eq(TEST_AGENCY));
-        verify(processor, times(1)).filterByUnallocated(anyListOf(OffenderLocationDto.class));
+        verify(processor, times(1)).filterByUnallocated(anyList());
 
     }
 
@@ -203,7 +205,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
                 .build();
 
         OffenderLocationDto offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo);
-        when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
+        Mockito.when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
 
         when(nomisService.getStaffKeyWorkerForPrison(TEST_AGENCY, staffId)).thenReturn(Optional.empty());
         when(nomisService.getBasicKeyworkerDtoForStaffId(staffId)).thenReturn(null);
@@ -475,7 +477,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(keyworkerDetails.getCapacity()).isEqualTo(null);
 
         verify(keyworkerRepository, never()).findById(Mockito.anyLong());
-        verify(repository, never()).countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Mockito.anyLong(), Mockito.anyString(), Mockito.anyBoolean(), Mockito.anyObject());
+        verify(repository, never()).countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Mockito.anyLong(), Mockito.anyString(), Mockito.anyBoolean(), ArgumentMatchers.any());
     }
 
     @Test
@@ -779,7 +781,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
                 .thenReturn(3);
 
-        when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L, -7L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), isNull(LocalDate.class), isNull(LocalDate.class), eq(1)))
+        when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L, -7L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), isNull(), isNull(), eq(1)))
                 .thenReturn(List.of(
                         CaseNoteUsageDto.builder()
                                 .staffId(-5L)

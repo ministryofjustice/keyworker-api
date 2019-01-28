@@ -205,25 +205,35 @@ public class KeyworkerStatsService {
         SummaryStatistic current = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getCurrent() != null).map(PrisonStatsDto::getCurrent).collect(Collectors.toList()));
         SummaryStatistic previous = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getPrevious() != null).map(PrisonStatsDto::getPrevious).collect(Collectors.toList()));
 
-        CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        OptionalDouble avgSessions = statsMap.values().stream().mapToInt(PrisonStatsDto::getAvgOverallKeyworkerSessions).average();
-        OptionalDouble avgCompliance = statsMap.values().stream().mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
+        var complianceTimeline = new TreeMap<LocalDate, BigDecimal>();
+        var complianceCount = new TreeMap<LocalDate, Long>();
 
+        statsMap.values().stream()
+                .filter(s -> s.getComplianceTimeline() != null)
+                .forEach(s -> s.getComplianceTimeline().forEach((key, value) -> {
+                    complianceTimeline.merge(key, value, (a, b) -> b.add(a));
+                    complianceCount.merge(key, 1L, (a, b) -> a + b);
+                }));
 
-        final SortedMap<LocalDate, BigDecimal> complianceTimeline = new TreeMap<>();
-        final SortedMap<LocalDate, Long> complianceCount = new TreeMap<>();
-
-        statsMap.values().forEach(s -> s.getComplianceTimeline().forEach((key, value) -> {
-            complianceTimeline.merge(key, value, (a, b) -> b.add(a));
-            complianceCount.merge(key, 1L, (a, b) -> a + b);
-        }));
-
-        final SortedMap<LocalDate, BigDecimal> averageComplianceTimeline = new TreeMap<>();
+        var averageComplianceTimeline = new TreeMap<LocalDate, BigDecimal>();
         complianceTimeline.forEach((k, v) ->
             averageComplianceTimeline.put(k, v.divide(new BigDecimal(complianceCount.get(k)), RoundingMode.HALF_UP)));
 
-        final SortedMap<LocalDate, Long> keyworkerSessionsTimeline = new TreeMap<>();
-        statsMap.values().forEach(s -> s.getKeyworkerSessionsTimeline().forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
+        var keyworkerSessionsTimeline = new TreeMap<LocalDate, Long>();
+        statsMap.values().stream()
+                 .filter(s -> s.getKeyworkerSessionsTimeline() != null)
+                 .forEach(s -> s.getKeyworkerSessionsTimeline()
+                         .forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
+
+        OptionalDouble avgSessions = statsMap.values().stream()
+                 .filter(s -> s.getAvgOverallKeyworkerSessions() != null)
+                 .mapToInt(PrisonStatsDto::getAvgOverallKeyworkerSessions).average();
+
+        OptionalDouble avgCompliance = statsMap.values().stream()
+                .filter(s -> s.getAvgOverallCompliance() != null)
+                .mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
+
+        var range = new CalcDateRange(fromDate, toDate);
 
         PrisonStatsDto prisonStatsDto = PrisonStatsDto.builder()
                 .requestedFromDate(range.getStartDate())
@@ -368,33 +378,36 @@ public class KeyworkerStatsService {
 
         final TemporalAdjuster weekAdjuster = TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY);
 
-        SortedMap<LocalDate, Long> kwSummary = new TreeMap<>(dailyStats.stream().collect(
-                Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
-                        Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkerSessions))
-        ));
-
-        TreeMap<LocalDate, BigDecimal> compliance = new TreeMap<>(dailyStats.stream().collect(
-                Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
-                        Collectors.averagingDouble(p ->
-                        {
-                            int projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
-                            return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
-                        }))
-        ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
-                e -> new BigDecimal(e.getValue()).setScale(2, RoundingMode.HALF_UP))));
-
-        int avgOverallKeyworkerSessions = (int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p)));
-
-        return PrisonStatsDto.builder()
+        var prisonStats = PrisonStatsDto.builder()
                 .requestedFromDate(range.getStartDate())
                 .requestedToDate(range.getEndDate())
                 .current(current)
                 .previous(previous)
-                .keyworkerSessionsTimeline(kwSummary)
-                .avgOverallKeyworkerSessions(avgOverallKeyworkerSessions)
-                .complianceTimeline(compliance)
-                .avgOverallCompliance(getAverageCompliance(compliance.values()))
                 .build();
+
+        if (dailyStats != null) {
+            var kwSummary = new TreeMap<>(dailyStats.stream().collect(
+                    Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
+                            Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkerSessions))
+            ));
+            prisonStats.setKeyworkerSessionsTimeline(kwSummary);
+            prisonStats.setAvgOverallKeyworkerSessions((int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p))));
+
+            var compliance = new TreeMap<>(dailyStats.stream().collect(
+                    Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
+                            Collectors.averagingDouble(p ->
+                            {
+                                int projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
+                                return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
+                            }))
+            ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
+                    e -> new BigDecimal(e.getValue()).setScale(2, RoundingMode.HALF_UP))));
+
+            prisonStats.setComplianceTimeline(compliance);
+            prisonStats.setAvgOverallCompliance(getAverageCompliance(compliance.values()));
+
+        }
+        return prisonStats;
     }
 
     private BigDecimal getAverageCompliance(Collection <BigDecimal> values) {

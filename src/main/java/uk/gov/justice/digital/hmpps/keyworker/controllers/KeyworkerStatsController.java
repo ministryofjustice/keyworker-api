@@ -88,7 +88,7 @@ public class KeyworkerStatsController {
             @RequestParam(value = "fromDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate fromDate,
-            @ApiParam(value = "End Date of Stats, optional, will chosse yesterday if not provided (in YYYY-MM-DD format)")
+            @ApiParam(value = "End Date of Stats (inclusive), optional, will chose yesterday if not provided (in YYYY-MM-DD format)")
             @RequestParam(value = "toDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     LocalDate toDate) {
