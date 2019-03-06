@@ -25,11 +25,11 @@ public class KeyworkerRepositoryTest {
     @Test
     public void givenATransientKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
-        var transientEntity = transientEntity();
+        final var transientEntity = transientEntity();
 
-        var entity = transientEntity.toBuilder().build();
+        final var entity = transientEntity.toBuilder().build();
 
-        var persistedEntity = repository.save(entity);
+        final var persistedEntity = repository.save(entity);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -38,7 +38,7 @@ public class KeyworkerRepositoryTest {
 
         TestTransaction.start();
 
-        var retrievedEntity = repository.findById(entity.getStaffId()).orElseThrow();
+        final var retrievedEntity = repository.findById(entity.getStaffId()).orElseThrow();
 
         // equals only compares the business key columns: staffId
         assertThat(retrievedEntity).isEqualTo(transientEntity);
@@ -50,7 +50,7 @@ public class KeyworkerRepositoryTest {
     @Test
     public void givenAPersistentInstanceThenNullableValuesAreUpdateable() {
 
-        var entity = repository.save(transientEntity());
+        final var entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
         TestTransaction.end();
 

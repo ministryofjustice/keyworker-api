@@ -27,10 +27,10 @@ public class KeyworkerMigrationService {
     private final PrisonSupportedService prisonSupportedService;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
 
-    public KeyworkerMigrationService(NomisService nomisService,
-                                     PrisonSupportedRepository repository,
-                                     PrisonSupportedService prisonSupportedService,
-                                     OffenderKeyworkerRepository offenderKeyworkerRepository) {
+    public KeyworkerMigrationService(final NomisService nomisService,
+                                     final PrisonSupportedRepository repository,
+                                     final PrisonSupportedService prisonSupportedService,
+                                     final OffenderKeyworkerRepository offenderKeyworkerRepository) {
         this.repository = repository;
         this.nomisService = nomisService;
         this.prisonSupportedService = prisonSupportedService;
@@ -38,11 +38,11 @@ public class KeyworkerMigrationService {
     }
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
-    public void migrateKeyworkerByPrison(String prisonId) {
+    public void migrateKeyworkerByPrison(final String prisonId) {
         if (prisonSupportedService.isMigrated(prisonId)) return;
 
         // If we get here, agency is eligible for migration and has not yet been migrated.
-        final List<OffenderKeyworkerDto> allocations = nomisService.getOffenderKeyWorkerPage(prisonId, 0, Integer.MAX_VALUE);
+        final var allocations = nomisService.getOffenderKeyWorkerPage(prisonId, 0, Integer.MAX_VALUE);
         log.debug("[{}] allocations retrieved for agency [{}]", allocations.size(), prisonId);
         // persist all allocations
         offenderKeyworkerRepository.saveAll(translate(allocations));
@@ -54,10 +54,10 @@ public class KeyworkerMigrationService {
         });
     }
 
-    private Set<OffenderKeyworker> translate(List<OffenderKeyworkerDto> dtos) {
+    private Set<OffenderKeyworker> translate(final List<OffenderKeyworkerDto> dtos) {
         Validate.notNull(dtos);
 
-        Set<OffenderKeyworker> okwList = ConversionHelper.convertOffenderKeyworkerDto2Model(dtos);
+        final var okwList = ConversionHelper.convertOffenderKeyworkerDto2Model(dtos);
 
         okwList.forEach(item -> {
             item.setAllocationType(AllocationType.MANUAL);

@@ -31,13 +31,13 @@ public class RequestLogFilter extends OncePerRequestFilter {
     private final Pattern excludeUriRegex;
 
     @Autowired
-    public RequestLogFilter(MdcUtility mdcUtility, @Value("${logging.uris.exclude.regex}") String excludeUris) {
+    public RequestLogFilter(final MdcUtility mdcUtility, @Value("${logging.uris.exclude.regex}") final String excludeUris) {
         this.mdcUtility = mdcUtility;
         excludeUriRegex = Pattern.compile(excludeUris);
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
             throws ServletException, IOException {
 
         if (excludeUriRegex.matcher(request.getRequestURI()).matches()) {
@@ -45,7 +45,7 @@ public class RequestLogFilter extends OncePerRequestFilter {
         }
 
         try {
-            LocalDateTime start = LocalDateTime.now();
+            final var start = LocalDateTime.now();
             MDC.put(REQUEST_ID, mdcUtility.generateUUID());
             if (log.isDebugEnabled() && isLoggingAllowed()) {
                 log.debug("Request: {} {}", request.getMethod(), request.getRequestURI());
@@ -53,9 +53,9 @@ public class RequestLogFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-            long duration = Duration.between(start, LocalDateTime.now()).toMillis();
+            final var duration = Duration.between(start, LocalDateTime.now()).toMillis();
             MDC.put(REQUEST_DURATION, String.valueOf(duration));
-            int status = response.getStatus();
+            final var status = response.getStatus();
             MDC.put(RESPONSE_STATUS, String.valueOf(status));
             if (log.isDebugEnabled() && isLoggingAllowed()) {
                 log.debug("Response: {} {} - Status {} - Start {}, Duration {} ms", request.getMethod(), request.getRequestURI(), status, start.format(formatter), duration);

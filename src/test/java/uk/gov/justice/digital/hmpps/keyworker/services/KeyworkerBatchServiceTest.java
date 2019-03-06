@@ -80,15 +80,15 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testDeallocateJobHappy() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         when(nomisService.getPrisonerStatuses(threshold, today)).thenReturn(prisonerStatusesDay0);
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-1))).thenReturn(Collections.emptyList());
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-2))).thenReturn(Collections.emptyList());
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-3))).thenReturn(prisonerStatusesDay3);
 
-        List<OffenderKeyworker> offenderDetailsA = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111A").active(true).staffId(1234L).prisonId("MDI").build());
-        List<OffenderKeyworker> offenderDetailsB = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111B").active(true).build());
+        final var offenderDetailsA = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111A").active(true).staffId(1234L).prisonId("MDI").build());
+        final var offenderDetailsB = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111B").active(true).build());
         when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
         when(repository.findByActiveAndOffenderNo(true, "AA1111B")).thenReturn(offenderDetailsB);
 
@@ -106,11 +106,11 @@ public class KeyworkerBatchServiceTest {
 
         verify(repository).findByActiveAndOffenderNo(true, "AA1111C-notinDB");
 
-        ArgumentCaptor<Map> event = ArgumentCaptor.forClass(Map.class);
-        ArgumentCaptor<Map> metrics = ArgumentCaptor.forClass(Map.class);
+        final var event = ArgumentCaptor.forClass(Map.class);
+        final var metrics = ArgumentCaptor.forClass(Map.class);
         verify(telemetryClient, times(5)).trackEvent(anyString(), event.capture(), metrics.capture());
 
-        final List<Map> events = event.getAllValues();
+        final var events = event.getAllValues();
         assertThat(events.get(0).get("date")).isEqualTo(today.format(DateTimeFormatter.ISO_LOCAL_DATE));
         assertThat(events.get(0).get("previousJobStart")).isEqualTo(threshold.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         assertThat(events.get(1).get("dayNumber")).isEqualTo("0");
@@ -127,24 +127,24 @@ public class KeyworkerBatchServiceTest {
     @Test
     public void testDeallocateJobTransitionToDbThreshold() {
         // Ensure threshold from parameter is used when there is nothing in the batch_history db table
-        ArgumentCaptor<LocalDateTime> thresholdParam = ArgumentCaptor.forClass(LocalDateTime.class);
+        final var thresholdParam = ArgumentCaptor.forClass(LocalDateTime.class);
         when(nomisService.getPrisonerStatuses(thresholdParam.capture(), any(LocalDate.class))).thenReturn(Collections.emptyList());
 
         batchService.executeDeallocation();
 
         assertThat(thresholdParam.getValue()).isEqualTo(threshold);
 
-        ArgumentCaptor<BatchHistory> batchHistory = ArgumentCaptor.forClass(BatchHistory.class);
+        final var batchHistory = ArgumentCaptor.forClass(BatchHistory.class);
         verify(batchHistoryRepository).save(batchHistory.capture());
-        final BatchHistory value = batchHistory.getValue();
+        final var value = batchHistory.getValue();
         assertThat(value.getName()).isEqualTo("DeallocateJob");
         assertThat(value.getLastRun()).isCloseTo(LocalDateTime.now(), new TemporalUnitWithinOffset(1, ChronoUnit.HOURS));
     }
 
     @Test
     public void testDeallocateJobUsingDbThreshold() {
-        LocalDateTime dbThreshold = LocalDateTime.of(2018, Month.JUNE, 2, 11, 0);
-        final BatchHistory dbRecord = BatchHistory.builder()
+        final var dbThreshold = LocalDateTime.of(2018, Month.JUNE, 2, 11, 0);
+        final var dbRecord = BatchHistory.builder()
                 .batchId(1L)
                 .name("DeallocateJob")
                 .lastRun(dbThreshold)
@@ -159,13 +159,13 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testDeallocateJobException() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         when(nomisService.getPrisonerStatuses(threshold, today)).thenThrow(new RuntimeException("test"));
 
         batchService.executeDeallocation();
 
-        ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
+        final var exception = ArgumentCaptor.forClass(RuntimeException.class);
         verify(telemetryClient).trackException(exception.capture());
 
         assertThat(exception.getValue().getMessage()).isEqualTo("test");
@@ -173,13 +173,13 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testOtherHttpServerErrorException() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         when(nomisService.getPrisonerStatuses(threshold, today)).thenThrow(new HttpServerErrorException(HttpStatus.BAD_REQUEST));
 
         batchService.executeDeallocation();
 
-        ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
+        final var exception = ArgumentCaptor.forClass(RuntimeException.class);
         verify(telemetryClient).trackException(exception.capture());
 
         assertThat(exception.getValue().getMessage()).isEqualTo("400 BAD_REQUEST");
@@ -187,7 +187,7 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testSingleGatewayTimeout() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         when(nomisService.getPrisonerStatuses(threshold, today))
                 .thenThrow(new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "Bad Gateway"))
@@ -197,14 +197,14 @@ public class KeyworkerBatchServiceTest {
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-2))).thenReturn(Collections.emptyList());
         when(nomisService.getPrisonerStatuses(threshold, today.plusDays(-3))).thenReturn(prisonerStatusesDay3);
 
-        List<OffenderKeyworker> offenderDetailsA = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111A").active(true).staffId(1234L).prisonId("MDI").build());
-        List<OffenderKeyworker> offenderDetailsB = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111B").active(true).build());
+        final var offenderDetailsA = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111A").active(true).staffId(1234L).prisonId("MDI").build());
+        final var offenderDetailsB = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111B").active(true).build());
         when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
         when(repository.findByActiveAndOffenderNo(true, "AA1111B")).thenReturn(offenderDetailsB);
 
         batchService.executeDeallocation();
 
-        ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
+        final var exception = ArgumentCaptor.forClass(RuntimeException.class);
         verify(telemetryClient, times(1)).trackException(exception.capture());
         assertThat(exception.getValue().getMessage()).isEqualTo("502 Bad Gateway");
         // Check processing proceeded correctly
@@ -214,13 +214,13 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testPersistentGatewayTimeout() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         when(nomisService.getPrisonerStatuses(threshold, today)).thenThrow(new HttpServerErrorException(HttpStatus.BAD_GATEWAY, "Bad Gateway"));
 
         batchService.executeDeallocation();
 
-        ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
+        final var exception = ArgumentCaptor.forClass(RuntimeException.class);
         verify(telemetryClient, times(2)).trackException(exception.capture());
 
         assertThat(exception.getValue().getMessage()).isEqualTo("502 Bad Gateway");
@@ -228,9 +228,9 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testDeallocateJobDontProceed() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
-        List<PrisonerCustodyStatusDto> prisonerStatusesDay0 = Collections.singletonList(
+        final var prisonerStatusesDay0 = Collections.singletonList(
                 PrisonerCustodyStatusDto.builder()
                         .offenderNo("AA1111A")
                         .createDateTime(threshold)
@@ -242,7 +242,7 @@ public class KeyworkerBatchServiceTest {
         );
         when(nomisService.getPrisonerStatuses(threshold, today)).thenReturn(prisonerStatusesDay0);
 
-        List<OffenderKeyworker> offenderDetailsA = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111A").prisonId("BXI").active(true).build());
+        final var offenderDetailsA = Collections.singletonList(OffenderKeyworker.builder().offenderNo("AA1111A").prisonId("BXI").active(true).build());
         when(repository.findByActiveAndOffenderNo(true, "AA1111A")).thenReturn(offenderDetailsA);
 
         batchService.executeDeallocation();
@@ -258,27 +258,27 @@ public class KeyworkerBatchServiceTest {
 
     @Test
     public void testUpdateStatusBatchHappy() {
-        final LocalDate DATE_14_JAN_2018 = LocalDate.of(2018, Month.JANUARY, 14);
-        final LocalDate today = LocalDate.now();
+        final var DATE_14_JAN_2018 = LocalDate.of(2018, Month.JANUARY, 14);
+        final var today = LocalDate.now();
 
-        final Keyworker keyworker_backFromLeave = new Keyworker(2L, 6, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, Boolean.TRUE, DATE_14_JAN_2018);
+        final var keyworker_backFromLeave = new Keyworker(2L, 6, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, Boolean.TRUE, DATE_14_JAN_2018);
 
         when(keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1))).thenReturn(Collections.singletonList(keyworker_backFromLeave));
 
-        final List<Long> keyworkerIds = batchService.executeUpdateStatus();
+        final var keyworkerIds = batchService.executeUpdateStatus();
 
         assertThat(keyworkerIds).containsExactlyInAnyOrder(2L);
     }
 
     @Test
     public void testUpdateStatusJobException() {
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         when(keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1))).thenThrow(new RuntimeException("test"));
 
         batchService.executeUpdateStatus();
 
-        ArgumentCaptor<RuntimeException> exception = ArgumentCaptor.forClass(RuntimeException.class);
+        final var exception = ArgumentCaptor.forClass(RuntimeException.class);
         verify(telemetryClient).trackException(exception.capture());
 
         assertThat(exception.getValue().getMessage()).isEqualTo("test");

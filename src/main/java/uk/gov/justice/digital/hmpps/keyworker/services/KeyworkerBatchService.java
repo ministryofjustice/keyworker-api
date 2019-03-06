@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerCustodyStatusDto;
-import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.BatchHistory;
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
+import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.repository.BatchHistoryRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -39,10 +42,10 @@ public class KeyworkerBatchService {
     @Value("${api.keyworker.initial.deallocate.threshold}")
     private String initialDeallocateThreshold;
 
-    public KeyworkerBatchService(OffenderKeyworkerRepository repository,
-                                 KeyworkerRepository keyworkerRepository,
-                                 NomisService nomisService,
-                                 TelemetryClient telemetryClient, BatchHistoryRepository batchHistoryRepository) {
+    public KeyworkerBatchService(final OffenderKeyworkerRepository repository,
+                                 final KeyworkerRepository keyworkerRepository,
+                                 final NomisService nomisService,
+                                 final TelemetryClient telemetryClient, final BatchHistoryRepository batchHistoryRepository) {
         this.keyworkerRepository = keyworkerRepository;
         this.telemetryClient = telemetryClient;
         this.repository = repository;
@@ -52,7 +55,7 @@ public class KeyworkerBatchService {
 
     public void executeDeallocation() {
         try {
-            BatchHistory deallocateJob = batchHistoryRepository.findByName("DeallocateJob");
+            var deallocateJob = batchHistoryRepository.findByName("DeallocateJob");
             if (deallocateJob == null) {
                 deallocateJob = BatchHistory.builder()
                         .name("DeallocateJob")
@@ -61,8 +64,8 @@ public class KeyworkerBatchService {
                 batchHistoryRepository.save(deallocateJob);
                 log.warn("Created BatchHistory record");
             }
-            LocalDateTime previousJobStart = deallocateJob.getLastRun();
-            final LocalDateTime thisJobStart = LocalDateTime.now();
+            final var previousJobStart = deallocateJob.getLastRun();
+            final var thisJobStart = LocalDateTime.now();
 
             log.info("******** De-allocation Process Started using previousJobStart=" + previousJobStart);
 
@@ -71,24 +74,24 @@ public class KeyworkerBatchService {
             deallocateJob.setLastRun(thisJobStart);
 
             log.info("******** De-allocation Process Ended");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Batch exception", e);
             telemetryClient.trackException(e);
         }
     }
 
-    private void checkMovements(LocalDateTime previousJobStart) {
+    private void checkMovements(final LocalDateTime previousJobStart) {
 
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
         logEventToAzure(previousJobStart, today);
 
-        for (int dayNumber = 0; dayNumber >= -lookBackDays; dayNumber--) {
+        for (var dayNumber = 0; dayNumber >= -lookBackDays; dayNumber--) {
 
-            final List<PrisonerCustodyStatusDto> prisonerStatuses = getFromNomis(previousJobStart, today, dayNumber);
+            final var prisonerStatuses = getFromNomis(previousJobStart, today, dayNumber);
 
             prisonerStatuses.forEach(ps -> {
-                final List<OffenderKeyworker> ok = repository.findByActiveAndOffenderNo(true, ps.getOffenderNo());
+                final var ok = repository.findByActiveAndOffenderNo(true, ps.getOffenderNo());
                 // There shouldnt ever be more than 1, but just in case
                 ok.forEach(offenderKeyworker -> {
                     if (StringUtils.equals(ps.getToAgency(), offenderKeyworker.getPrisonId())) {
@@ -102,24 +105,24 @@ public class KeyworkerBatchService {
         }
     }
 
-    private List<PrisonerCustodyStatusDto> getFromNomis(LocalDateTime previousJobStart, LocalDate today, int dayNumber) {
+    private List<PrisonerCustodyStatusDto> getFromNomis(final LocalDateTime previousJobStart, final LocalDate today, final int dayNumber) {
 
-        for (int i = 1; i <= maxAttempts; i++) {
-            final LocalDate movementDate = today.plusDays(dayNumber);
+        for (var i = 1; i <= maxAttempts; i++) {
+            final var movementDate = today.plusDays(dayNumber);
             try {
 
                 // Use /movements endpoint to get info from offender_external_movements
                 // which matches when the trigger on this table fires to update offender_key_workers
 
-                final long startTime = System.currentTimeMillis();
-                final List<PrisonerCustodyStatusDto> prisonerStatuses = nomisService.getPrisonerStatuses(previousJobStart, movementDate);
-                final long endTime = System.currentTimeMillis();
+                final var startTime = System.currentTimeMillis();
+                final var prisonerStatuses = nomisService.getPrisonerStatuses(previousJobStart, movementDate);
+                final var endTime = System.currentTimeMillis();
 
                 log.info("Day offset {}: {} released or transferred prisoners found", dayNumber, prisonerStatuses.size());
                 logSubEventToAzure(dayNumber, prisonerStatuses, endTime - startTime);
                 return prisonerStatuses;
 
-            } catch (HttpServerErrorException e) {
+            } catch (final HttpServerErrorException e) {
                 // The gateway could timeout
                 if (!e.getMessage().contains("502 Bad Gateway")) {
                     throw e;
@@ -142,7 +145,7 @@ public class KeyworkerBatchService {
     private void pause() {
         try {
             Thread.sleep(backoffMs);
-        } catch (InterruptedException ie) {
+        } catch (final InterruptedException ie) {
             log.error("Unexpected error", ie);
         }
     }
@@ -151,14 +154,14 @@ public class KeyworkerBatchService {
         try {
             log.info("******** Update status Process Started");
 
-            final List<Long> keyworkerIds = applyKeyworkerActiveDate();
+            final var keyworkerIds = applyKeyworkerActiveDate();
 
             logUpdateStatusEventToAzure(keyworkerIds);
 
             log.info("******** Update Status Process Ended");
 
             return keyworkerIds;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Batch exception", e);
             telemetryClient.trackException(e);
         }
@@ -167,9 +170,9 @@ public class KeyworkerBatchService {
 
     private List<Long> applyKeyworkerActiveDate() {
 
-        final LocalDate today = LocalDate.now();
+        final var today = LocalDate.now();
 
-        final List<Keyworker> returningKeyworkers = keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1));
+        final var returningKeyworkers = keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1));
 
         returningKeyworkers.forEach(kw -> {
             log.debug("Updating keyworker {}, changing status to ACTIVE from {}", kw.getStaffId(), kw.getStatus());
@@ -182,20 +185,20 @@ public class KeyworkerBatchService {
     }
 
 
-    private void logUpdateStatusEventToAzure(List keyworkers) {
+    private void logUpdateStatusEventToAzure(final List keyworkers) {
         final Map<String, String> logMap = new HashMap<>();
         logMap.put("KeyworkersUpdated", keyworkers.toString());
         telemetryClient.trackEvent("updateStatus", logMap, null);
     }
 
-    private void logEventToAzure(LocalDateTime previousJobStart, LocalDate today) {
+    private void logEventToAzure(final LocalDateTime previousJobStart, final LocalDate today) {
         final Map<String, String> logMap = new HashMap<>();
         logMap.put("date", today.format(DateTimeFormatter.ISO_LOCAL_DATE));
         logMap.put("previousJobStart", previousJobStart.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         telemetryClient.trackEvent("deallocationCheck", logMap, null);
     }
 
-    private void logSubEventToAzure(int dayNumber, List<PrisonerCustodyStatusDto> prisonerStatuses, long ms) {
+    private void logSubEventToAzure(final int dayNumber, final List<PrisonerCustodyStatusDto> prisonerStatuses, final long ms) {
         final Map<String, String> stepLogMap = new HashMap<>();
         stepLogMap.put("dayNumber", String.valueOf(dayNumber));
         stepLogMap.put("prisonersFound", String.valueOf(prisonerStatuses.size()));

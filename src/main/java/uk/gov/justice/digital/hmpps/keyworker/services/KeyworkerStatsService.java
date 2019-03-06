@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
-import uk.gov.justice.digital.hmpps.keyworker.model.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
@@ -20,7 +22,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.function.Function;
@@ -47,11 +48,11 @@ public class KeyworkerStatsService {
 
     private final BigDecimal HUNDRED = new BigDecimal("100.00");
 
-    public KeyworkerStatsService(NomisService nomisService, PrisonSupportedService prisonSupportedService,
-                                 OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                 PrisonKeyWorkerStatisticRepository statisticRepository,
-                                 KeyworkerRepository keyworkerRepository,
-                                 TelemetryClient telemetryClient) {
+    public KeyworkerStatsService(final NomisService nomisService, final PrisonSupportedService prisonSupportedService,
+                                 final OffenderKeyworkerRepository offenderKeyworkerRepository,
+                                 final PrisonKeyWorkerStatisticRepository statisticRepository,
+                                 final KeyworkerRepository keyworkerRepository,
+                                 final TelemetryClient telemetryClient) {
         this.nomisService = nomisService;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
@@ -60,26 +61,26 @@ public class KeyworkerStatsService {
         this.telemetryClient = telemetryClient;
     }
 
-    public KeyworkerStatsDto getStatsForStaff(Long staffId, String prisonId, final LocalDate fromDate, final LocalDate toDate) {
+    public KeyworkerStatsDto getStatsForStaff(final Long staffId, final String prisonId, final LocalDate fromDate, final LocalDate toDate) {
 
         Validate.notNull(staffId, "staffId");
         Validate.notNull(prisonId,"prisonId");
 
-        CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        final LocalDateTime nextEndDate = range.getEndDate().atStartOfDay().plusDays(1);
+        final var range = new CalcDateRange(fromDate, toDate);
+        final var nextEndDate = range.getEndDate().atStartOfDay().plusDays(1);
 
-        List<OffenderKeyworker> applicableAssignments = offenderKeyworkerRepository.findByStaffIdAndPrisonId(staffId, prisonId).stream()
+        final var applicableAssignments = offenderKeyworkerRepository.findByStaffIdAndPrisonId(staffId, prisonId).stream()
                 .filter(kw ->
                         kw.getAssignedDateTime().compareTo(nextEndDate) < 0 &&
                                 (kw.getExpiryDateTime() == null || kw.getExpiryDateTime().compareTo(range.getStartDate().atStartOfDay()) >= 0))
                         .collect(Collectors.toList());
 
-        List<String> prisonerNosList = applicableAssignments.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
+        final var prisonerNosList = applicableAssignments.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
 
         if (!prisonerNosList.isEmpty()) {
-            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(prisonerNosList, range.startDate, range.endDate, staffId, false);
-            int projectedKeyworkerSessions = getProjectedKeyworkerSessions(applicableAssignments, staffId, prisonId, range.getStartDate(), nextEndDate);
-            final BigDecimal complianceRate = getComplianceRate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
+            final var caseNoteSummary = new KeyWorkingCaseNoteSummary(prisonerNosList, range.startDate, range.endDate, staffId, false);
+            final var projectedKeyworkerSessions = getProjectedKeyworkerSessions(applicableAssignments, staffId, prisonId, range.getStartDate(), nextEndDate);
+            final var complianceRate = getComplianceRate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
 
             return KeyworkerStatsDto.builder()
                     .staffId(staffId)
@@ -103,71 +104,71 @@ public class KeyworkerStatsService {
     }
 
     @Transactional
-    public PrisonKeyWorkerStatistic generatePrisonStats(String prisonId) {
+    public PrisonKeyWorkerStatistic generatePrisonStats(final String prisonId) {
         Validate.notNull(prisonId,"prisonId");
 
-        final LocalDate snapshotDate = LocalDate.now().minusDays(1);
+        final var snapshotDate = LocalDate.now().minusDays(1);
 
-        PrisonKeyWorkerStatistic dailyStat = statisticRepository.findOneByPrisonIdAndSnapshotDate(prisonId, snapshotDate);
+        var dailyStat = statisticRepository.findOneByPrisonIdAndSnapshotDate(prisonId, snapshotDate);
 
         if (dailyStat != null) {
             log.warn("Statistics have already been generated for {} on {}", prisonId, snapshotDate);
 
         } else {
             // get all offenders in prison at the moment
-            final List<OffenderLocationDto> activePrisoners = nomisService.getOffendersAtLocation(prisonId, "bookingId", SortOrder.ASC, true);
+            final var activePrisoners = nomisService.getOffendersAtLocation(prisonId, "bookingId", SortOrder.ASC, true);
             log.info("There are currently {} prisoners in {}", activePrisoners.size(), prisonId);
 
             // get a distinct list of offenderNos
-            final List<String> offenderNos = activePrisoners.stream().map(OffenderLocationDto::getOffenderNo).distinct().collect(Collectors.toList());
+            final var offenderNos = activePrisoners.stream().map(OffenderLocationDto::getOffenderNo).distinct().collect(Collectors.toList());
 
             // list of active key worker active assignments
-            final List<OffenderKeyworker> allocatedKeyWorkers = offenderKeyworkerRepository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
+            final var allocatedKeyWorkers = offenderKeyworkerRepository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
             log.info("There are currently {} allocated key workers to prisoners in {}", allocatedKeyWorkers.size(), prisonId);
 
-            PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder()
+            final var pagingAndSorting = PagingAndSortingDto.builder()
                     .pageLimit(3000L)
                     .pageOffset(0L)
                     .sortFields("staffId")
                     .sortOrder(SortOrder.ASC)
                     .build();
-            ResponseEntity<List<StaffLocationRoleDto>> activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting, true);
+            final var activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting, true);
 
             // remove key workers not active
-            List<StaffLocationRoleDto> keyWorkers = activeKeyWorkers.getBody().stream().filter(
+            final var keyWorkers = activeKeyWorkers.getBody().stream().filter(
                     kw -> {
-                        Keyworker keyworker = keyworkerRepository.findById(kw.getStaffId()).orElse(null);
+                        var keyworker = keyworkerRepository.findById(kw.getStaffId()).orElse(null);
                         return keyworker == null || keyworker.getStatus() == KeyworkerStatus.ACTIVE;
                     }
             ).collect(Collectors.toList());
             log.info("There are currently {} active key workers in {}", keyWorkers.size(), prisonId);
 
-            List<OffenderKeyworker> newAllocationsOnly = getNewAllocations(prisonId, snapshotDate);
+            final var newAllocationsOnly = getNewAllocations(prisonId, snapshotDate);
 
-            KeyWorkingCaseNoteSummary caseNoteSummary = new KeyWorkingCaseNoteSummary(offenderNos, snapshotDate, snapshotDate, null, true);
+            final var caseNoteSummary = new KeyWorkingCaseNoteSummary(offenderNos, snapshotDate, snapshotDate, null, true);
             log.info("There were {} Key Working Sessions and {} Key working entries on {}", caseNoteSummary.sessionsDone, caseNoteSummary.entriesDone, snapshotDate);
 
-            final List<String> offendersWithSessions = getOffendersWithKeyWorkerSessions(snapshotDate, caseNoteSummary);
-            final List<String> receptionDatesForOffenders = getReceptionDatesForOffenders(newAllocationsOnly, offendersWithSessions);
+            final var offendersWithSessions = getOffendersWithKeyWorkerSessions(snapshotDate, caseNoteSummary);
+            final var receptionDatesForOffenders = getReceptionDatesForOffenders(newAllocationsOnly, offendersWithSessions);
 
             Integer averageDaysToAllocation = null;
             Integer avgDaysReceptionToKWSession = null;
 
             if (receptionDatesForOffenders.size() > 0) {
                 // find out when each prisoner entered this prison from this `receptionCheckList` list - last transfer
-                List<CaseNoteUsagePrisonersDto> transfers = getRecentTransfers(prisonId, snapshotDate, receptionDatesForOffenders);
+                final var transfers = getRecentTransfers(prisonId, snapshotDate, receptionDatesForOffenders);
                 log.info("There are {} transfers in for prison {}", transfers.size(), prisonId);
 
-                Map<String, LocalDate> offenderReceptionMap = transfers.stream().collect(
+                final var offenderReceptionMap = transfers.stream().collect(
                         Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
 
                 // calc average time to this allocation from reception
-                List<OffenderKeyworker> offendersToIncludeInAverage = newAllocationsOnly.stream()
+                final var offendersToIncludeInAverage = newAllocationsOnly.stream()
                         .filter(okw -> offenderReceptionMap.get(okw.getOffenderNo()) != null)
                         .collect(Collectors.toList());
 
                 if (offendersToIncludeInAverage.size() > 0) {
-                    Double days = offendersToIncludeInAverage.stream()
+                    final var days = offendersToIncludeInAverage.stream()
                             .collect(averagingLong(okw -> DAYS.between(offenderReceptionMap.get(okw.getOffenderNo()), okw.getAssignedDateTime())));
                     log.info("Average number of days until allocation {}", days);
                     averageDaysToAllocation = days != null ? (int)Math.round(days): null;
@@ -199,14 +200,14 @@ public class KeyworkerStatsService {
         return dailyStat;
     }
 
-    public KeyworkerStatSummary getPrisonStats(List<String> prisonIds, final LocalDate fromDate, final LocalDate toDate) {
-        Map<String, PrisonStatsDto> statsMap = getStatsMap(fromDate, toDate, prisonIds);
+    public KeyworkerStatSummary getPrisonStats(final List<String> prisonIds, final LocalDate fromDate, final LocalDate toDate) {
+        final var statsMap = getStatsMap(fromDate, toDate, prisonIds);
 
-        SummaryStatistic current = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getCurrent() != null).map(PrisonStatsDto::getCurrent).collect(Collectors.toList()));
-        SummaryStatistic previous = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getPrevious() != null).map(PrisonStatsDto::getPrevious).collect(Collectors.toList()));
+        final var current = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getCurrent() != null).map(PrisonStatsDto::getCurrent).collect(Collectors.toList()));
+        final var previous = getSummaryStatistic(statsMap.values().stream().filter(p -> p.getPrevious() != null).map(PrisonStatsDto::getPrevious).collect(Collectors.toList()));
 
-        var complianceTimeline = new TreeMap<LocalDate, BigDecimal>();
-        var complianceCount = new TreeMap<LocalDate, Long>();
+        final var complianceTimeline = new TreeMap<LocalDate, BigDecimal>();
+        final var complianceCount = new TreeMap<LocalDate, Long>();
 
         statsMap.values().stream()
                 .filter(s -> s.getComplianceTimeline() != null)
@@ -215,27 +216,27 @@ public class KeyworkerStatsService {
                     complianceCount.merge(key, 1L, (a, b) -> a + b);
                 }));
 
-        var averageComplianceTimeline = new TreeMap<LocalDate, BigDecimal>();
+        final var averageComplianceTimeline = new TreeMap<LocalDate, BigDecimal>();
         complianceTimeline.forEach((k, v) ->
             averageComplianceTimeline.put(k, v.divide(new BigDecimal(complianceCount.get(k)), RoundingMode.HALF_UP)));
 
-        var keyworkerSessionsTimeline = new TreeMap<LocalDate, Long>();
+        final var keyworkerSessionsTimeline = new TreeMap<LocalDate, Long>();
         statsMap.values().stream()
                  .filter(s -> s.getKeyworkerSessionsTimeline() != null)
                  .forEach(s -> s.getKeyworkerSessionsTimeline()
                          .forEach((key, value) -> keyworkerSessionsTimeline.merge(key, value, (a, b) -> b + a)));
 
-        OptionalDouble avgSessions = statsMap.values().stream()
+        final var avgSessions = statsMap.values().stream()
                  .filter(s -> s.getAvgOverallKeyworkerSessions() != null)
                  .mapToInt(PrisonStatsDto::getAvgOverallKeyworkerSessions).average();
 
-        OptionalDouble avgCompliance = statsMap.values().stream()
+        final var avgCompliance = statsMap.values().stream()
                 .filter(s -> s.getAvgOverallCompliance() != null)
                 .mapToDouble(p -> p.getAvgOverallCompliance().doubleValue()).average();
 
-        var range = new CalcDateRange(fromDate, toDate);
+        final var range = new CalcDateRange(fromDate, toDate);
 
-        PrisonStatsDto prisonStatsDto = PrisonStatsDto.builder()
+        final var prisonStatsDto = PrisonStatsDto.builder()
                 .requestedFromDate(range.getStartDate())
                 .requestedToDate(range.getEndDate())
                 .current(current != null && current.getDataRangeFrom() != null ? current : null)
@@ -252,7 +253,7 @@ public class KeyworkerStatsService {
                 .build();
     }
 
-    private List<String> getReceptionDatesForOffenders(List<OffenderKeyworker> newAllocationsOnly, List<String> offendersWithSessions) {
+    private List<String> getReceptionDatesForOffenders(final List<OffenderKeyworker> newAllocationsOnly, final List<String> offendersWithSessions) {
         final List<String> receptionCheckList = new ArrayList<>();
         if (offendersWithSessions.size() > 0 || newAllocationsOnly.size() > 0) {
             receptionCheckList.addAll(Stream.concat(newAllocationsOnly.stream().map(OffenderKeyworker::getOffenderNo), offendersWithSessions.stream())
@@ -262,7 +263,7 @@ public class KeyworkerStatsService {
         return receptionCheckList;
     }
 
-    private List<String> getOffendersWithKeyWorkerSessions(LocalDate snapshotDate, KeyWorkingCaseNoteSummary caseNoteSummary) {
+    private List<String> getOffendersWithKeyWorkerSessions(final LocalDate snapshotDate, final KeyWorkingCaseNoteSummary caseNoteSummary) {
         final List<String> offendersWithSessions = new ArrayList<>();
         if (caseNoteSummary.sessionsDone > 0) {
             offendersWithSessions.addAll(caseNoteSummary.usageCounts.stream()
@@ -275,25 +276,25 @@ public class KeyworkerStatsService {
         return offendersWithSessions;
     }
 
-    private List<CaseNoteUsagePrisonersDto> getRecentTransfers(String prisonId, LocalDate snapshotDate, List<String> receptionCheckList) {
-        Prison prison = prisonSupportedService.getPrisonDetail(prisonId);
+    private List<CaseNoteUsagePrisonersDto> getRecentTransfers(final String prisonId, final LocalDate snapshotDate, final List<String> receptionCheckList) {
+        final var prison = prisonSupportedService.getPrisonDetail(prisonId);
 
-        LocalDateTime earliestDate = snapshotDate.minusMonths(6).atStartOfDay();
-        LocalDateTime furthestCaseNoteTime = prison.getMigratedDateTime().isBefore(earliestDate) ? earliestDate : prison.getMigratedDateTime();
+        final var earliestDate = snapshotDate.minusMonths(6).atStartOfDay();
+        final var furthestCaseNoteTime = prison.getMigratedDateTime().isBefore(earliestDate) ? earliestDate : prison.getMigratedDateTime();
         log.info("Looking back to {} for transfers into prison {}", furthestCaseNoteTime, prisonId);
 
         return nomisService.getCaseNoteUsageForPrisoners(receptionCheckList, null, TRANSFER_CASENOTE_TYPE, null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1), true);
     }
 
-    private Integer getAvgDaysReceptionToKWSession(LocalDate snapshotDate, KeyWorkingCaseNoteSummary caseNoteSummary, List<String> offendersWithSessions, Map<String, LocalDate> offenderReceptionMap) {
+    private Integer getAvgDaysReceptionToKWSession(final LocalDate snapshotDate, final KeyWorkingCaseNoteSummary caseNoteSummary, final List<String> offendersWithSessions, final Map<String, LocalDate> offenderReceptionMap) {
         // find out if this KW session is the first - look for case notes before this date.
-        List<CaseNoteUsagePrisonersDto> previousCaseNotes = nomisService.getCaseNoteUsageForPrisoners(offendersWithSessions, null,
+        final var previousCaseNotes = nomisService.getCaseNoteUsageForPrisoners(offendersWithSessions, null,
                 KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1), true);
 
-        Map<String, LocalDate> previousCaseNoteMap = previousCaseNotes.stream().collect(
+        final var previousCaseNoteMap = previousCaseNotes.stream().collect(
                 Collectors.toMap(CaseNoteUsagePrisonersDto::getOffenderNo, CaseNoteUsagePrisonersDto::getLatestCaseNote));
 
-        List<CaseNoteUsagePrisonersDto> caseNotesToConsider = caseNoteSummary.usageCounts.stream()
+        final var caseNotesToConsider = caseNoteSummary.usageCounts.stream()
                 .filter(cn -> cn.getCaseNoteSubType().equals(KEYWORKER_SESSION_SUB_TYPE))
                 .filter(cn -> offenderReceptionMap.get(cn.getOffenderNo()) != null)
                 .filter(cn -> previousCaseNoteMap.get(cn.getOffenderNo()) == null ||
@@ -309,19 +310,19 @@ public class KeyworkerStatsService {
         return avgDaysReceptionToKWSession != null ? (int)Math.round(avgDaysReceptionToKWSession) : null;
     }
 
-    private List<OffenderKeyworker> getNewAllocations(String prisonId, LocalDate snapshotDate) {
+    private List<OffenderKeyworker> getNewAllocations(final String prisonId, final LocalDate snapshotDate) {
 
-        List<OffenderKeyworker> allocatedThisPeriod = offenderKeyworkerRepository.findByPrisonIdAndAssignedDateTimeBetween(prisonId, snapshotDate.atStartOfDay(), snapshotDate.plusDays(1).atStartOfDay());
+        final var allocatedThisPeriod = offenderKeyworkerRepository.findByPrisonIdAndAssignedDateTimeBetween(prisonId, snapshotDate.atStartOfDay(), snapshotDate.plusDays(1).atStartOfDay());
         log.info("There were {} key worker allocations done in {} on {}", allocatedThisPeriod.size(), prisonId, snapshotDate);
 
         final List<OffenderKeyworker> newAllocationsOnly = new ArrayList<>();
 
         if (allocatedThisPeriod.size() > 0) {
-            Set<String> offenderNosAllocatedThisPeriod = allocatedThisPeriod.stream().map(OffenderKeyworker::getOffenderNo).collect(Collectors.toSet());
+            final var offenderNosAllocatedThisPeriod = allocatedThisPeriod.stream().map(OffenderKeyworker::getOffenderNo).collect(Collectors.toSet());
 
             // find out if this is the first allocation to a KW in this prison
-            List<OffenderKeyworker> previousAllocations = offenderKeyworkerRepository.findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(prisonId, snapshotDate.atStartOfDay(), offenderNosAllocatedThisPeriod, AllocationType.PROVISIONAL);
-            List<String> offendersAlreadyAllocated = previousAllocations.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
+            final var previousAllocations = offenderKeyworkerRepository.findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(prisonId, snapshotDate.atStartOfDay(), offenderNosAllocatedThisPeriod, AllocationType.PROVISIONAL);
+            final var offendersAlreadyAllocated = previousAllocations.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
             log.info("Of these allocations {} had previous offender allocations in this {} prison, and will be excluded.", offendersAlreadyAllocated.size(), prisonId);
 
             newAllocationsOnly.addAll(allocatedThisPeriod.stream().filter(okw -> !offendersAlreadyAllocated.contains(okw.getOffenderNo())).collect(Collectors.toList()));
@@ -331,12 +332,12 @@ public class KeyworkerStatsService {
 
     }
 
-    private SummaryStatistic getSummaryStatistic(List<SummaryStatistic> stats) {
+    private SummaryStatistic getSummaryStatistic(final List<SummaryStatistic> stats) {
         if (!stats.isEmpty()) {
-            OptionalDouble currSessionAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToKeyWorkingSession() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToKeyWorkingSession).average();
-            OptionalDouble currAllocAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToAllocationDays() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToAllocationDays).average();
-            OptionalDouble currAvgCompliance = stats.stream().filter(s -> s.getComplianceRate() != null).mapToDouble(s -> s.getComplianceRate().doubleValue()).average();
-            OptionalDouble currPerKw = stats.stream().filter(s -> s.getPercentagePrisonersWithKeyworker() != null).mapToDouble(s -> s.getPercentagePrisonersWithKeyworker().doubleValue()).average();
+            final var currSessionAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToKeyWorkingSession() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToKeyWorkingSession).average();
+            final var currAllocAvg = stats.stream().filter(s -> s.getAvgNumDaysFromReceptionToAllocationDays() != null).mapToInt(SummaryStatistic::getAvgNumDaysFromReceptionToAllocationDays).average();
+            final var currAvgCompliance = stats.stream().filter(s -> s.getComplianceRate() != null).mapToDouble(s -> s.getComplianceRate().doubleValue()).average();
+            final var currPerKw = stats.stream().filter(s -> s.getPercentagePrisonersWithKeyworker() != null).mapToDouble(s -> s.getPercentagePrisonersWithKeyworker().doubleValue()).average();
 
             return SummaryStatistic.builder()
                     .dataRangeFrom(stats.stream().map(SummaryStatistic::getDataRangeFrom).min(LocalDate::compareTo).orElse(null))
@@ -356,14 +357,14 @@ public class KeyworkerStatsService {
         return null;
     }
 
-    private Map<String, PrisonStatsDto> getStatsMap(LocalDate fromDate, LocalDate toDate, List<String> prisonIds) {
-        CalcDateRange range = new CalcDateRange(fromDate, toDate);
-        Map<String, PrisonKeyWorkerAggregatedStats> currentData = statisticRepository.getAggregatedData(prisonIds, range.getStartDate(), range.getEndDate())
+    private Map<String, PrisonStatsDto> getStatsMap(final LocalDate fromDate, final LocalDate toDate, final List<String> prisonIds) {
+        final var range = new CalcDateRange(fromDate, toDate);
+        final var currentData = statisticRepository.getAggregatedData(prisonIds, range.getStartDate(), range.getEndDate())
                 .stream().collect(Collectors.toMap(PrisonKeyWorkerAggregatedStats::getPrisonId, Function.identity()));
 
-        Map<String, PrisonKeyWorkerAggregatedStats> previousData = statisticRepository.getAggregatedData(prisonIds, range.getPreviousStartDate(), range.getStartDate().minusDays(1))
+        final var previousData = statisticRepository.getAggregatedData(prisonIds, range.getPreviousStartDate(), range.getStartDate().minusDays(1))
                 .stream().collect(Collectors.toMap(PrisonKeyWorkerAggregatedStats::getPrisonId, Function.identity()));
-        Map<String, List<PrisonKeyWorkerStatistic>> dailyStats = statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, range.getEndDate().minusYears(1), range.getEndDate())
+        final var dailyStats = statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, range.getEndDate().minusYears(1), range.getEndDate())
                 .stream().collect(Collectors.groupingBy(PrisonKeyWorkerStatistic::getPrisonId));
 
         return prisonIds.stream()
@@ -371,32 +372,32 @@ public class KeyworkerStatsService {
                         getPrisonStatsDto(p, range, currentData.get(p), previousData.get(p), dailyStats.get(p))));
     }
 
-    private PrisonStatsDto getPrisonStatsDto(String prisonId, CalcDateRange range, PrisonKeyWorkerAggregatedStats currentData, PrisonKeyWorkerAggregatedStats previousData, List<PrisonKeyWorkerStatistic> dailyStats) {
-        final Prison prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
-        SummaryStatistic current = getSummaryStatistic(currentData, prisonConfig.getKwSessionFrequencyInWeeks());
-        SummaryStatistic previous = getSummaryStatistic(previousData, prisonConfig.getKwSessionFrequencyInWeeks());
+    private PrisonStatsDto getPrisonStatsDto(final String prisonId, final CalcDateRange range, final PrisonKeyWorkerAggregatedStats currentData, final PrisonKeyWorkerAggregatedStats previousData, final List<PrisonKeyWorkerStatistic> dailyStats) {
+        final var prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
+        final var current = getSummaryStatistic(currentData, prisonConfig.getKwSessionFrequencyInWeeks());
+        final var previous = getSummaryStatistic(previousData, prisonConfig.getKwSessionFrequencyInWeeks());
 
-        final TemporalAdjuster weekAdjuster = TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY);
+        final var weekAdjuster = TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY);
 
-        var prisonStats = PrisonStatsDto.builder()
+        final var prisonStats = PrisonStatsDto.builder()
                 .requestedFromDate(range.getStartDate())
                 .requestedToDate(range.getEndDate())
                 .current(current)
                 .previous(previous);
 
         if (dailyStats != null) {
-            var kwSummary = new TreeMap<>(dailyStats.stream().collect(
+            final var kwSummary = new TreeMap<>(dailyStats.stream().collect(
                     Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
                             Collectors.summingLong(PrisonKeyWorkerStatistic::getNumberKeyWorkerSessions))
             ));
             prisonStats.keyworkerSessionsTimeline(kwSummary);
             prisonStats.avgOverallKeyworkerSessions((int)Math.floor(kwSummary.values().stream().collect(averagingDouble(p -> p))));
 
-            var compliance = new TreeMap<>(dailyStats.stream().collect(
+            final var compliance = new TreeMap<>(dailyStats.stream().collect(
                     Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
                             Collectors.averagingDouble(p ->
                             {
-                                int projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
+                                var projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
                                 return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
                             }))
             ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
@@ -409,10 +410,10 @@ public class KeyworkerStatsService {
         return prisonStats.build();
     }
 
-    private BigDecimal getAverageCompliance(Collection <BigDecimal> values) {
-        BigDecimal sum = BigDecimal.ZERO;
+    private BigDecimal getAverageCompliance(final Collection<BigDecimal> values) {
+        var sum = BigDecimal.ZERO;
         if (!values.isEmpty()) {
-            for (BigDecimal val : values) {
+            for (final var val : values) {
                 sum = sum.add(val);
             }
             return sum.divide(new BigDecimal(values.size()), RoundingMode.HALF_UP);
@@ -420,11 +421,11 @@ public class KeyworkerStatsService {
         return null;
     }
 
-    private SummaryStatistic getSummaryStatistic(PrisonKeyWorkerAggregatedStats prisonStats, int kwSessionFrequencyInWeeks) {
+    private SummaryStatistic getSummaryStatistic(final PrisonKeyWorkerAggregatedStats prisonStats, final int kwSessionFrequencyInWeeks) {
 
         if (prisonStats != null) {
-            double sessionMultiplier = (DAYS.between(prisonStats.getStartDate(), prisonStats.getEndDate())+1) / (double)(kwSessionFrequencyInWeeks * 7);
-            long projectedSessions = Math.round(Math.floor(prisonStats.getTotalNumPrisoners()) * sessionMultiplier);
+            final var sessionMultiplier = (DAYS.between(prisonStats.getStartDate(), prisonStats.getEndDate()) + 1) / (double) (kwSessionFrequencyInWeeks * 7);
+            final var projectedSessions = Math.round(Math.floor(prisonStats.getTotalNumPrisoners()) * sessionMultiplier);
 
             return SummaryStatistic.builder()
                     .dataRangeFrom(prisonStats.getStartDate())
@@ -444,8 +445,8 @@ public class KeyworkerStatsService {
         return null;
     }
 
-    private BigDecimal getComplianceRate(long sessionCount, double projectedKeyworkerSessions) {
-        BigDecimal complianceRate = HUNDRED;
+    private BigDecimal getComplianceRate(final long sessionCount, final double projectedKeyworkerSessions) {
+        var complianceRate = HUNDRED;
 
         if (projectedKeyworkerSessions > 0)  {
             complianceRate = new BigDecimal(sessionCount * 100.00 / projectedKeyworkerSessions).setScale(2, RoundingMode.HALF_UP);
@@ -453,16 +454,16 @@ public class KeyworkerStatsService {
         return complianceRate;
     }
 
-    private int getProjectedKeyworkerSessions(List<OffenderKeyworker> filteredAllocations, Long staffId, String prisonId, LocalDate fromDate, LocalDateTime nextEndDate) {
-        final Map<Long, LongSummaryStatistics> kwResults = filteredAllocations.stream()
+    private int getProjectedKeyworkerSessions(final List<OffenderKeyworker> filteredAllocations, final Long staffId, final String prisonId, final LocalDate fromDate, final LocalDateTime nextEndDate) {
+        final var kwResults = filteredAllocations.stream()
                 .collect(
                         Collectors.groupingBy(OffenderKeyworker::getStaffId, Collectors.summarizingLong(k -> k.getDaysAllocated(fromDate, nextEndDate.toLocalDate()))
                     ));
-        LongSummaryStatistics longSummaryStatistics = kwResults.get(staffId);
+        final var longSummaryStatistics = kwResults.get(staffId);
         if (longSummaryStatistics != null) {
-            Prison prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
-            float averageNumberPrisoners = (float)longSummaryStatistics.getSum() / DAYS.between(fromDate, nextEndDate);
-            long sessionMultiplier =  Math.floorDiv(WEEKS.between(fromDate, nextEndDate), prisonConfig.getKwSessionFrequencyInWeeks());
+            final var prisonConfig = prisonSupportedService.getPrisonDetail(prisonId);
+            final var averageNumberPrisoners = (float) longSummaryStatistics.getSum() / DAYS.between(fromDate, nextEndDate);
+            final var sessionMultiplier = Math.floorDiv(WEEKS.between(fromDate, nextEndDate), prisonConfig.getKwSessionFrequencyInWeeks());
 
             return Math.round(averageNumberPrisoners * sessionMultiplier);
         }
@@ -492,7 +493,7 @@ public class KeyworkerStatsService {
             }
 
             nextDay = endDate.plusDays(1);
-            long periodInDays = DAYS.between(startDate, nextDay);
+            final var periodInDays = DAYS.between(startDate, nextDay);
             previousStartDate = startDate.minusDays(periodInDays);
 
         }
@@ -504,24 +505,24 @@ public class KeyworkerStatsService {
         private final int entriesDone;
         private final List<CaseNoteUsagePrisonersDto> usageCounts;
 
-        KeyWorkingCaseNoteSummary(List<String> offenderNos, LocalDate start, LocalDate end, Long staffId, boolean admin) {
+        KeyWorkingCaseNoteSummary(final List<String> offenderNos, final LocalDate start, final LocalDate end, final Long staffId, final boolean admin) {
 
            usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end, admin);
 
-            final Map<String, Integer> usageGroupedBySubType = usageCounts.stream()
+            final var usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
                             Collectors.summingInt(CaseNoteUsagePrisonersDto::getNumCaseNotes)));
 
-            Integer sessionCount = usageGroupedBySubType.get(KEYWORKER_SESSION_SUB_TYPE);
-            Integer entryCount = usageGroupedBySubType.get(KEYWORKER_ENTRY_SUB_TYPE);
+            final var sessionCount = usageGroupedBySubType.get(KEYWORKER_SESSION_SUB_TYPE);
+            final var entryCount = usageGroupedBySubType.get(KEYWORKER_ENTRY_SUB_TYPE);
 
             sessionsDone = sessionCount != null ? sessionCount : 0;
             entriesDone = entryCount != null ? entryCount : 0;
         }
     }
 
-    private void logEventToAzure(PrisonKeyWorkerStatistic stats) {
-        var logMap = new HashMap<String, String>();
+    private void logEventToAzure(final PrisonKeyWorkerStatistic stats) {
+        final var logMap = new HashMap<String, String>();
         logMap.put("snapshotDate", stats.getSnapshotDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
         logMap.put("prisonId", stats.getPrisonId());
 
@@ -541,8 +542,8 @@ public class KeyworkerStatsService {
         telemetryClient.trackEvent("kwStatsGenerated", logMap, metrics);
     }
 
-    public void raiseStatsProcessingError(String prisonId, Exchange exchange) {
-        var logMap = new HashMap<String, String>();
+    public void raiseStatsProcessingError(final String prisonId, final Exchange exchange) {
+        final var logMap = new HashMap<String, String>();
         logMap.put("snapshotDate", LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE));
         logMap.put("prisonId", prisonId);
 

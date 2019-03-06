@@ -131,16 +131,16 @@ public class UserRolesMigrationServiceTest {
         verify(roleService).assignRoleToApiCaseload(USERNAME_1, ROLE_TO_ASSIGN_1);
     }
 
-    private Set<String> setOf(String... usernames) {
+    private Set<String> setOf(final String... usernames) {
         return new HashSet<>(List.of(usernames));
     }
 
-    private void initialiseService(List<String> sourceRoles, List<String> targetRoles, List<String> migrateRoles) {
+    private void initialiseService(final List<String> sourceRoles, final List<String> targetRoles, final List<String> migrateRoles) {
         service = new UserRolesMigrationService(roleService, configuration(sourceRoles, targetRoles, migrateRoles));
     }
 
-    private RoleMigrationConfiguration configuration(List<String> sourceRoles, List<String> targetRoles, List<String> migrateRoles) {
-        RoleMigrationConfiguration configuration = new RoleMigrationConfiguration();
+    private RoleMigrationConfiguration configuration(final List<String> sourceRoles, final List<String> targetRoles, final List<String> migrateRoles) {
+        final var configuration = new RoleMigrationConfiguration();
         configuration.setRolesToMatch(sourceRoles);
         configuration.setRolesToAssign(targetRoles);
         configuration.setRolesToMigrate(migrateRoles);

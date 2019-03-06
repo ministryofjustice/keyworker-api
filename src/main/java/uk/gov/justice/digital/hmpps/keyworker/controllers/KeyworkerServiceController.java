@@ -42,11 +42,11 @@ public class KeyworkerServiceController {
     private final KeyworkerAutoAllocationService keyworkerAutoAllocationService;
     private final PrisonSupportedService prisonSupportedService;
 
-    public KeyworkerServiceController(KeyworkerService keyworkerService,
-                                      KeyworkerMigrationService keyworkerMigrationService,
-                                      KeyworkerAutoAllocationService keyworkerAutoAllocationService,
-                                      UserRolesMigrationService roleMigrationService,
-                                      PrisonSupportedService prisonSupportedService) {
+    public KeyworkerServiceController(final KeyworkerService keyworkerService,
+                                      final KeyworkerMigrationService keyworkerMigrationService,
+                                      final KeyworkerAutoAllocationService keyworkerAutoAllocationService,
+                                      final UserRolesMigrationService roleMigrationService,
+                                      final PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerMigrationService = keyworkerMigrationService;
         this.keyworkerAutoAllocationService = keyworkerAutoAllocationService;
@@ -72,8 +72,8 @@ public class KeyworkerServiceController {
 
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable(name = "prisonId")
-                    String prisonId) {
+            @PathVariable(name = "prisonId") final
+            String prisonId) {
 
         log.debug("finding available key-workers for prison Id {}", prisonId);
 
@@ -97,40 +97,40 @@ public class KeyworkerServiceController {
     public ResponseEntity<List<KeyworkerAllocationDetailsDto>> getKeyworkerAllocations(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
 
             @ApiParam(value = "Optional filter by type of allocation. A for auto allocations, M for manual allocations.")
-            @RequestParam(value = "allocationType", required = false)
-                    String allocationType,
+            @RequestParam(value = "allocationType", required = false) final
+            String allocationType,
 
             @ApiParam(value = "Returned allocations must have been assigned on or after this date (in YYYY-MM-DD format).")
             @RequestParam(value = "fromDate",       required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    Optional<LocalDate> fromDate,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final
+            Optional<LocalDate> fromDate,
 
             @ApiParam(value = "Returned allocations must have been assigned on or before this date (in YYYY-MM-DD format).", defaultValue="today's date")
             @RequestParam(value = "toDate",         required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    Optional<LocalDate> toDate,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final
+            Optional<LocalDate> toDate,
 
             @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue="0")
-            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
-                    Long pageOffset,
+            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue = "0") final
+            Long pageOffset,
 
             @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue="10")
-            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "10")
-                    Long pageLimit,
+            @RequestHeader(value = HEADER_PAGE_LIMIT, defaultValue = "10") final
+            Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>")
-            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
-                    String sortFields,
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue = "") final
+            String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
-            @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
-                    SortOrder sortOrder
+            @RequestHeader(value = HEADER_SORT_ORDER, defaultValue = "ASC") final
+            SortOrder sortOrder
     ) {
-        Page<KeyworkerAllocationDetailsDto> page = keyworkerService.getAllocations(
+        final var page = keyworkerService.getAllocations(
                 AllocationsFilterDto
                         .builder()
                         .prisonId(prisonId)
@@ -166,12 +166,12 @@ public class KeyworkerServiceController {
     public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailsList(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
 
             @ApiParam(value = "Offenders for which details are required, or get all.")
-            @RequestParam(value = "offenderNo", required = false)
-                    List<String> offenderNos
+            @RequestParam(value = "offenderNo", required = false) final
+            List<String> offenderNos
     ) {
         return keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos);
     }
@@ -180,9 +180,9 @@ public class KeyworkerServiceController {
     public List<OffenderKeyworkerDto> getOffenderKeyworkerDetailsListPost(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId") String prisonId,
+            @PathVariable("prisonId") final String prisonId,
             @ApiParam(value = "Offenders for which details are required, use GET version of endpoint if all offenders for prison are required.")
-            @RequestBody @NotEmpty List<String> offenderNos
+            @RequestBody @NotEmpty final List<String> offenderNos
     ) {
         Validate.notEmpty(offenderNos, "Please provide a list of Offender Nos.");
         return keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos);
@@ -205,16 +205,16 @@ public class KeyworkerServiceController {
     public List<OffenderLocationDto> getUnallocatedOffenders(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
-            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "")
-                    String sortFields,
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue = "") final
+            String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
-            @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
-                    SortOrder sortOrder
+            @RequestHeader(value = HEADER_SORT_ORDER, defaultValue = "ASC") final
+            SortOrder sortOrder
     ) {
         return keyworkerService.getUnallocatedOffenders(prisonId, sortFields, sortOrder);
     }
@@ -237,13 +237,13 @@ public class KeyworkerServiceController {
     public KeyworkerDto getKeyworkerDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
-            @PathVariable("staffId")
-                    Long staffId,
+            @PathVariable("staffId") final
+            Long staffId,
 
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId) {
+            @PathVariable("prisonId") final
+            String prisonId) {
 
         return keyworkerService.getKeyworkerDetails(prisonId, staffId);
     }
@@ -266,12 +266,12 @@ public class KeyworkerServiceController {
     public BasicKeyworkerDto getOffendersKeyworker(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
             @ApiParam(value = "offenderNo", required = true)
             @NotEmpty
-            @PathVariable("offenderNo")
-                    String offenderNo) {
+            @PathVariable("offenderNo") final
+            String offenderNo) {
 
         return keyworkerService.getCurrentKeyworkerForPrisoner(prisonId, offenderNo).orElseThrow(EntityNotFoundException::new);
     }
@@ -294,7 +294,7 @@ public class KeyworkerServiceController {
     public double startAutoAllocation(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId") String prisonId) {
+            @PathVariable("prisonId") final String prisonId) {
         return keyworkerAutoAllocationService.autoAllocate(prisonId);
     }
     /* --------------------------------------------------------------------------------*/
@@ -314,7 +314,7 @@ public class KeyworkerServiceController {
     public Long confirmAutoAllocation(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId") String prisonId) {
+            @PathVariable("prisonId") final String prisonId) {
         return keyworkerAutoAllocationService.confirmAllocations(prisonId);
     }
 
@@ -335,7 +335,7 @@ public class KeyworkerServiceController {
     public OffenderKeyWorkerHistory getKeyWorkerHistoryForPrisoner(
             @ApiParam(value = "offenderNo", required = true)
             @NotEmpty
-            @PathVariable("offenderNo")
+            @PathVariable("offenderNo") final
             String offenderNo) {
         return keyworkerService.getFullAllocationHistory(offenderNo).orElseThrow(EntityNotFoundException::new);
     }
@@ -358,8 +358,8 @@ public class KeyworkerServiceController {
     public void deallocate(
             @ApiParam(value = "offenderNo", required = true)
             @NotEmpty
-            @PathVariable("offenderNo")
-                    String offenderNo) {
+            @PathVariable("offenderNo") final
+            String offenderNo) {
         keyworkerService.deallocate(offenderNo);
     }
 
@@ -381,8 +381,8 @@ public class KeyworkerServiceController {
     public ResponseEntity allocate(
             @ApiParam(value = "New allocation details." , required=true )
             @Valid
-            @RequestBody
-                    KeyworkerAllocationDto keyworkerAllocation) {
+            @RequestBody final
+            KeyworkerAllocationDto keyworkerAllocation) {
 
         keyworkerService.allocate(keyworkerAllocation);
 
@@ -406,34 +406,34 @@ public class KeyworkerServiceController {
     public ResponseEntity keyworkerSearch(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
 
             @ApiParam(value = "Filter results by first name and/or last name of key worker. Supplied filter term is matched to start of key worker's first and last name.")
-            @RequestParam(value = "nameFilter", required = false)
-                    Optional<String> nameFilter,
+            @RequestParam(value = "nameFilter", required = false) final
+            Optional<String> nameFilter,
 
             @ApiParam(value = "Filter results by status of key worker.")
-            @RequestParam(value = "statusFilter", required = false)
-                    Optional<KeyworkerStatus> statusFilter,
+            @RequestParam(value = "statusFilter", required = false) final
+            Optional<KeyworkerStatus> statusFilter,
 
             @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue="0")
-            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue =   "0")
-                    Long pageOffset,
+            @RequestHeader(value = HEADER_PAGE_OFFSET, defaultValue = "0") final
+            Long pageOffset,
 
             @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue="10")
-            @RequestHeader(value = HEADER_PAGE_LIMIT,  defaultValue =  "1000")
-                    Long pageLimit,
+            @RequestHeader(value = HEADER_PAGE_LIMIT, defaultValue = "1000") final
+            Long pageLimit,
 
             @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>")
-            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue =    "lastName,firstName")
-                    String sortFields,
+            @RequestHeader(value = HEADER_SORT_FIELDS, defaultValue = "lastName,firstName") final
+            String sortFields,
 
             @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue="ASC")
-            @RequestHeader(value = HEADER_SORT_ORDER,  defaultValue = "ASC")
-                    SortOrder sortOrder) {
+            @RequestHeader(value = HEADER_SORT_ORDER, defaultValue = "ASC") final
+            SortOrder sortOrder) {
 
-        final PagingAndSortingDto pageDto = PagingAndSortingDto
+        final var pageDto = PagingAndSortingDto
                 .builder()
                 .pageOffset(pageOffset)
                 .pageLimit(pageLimit)
@@ -441,7 +441,7 @@ public class KeyworkerServiceController {
                 .sortOrder(sortOrder)
                 .build();
 
-        final Page<KeyworkerDto> activeKeyworkerPage = keyworkerService.getKeyworkers(prisonId, nameFilter, statusFilter, pageDto);
+        final var activeKeyworkerPage = keyworkerService.getKeyworkers(prisonId, nameFilter, statusFilter, pageDto);
         return new ResponseEntity<>(activeKeyworkerPage.getItems(), activeKeyworkerPage.toHeaders(), HttpStatus.OK);
 
     }
@@ -463,16 +463,16 @@ public class KeyworkerServiceController {
     public List<KeyworkerAllocationDetailsDto> getAllocationsForKeyworkerWithOffenderDetails(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
-            @PathVariable("staffId")
-                    Long staffId,
+            @PathVariable("staffId") final
+            Long staffId,
 
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
             @ApiParam(value = "skipOffenderDetails", defaultValue = "false")
-            @RequestParam(value = "skipOffenderDetails", required = false)
-                    boolean skipOffenderDetails){
+            @RequestParam(value = "skipOffenderDetails", required = false) final
+            boolean skipOffenderDetails) {
 
         return keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(prisonId, staffId, skipOffenderDetails);
     }
@@ -492,19 +492,19 @@ public class KeyworkerServiceController {
     public void addOrUpdateKeyworker(
             @ApiParam(value = "staffId", required = true)
             @NotEmpty
-            @PathVariable("staffId")
-                    Long staffId,
+            @PathVariable("staffId") final
+            Long staffId,
 
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId")
-                    String prisonId,
+            @PathVariable("prisonId") final
+            String prisonId,
 
 
             @ApiParam(value = "New keyworker details." , required=true )
             @Valid
-            @RequestBody
-                    KeyworkerUpdateDto keyworkerUpdateDto
+            @RequestBody final
+            KeyworkerUpdateDto keyworkerUpdateDto
 
     ) {
         keyworkerService.addOrUpdate(staffId, prisonId, keyworkerUpdateDto);
@@ -518,8 +518,8 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @GetMapping(path="/prison/{prisonId}")
-    public Prison getPrisonMigrationStatus(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId) {
-        Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
+    public Prison getPrisonMigrationStatus(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") final String prisonId) {
+        final var prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
         return prisonDetail != null ? prisonDetail : Prison.builder().prisonId(prisonId).supported(false).build();
     }
 
@@ -530,13 +530,13 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @PostMapping(path="/enable/{prisonId}/manual")
-    public Prison addSupportedPrisonForManualAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId,
-                                                        @ApiParam("migrate") @Param("migrate") boolean migrate,
+    public Prison addSupportedPrisonForManualAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") final String prisonId,
+                                                        @ApiParam("migrate") @Param("migrate") final boolean migrate,
                                                         @ApiParam(name = "capacity",
                                                                 value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9")
-                                                            @Param("capacity") Integer[] capacity,
+                                                        @Param("capacity") final Integer[] capacity,
                                                         @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)")
-                                                        @Param("capacity") Integer frequency) {
+                                                        @Param("capacity") final Integer frequency) {
         return updateAndMigrate(prisonId, migrate, false, capacity, frequency);
     }
 
@@ -547,18 +547,18 @@ public class KeyworkerServiceController {
             @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
 
     @PostMapping(path="/enable/{prisonId}/auto-allocate")
-    public Prison addSupportedPrisonForAutoAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") String prisonId,
-                                                      @ApiParam("migrate") @Param("migrate") boolean migrate,
+    public Prison addSupportedPrisonForAutoAllocation(@ApiParam("prisonId") @NotEmpty @PathVariable("prisonId") final String prisonId,
+                                                      @ApiParam("migrate") @Param("migrate") final boolean migrate,
                                                       @ApiParam(name = "capacity",
                                                               value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9")
-                                                      @Param("capacity") Integer[] capacity,
+                                                      @Param("capacity") final Integer[] capacity,
                                                       @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)")
-                                                      @Param("capacity") Integer frequency) {
+                                                      @Param("capacity") final Integer frequency) {
         return updateAndMigrate(prisonId, migrate, true, capacity, frequency);
     }
 
 
-    private Prison updateAndMigrate(String prisonId, boolean migrate, boolean autoAllocate, Integer[] capacity, Integer kwSessionFrequencyInWeeks) {
+    private Prison updateAndMigrate(final String prisonId, final boolean migrate, final boolean autoAllocate, final Integer[] capacity, final Integer kwSessionFrequencyInWeeks) {
 
         if (capacity != null) {
             Validate.isTrue(capacity.length == 2, "Two capacity values must be specified.");

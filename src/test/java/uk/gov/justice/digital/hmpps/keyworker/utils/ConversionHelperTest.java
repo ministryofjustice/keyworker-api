@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,30 +17,30 @@ public class ConversionHelperTest {
 
     @Test
     public void convertOffenderKeyworkerDto2ModelItem1() {
-        OffenderKeyworkerDto testDto = getActiveOffenderKeyworkerDto();
+        final var testDto = getActiveOffenderKeyworkerDto();
 
-        OffenderKeyworker okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
+        final var okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
 
         verifyConversion(testDto, okw);
     }
 
     @Test
     public void convertOffenderKeyworkerDto2ModelItem2() {
-        OffenderKeyworkerDto testDto = getExpiredOffenderKeyworkerDto();
+        final var testDto = getExpiredOffenderKeyworkerDto();
 
-        OffenderKeyworker okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
+        final var okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
 
         verifyConversion(testDto, okw);
     }
 
     @Test
     public void convertOffenderKeyworkerDto2ModelList() {
-        OffenderKeyworkerDto testActiveDto = getActiveOffenderKeyworkerDto();
-        OffenderKeyworkerDto testExpiredDto = getExpiredOffenderKeyworkerDto();
+        final var testActiveDto = getActiveOffenderKeyworkerDto();
+        final var testExpiredDto = getExpiredOffenderKeyworkerDto();
 
-        List<OffenderKeyworkerDto> testDtos = List.of(testActiveDto, testExpiredDto);
+        final var testDtos = List.of(testActiveDto, testExpiredDto);
 
-        Set<OffenderKeyworker> okws = ConversionHelper.convertOffenderKeyworkerDto2Model(testDtos);
+        final var okws = ConversionHelper.convertOffenderKeyworkerDto2Model(testDtos);
 
         assertThat(okws.size()).isEqualTo(testDtos.size());
 
@@ -77,7 +76,7 @@ public class ConversionHelperTest {
                 .build();
     }
 
-    public static void verifyConversion(OffenderKeyworkerDto dto, OffenderKeyworker okw) {
+    public static void verifyConversion(final OffenderKeyworkerDto dto, final OffenderKeyworker okw) {
         assertThat(okw.getOffenderNo()).isEqualTo(dto.getOffenderNo());
         assertThat(okw.getStaffId()).isEqualTo(dto.getStaffId());
         assertThat(okw.isActive()).isEqualTo(StringUtils.equals("Y", dto.getActive()));

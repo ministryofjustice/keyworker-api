@@ -27,10 +27,10 @@ public class KeyworkerTestHelper {
         return String.format("A%4dAA", ++offenderNumber);
     }
 
-    public static Set<String> getNextOffenderNo(int count) {
-        Set<String> offNos = new HashSet<>();
+    public static Set<String> getNextOffenderNo(final int count) {
+        final Set<String> offNos = new HashSet<>();
 
-        for (int i = 0; i < count; i++) {
+        for (var i = 0; i < count; i++) {
             offNos.add(String.format("A%4dAA", ++offenderNumber));
         }
 
@@ -41,12 +41,12 @@ public class KeyworkerTestHelper {
         return ++bookingId;
     }
 
-    public static void verifyException(Throwable thrown, Class<? extends Throwable> expectedException, String expectedMessage) {
+    public static void verifyException(final Throwable thrown, final Class<? extends Throwable> expectedException, final String expectedMessage) {
         assertThat(thrown).isInstanceOf(expectedException).hasMessage(expectedMessage);
     }
 
     // Provides a Key worker with specified staff id and number of allocations
-    public static KeyworkerDto getKeyworker(long staffId, int numberOfAllocations, int capacity) {
+    public static KeyworkerDto getKeyworker(final long staffId, final int numberOfAllocations, final int capacity) {
         return KeyworkerDto.builder()
                 .staffId(staffId)
                 .numberAllocated(numberOfAllocations)
@@ -58,7 +58,7 @@ public class KeyworkerTestHelper {
     }
 
     // Provides a Key worker with specified staff id and number of allocations
-    public static KeyworkerAllocationDetailsDto getKeyworkerAllocations(long staffId, String offenderNo, String prisonId, LocalDateTime assignedTime) {
+    public static KeyworkerAllocationDetailsDto getKeyworkerAllocations(final long staffId, final String offenderNo, final String prisonId, final LocalDateTime assignedTime) {
         return KeyworkerAllocationDetailsDto.builder()
                 .staffId(staffId)
                 .offenderNo(offenderNo)
@@ -72,7 +72,7 @@ public class KeyworkerTestHelper {
     }
 
     // Provides a Key worker with specified staff id and number of allocations
-    public static BasicKeyworkerDto getKeyworker(long staffId) {
+    public static BasicKeyworkerDto getKeyworker(final long staffId) {
         return BasicKeyworkerDto.builder()
                 .staffId(staffId)
                 .firstName(RandomStringUtils.randomAscii(35))
@@ -80,13 +80,13 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations, int capacity) {
+    public static List<KeyworkerDto> getKeyworkers(final long total, final int minAllocations, final int maxAllocations, final int capacity) {
         return getKeyworkers(total, minAllocations, maxAllocations, capacity, null);
     }
 
     // Provides list of Key workers with varying number of allocations (within specified range)
-    public static List<KeyworkerDto> getKeyworkers(long total, int minAllocations, int maxAllocations, int capacity, String agencyId) {
-        List<KeyworkerDto> keyworkers = new ArrayList<>();
+    public static List<KeyworkerDto> getKeyworkers(final long total, final int minAllocations, final int maxAllocations, final int capacity, final String agencyId) {
+        final List<KeyworkerDto> keyworkers = new ArrayList<>();
 
         for (long i = 1; i <= total; i++) {
             keyworkers.add(KeyworkerDto.builder()
@@ -99,7 +99,7 @@ public class KeyworkerTestHelper {
         return keyworkers;
     }
 
-    public static StaffLocationRoleDto getStaffLocationRoleDto(long staffId) {
+    public static StaffLocationRoleDto getStaffLocationRoleDto(final long staffId) {
         return StaffLocationRoleDto.builder()
                 .staffId(staffId)
                 .firstName("First")
@@ -116,7 +116,7 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static StaffLocationRoleDto getBasicVersionOfStaffLocationRoleDto(long staffId) {
+    public static StaffLocationRoleDto getBasicVersionOfStaffLocationRoleDto(final long staffId) {
         return StaffLocationRoleDto.builder()
                 .staffId(staffId)
                 .firstName("First")
@@ -124,13 +124,13 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static void verifyBasicKeyworkerDto(BasicKeyworkerDto keyworkerDetails, long staffId, String firstName, String lastName) {
+    public static void verifyBasicKeyworkerDto(final BasicKeyworkerDto keyworkerDetails, final long staffId, final String firstName, final String lastName) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getFirstName()).isEqualTo(firstName);
         assertThat(keyworkerDetails.getLastName()).isEqualTo(lastName);
     }
 
-    public static void verifyKeyworkerDto(long staffId, Integer capacity, Integer allocations, KeyworkerStatus status, KeyworkerDto keyworkerDetails, LocalDate activeDate) {
+    public static void verifyKeyworkerDto(final long staffId, final Integer capacity, final Integer allocations, final KeyworkerStatus status, final KeyworkerDto keyworkerDetails, final LocalDate activeDate) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getNumberAllocated()).isEqualTo(allocations);
         assertThat(keyworkerDetails.getFirstName()).isEqualTo("First");
@@ -143,11 +143,11 @@ public class KeyworkerTestHelper {
         assertThat(keyworkerDetails.getActiveDate()).isEqualTo(activeDate);
     }
 
-    private static OffenderLocationDto getOffender(long bookingId, String prisonId) {
+    private static OffenderLocationDto getOffender(final long bookingId, final String prisonId) {
         return getOffender(bookingId, prisonId, getNextOffenderNo());
     }
 
-    public static OffenderLocationDto getOffender(long bookingId, String prisonId, String offenderNo) {
+    public static OffenderLocationDto getOffender(final long bookingId, final String prisonId, final String offenderNo) {
         return OffenderLocationDto.builder()
                 .bookingId(bookingId)
                 .agencyId(prisonId)
@@ -157,7 +157,7 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static PrisonerDetail getPrisonerDetail(long bookingId, String prisonId, String offenderNo, boolean currentlyInPrison, String internalLocation) {
+    public static PrisonerDetail getPrisonerDetail(final long bookingId, final String prisonId, final String offenderNo, final boolean currentlyInPrison, final String internalLocation) {
         return PrisonerDetail.builder()
                 .latestBookingId(bookingId)
                 .latestLocationId(prisonId)
@@ -169,11 +169,11 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static List<OffenderLocationDto> getOffenders(String prisonId, long total) {
+    public static List<OffenderLocationDto> getOffenders(final String prisonId, final long total) {
         Validate.notBlank(prisonId);
         Validate.isTrue(total > 0);
 
-        List<OffenderLocationDto> dtos = new ArrayList<>();
+        final List<OffenderLocationDto> dtos = new ArrayList<>();
 
         for (long i = 1; i <= total; i++) {
             dtos.add(getOffender(getNextBookingId(), prisonId));
@@ -182,14 +182,14 @@ public class KeyworkerTestHelper {
         return dtos;
     }
 
-    public static void verifyAutoAllocation(OffenderKeyworker kwAlloc, String prisonId, String offenderNo, long staffId) {
+    public static void verifyAutoAllocation(final OffenderKeyworker kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
         verifyNewAllocation(kwAlloc, prisonId, offenderNo, staffId);
 
         assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
         assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
     }
 
-    public static void verifyNewAllocation(OffenderKeyworker kwAlloc, String prisonId, String offenderNo, long staffId) {
+    public static void verifyNewAllocation(final OffenderKeyworker kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
         assertThat(kwAlloc.getOffenderNo()).isEqualTo(offenderNo);
         assertThat(kwAlloc.getStaffId()).isEqualTo(staffId);
         assertThat(kwAlloc.getAllocationType()).isNotNull();
@@ -201,29 +201,29 @@ public class KeyworkerTestHelper {
         assertThat(kwAlloc.getExpiryDateTime()).isNull();
     }
 
-    public static void mockPrisonerAllocationHistory(KeyworkerService keyworkerService,
-                                                     OffenderKeyworker... allocations) {
-        List<OffenderKeyworker> allocationHistory =
+    public static void mockPrisonerAllocationHistory(final KeyworkerService keyworkerService,
+                                                     final OffenderKeyworker... allocations) {
+        final List<OffenderKeyworker> allocationHistory =
                 (allocations == null) ? Collections.emptyList() : List.of(allocations);
 
         when(keyworkerService.getAllocationHistoryForPrisoner(anyString())).thenReturn(allocationHistory);
     }
 
-    public static KeyworkerPool initKeyworkerPool(KeyworkerService keyworkerService,
-                                                  PrisonSupportedService prisonSupportedService,
-                                                  Collection<KeyworkerDto> keyworkers,
-                                                  String prisonId) {
+    public static KeyworkerPool initKeyworkerPool(final KeyworkerService keyworkerService,
+                                                  final PrisonSupportedService prisonSupportedService,
+                                                  final Collection<KeyworkerDto> keyworkers,
+                                                  final String prisonId) {
         return new KeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, prisonId);
     }
 
     // Provides a previous Key worker allocation between specified offender and Key worker with an assigned datetime 7
     // days prior to now.
-    public static OffenderKeyworker getPreviousKeyworkerAutoAllocation(String prisonId, String offenderNo, long staffId) {
+    public static OffenderKeyworker getPreviousKeyworkerAutoAllocation(final String prisonId, final String offenderNo, final long staffId) {
         return getPreviousKeyworkerAutoAllocation(prisonId, offenderNo, staffId, LocalDateTime.now().minusDays(7));
     }
 
     // Provides a previous Key worker allocation between specified offender and Key worker, assigned at specified datetime.
-    public static OffenderKeyworker getPreviousKeyworkerAutoAllocation(String prisonId, String offenderNo, long staffId, LocalDateTime assigned) {
+    public static OffenderKeyworker getPreviousKeyworkerAutoAllocation(final String prisonId, final String offenderNo, final long staffId, final LocalDateTime assigned) {
         Validate.notNull(assigned, "Allocation must have assigned datetime.");
 
         return OffenderKeyworker.builder()
@@ -238,7 +238,7 @@ public class KeyworkerTestHelper {
     }
 
     // Expires a Key worker allocation using specified reason and expiry datetime.
-    public static OffenderKeyworker expireAllocation(OffenderKeyworker allocation, DeallocationReason reason, LocalDateTime expiry) {
+    public static OffenderKeyworker expireAllocation(final OffenderKeyworker allocation, final DeallocationReason reason, final LocalDateTime expiry) {
         Validate.notNull(allocation, "Allocation to expire must be specified.");
         Validate.notNull(expiry, "Expiry datetime must be specified.");
 
@@ -252,11 +252,11 @@ public class KeyworkerTestHelper {
                 .build();
     }
 
-    public static List<OffenderKeyworker> getAllocations(String prisonId, Set<String> offNos) {
+    public static List<OffenderKeyworker> getAllocations(final String prisonId, final Set<String> offNos) {
         Validate.notBlank(prisonId);
         Validate.notEmpty(offNos);
 
-        List<OffenderKeyworker> allocs = new ArrayList<>();
+        final List<OffenderKeyworker> allocs = new ArrayList<>();
 
         offNos.forEach(offNo -> allocs.add(getPreviousKeyworkerAutoAllocation(prisonId, offNo, 1)));
 

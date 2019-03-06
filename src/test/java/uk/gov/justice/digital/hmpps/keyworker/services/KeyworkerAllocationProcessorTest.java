@@ -12,8 +12,6 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import wiremock.org.apache.commons.collections4.SetUtils;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +39,7 @@ public class KeyworkerAllocationProcessorTest {
     // Then response is an empty dto list
     @Test
     public void testFilterByUnallocatedEmptyInput() {
-        List<OffenderLocationDto> results = processor.filterByUnallocated(Collections.emptyList());
+        final var results = processor.filterByUnallocated(Collections.emptyList());
 
         assertThat(results).isNotNull();
         assertThat(results).isEmpty();
@@ -53,19 +51,19 @@ public class KeyworkerAllocationProcessorTest {
     @Test
     public void testFilterByUnallocatedNoAllocations() {
         // Get some OffenderSummaryDto records
-        List<OffenderLocationDto> dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
+        final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
-        Set<String> offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
+        final var offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // Mock remote to return no active allocations for specified offender numbers.
-        final OffenderKeyworker ok = OffenderKeyworker.builder()
+        final var ok = OffenderKeyworker.builder()
                 .offenderNo(offNos.iterator().next())
                 .allocationType(AllocationType.PROVISIONAL)
                 .build();
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(Collections.singletonList(ok));
 
         // Invoke service
-        List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
+        final var results = processor.filterByUnallocated(dtos);
 
         // Verify
         assertThat(results).isEqualTo(dtos);
@@ -79,17 +77,17 @@ public class KeyworkerAllocationProcessorTest {
     @Test
     public void testFilterByUnallocatedAllAllocated() {
         // Get some OffenderSummaryDto records
-        List<OffenderLocationDto> dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
+        final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
-        Set<String> offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
+        final var offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // Mock remote to return active allocations for all offender numbers.
-        List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
+        final var allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
 
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
-        List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
+        final var results = processor.filterByUnallocated(dtos);
 
         // Verify
         assertThat(results).isEmpty();
@@ -101,19 +99,19 @@ public class KeyworkerAllocationProcessorTest {
     @Test
     public void testFilterByUnallocatedHandlesDuplicateActiveAllocations() {
         // Get some OffenderSummaryDto records
-        List<OffenderLocationDto> dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
+        final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
-        Set<String> offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
+        final var offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // Mock remote to return active allocations for all offender numbers.
-        List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
+        final var allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
 
         allocs.add(allocs.get(0));
 
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
-        List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
+        final var results = processor.filterByUnallocated(dtos);
 
         // Verify
         assertThat(results).isEmpty();
@@ -127,21 +125,21 @@ public class KeyworkerAllocationProcessorTest {
     @Test
     public void testFilterByUnallocatedSomeAllocated() {
         // Get some OffenderSummaryDto records
-        List<OffenderLocationDto> dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
+        final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
         // Offenders with odd booking ids are allocated
-        Set<String> allocatedOffNos = dtos.stream().filter(dto -> dto.getBookingId() % 2 != 0).map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
+        final var allocatedOffNos = dtos.stream().filter(dto -> dto.getBookingId() % 2 != 0).map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // So offenders with even booking ids are unallocated
-        Set<String> unallocatedOffNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).filter(offNo -> !allocatedOffNos.contains(offNo)).collect(Collectors.toSet());
+        final var unallocatedOffNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).filter(offNo -> !allocatedOffNos.contains(offNo)).collect(Collectors.toSet());
 
         // Mock remote to return active allocations for 3 offender numbers.
-        List<OffenderKeyworker> allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, allocatedOffNos);
+        final var allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, allocatedOffNos);
 
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
-        List<OffenderLocationDto> results = processor.filterByUnallocated(dtos);
+        final var results = processor.filterByUnallocated(dtos);
 
         // Verify
         assertThat(results.size()).isEqualTo(unallocatedOffNos.size());

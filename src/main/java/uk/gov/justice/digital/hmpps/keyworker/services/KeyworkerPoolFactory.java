@@ -16,8 +16,8 @@ public class KeyworkerPoolFactory {
     private final KeyworkerService keyworkerService;
     private final PrisonSupportedService prisonSupportedService;
 
-    public KeyworkerPoolFactory(KeyworkerService keyworkerService,
-                                PrisonSupportedService prisonSupportedService) {
+    public KeyworkerPoolFactory(final KeyworkerService keyworkerService,
+                                final PrisonSupportedService prisonSupportedService) {
 
         this.keyworkerService = keyworkerService;
         this.prisonSupportedService = prisonSupportedService;
@@ -26,10 +26,10 @@ public class KeyworkerPoolFactory {
     /**
      * Initialise new key worker pool with set of key workers.
      */
-    public KeyworkerPool getKeyworkerPool(String prisonId, Collection<KeyworkerDto> keyworkers) {
+    public KeyworkerPool getKeyworkerPool(final String prisonId, final Collection<KeyworkerDto> keyworkers) {
         Validate.notEmpty(keyworkers);
 
-        KeyworkerPool keyworkerPool = new KeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, prisonId);
+        final var keyworkerPool = new KeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, prisonId);
 
         log.debug("Initialised new Key worker pool with {} members for prison {}.",
                 keyworkers.size(), prisonId);

@@ -42,11 +42,11 @@ public class OffenderKeyworkerRepositoryTest {
     @Test
     public void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
-        var transientEntity = transientEntity();
+        final var transientEntity = transientEntity();
 
-        var entity = transientEntity.toBuilder().build();
+        final var entity = transientEntity.toBuilder().build();
 
-        var persistedEntity = repository.save(entity);
+        final var persistedEntity = repository.save(entity);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -55,7 +55,7 @@ public class OffenderKeyworkerRepositoryTest {
 
         TestTransaction.start();
 
-        var retrievedEntity = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
+        final var retrievedEntity = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
 
         // equals only compares the business key columns: offenderBookingId, staffId and assignedDateTime
         assertThat(retrievedEntity).isEqualTo(transientEntity);
@@ -77,13 +77,13 @@ public class OffenderKeyworkerRepositoryTest {
     @Test
     public void givenAPersistentInstanceThenNullableValuesAreUpdateable() throws InterruptedException {
 
-        var entity = repository.save(transientEntity());
+        final var entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
         TestTransaction.end();
 
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("Modify User Id", "pw"));
         TestTransaction.start();
-        var retrievedEntity = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
+        final var retrievedEntity = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
 
         assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(retrievedEntity.getCreationDateTime());
         assertThat(retrievedEntity.getModifyUserId()).isEqualTo(retrievedEntity.getCreateUserId());
@@ -95,7 +95,7 @@ public class OffenderKeyworkerRepositoryTest {
         Thread.sleep(2L); // just long enough to make the modifyDateTime different to the creationDateTime
         TestTransaction.start();
 
-        var persistedUpdates = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
+        final var persistedUpdates = repository.findById(entity.getOffenderKeyworkerId()).orElseThrow();
 
         assertThat(persistedUpdates.getModifyDateTime()).isAfter(persistedUpdates.getCreationDateTime());
         assertThat(persistedUpdates.getModifyUserId()).isEqualTo("Modify User Id");
@@ -103,13 +103,13 @@ public class OffenderKeyworkerRepositoryTest {
 
     @Test
     public void shouldReturnCountByStaffIdAndPrisonIdAndActive() {
-        long UNKNOWN_STAFFID = 98765L;
+        final var UNKNOWN_STAFFID = 98765L;
 
-        final long nextId = nextId();
+        final var nextId = nextId();
         repository.save(buildEntity(nextId));
 
-        final long nextIdProvisional = nextId();
-        final OffenderKeyworker provisionalAllocation = buildEntity(nextIdProvisional);
+        final var nextIdProvisional = nextId();
+        final var provisionalAllocation = buildEntity(nextIdProvisional);
         provisionalAllocation.setAllocationType(AllocationType.PROVISIONAL);
         repository.save(provisionalAllocation);
 
@@ -126,8 +126,8 @@ public class OffenderKeyworkerRepositoryTest {
     @Test
     public void shouldDeleteProvisionalRows() {
 
-         OffenderKeyworker entity1 = buildEntity(nextId());
-         OffenderKeyworker entity2 = buildEntity(nextId());
+        var entity1 = buildEntity(nextId());
+        var entity2 = buildEntity(nextId());
         entity1.setAllocationType(AllocationType.PROVISIONAL);
         entity2.setAllocationType(AllocationType.PROVISIONAL);
         entity1 = repository.save(entity1);
@@ -148,8 +148,8 @@ public class OffenderKeyworkerRepositoryTest {
     @Test
     public void shouldUpdateProvisionalRows() {
 
-        OffenderKeyworker entity1 = buildEntity(nextId());
-        OffenderKeyworker entity2 = buildEntity(nextId());
+        var entity1 = buildEntity(nextId());
+        var entity2 = buildEntity(nextId());
         entity1.setAllocationType(AllocationType.PROVISIONAL);
         entity2.setAllocationType(AllocationType.PROVISIONAL);
         entity1 = repository.save(entity1);
@@ -170,7 +170,7 @@ public class OffenderKeyworkerRepositoryTest {
         return buildEntity(nextId());
     }
 
-    private OffenderKeyworker buildEntity(Long staffId){
+    private OffenderKeyworker buildEntity(final Long staffId) {
         return OffenderKeyworker
                 .builder()
                 .offenderNo("A1234AA")

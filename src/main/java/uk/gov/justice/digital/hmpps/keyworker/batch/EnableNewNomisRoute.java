@@ -31,7 +31,7 @@ public class EnableNewNomisRoute extends RouteBuilder {
     private final TelemetryClient telemetryClient;
 
     @Autowired
-    public EnableNewNomisRoute(NomisService nomisService, TelemetryClient telemetryClient) {
+    public EnableNewNomisRoute(final NomisService nomisService, final TelemetryClient telemetryClient) {
         this.nomisService = nomisService;
         this.telemetryClient = telemetryClient;
     }
@@ -61,7 +61,7 @@ public class EnableNewNomisRoute extends RouteBuilder {
                 .choice().when(simple("${body.numUsersEnabled} > 0"))
                     .log("Enabled ${body.numUsersEnabled} new users for API access")
                     .process(p -> {
-                        CaseloadUpdate caseloadRes = p.getIn().getBody(CaseloadUpdate.class);
+                        var caseloadRes = p.getIn().getBody(CaseloadUpdate.class);
                         var infoMap = ImmutableMap.of(
                                 "prisonId", caseloadRes.getCaseload(),
                                 "numUsersEnabled", String.valueOf(caseloadRes.getNumUsersEnabled()));

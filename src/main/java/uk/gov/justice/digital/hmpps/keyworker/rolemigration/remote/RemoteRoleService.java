@@ -4,18 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
-import uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelper;
 
-import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -32,14 +28,14 @@ public class RemoteRoleService implements RoleService {
 
     @Autowired()
     RemoteRoleService(
-            @Qualifier(value = "elite2ApiRestTemplate") RestTemplate restTemplate) {
+            @Qualifier(value = "elite2ApiRestTemplate") final RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     @Override
-    public Set<String> findUsersForPrisonHavingRole(String prisonId, String roleCode) {
+    public Set<String> findUsersForPrisonHavingRole(final String prisonId, final String roleCode) {
         log.info("Looking for users matching (prison {}, role {})", prisonId, roleCode);
-        ResponseEntity<List<String>> responseEntity = restTemplate.exchange(
+        final var responseEntity = restTemplate.exchange(
                 STAFF_ACCESS_CODES_LIST_URL,
                 HttpMethod.GET,
                 null,
@@ -47,14 +43,14 @@ public class RemoteRoleService implements RoleService {
                 prisonId,
                 roleCode);
 
-        Set<String> usernames = new HashSet<>(responseEntity.getBody());
+        final Set<String> usernames = new HashSet<>(responseEntity.getBody());
         log.info("(prison {}, role {}) -> usernames {}", prisonId, roleCode, usernames);
         return usernames;
 
     }
 
     @Override
-    public void removeRole(String username, String prisonId, String roleCode) {
+    public void removeRole(final String username, final String prisonId, final String roleCode) {
         log.info("Remove role association (username {}, prison {}, role {})", username, prisonId, roleCode);
         restTemplate.delete(
                 "/users/{username}/caseload/{caseload}/access-role/{roleCode}",
@@ -64,7 +60,7 @@ public class RemoteRoleService implements RoleService {
     }
 
     @Override
-    public void assignRoleToApiCaseload(String username, String roleCode) {
+    public void assignRoleToApiCaseload(final String username, final String roleCode) {
         log.info("Assign (username {}, role {}) to the API caseload", username, roleCode);
 
         restTemplate.put(

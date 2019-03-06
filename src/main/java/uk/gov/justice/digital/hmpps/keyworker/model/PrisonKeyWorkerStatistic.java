@@ -55,7 +55,7 @@ public class PrisonKeyWorkerStatistic implements Comparable<PrisonKeyWorkerStati
     private Integer avgNumDaysFromReceptionToKeyWorkingSession;
 
     @Override
-    public int compareTo(PrisonKeyWorkerStatistic stat) {
+    public int compareTo(final PrisonKeyWorkerStatistic stat) {
         return new CompareToBuilder()
                         .append(prisonId, stat.prisonId)
                         .append(snapshotDate, stat.snapshotDate)

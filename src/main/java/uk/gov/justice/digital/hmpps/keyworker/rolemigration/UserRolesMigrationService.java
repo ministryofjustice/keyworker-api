@@ -28,20 +28,20 @@ public class UserRolesMigrationService {
     private final Set<String> rolesToAssign;
     private final Set<String> rolesToMigrate;
 
-    public UserRolesMigrationService(RoleService roleService, RoleMigrationConfiguration configuration) {
+    public UserRolesMigrationService(final RoleService roleService, final RoleMigrationConfiguration configuration) {
         this.roleService = roleService;
         rolesToMatch = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMatch()));
         rolesToAssign = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToAssign()));
         rolesToMigrate = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMigrate()));
     }
 
-    public void migrate(String prisonId) {
+    public void migrate(final String prisonId) {
         migrateRoles(prisonId, rolesToMatch, rolesToAssign, rolesToMigrate);
     }
 
-    private void migrateRoles(String prisonId, Set<String> rolesToMatch, Set<String> rolesToAssign, Set<String> rolesToMigrate) {
+    private void migrateRoles(final String prisonId, final Set<String> rolesToMatch, final Set<String> rolesToAssign, final Set<String> rolesToMigrate) {
 
-        List<Pair<String, Set<String>>> usernamesByRole = findUsernamesByRole(prisonId, rolesToMatch);
+        final var usernamesByRole = findUsernamesByRole(prisonId, rolesToMatch);
 
         assignRolesToUsers(rolesToAssign, usernamesForUsersHavingRoles(usernamesByRole, rolesToMigrate));
 
@@ -57,7 +57,7 @@ public class UserRolesMigrationService {
      * @param roleCodes The set of role codes to use to group users
      * @return a list of pairs of (roleCode, set of username)
      */
-    private List<Pair<String, Set<String>>> findUsernamesByRole(String prisonId, Set<String> roleCodes) {
+    private List<Pair<String, Set<String>>> findUsernamesByRole(final String prisonId, final Set<String> roleCodes) {
         return roleCodes
                 .stream()
                 .map(sourceRole -> Pair.of(
@@ -73,7 +73,7 @@ public class UserRolesMigrationService {
      * @param filterRoles roles to include
      * @return all the supplied usernames as a set.
      */
-    private Set<String> usernamesForUsersHavingRoles(List<Pair<String, Set<String>>> usernamesByRole, Set<String> filterRoles) {
+    private Set<String> usernamesForUsersHavingRoles(final List<Pair<String, Set<String>>> usernamesByRole, final Set<String> filterRoles) {
         return usernamesByRole.stream().filter(p -> filterRoles.contains(p.getLeft())).map(Pair::getRight).reduce(new HashSet<>(), SET_UNION);
     }
 
@@ -84,12 +84,12 @@ public class UserRolesMigrationService {
      * @param rolesToAssign The set of role codes to assign to the users.
      * @param usernames     The set of usernames to which the assignments should be made.
      */
-    private void assignRolesToUsers(Set<String> rolesToAssign, Set<String> usernames) {
+    private void assignRolesToUsers(final Set<String> rolesToAssign, final Set<String> usernames) {
         usernames.forEach(username ->
                 rolesToAssign.forEach(roleToAssign -> {
                     try {
                         roleService.assignRoleToApiCaseload(username, roleToAssign);
-                    } catch (HttpServerErrorException e) {
+                    } catch (final HttpServerErrorException e) {
                         log.info("API caseload role assignment (username {}, role {}) failed. (Does the role assignment already exist?).", username, roleToAssign);
                     }
                 }));
@@ -102,14 +102,14 @@ public class UserRolesMigrationService {
      * @param prisonId        The prison / caseload
      * @param usernamesByRole sets of usernames by role code.
      */
-    private void removeRolesFromStaff(String prisonId, List<Pair<String, Set<String>>> usernamesByRole) {
+    private void removeRolesFromStaff(final String prisonId, final List<Pair<String, Set<String>>> usernamesByRole) {
         usernamesByRole.forEach(roleAndUsernames ->
         {
-            final String roleCode = roleAndUsernames.getLeft();
+            final var roleCode = roleAndUsernames.getLeft();
             roleAndUsernames.getRight().forEach(username -> {
                         try {
                             roleService.removeRole(username, prisonId, roleCode);
-                        } catch (HttpServerErrorException e) {
+                        } catch (final HttpServerErrorException e) {
                             log.info("Role removal (username {}, prisonId {}, role {}) failed", username, prisonId, roleCode);
                         }
                     }

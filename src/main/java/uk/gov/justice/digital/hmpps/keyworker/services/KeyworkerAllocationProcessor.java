@@ -11,8 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,7 +22,7 @@ import java.util.stream.Collectors;
 public class KeyworkerAllocationProcessor {
     private final OffenderKeyworkerRepository repository;
 
-    public KeyworkerAllocationProcessor(OffenderKeyworkerRepository repository) {
+    public KeyworkerAllocationProcessor(final OffenderKeyworkerRepository repository) {
         this.repository = repository;
     }
 
@@ -35,7 +33,7 @@ public class KeyworkerAllocationProcessor {
      * @param dtos offender summary DTOs to decorate.
      * @return decorated offender summary DTOs.
      */
-    public List<OffenderLocationDto> filterByUnallocated(List<OffenderLocationDto> dtos) {
+    public List<OffenderLocationDto> filterByUnallocated(final List<OffenderLocationDto> dtos) {
         Validate.notNull(dtos);
 
         if (dtos.isEmpty()) {
@@ -43,13 +41,13 @@ public class KeyworkerAllocationProcessor {
         }
 
         // Extract set of offender numbers from provided DTOs
-        Set<String> offenderNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
+        final var offenderNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // Obtain list of active Keyworker allocations for these offenders, if any
-        List<OffenderKeyworker> allocs = repository.findByActiveAndOffenderNoIn(true, offenderNos);
+        final var allocs = repository.findByActiveAndOffenderNoIn(true, offenderNos);
 
         // Extract offender numbers having active allocation
-        Map<String, OffenderKeyworker> activeOffenderNos = allocs.stream()
+        final var activeOffenderNos = allocs.stream()
                 .collect(Collectors.toMap(
                         OffenderKeyworker::getOffenderNo,
                         Function.identity(),
@@ -66,11 +64,11 @@ public class KeyworkerAllocationProcessor {
                 .collect(Collectors.toList());
     }
 
-    public List<KeyworkerAllocationDetailsDto> decorateAllocated(List<OffenderKeyworker> allocations, List<OffenderLocationDto> allOffenders) {
-        Map<String, OffenderLocationDto> allOffendersMap = allOffenders.stream().collect(Collectors.toMap(OffenderLocationDto::getOffenderNo, Function.identity()));
+    public List<KeyworkerAllocationDetailsDto> decorateAllocated(final List<OffenderKeyworker> allocations, final List<OffenderLocationDto> allOffenders) {
+        final var allOffendersMap = allOffenders.stream().collect(Collectors.toMap(OffenderLocationDto::getOffenderNo, Function.identity()));
         return allocations.stream().map(t -> {
-                    final KeyworkerAllocationDetailsDto keyworkerAllocationDetailsDto = ConversionHelper.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(t);
-                    final OffenderLocationDto offenderLocationDto = allOffendersMap.get(t.getOffenderNo());
+            final var keyworkerAllocationDetailsDto = ConversionHelper.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(t);
+            final var offenderLocationDto = allOffendersMap.get(t.getOffenderNo());
                     if (offenderLocationDto != null) {
                         keyworkerAllocationDetailsDto.setFirstName(offenderLocationDto.getFirstName());
                         keyworkerAllocationDetailsDto.setLastName(offenderLocationDto.getLastName());

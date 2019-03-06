@@ -29,11 +29,11 @@ public class PrisonSupportedService {
     private final PrisonSupportedRepository repository;
 
     @Autowired
-    public PrisonSupportedService(PrisonSupportedRepository repository) {
+    public PrisonSupportedService(final PrisonSupportedRepository repository) {
         this.repository = repository;
     }
 
-    private void verifyPrisonSupported(String prisonId) {
+    private void verifyPrisonSupported(final String prisonId) {
         Validate.notBlank(prisonId, "Prison id is required.");
 
         // Check configuration to verify that prison is eligible for migration.
@@ -42,7 +42,7 @@ public class PrisonSupportedService {
         }
     }
 
-    void verifyPrisonMigrated(String prisonId) {
+    void verifyPrisonMigrated(final String prisonId) {
         Validate.notBlank(prisonId, "Prison id is required.");
         verifyPrisonSupported(prisonId);
 
@@ -52,9 +52,9 @@ public class PrisonSupportedService {
         }
     }
 
-    void verifyPrisonSupportsAutoAllocation(String prisonId) {
+    void verifyPrisonSupportsAutoAllocation(final String prisonId) {
         verifyPrisonSupported(prisonId);
-        Prison prison = getPrisonDetail(prisonId);
+        final var prison = getPrisonDetail(prisonId);
 
         if (!prison.isAutoAllocatedSupported()) {
             throw PrisonNotSupportAutoAllocationException.withId(prisonId);
@@ -63,13 +63,13 @@ public class PrisonSupportedService {
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
-    public void updateSupportedPrison(String prisonId, boolean autoAllocate) {
+    public void updateSupportedPrison(final String prisonId, final boolean autoAllocate) {
         updateSupportedPrison(prisonId, autoAllocate, capacityTiers.get(0), capacityTiers.get(1), keyWorkerSessionDefaultFrequency);
     }
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
-    public void updateSupportedPrison(String prisonId, boolean autoAllocate, Integer capacityTier1, Integer capacityTier2, Integer kwSessionFrequencyInWeeks) {
+    public void updateSupportedPrison(final String prisonId, final boolean autoAllocate, final Integer capacityTier1, final Integer capacityTier2, final Integer kwSessionFrequencyInWeeks) {
 
         repository.findById(prisonId)
                 .ifPresentOrElse(prison -> {
@@ -84,7 +84,7 @@ public class PrisonSupportedService {
                         prison.setKwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks);
                     }
                 }, () -> {
-                    PrisonSupported prisonSupported = PrisonSupported.builder()
+                    final var prisonSupported = PrisonSupported.builder()
                             .prisonId(prisonId)
                             .autoAllocate(autoAllocate)
                             .capacityTier1(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
@@ -97,7 +97,7 @@ public class PrisonSupportedService {
                 });
     }
 
-    boolean isMigrated(String prisonId) {
+    boolean isMigrated(final String prisonId) {
         // Check remote to determine if prison already migrated
         return getPrisonDetail(prisonId).isMigrated();
     }
@@ -106,7 +106,7 @@ public class PrisonSupportedService {
         return repository.findAllByMigratedEquals(true).stream().map(this::buildPrison).collect(Collectors.toList());
     }
 
-    public Prison getPrisonDetail(String prisonId) {
+    public Prison getPrisonDetail(final String prisonId) {
         return repository.findById(prisonId).map(this::buildPrison)
                 .orElseGet(() ->  Prison.builder()
                     .prisonId(prisonId)
@@ -118,7 +118,7 @@ public class PrisonSupportedService {
 
     }
 
-    private Prison buildPrison(PrisonSupported prison) {
+    private Prison buildPrison(final PrisonSupported prison) {
         return Prison.builder()
                 .prisonId(prison.getPrisonId())
                 .migrated(prison.isMigrated())
@@ -131,7 +131,7 @@ public class PrisonSupportedService {
                 .build();
     }
 
-    private boolean isNotSupported(String prisonId) {
+    private boolean isNotSupported(final String prisonId) {
         return !repository.existsByPrisonId(prisonId);
     }
 

@@ -7,12 +7,12 @@ import javax.persistence.Converter;
 @Converter
 public class DeallocationReasonConvertor implements AttributeConverter<DeallocationReason,String> {
     @Override
-    public String convertToDatabaseColumn(DeallocationReason attribute) {
+    public String convertToDatabaseColumn(final DeallocationReason attribute) {
         return (attribute != null) ? attribute.getReasonCode() : null;
     }
 
     @Override
-    public DeallocationReason convertToEntityAttribute(String dbData) {
+    public DeallocationReason convertToEntityAttribute(final String dbData) {
         return DeallocationReason.get(dbData);
     }
 }

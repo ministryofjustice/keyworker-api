@@ -59,7 +59,7 @@ public class PrisonSupportedServiceTest {
     @Test
     public void testIsMigratedSupportedPrison() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(true).build()));
-        boolean migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
+        final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
         assertThat(migrated).isTrue();
     }
@@ -67,7 +67,7 @@ public class PrisonSupportedServiceTest {
     @Test
     public void testIsNotMigratedSupportedPrison() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(false).build()));
-        boolean migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
+        final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
         assertThat(migrated).isFalse();
     }
@@ -75,7 +75,7 @@ public class PrisonSupportedServiceTest {
     @Test
     public void testIsNotExistsSupportedPrison() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.empty());
-        boolean migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
+        final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
         assertThat(migrated).isFalse();
     }
@@ -96,7 +96,7 @@ public class PrisonSupportedServiceTest {
 
     @Test
     public void testUpdateSupportedPrisonAutoAllocateUpdate() {
-        PrisonSupported prison = PrisonSupported.builder().prisonId(TEST_AGENCY).build();
+        final var prison = PrisonSupported.builder().prisonId(TEST_AGENCY).build();
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(prison));
 
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true, 5, 7, 1);
@@ -112,9 +112,9 @@ public class PrisonSupportedServiceTest {
 
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true);
 
-        ArgumentCaptor<PrisonSupported> kwaArg = ArgumentCaptor.forClass(PrisonSupported.class);
+        final var kwaArg = ArgumentCaptor.forClass(PrisonSupported.class);
         verify(repository).save(kwaArg.capture());//any(PrisonSupported.class));
-        final PrisonSupported prison = kwaArg.getValue();
+        final var prison = kwaArg.getValue();
         assertThat(prison.getCapacityTier1()).isEqualTo(6);
         assertThat(prison.getCapacityTier2()).isEqualTo(9);
     }

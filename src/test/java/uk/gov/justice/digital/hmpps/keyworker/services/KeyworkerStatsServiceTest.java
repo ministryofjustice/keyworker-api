@@ -85,13 +85,13 @@ public class KeyworkerStatsServiceTest {
 
         when(repository.findByStaffIdAndPrisonId(TEST_STAFF_ID, TEST_AGENCY_ID)).thenReturn(getDefaultOffenderKeyworkers());
 
-        final List<CaseNoteUsagePrisonersDto> usageCounts = getCaseNoteUsagePrisonersDtos();
+        final var usageCounts = getCaseNoteUsagePrisonersDtos();
 
 
         when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
-        KeyworkerStatsDto stats = service.getStatsForStaff(
+        final var stats = service.getStatsForStaff(
                 TEST_STAFF_ID,
                 TEST_AGENCY_ID,
                 fromDate,
@@ -292,7 +292,7 @@ public class KeyworkerStatsServiceTest {
         when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
-        KeyworkerStatsDto stats = service.getStatsForStaff(
+        final var stats = service.getStatsForStaff(
                 TEST_STAFF_ID2,
                 TEST_AGENCY_ID,
                 fromDate,
@@ -330,7 +330,7 @@ public class KeyworkerStatsServiceTest {
                                 .numCaseNotes(1)
                                 .build())
                 );
-        PrisonKeyWorkerStatistic statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
+        final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
         assertThat(statsResult.getNumberKeyWorkerSessions()).isEqualTo(4);
@@ -353,7 +353,7 @@ public class KeyworkerStatsServiceTest {
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true)))
                 .thenReturn(Collections.emptyList());
 
-        PrisonKeyWorkerStatistic statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
+        final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
         assertThat(statsResult.getNumberKeyWorkerSessions()).isEqualTo(4);
@@ -368,11 +368,11 @@ public class KeyworkerStatsServiceTest {
 
     @Test
     public void testPrisonStats() {
-        List<String> prisonIds = Collections.singletonList(TEST_AGENCY_ID);
+        final var prisonIds = Collections.singletonList(TEST_AGENCY_ID);
 
-        LocalDate now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
-        LocalDate fromDate = now.minusWeeks(4);
-        LocalDate toDate = now.minusDays(1);
+        final var now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
+        final var fromDate = now.minusWeeks(4);
+        final var toDate = now.minusDays(1);
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(toDate))).thenReturn(
                 List.of(
@@ -390,7 +390,7 @@ public class KeyworkerStatsServiceTest {
                         )
                 );
 
-        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate)+1);
+        final var previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate) + 1);
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate.minusDays(1)))).thenReturn(
                 List.of(
                         new PrisonKeyWorkerAggregatedStats(
@@ -407,14 +407,14 @@ public class KeyworkerStatsServiceTest {
                 )
         );
 
-        List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, toDate, previousFromDate, TEST_AGENCY_ID,
+        final var timeline = getTimeline(fromDate, toDate, previousFromDate, TEST_AGENCY_ID,
                 400, 840, 400, 420, 840,
                 600, 120);
         assertThat(timeline.size()).isEqualTo(56);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
 
-        KeyworkerStatSummary prisonStats = service.getPrisonStats(prisonIds, fromDate, toDate);
+        final var prisonStats = service.getPrisonStats(prisonIds, fromDate, toDate);
 
         assertThat(prisonStats.getPrisons()).hasSize(1);
 
@@ -447,11 +447,11 @@ public class KeyworkerStatsServiceTest {
 
     @Test
     public void testPrisonStatsWeekOnly() {
-        List<String> prisonIds = Collections.singletonList("MDI");
+        final var prisonIds = Collections.singletonList("MDI");
 
-        LocalDate now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
-        LocalDate toDate = now.minusDays(1);
-        LocalDate fromDate = now.minusWeeks(2);
+        final var now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
+        final var toDate = now.minusDays(1);
+        final var fromDate = now.minusWeeks(2);
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(toDate))).thenReturn(
                 List.of(
@@ -469,7 +469,7 @@ public class KeyworkerStatsServiceTest {
                 )
         );
 
-        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate)+1);
+        final var previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate) + 1);
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate.minusDays(1)))).thenReturn(
                 List.of(
                         new PrisonKeyWorkerAggregatedStats(
@@ -486,13 +486,13 @@ public class KeyworkerStatsServiceTest {
                 )
         );
 
-        List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, toDate, previousFromDate, "MDI",
+        final var timeline = getTimeline(fromDate, toDate, previousFromDate, "MDI",
                 20, 50, 6, 25, 50, 50, 7);
         assertThat(timeline.size()).isEqualTo(28);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
 
-        KeyworkerStatSummary prisonStats = service.getPrisonStats(prisonIds, fromDate, toDate);
+        final var prisonStats = service.getPrisonStats(prisonIds, fromDate, toDate);
 
         assertThat(prisonStats.getPrisons()).hasSize(1);
 
@@ -526,10 +526,10 @@ public class KeyworkerStatsServiceTest {
 
     @Test
     public void testPrisonStatsSmallData() {
-        List<String> prisonIds = Collections.singletonList("MDI");
+        final var prisonIds = Collections.singletonList("MDI");
 
-        LocalDate now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
-        LocalDate fromDate = now.minusDays(1);
+        final var now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
+        final var fromDate = now.minusDays(1);
 
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(fromDate), eq(now))).thenReturn(
                 List.of(
@@ -547,15 +547,15 @@ public class KeyworkerStatsServiceTest {
                 )
         );
 
-        LocalDate previousFromDate = fromDate.minusDays(DAYS.between(fromDate, now)+1);
+        final var previousFromDate = fromDate.minusDays(DAYS.between(fromDate, now) + 1);
 
-        List<PrisonKeyWorkerStatistic> timeline = getTimeline(fromDate, now, previousFromDate, "MDI",
+        final var timeline = getTimeline(fromDate, now, previousFromDate, "MDI",
                 2, 5, 0, 0, 50, 50, 7);
         assertThat(timeline.size()).isEqualTo(2);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, now.minusYears(1), now)).thenReturn(timeline);
 
-        KeyworkerStatSummary prisonStats = service.getPrisonStats(prisonIds, fromDate, now);
+        final var prisonStats = service.getPrisonStats(prisonIds, fromDate, now);
 
         assertThat(prisonStats.getPrisons()).hasSize(1);
 
@@ -582,10 +582,10 @@ public class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(2);
     }
 
-    private List<PrisonKeyWorkerStatistic> getTimeline(LocalDate fromDate, LocalDate toDate, LocalDate previousFromDate, String prisonId, int kwEntriesCurrent, int kwSessionsCurrent, int kwEntriesPrevious, int kwSessionsPrevious, int totalNumPrisoners, int numPrisonersAssignedKeyWorker, int numberOfActiveKeyworkers) {
-        List<PrisonKeyWorkerStatistic> timeline = new ArrayList<>();
+    private List<PrisonKeyWorkerStatistic> getTimeline(final LocalDate fromDate, final LocalDate toDate, final LocalDate previousFromDate, final String prisonId, final int kwEntriesCurrent, final int kwSessionsCurrent, final int kwEntriesPrevious, final int kwSessionsPrevious, final int totalNumPrisoners, final int numPrisonersAssignedKeyWorker, final int numberOfActiveKeyworkers) {
+        final List<PrisonKeyWorkerStatistic> timeline = new ArrayList<>();
 
-        int day = 0;
+        var day = 0;
         double between = DAYS.between(fromDate, toDate)+1;
         while (day <= DAYS.between(fromDate, toDate)) {
             timeline.add(PrisonKeyWorkerStatistic.builder()
@@ -627,7 +627,7 @@ public class KeyworkerStatsServiceTest {
         when(statisticRepository.findOneByPrisonIdAndSnapshotDate(TEST_AGENCY_ID, toDate.minusDays(1)))
                 .thenReturn(null);
 
-        List<OffenderLocationDto> offenderLocations = offenderNos.stream().map(offenderNo ->
+        final var offenderLocations = offenderNos.stream().map(offenderNo ->
                 OffenderLocationDto.builder()
                         .agencyId(TEST_AGENCY_ID)
                         .offenderNo(offenderNo)
@@ -639,7 +639,7 @@ public class KeyworkerStatsServiceTest {
         when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(eq(true), eq(TEST_AGENCY_ID), eq(offenderNos), eq(AllocationType.PROVISIONAL)))
                 .thenReturn(getDefaultOffenderKeyworkers());
 
-        List<StaffLocationRoleDto> staffLocationRoleDtos = List.of(
+        final var staffLocationRoleDtos = List.of(
                 StaffLocationRoleDto.builder()
                         .agencyId(TEST_AGENCY_ID)
                         .staffId(-5L)
@@ -664,7 +664,7 @@ public class KeyworkerStatsServiceTest {
                 eq(toDate.minusDays(1)), eq(true)))
                 .thenReturn(getCaseNoteUsagePrisonersDtos());
 
-        List<OffenderKeyworker> assignedOffenders = List.of(
+        final var assignedOffenders = List.of(
                 OffenderKeyworker.builder()
                         .offenderNo(offenderNos.get(2))
                         .staffId(TEST_STAFF_ID)
