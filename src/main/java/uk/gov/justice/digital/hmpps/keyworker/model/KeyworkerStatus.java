@@ -12,7 +12,7 @@ public enum KeyworkerStatus {
 
     private final String statusCode;
 
-    KeyworkerStatus(String statusCode) {
+    KeyworkerStatus(final String statusCode) {
         this.statusCode = statusCode;
     }
 
@@ -29,12 +29,12 @@ public enum KeyworkerStatus {
     private static final Map<String, KeyworkerStatus> lookup = new HashMap<>();
 
     static {
-        for (KeyworkerStatus status : KeyworkerStatus.values()) {
+        for (final var status : KeyworkerStatus.values()) {
             lookup.put(status.statusCode, status);
         }
     }
 
-    public static KeyworkerStatus get(String statusCode) {
+    public static KeyworkerStatus get(final String statusCode) {
         return lookup.get(statusCode);
     }
 }

@@ -29,7 +29,7 @@ public class KeyworkerStatsController {
     private final KeyworkerStatsService keyworkerStatsService;
     private final PrisonSupportedService prisonSupportedService;
 
-    public KeyworkerStatsController(KeyworkerStatsService keyworkerStatsService, PrisonSupportedService prisonSupportedService) {
+    public KeyworkerStatsController(final KeyworkerStatsService keyworkerStatsService, final PrisonSupportedService prisonSupportedService) {
         this.keyworkerStatsService = keyworkerStatsService;
         this.prisonSupportedService = prisonSupportedService;
     }
@@ -46,21 +46,21 @@ public class KeyworkerStatsController {
 
     @GetMapping(path = "/{staffId}/prison/{prisonId}")
     public KeyworkerStatsDto getStatsForStaff(
-            @ApiParam("staffId") @NotNull @PathVariable("staffId")
-                    Long staffId,
+            @ApiParam("staffId") @NotNull @PathVariable("staffId") final
+            Long staffId,
 
-            @ApiParam("prisonId") @NotNull @PathVariable("prisonId")
-                    String prisonId,
+            @ApiParam("prisonId") @NotNull @PathVariable("prisonId") final
+            String prisonId,
 
             @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).")
             @RequestParam(value = "fromDate", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate fromDate,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final
+            LocalDate fromDate,
 
             @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).")
             @RequestParam(value = "toDate", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate toDate )
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final
+            LocalDate toDate)
     {
 
         return keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate);
@@ -82,20 +82,20 @@ public class KeyworkerStatsController {
     @GetMapping
     public KeyworkerStatSummary getPrisonStats(
             @ApiParam(value = "List of prisonIds", allowMultiple = true, example = "prisonId=MDI&prisonId=LEI")
-            @RequestParam(value = "prisonId", required = false)
-                    List<String> prisonIdList,
+            @RequestParam(value = "prisonId", required = false) final
+            List<String> prisonIdList,
             @ApiParam(value = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)")
             @RequestParam(value = "fromDate", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate fromDate,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final
+            LocalDate fromDate,
             @ApiParam(value = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)")
             @RequestParam(value = "toDate", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    LocalDate toDate) {
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final
+            LocalDate toDate) {
 
         final List<String> prisonIds = new ArrayList<>();
         if (prisonIdList == null || prisonIdList.isEmpty()) {
-            List<Prison> migratedPrisons = prisonSupportedService.getMigratedPrisons();
+            final var migratedPrisons = prisonSupportedService.getMigratedPrisons();
             prisonIds.addAll(migratedPrisons.stream().map(Prison::getPrisonId).collect(Collectors.toList()));
         } else {
             prisonIds.addAll(prisonIdList);

@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -30,7 +29,7 @@ public class BatchController {
 
     private final ProducerTemplate producerTemplate;
 
-    public BatchController(ProducerTemplate producerTemplate) {
+    public BatchController(final ProducerTemplate producerTemplate) {
         this.producerTemplate = producerTemplate;
     }
 
@@ -85,8 +84,9 @@ public class BatchController {
     @PostMapping(path = "/update-status")
     @PreAuthorize("hasRole('SYSTEM_USER')")
     public List<Long> runBatchUpdateStatus() {
-        Exchange response = producerTemplate.send(DIRECT_UPDATE_STATUS, exchange -> {});
-        List<Long> ids = response.getIn().getBody(List.class);
+        final var response = producerTemplate.send(DIRECT_UPDATE_STATUS, exchange -> {
+        });
+        final List<Long> ids = response.getIn().getBody(List.class);
         log.info("processed /batch/updateStatus call. The following key workers have been set to status active: {}", ids.size());
         return ids;
     }

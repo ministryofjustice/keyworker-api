@@ -19,20 +19,20 @@ public class CorrelationMdcFilter implements Filter {
     private final MdcUtility mdcUtility;
 
     @Autowired
-    public CorrelationMdcFilter(MdcUtility mdcUtility) {
+    public CorrelationMdcFilter(final MdcUtility mdcUtility) {
         this.mdcUtility = mdcUtility;
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {
+    public void init(final FilterConfig filterConfig) {
         // Initialise - no functionality
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
             throws IOException, ServletException {
 
-        Optional<String> correlationIdOptional = Optional.ofNullable(((HttpServletRequest)request).getHeader(CORRELATION_ID_HEADER));
+        final var correlationIdOptional = Optional.ofNullable(((HttpServletRequest) request).getHeader(CORRELATION_ID_HEADER));
 
         try {
             MDC.put(CORRELATION_ID_HEADER, correlationIdOptional.orElseGet(mdcUtility::generateUUID));

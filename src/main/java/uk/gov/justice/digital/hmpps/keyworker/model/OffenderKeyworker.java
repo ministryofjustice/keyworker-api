@@ -99,15 +99,15 @@ public class OffenderKeyworker {
     private String modifyUserId;
 
 
-    public void deallocate(LocalDateTime expiryDateTime, DeallocationReason deallocationReason) {
+    public void deallocate(final LocalDateTime expiryDateTime, final DeallocationReason deallocationReason) {
         active = false;
         setExpiryDateTime(expiryDateTime);
         setDeallocationReason(deallocationReason);
     }
 
-    public long getDaysAllocated(LocalDate fromDate, LocalDate toDate) {
-        LocalDate endTime = expiryDateTime != null ? expiryDateTime.toLocalDate() : toDate;
-        LocalDate startTime = assignedDateTime.compareTo(fromDate.atStartOfDay()) > 0 ? assignedDateTime.toLocalDate() : fromDate;
+    public long getDaysAllocated(final LocalDate fromDate, final LocalDate toDate) {
+        final var endTime = expiryDateTime != null ? expiryDateTime.toLocalDate() : toDate;
+        final var startTime = assignedDateTime.compareTo(fromDate.atStartOfDay()) > 0 ? assignedDateTime.toLocalDate() : fromDate;
         return DAYS.between(startTime, endTime);
     }
 }

@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.util.ObjectUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
@@ -30,15 +29,15 @@ public class KeyworkerPool {
 
     private KeyworkerService keyworkerService;
 
-    KeyworkerPool(KeyworkerService keyworkerService,
-                  PrisonSupportedService prisonSupportedService,
-                  Collection<KeyworkerDto> keyworkers,
-                  String prisonId) {
+    KeyworkerPool(final KeyworkerService keyworkerService,
+                  final PrisonSupportedService prisonSupportedService,
+                  final Collection<KeyworkerDto> keyworkers,
+                  final String prisonId) {
         Validate.notEmpty(keyworkers, "Key worker pool must contain at least one Key worker.");
         Validate.notBlank(prisonId, "Prison must be specified.");
 
         this.keyworkerService = keyworkerService;
-        final Prison prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
+        final var prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
 
         this.capacityTiers = new TreeSet<>();
         capacityTiers.add(prisonDetail.getCapacityTier1());
@@ -64,9 +63,9 @@ public class KeyworkerPool {
     private Comparator<KeyworkerDto> buildKeyworkerComparator() {
 
         // If a KW is full, kick it to last place
-        Comparator<KeyworkerDto> isFullComparator = (kw1, kw2) -> {
-            int enhancedCapacityKw1 = calculateEnhancedCapacity(kw1);
-            int enhancedCapacityKw2 = calculateEnhancedCapacity(kw2);
+        final Comparator<KeyworkerDto> isFullComparator = (kw1, kw2) -> {
+            final var enhancedCapacityKw1 = calculateEnhancedCapacity(kw1);
+            final var enhancedCapacityKw2 = calculateEnhancedCapacity(kw2);
             final Integer numberAllocated1 = totalAllocations(kw1);
             final Integer numberAllocated2 = totalAllocations(kw2);
             if (numberAllocated1 >= enhancedCapacityKw1) {
@@ -88,10 +87,10 @@ public class KeyworkerPool {
         };
 
         final Comparator<Long> staffIdComparator = (id1, id2) -> {
-            Comparator<OffenderKeyworker> keyWorkerAllocationComparator = Comparator.comparing(OffenderKeyworker::getAssignedDateTime);
+            final var keyWorkerAllocationComparator = Comparator.comparing(OffenderKeyworker::getAssignedDateTime);
 
-            SortedSet<OffenderKeyworker> id1Allocations = new TreeSet<>(keyWorkerAllocationComparator);
-            SortedSet<OffenderKeyworker> id2Allocations = new TreeSet<>(keyWorkerAllocationComparator);
+            final SortedSet<OffenderKeyworker> id1Allocations = new TreeSet<>(keyWorkerAllocationComparator);
+            final SortedSet<OffenderKeyworker> id2Allocations = new TreeSet<>(keyWorkerAllocationComparator);
 
             Optional.ofNullable(keyworkerAllocations.get(id1)).ifPresent(id1Allocations::addAll);
             Optional.ofNullable(keyworkerAllocations.get(id2)).ifPresent(id2Allocations::addAll);
@@ -114,7 +113,7 @@ public class KeyworkerPool {
             return result;
         };
 
-        Comparator<KeyworkerDto> comparator = isFullComparator
+        final var comparator = isFullComparator
                 .thenComparing(numberAllocatedComparator)
                 .thenComparing(KeyworkerDto::getStaffId, staffIdComparator);
 
@@ -126,18 +125,18 @@ public class KeyworkerPool {
         };
     }
 
-    private int totalAllocations(KeyworkerDto kw1) {
+    private int totalAllocations(final KeyworkerDto kw1) {
         return kw1.getNumberAllocated();
     }
 
-    private int calculateEnhancedCapacity(KeyworkerDto kw1) {
-        final Integer capacity = kw1.getCapacity();
+    private int calculateEnhancedCapacity(final KeyworkerDto kw1) {
+        final var capacity = kw1.getCapacity();
         if (capacityTiers.size() == 1) {
             return capacity;
         }
-        final Iterator<Integer> iterator = capacityTiers.iterator();
-        Integer first = iterator.next();
-        Integer second = iterator.next();
+        final var iterator = capacityTiers.iterator();
+        final var first = iterator.next();
+        final var second = iterator.next();
 
         return capacity * second / first;
     }
@@ -150,16 +149,16 @@ public class KeyworkerPool {
      * @param offenderNo offender number of offender for whom key worker allocation is required.
      * @return the priority {@code Keyworker}.
      */
-    public KeyworkerDto getKeyworker(String offenderNo) {
+    public KeyworkerDto getKeyworker(final String offenderNo) {
         log.debug("Prioritising Key worker for allocation of offender with offenderNo [{}]", offenderNo);
 
         // Retrieve any previous Key worker allocations for offender.
-        List<OffenderKeyworker> previousAllocations = keyworkerService.getAllocationHistoryForPrisoner(offenderNo);
+        final var previousAllocations = keyworkerService.getAllocationHistoryForPrisoner(offenderNo);
 
         // First, determine if offender was previously allocated to any Key workers in the pool
-        Optional<KeyworkerDto> previousKeyworker = findPreviousAllocation(offenderNo, previousAllocations);
+        final var previousKeyworker = findPreviousAllocation(offenderNo, previousAllocations);
 
-        KeyworkerDto priorityKeyworker;
+        final KeyworkerDto priorityKeyworker;
 
         if (previousKeyworker.isPresent()) {
             priorityKeyworker = previousKeyworker.get();
@@ -192,9 +191,9 @@ public class KeyworkerPool {
      * @param keyworker Key worker to process.
      * @throws IllegalStateException if Key worker is not already present in the pool.
      */
-    public void incrementAndRefreshKeyworker(KeyworkerDto keyworker) {
+    public void incrementAndRefreshKeyworker(final KeyworkerDto keyworker) {
         Validate.notNull(keyworker, "Key worker to refresh must be specified.");
-        final List<OffenderKeyworker> savedOldAllocationsList = keyworkerAllocations.get(keyworker.getStaffId());
+        final var savedOldAllocationsList = keyworkerAllocations.get(keyworker.getStaffId());
 
         // Remove Key worker from pool (throwing exception if Key worker not in pool)
         if (removeKeyworker(keyworker.getStaffId()).isEmpty()) {
@@ -208,22 +207,22 @@ public class KeyworkerPool {
         reinstateKeyworker(keyworker, savedOldAllocationsList);
     }
 
-    private Optional<KeyworkerDto> findPreviousAllocation(String offenderNo, List<OffenderKeyworker> keyWorkerAllocations) {
+    private Optional<KeyworkerDto> findPreviousAllocation(final String offenderNo, final List<OffenderKeyworker> keyWorkerAllocations) {
         log.debug("Assessing previous allocations for offender with offenderNo [{}].", offenderNo);
 
-        Optional<KeyworkerDto> previousKeyworker;
+        final Optional<KeyworkerDto> previousKeyworker;
 
         // Check if any were with a Key worker in the pool and sort allocations by assigned date
         if (ObjectUtils.isEmpty(keyWorkerAllocations)) {
             previousKeyworker = Optional.empty();
         } else {
-            Optional<OffenderKeyworker> latestAllocation = keyWorkerAllocations.stream()
+            final var latestAllocation = keyWorkerAllocations.stream()
                     .filter(kwa -> kwa.getOffenderNo().equals(offenderNo) && keyworkerStaffIds.contains(kwa.getStaffId()))
                     .max(Comparator.comparing(OffenderKeyworker::getAssignedDateTime));
 
             if (latestAllocation.isPresent()) {
                 // Key worker staff id of latest allocation
-                Long keyworkerStaffId = latestAllocation.get().getStaffId();
+                final var keyworkerStaffId = latestAllocation.get().getStaffId();
 
                 previousKeyworker = keyworkerPool.stream().filter(kw -> keyworkerStaffId.equals(kw.getStaffId())).findFirst();
             } else {
@@ -240,12 +239,12 @@ public class KeyworkerPool {
         checkMaxCapacity();
 
         // Identify Key worker(s) with least number of allocations - first Key worker in pool will have least allocations
-        int fewestAllocs = keyworkerPool.first().getNumberAllocated();
+        final int fewestAllocs = keyworkerPool.first().getNumberAllocated();
 
         // If priority Key worker has no allocations, no further processing required, otherwise identify any other Key
         // workers in pool having same number of allocations (and their keyworkerAllocations map entry remains uninitialised)
         if (fewestAllocs > 0) {
-            List<KeyworkerDto> fewestAllocKeyworkers = keyworkerPool.stream()
+            final var fewestAllocKeyworkers = keyworkerPool.stream()
                     .filter(kw -> kw.getNumberAllocated() == fewestAllocs)
                     .filter(kw -> keyworkerAllocations.get(kw.getStaffId()) == null)
                     .collect(Collectors.toList());
@@ -266,7 +265,7 @@ public class KeyworkerPool {
     }
 
     private void checkMaxCapacity() {
-        final KeyworkerDto first = keyworkerPool.first();
+        final var first = keyworkerPool.first();
         if (first.getNumberAllocated() >= calculateEnhancedCapacity(first)) {
             log.error(OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
 
@@ -274,12 +273,12 @@ public class KeyworkerPool {
         }
     }
 
-    private Optional<KeyworkerDto> removeKeyworker(long staffId) {
+    private Optional<KeyworkerDto> removeKeyworker(final long staffId) {
         log.debug("Removing Key worker with staffId [{}] from pool.", staffId);
 
         keyworkerStaffIds.remove(staffId);
 
-        Optional<KeyworkerDto> keyworker = keyworkerPool.stream().filter(kw -> kw.getStaffId().equals(staffId)).findFirst();
+        final var keyworker = keyworkerPool.stream().filter(kw -> kw.getStaffId().equals(staffId)).findFirst();
 
         keyworker.ifPresent(keyworkerPool::remove);
 
@@ -287,14 +286,14 @@ public class KeyworkerPool {
         return keyworker;
     }
 
-    private void reinstateKeyworker(KeyworkerDto keyworker, List<OffenderKeyworker> allocations) {
-        Long staffId = keyworker.getStaffId();
+    private void reinstateKeyworker(final KeyworkerDto keyworker, final List<OffenderKeyworker> allocations) {
+        final var staffId = keyworker.getStaffId();
 
         log.debug("Reinstating Key worker with staffId [{}], and having [{}] allocations, to pool.",
                 staffId, keyworker.getNumberAllocated());
 
         // Filter out manual allocations (and Provisionals obviously. Only interested in auto-allocations)
-        List<OffenderKeyworker> autoAllocations = (allocations == null) ? null :
+        final var autoAllocations = (allocations == null) ? null :
                 allocations.stream().filter(kwa -> kwa.getAllocationType().isAuto()).collect(Collectors.toList());
 
         keyworkerAllocations.put(staffId, autoAllocations);

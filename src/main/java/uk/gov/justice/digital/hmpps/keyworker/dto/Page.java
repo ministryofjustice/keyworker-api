@@ -14,14 +14,14 @@ public class Page<T> {
     private final long pageOffset;
     private final long pageLimit;
 
-    public Page(List<T> items, long totalRecords, long pageOffset, long pageLimit) {
+    public Page(final List<T> items, final long totalRecords, final long pageOffset, final long pageLimit) {
         this.items = items;
         this.totalRecords = totalRecords;
         this.pageOffset = pageOffset;
         this.pageLimit = pageLimit;
     }
 
-    public Page(List<T> items, HttpHeaders headers) {
+    public Page(final List<T> items, final HttpHeaders headers) {
         this.items = items;
 
         this.totalRecords = Long.parseLong(headers.getFirst(HEADER_TOTAL_RECORDS));
@@ -46,7 +46,7 @@ public class Page<T> {
     }
 
     public HttpHeaders toHeaders() {
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
 
         headers.add(HEADER_TOTAL_RECORDS, String.valueOf(totalRecords));
         headers.add(HEADER_PAGE_OFFSET, String.valueOf(pageOffset));

@@ -18,7 +18,7 @@ public abstract class AbstractServiceTest {
         public ObjectPostProcessor objectPostProcessor() {
             return new ObjectPostProcessor() {
                 @Override
-                public Object postProcess(Object object) {
+                public Object postProcess(final Object object) {
                     return null;
                 }
             };
@@ -30,14 +30,14 @@ public abstract class AbstractServiceTest {
         }
     }
 
-    protected String expandUriTemplate(String uriTemplate, Object... uriVars) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uriTemplate);
+    protected String expandUriTemplate(final String uriTemplate, final Object... uriVars) {
+        final var builder = UriComponentsBuilder.fromUriString(uriTemplate);
 
         return builder.buildAndExpand(uriVars).toString();
     }
 
-    protected HttpHeaders paginationHeaders(long total, long offset, long limit) {
-        HttpHeaders headers = new HttpHeaders();
+    protected HttpHeaders paginationHeaders(final long total, final long offset, final long limit) {
+        final var headers = new HttpHeaders();
 
         headers.add(Page.HEADER_TOTAL_RECORDS, String.valueOf(total));
         headers.add(Page.HEADER_PAGE_OFFSET, String.valueOf(offset));

@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.statistics.StatisticsGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.info.Info;
 import org.springframework.boot.actuate.info.InfoContributor;
@@ -17,18 +15,18 @@ public class CacheInfoContributor implements InfoContributor {
     private final CacheManager cacheManager;
 
     @Autowired
-    public CacheInfoContributor(CacheManager cacheManager) {
+    public CacheInfoContributor(final CacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
 
     @Override
-    public void contribute(Info.Builder builder) {
-        Map<String, String> results = new HashMap<>();
+    public void contribute(final Info.Builder builder) {
+        final Map<String, String> results = new HashMap<>();
         long memory = 0;
 
-        for (String name : cacheManager.getCacheNames()) {
-            final Cache cache = cacheManager.getCache(name);
-            final StatisticsGateway statistics = cache.getStatistics();
+        for (final var name : cacheManager.getCacheNames()) {
+            final var cache = cacheManager.getCache(name);
+            final var statistics = cache.getStatistics();
             results.put(name, String.format("%d / %d hits:%d misses:%d bytes:%d",
                     cache.getKeysNoDuplicateCheck().size(),
                     cache.getCacheConfiguration().getMaxEntriesLocalHeap(),

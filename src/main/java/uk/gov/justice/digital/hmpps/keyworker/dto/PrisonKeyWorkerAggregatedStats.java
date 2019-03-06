@@ -20,16 +20,16 @@ public class PrisonKeyWorkerAggregatedStats {
     private final Double avgNumDaysFromReceptionToAllocationDays;
     private final Double avgNumDaysFromReceptionToKeyWorkingSession;
 
-    public PrisonKeyWorkerAggregatedStats(String prisonId,
-                                          LocalDate startDate,
-                                          LocalDate endDate,
-                                          Long numberKeyWorkerSessions,
-                                          Long numberKeyWorkerEntries,
-                                          Double numberOfActiveKeyworkers,
-                                          Double numPrisonersAssignedKeyWorker,
-                                          Double totalNumPrisoners,
-                                          Double avgNumDaysFromReceptionToAllocationDays,
-                                          Double avgNumDaysFromReceptionToKeyWorkingSession) {
+    public PrisonKeyWorkerAggregatedStats(final String prisonId,
+                                          final LocalDate startDate,
+                                          final LocalDate endDate,
+                                          final Long numberKeyWorkerSessions,
+                                          final Long numberKeyWorkerEntries,
+                                          final Double numberOfActiveKeyworkers,
+                                          final Double numPrisonersAssignedKeyWorker,
+                                          final Double totalNumPrisoners,
+                                          final Double avgNumDaysFromReceptionToAllocationDays,
+                                          final Double avgNumDaysFromReceptionToKeyWorkingSession) {
         this.prisonId = prisonId;
         this.startDate = startDate;
         this.endDate = endDate;

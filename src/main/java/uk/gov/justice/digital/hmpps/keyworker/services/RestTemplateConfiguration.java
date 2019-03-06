@@ -33,23 +33,23 @@ public class RestTemplateConfiguration {
 
     @Autowired
     public RestTemplateConfiguration(
-            OAuth2ClientContext oauth2ClientContext,
-            ClientCredentialsResourceDetails elite2apiDetails) {
+            final OAuth2ClientContext oauth2ClientContext,
+            final ClientCredentialsResourceDetails elite2apiDetails) {
         this.oauth2ClientContext = oauth2ClientContext;
         this.elite2apiDetails = elite2apiDetails;
     }
 
     @Bean(name = "elite2ApiRestTemplate")
-    public RestTemplate elite2ApiRestTemplate(RestTemplateBuilder restTemplateBuilder) {
+    public RestTemplate elite2ApiRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
         return getRestTemplate(restTemplateBuilder, apiRootUri);
     }
 
     @Bean(name = "elite2ApiHealthRestTemplate")
-    public RestTemplate elite2ApiHealthRestTemplate(RestTemplateBuilder restTemplateBuilder) {
+    public RestTemplate elite2ApiHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
         return getRestTemplate(restTemplateBuilder, elite2UriRoot);
     }
 
-    private RestTemplate getRestTemplate(RestTemplateBuilder restTemplateBuilder, String uri) {
+    private RestTemplate getRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
         return restTemplateBuilder
                 .rootUri(uri)
                 .additionalInterceptors(getRequestInterceptors())
@@ -63,10 +63,10 @@ public class RestTemplateConfiguration {
     }
 
     @Bean
-    public OAuth2RestTemplate elite2SystemRestTemplate(GatewayAwareAccessTokenProvider accessTokenProvider) {
+    public OAuth2RestTemplate elite2SystemRestTemplate(final GatewayAwareAccessTokenProvider accessTokenProvider) {
 
-        OAuth2RestTemplate elite2SystemRestTemplate = new OAuth2RestTemplate(elite2apiDetails, oauth2ClientContext);
-        List<ClientHttpRequestInterceptor> systemInterceptors = elite2SystemRestTemplate.getInterceptors();
+        final var elite2SystemRestTemplate = new OAuth2RestTemplate(elite2apiDetails, oauth2ClientContext);
+        final var systemInterceptors = elite2SystemRestTemplate.getInterceptors();
         systemInterceptors.add(new UserContextInterceptor());
 
         elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);

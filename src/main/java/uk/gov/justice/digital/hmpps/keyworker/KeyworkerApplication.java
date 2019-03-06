@@ -15,7 +15,7 @@ public class KeyworkerApplication {
         return new DefaultConversionService();
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         SpringApplication.run(KeyworkerApplication.class, args);
     }
 }

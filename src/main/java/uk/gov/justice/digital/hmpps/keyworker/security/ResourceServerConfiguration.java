@@ -50,7 +50,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     private BuildProperties buildProperties;
 
     @Override
-    public void configure(HttpSecurity http) throws Exception{
+    public void configure(final HttpSecurity http) throws Exception {
 
         http
                 .sessionManagement()
@@ -69,7 +69,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     }
 
     @Override
-    public void configure(ResourceServerSecurityConfigurer config) {
+    public void configure(final ResourceServerSecurityConfigurer config) {
         config.tokenServices(tokenServices());
     }
 
@@ -80,7 +80,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
-        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        final var converter = new JwtAccessTokenConverter();
         converter.setVerifierKey(new String(Base64.decodeBase64(jwtPublicKey)));
         return converter;
     }
@@ -88,7 +88,7 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Bean
     @Primary
     public DefaultTokenServices tokenServices() {
-        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        final var defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore(tokenStore());
         return defaultTokenServices;
     }
@@ -96,13 +96,13 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Bean
     public Docket api() {
 
-        ApiInfo apiInfo = new ApiInfo(
+        final var apiInfo = new ApiInfo(
                 "Key Worker API Documentation",
                 "API for accessing the Key Worker services.",
                 getVersion(), "", contactInfo(), "", "",
                 Collections.emptyList());
 
-        Docket docket = new Docket(DocumentationType.SWAGGER_2)
+        final var docket = new Docket(DocumentationType.SWAGGER_2)
                 .useDefaultResponseMessages(false)
                 .apiInfo(apiInfo)
                 .select()
@@ -134,7 +134,8 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
     @Service(value = "auditorAware")
     public class AuditorAwareImpl implements AuditorAware<String> {
         AuthenticationFacade authenticationFacade;
-        public AuditorAwareImpl(AuthenticationFacade authenticationFacade) {
+
+        public AuditorAwareImpl(final AuthenticationFacade authenticationFacade) {
             this.authenticationFacade = authenticationFacade;
         }
 

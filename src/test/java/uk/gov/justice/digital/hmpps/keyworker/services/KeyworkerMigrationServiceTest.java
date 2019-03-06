@@ -72,7 +72,7 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     public void testCheckAndMigrateOffenderKeyWorker() {
         final Long count = 39L;
 
-        List<OffenderKeyworkerDto> testDtos = getTestOffenderKeyworkerDtos(count);
+        final var testDtos = getTestOffenderKeyworkerDtos(count);
 
         when(nomisService.getOffenderKeyWorkerPage(TEST_AGENCY, 0, TEST_PAGE_SIZE)).thenReturn(testDtos);
 
@@ -83,8 +83,8 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
         verify(offenderKeyworkerRepository).saveAll(anySet());
     }
 
-    private List<OffenderKeyworkerDto> getTestOffenderKeyworkerDtos(long count) {
-        List<OffenderKeyworkerDto> dtoList = new ArrayList<>();
+    private List<OffenderKeyworkerDto> getTestOffenderKeyworkerDtos(final long count) {
+        final List<OffenderKeyworkerDto> dtoList = new ArrayList<>();
 
         for (long i = 1; i <= count; i++) {
             dtoList.add(OffenderKeyworkerDto.builder()

@@ -64,13 +64,13 @@ class CamelQuartzConfigurationFactory {
     public CamelContextConfiguration contextConfiguration() {
         return new CamelContextConfiguration() {
             @Override
-            public void beforeApplicationStart(CamelContext context) {
+            public void beforeApplicationStart(final CamelContext context) {
                 context.addComponent("quartz2", quartz());
                 context.setUseMDCLogging(true);
             }
 
             @Override
-            public void afterApplicationStart(CamelContext camelContext) {
+            public void afterApplicationStart(final CamelContext camelContext) {
                 // no changes after started required.
             }
         };
@@ -83,8 +83,8 @@ class CamelQuartzConfigurationFactory {
 
     @Bean
     public QuartzComponent quartz() {
-        QuartzComponent quartz = new QuartzComponent();
-        final Properties properties = new Properties();
+        final var quartz = new QuartzComponent();
+        final var properties = new Properties();
 
         properties.put("org.quartz.jobStore.dataSource", "applicationDS");
         properties.put("org.quartz.jobStore.driverDelegateClass", quartzDelegateClass);

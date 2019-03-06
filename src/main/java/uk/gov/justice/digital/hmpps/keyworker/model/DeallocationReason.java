@@ -12,7 +12,7 @@ public enum DeallocationReason {
 
     private final String reasonCode;
 
-    DeallocationReason(String reasonCode) {
+    DeallocationReason(final String reasonCode) {
         this.reasonCode = reasonCode;
     }
 
@@ -29,12 +29,12 @@ public enum DeallocationReason {
     private static final Map<String, DeallocationReason> lookup = new HashMap<>();
 
     static {
-        for (DeallocationReason reason : DeallocationReason.values()) {
+        for (final var reason : DeallocationReason.values()) {
             lookup.put(reason.reasonCode, reason);
         }
     }
 
-    public static DeallocationReason get(String reasonCode) {
+    public static DeallocationReason get(final String reasonCode) {
         return lookup.get(reasonCode);
     }
 }

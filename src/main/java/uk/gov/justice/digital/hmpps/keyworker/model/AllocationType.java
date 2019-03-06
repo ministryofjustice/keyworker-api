@@ -13,7 +13,7 @@ public enum AllocationType {
 
     private final String typeCode;
 
-    AllocationType(String typeCode) {
+    AllocationType(final String typeCode) {
         this.typeCode = typeCode;
     }
 
@@ -39,13 +39,13 @@ public enum AllocationType {
     private static final Map<String, AllocationType> lookup = new HashMap<>();
 
     static {
-        for (AllocationType type : AllocationType.values()) {
+        for (final var type : AllocationType.values()) {
             lookup.put(type.typeCode, type);
         }
     }
 
     @JsonCreator
-    public static AllocationType get(String typeCode) {
+    public static AllocationType get(final String typeCode) {
         return lookup.get(typeCode);
     }
 }

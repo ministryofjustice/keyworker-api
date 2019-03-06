@@ -16,16 +16,16 @@ public class UserSecurityUtils implements AuthenticationFacade {
 
 	@Override
 	public String getCurrentUsername() {
-		String username;
+		final String username;
 
-		Object userPrincipal = getUserPrincipal();
+		final var userPrincipal = getUserPrincipal();
 
 		if (userPrincipal instanceof String) {
 			username = (String) userPrincipal;
 		} else if (userPrincipal instanceof UserDetails) {
 			username = ((UserDetails)userPrincipal).getUsername();
 		} else if (userPrincipal instanceof Map) {
-			Map userPrincipalMap = (Map) userPrincipal;
+			final var userPrincipalMap = (Map) userPrincipal;
 			username = (String) userPrincipalMap.get("username");
 		} else {
 			username = null;
@@ -37,7 +37,7 @@ public class UserSecurityUtils implements AuthenticationFacade {
 	private Object getUserPrincipal() {
 		Object userPrincipal = null;
 
-		final Authentication auth = getAuthentication();
+		final var auth = getAuthentication();
 
 		if (auth != null) {
 			userPrincipal = auth.getPrincipal();

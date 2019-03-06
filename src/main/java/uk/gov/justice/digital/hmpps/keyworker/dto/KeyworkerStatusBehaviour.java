@@ -9,7 +9,7 @@ public enum KeyworkerStatusBehaviour {
     private final boolean removeAllocations;
     private final boolean removeFromAutoAllocation;
 
-    KeyworkerStatusBehaviour(boolean removeAllocations, boolean removeFromAutoAllocation) {
+    KeyworkerStatusBehaviour(final boolean removeAllocations, final boolean removeFromAutoAllocation) {
         this.removeAllocations = removeAllocations;
         this.removeFromAutoAllocation = removeFromAutoAllocation;
     }

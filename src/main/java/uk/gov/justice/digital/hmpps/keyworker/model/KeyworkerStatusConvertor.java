@@ -7,12 +7,12 @@ import javax.persistence.Converter;
 @Converter
 public class KeyworkerStatusConvertor implements AttributeConverter<KeyworkerStatus,String> {
     @Override
-    public String convertToDatabaseColumn(KeyworkerStatus attribute) {
+    public String convertToDatabaseColumn(final KeyworkerStatus attribute) {
         return (attribute != null) ? attribute.getStatusCode() : null;
     }
 
     @Override
-    public KeyworkerStatus convertToEntityAttribute(String dbData) {
+    public KeyworkerStatus convertToEntityAttribute(final String dbData) {
         return KeyworkerStatus.get(dbData);
     }
 }

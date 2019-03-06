@@ -29,13 +29,13 @@ public class RestCallHelper {
     private final OAuth2RestTemplate elite2SystemRestTemplate;
 
     @Autowired
-    public RestCallHelper(@Qualifier(value = "elite2ApiRestTemplate") RestTemplate restTemplate,
-                          OAuth2RestTemplate elite2SystemRestTemplate) {
+    public RestCallHelper(@Qualifier(value = "elite2ApiRestTemplate") final RestTemplate restTemplate,
+                          final OAuth2RestTemplate elite2SystemRestTemplate) {
         this.restTemplate = restTemplate;
         this.elite2SystemRestTemplate = elite2SystemRestTemplate;
     }
 
-    protected <T> ResponseEntity<T> getForListWithAuthentication(URI uri, ParameterizedTypeReference<T> responseType) {
+    protected <T> ResponseEntity<T> getForListWithAuthentication(final URI uri, final ParameterizedTypeReference<T> responseType) {
         return getRestTemplate(true).exchange(
                 uri.toString(),
                 HttpMethod.GET,
@@ -43,8 +43,8 @@ public class RestCallHelper {
                 responseType);
     }
 
-    protected <T> T get(URI uri, Class<T> responseType) {
-        ResponseEntity<T> exchange = restTemplate.exchange(
+    protected <T> T get(final URI uri, final Class<T> responseType) {
+        final var exchange = restTemplate.exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
@@ -52,16 +52,16 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
-    protected <T,E> List<T> post(URI uri, E body, ParameterizedTypeReference<List<T>> responseType, boolean admin) {
-        ResponseEntity<List<T>> exchange = getRestTemplate(admin).exchange(uri.toString(),
+    protected <T, E> List<T> post(final URI uri, final E body, final ParameterizedTypeReference<List<T>> responseType, final boolean admin) {
+        final var exchange = getRestTemplate(admin).exchange(uri.toString(),
                 HttpMethod.POST,
                 new HttpEntity<E>(body, CONTENT_TYPE_APPLICATION_JSON),
                 responseType);
         return exchange.getBody();
     }
 
-    protected <T> ResponseEntity<T> getWithPagingAndSorting(URI uri, PagingAndSortingDto pagingAndSorting,
-                                                            ParameterizedTypeReference<T> responseType, boolean admin) {
+    protected <T> ResponseEntity<T> getWithPagingAndSorting(final URI uri, final PagingAndSortingDto pagingAndSorting,
+                                                            final ParameterizedTypeReference<T> responseType, final boolean admin) {
         return getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,
@@ -69,8 +69,8 @@ public class RestCallHelper {
                 responseType);
     }
 
-    protected <T> ResponseEntity<T> getWithPaging(URI uri, PagingAndSortingDto pagingAndSorting,
-                                                  ParameterizedTypeReference<T> responseType) {
+    protected <T> ResponseEntity<T> getWithPaging(final URI uri, final PagingAndSortingDto pagingAndSorting,
+                                                  final ParameterizedTypeReference<T> responseType) {
         return restTemplate.exchange(
                 uri.toString(),
                 HttpMethod.GET,
@@ -78,28 +78,28 @@ public class RestCallHelper {
                 responseType);
     }
 
-    protected <T> List<T> getAllWithSorting(URI uri, String sortFields, SortOrder sortOrder,
-                                            ParameterizedTypeReference<List<T>> responseType, boolean admin) {
+    protected <T> List<T> getAllWithSorting(final URI uri, final String sortFields, final SortOrder sortOrder,
+                                            final ParameterizedTypeReference<List<T>> responseType, final boolean admin) {
         final long initialPageSize = Integer.MAX_VALUE;
 
-        PagingAndSortingDto pagingAndSorting = PagingAndSortingDto.builder()
+        final var pagingAndSorting = PagingAndSortingDto.builder()
                 .sortFields(sortFields)
                 .sortOrder(sortOrder)
                 .pageOffset(0L)
                 .pageLimit(initialPageSize)
                 .build();
 
-        ResponseEntity<List<T>> response = getWithPagingAndSorting(uri, pagingAndSorting, responseType, admin);
+        final var response = getWithPagingAndSorting(uri, pagingAndSorting, responseType, admin);
 
         return response.getBody() != null ? new ArrayList<>(response.getBody()) : new ArrayList<>();
     }
 
-    <T> T put(URI uri, Class<T> responseType, boolean admin) {
-        ResponseEntity<T> exchange = getRestTemplate(admin).exchange(uri.toString(), HttpMethod.PUT, new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON), responseType);
+    <T> T put(final URI uri, final Class<T> responseType, final boolean admin) {
+        final var exchange = getRestTemplate(admin).exchange(uri.toString(), HttpMethod.PUT, new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON), responseType);
         return exchange.getBody();
     }
 
-    protected <T> ResponseEntity<T> getForList(URI uri, ParameterizedTypeReference<T> responseType) {
+    protected <T> ResponseEntity<T> getForList(final URI uri, final ParameterizedTypeReference<T> responseType) {
         return restTemplate.exchange(
                 uri.toString(),
                 HttpMethod.GET,
@@ -107,8 +107,8 @@ public class RestCallHelper {
                 responseType);
     }
 
-    private HttpEntity<?> withPagingAndSorting(PagingAndSortingDto pagingAndSorting) {
-        HttpHeaders headers = new HttpHeaders();
+    private HttpEntity<?> withPagingAndSorting(final PagingAndSortingDto pagingAndSorting) {
+        final var headers = new HttpHeaders();
 
         headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
         headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
@@ -121,8 +121,8 @@ public class RestCallHelper {
         return new HttpEntity<>(null, headers);
     }
 
-    private HttpEntity<?> withPaging(PagingAndSortingDto pagingAndSorting) {
-        HttpHeaders headers = new HttpHeaders();
+    private HttpEntity<?> withPaging(final PagingAndSortingDto pagingAndSorting) {
+        final var headers = new HttpHeaders();
 
         headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
         headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
@@ -130,13 +130,13 @@ public class RestCallHelper {
         return new HttpEntity<>(null, headers);
     }
 
-    private static HttpHeaders httpContentTypeHeaders(MediaType contentType) {
-        HttpHeaders httpHeaders = new HttpHeaders();
+    private static HttpHeaders httpContentTypeHeaders(final MediaType contentType) {
+        final var httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(contentType);
         return httpHeaders;
     }
 
-    private RestTemplate getRestTemplate(boolean admin) {
+    private RestTemplate getRestTemplate(final boolean admin) {
         return admin ? elite2SystemRestTemplate : restTemplate;
     }
 }

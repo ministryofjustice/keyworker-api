@@ -21,7 +21,7 @@ public class CacheConfig implements CachingConfigurer {
 
     @Bean(destroyMethod="shutdown")
     public net.sf.ehcache.CacheManager ehCacheManager() {
-        net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
+        final var config = new net.sf.ehcache.config.Configuration();
 
         config.addCache(config("getBasicKeyworkerDtoForStaffId", 10000, staffInformationTimeoutSeconds, MemoryStoreEvictionPolicy.LRU));
         config.addCache(config("getStaffDetailByUserId", 10000, staffInformationTimeoutSeconds, MemoryStoreEvictionPolicy.LRU));
@@ -29,7 +29,7 @@ public class CacheConfig implements CachingConfigurer {
         return net.sf.ehcache.CacheManager.newInstance(config);
     }
 
-    public static CacheConfiguration config(String name, int maxElements, int timeoutSeconds, MemoryStoreEvictionPolicy policy){
+    public static CacheConfiguration config(final String name, final int maxElements, final int timeoutSeconds, final MemoryStoreEvictionPolicy policy) {
         return new CacheConfiguration().name(name)
                 .memoryStoreEvictionPolicy(policy)
                 .eternal(false)

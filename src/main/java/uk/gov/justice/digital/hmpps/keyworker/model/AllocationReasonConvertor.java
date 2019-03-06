@@ -7,12 +7,12 @@ import javax.persistence.Converter;
 @Converter
 public class AllocationReasonConvertor implements AttributeConverter<AllocationReason,String> {
     @Override
-    public String convertToDatabaseColumn(AllocationReason attribute) {
+    public String convertToDatabaseColumn(final AllocationReason attribute) {
         return (attribute != null) ? attribute.getReasonCode() : null;
     }
 
     @Override
-    public AllocationReason convertToEntityAttribute(String dbData) {
+    public AllocationReason convertToEntityAttribute(final String dbData) {
         return AllocationReason.get(dbData);
     }
 }

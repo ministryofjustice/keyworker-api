@@ -12,10 +12,10 @@ public class JwtAuthInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
     public ClientHttpResponse intercept(
-            HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+            final HttpRequest request, final byte[] body, final ClientHttpRequestExecution execution)
             throws IOException {
 
-        HttpHeaders headers = request.getHeaders();
+        final var headers = request.getHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken());
         return execution.execute(request, body);
     }

@@ -4,21 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureWebClient;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
 import uk.gov.justice.digital.hmpps.keyworker.services.AbstractServiceTest;
-
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
@@ -38,7 +29,7 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
 
     @Before
     public void initialiseMockRestServiceServer() {
-        RestTemplate restTemplate = new RestTemplate();
+        final var restTemplate = new RestTemplate();
         server = MockRestServiceServer.bindTo(restTemplate).build();
         service = new RemoteRoleService(restTemplate);
     }
@@ -75,7 +66,7 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(usernames(), MediaType.APPLICATION_JSON));
 
-        Set<String> usernames = service.findUsersForPrisonHavingRole("CL", "RC");
+        final var usernames = service.findUsersForPrisonHavingRole("CL", "RC");
 
         server.verify();
 
@@ -86,7 +77,7 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
         return usernames(USERNAME_1, USERNAME_3, USERNAME_2);
     }
 
-    private String usernames(String... usernames) throws JsonProcessingException {
+    private String usernames(final String... usernames) throws JsonProcessingException {
        return objectMapper.writeValueAsString(usernames);
     }
 }

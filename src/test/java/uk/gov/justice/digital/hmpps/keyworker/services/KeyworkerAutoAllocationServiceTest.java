@@ -62,9 +62,9 @@ public class KeyworkerAutoAllocationServiceTest {
     public void setUp() {
 
         // Construct service under test (using mock collaborators)
-        Set<String> aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
+        final var aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
 
-        Prison prisonDetail = Prison.builder()
+        final var prisonDetail = Prison.builder()
                 .prisonId(TEST_AGENCY_ID).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
                 .build();
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
@@ -89,7 +89,7 @@ public class KeyworkerAutoAllocationServiceTest {
         doThrow(new PrisonNotSupportedException(format("Agency [%s] is not supported by this service.", TEST_AGENCY_ID))).when(prisonSupportedService).verifyPrisonSupportsAutoAllocation(eq(TEST_AGENCY_ID));
 
         // Invoke auto-allocate for unsupported agency (catching expected exception)
-        Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
+        final var thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         // Verify collaborator interactions
         verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), isNull(), isNull());
@@ -138,7 +138,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockKeyworkers(0, 0, 0, CAPACITY_TIER_1);
 
         // Invoke auto-allocate (catching expected exception)
-        Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
+        final var thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
@@ -166,7 +166,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
 
         // Some available Key workers (at full capacity)
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(3, FULLY_ALLOCATED, FULLY_ALLOCATED, CAPACITY_TIER_1);
+        final var someKeyworkers = mockKeyworkers(3, FULLY_ALLOCATED, FULLY_ALLOCATED, CAPACITY_TIER_1);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -175,7 +175,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockPrisonerAllocationHistory(null);
 
         // Invoke auto-allocate (catching expected exception)
-        Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
+        final var thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
@@ -200,18 +200,18 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, an offender will not be allocated to a Key worker they were previously allocated to.
     @Test
     public void testOffenderAllocationToSameKeyWorkerPreviouslyAllocated() {
-        final int lowAllocCount = 1;
-        final int highAllocCount = FULLY_ALLOCATED - 1;
-        final String allocOffenderNo = getNextOffenderNo();
+        final var lowAllocCount = 1;
+        final var highAllocCount = FULLY_ALLOCATED - 1;
+        final var allocOffenderNo = getNextOffenderNo();
         final long allocStaffId = 2;
 
         // An unallocated offender
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto previousKeyworker = getKeyworker(allocStaffId, highAllocCount, CAPACITY_TIER_1);
+        final var previousKeyworker = getKeyworker(allocStaffId, highAllocCount, CAPACITY_TIER_1);
 
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(
+        final var someKeyworkers = mockKeyworkers(
                 getKeyworker(1, lowAllocCount, CAPACITY_TIER_1),
                 previousKeyworker,
                 getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
@@ -220,7 +220,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockKeyworkerPool(someKeyworkers);
 
         // A previous allocation between the unallocated offender and Key worker with staffId = 2
-        OffenderKeyworker previousAllocation =
+        final var previousAllocation =
                 getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocStaffId);
 
         mockPrisonerAllocationHistory(allocOffenderNo, previousAllocation);
@@ -238,7 +238,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
 
         // Expecting allocation to succeed - verify request includes expected values
-        ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -256,9 +256,9 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, an offender will not be allocated to the Key worker they were most recently allocated to.
     @Test
     public void testOffenderAllocationToMostRecentKeyWorkerPreviouslyAllocated() {
-        final int lowAllocCount = 1;
-        final int highAllocCount = FULLY_ALLOCATED - 1;
-        final String allocOffenderNo = getNextOffenderNo();
+        final var lowAllocCount = 1;
+        final var highAllocCount = FULLY_ALLOCATED - 1;
+        final var allocOffenderNo = getNextOffenderNo();
         final long allocEarlierStaffId = 2;
         final long allocLaterStaffId = 4;
 
@@ -266,10 +266,10 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto earlierKeyworker = getKeyworker(allocEarlierStaffId, lowAllocCount, CAPACITY_TIER_1);
-        KeyworkerDto laterKeyworker = getKeyworker(allocLaterStaffId, highAllocCount, CAPACITY_TIER_1);
+        final var earlierKeyworker = getKeyworker(allocEarlierStaffId, lowAllocCount, CAPACITY_TIER_1);
+        final var laterKeyworker = getKeyworker(allocLaterStaffId, highAllocCount, CAPACITY_TIER_1);
 
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(
+        final var someKeyworkers = mockKeyworkers(
                 getKeyworker(1, lowAllocCount + 1, CAPACITY_TIER_1),
                 laterKeyworker,
                 getKeyworker(3, lowAllocCount + 2, CAPACITY_TIER_1),
@@ -279,13 +279,13 @@ public class KeyworkerAutoAllocationServiceTest {
         mockKeyworkerPool(someKeyworkers);
 
         // Previous allocations between the unallocated offender and different Key workers at different date/times
-        LocalDateTime assignedEarlier = LocalDateTime.now().minusMonths(9);
-        LocalDateTime assignedLater = assignedEarlier.plusMonths(3);
+        final var assignedEarlier = LocalDateTime.now().minusMonths(9);
+        final var assignedLater = assignedEarlier.plusMonths(3);
 
-        OffenderKeyworker prevEarlierAllocation =
+        final var prevEarlierAllocation =
                 getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocEarlierStaffId, assignedEarlier);
 
-        OffenderKeyworker prevLaterAllocation =
+        final var prevLaterAllocation =
                 getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocLaterStaffId, assignedLater);
 
         mockPrisonerAllocationHistory(allocOffenderNo, prevEarlierAllocation, prevLaterAllocation);
@@ -303,7 +303,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
 
         // Expecting allocation to succeed - verify request includes expected values
-        ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -321,18 +321,18 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, an offender will not be auto-allocated to the offender with most capacity.
     @Test
     public void testOffenderAllocationToKeyWorkerWithinTier1CapacityWithLeastAllocations() {
-        final int lowAllocCount = 1;
-        final int highAllocCount = FULLY_ALLOCATED - 1;
+        final var lowAllocCount = 1;
+        final var highAllocCount = FULLY_ALLOCATED - 1;
         final long leastAllocStaffId = 3;
-        final String allocOffenderNo = getNextOffenderNo();
+        final var allocOffenderNo = getNextOffenderNo();
 
         // An unallocated offender
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
+        final var leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
 
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(
+        final var someKeyworkers = mockKeyworkers(
                 getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
                 getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
                 leastAllocKeyworker);
@@ -354,7 +354,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(anyString());
         // Expecting allocation to succeed - verify request includes expected values
-        ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -375,9 +375,9 @@ public class KeyworkerAutoAllocationServiceTest {
     // auto-allocation.
     @Test
     public void testOffenderAllocationToKeyWorkerWithinTier1CapacityWithLeastAllocationsAndLeastRecentAllocation() {
-        final int lowAllocCount = 1;
-        final int highAllocCount = FULLY_ALLOCATED - 1;
-        final String allocOffenderNo = getNextOffenderNo();
+        final var lowAllocCount = 1;
+        final var highAllocCount = FULLY_ALLOCATED - 1;
+        final var allocOffenderNo = getNextOffenderNo();
         final long recentLeastAllocStaffId = 3;
         final long olderLeastAllocStaffId = 4;
 
@@ -385,10 +385,10 @@ public class KeyworkerAutoAllocationServiceTest {
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
 
         // Some available Key workers (with known capacities)
-        KeyworkerDto recentLeastAllocKeyworker = getKeyworker(recentLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
-        KeyworkerDto olderLeastAllocKeyworker = getKeyworker(olderLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
+        final var recentLeastAllocKeyworker = getKeyworker(recentLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
+        final var olderLeastAllocKeyworker = getKeyworker(olderLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
 
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(
+        final var someKeyworkers = mockKeyworkers(
                 getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
                 getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
                 recentLeastAllocKeyworker,
@@ -401,12 +401,12 @@ public class KeyworkerAutoAllocationServiceTest {
         mockPrisonerAllocationHistory(allocOffenderNo);
 
         // Some previous auto-allocations for Key workers of interest
-        LocalDateTime refDateTime = LocalDateTime.now();
+        final var refDateTime = LocalDateTime.now();
 
-        OffenderKeyworker recentAllocation = getPreviousKeyworkerAutoAllocation(
+        final var recentAllocation = getPreviousKeyworkerAutoAllocation(
                 TEST_AGENCY_ID, "A5555AA", recentLeastAllocStaffId, refDateTime.minusDays(2));
 
-        OffenderKeyworker olderAllocation = getPreviousKeyworkerAutoAllocation(
+        final var olderAllocation = getPreviousKeyworkerAutoAllocation(
                 TEST_AGENCY_ID, "A7777AA", olderLeastAllocStaffId, refDateTime.minusDays(7));
 
         mockKeyworkerAllocationHistory(recentLeastAllocStaffId, recentAllocation);
@@ -425,7 +425,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(2)).getAllocationsForKeyworker(anyLong());
 
         // Expecting allocation to succeed - verify request includes expected values
-        ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -443,13 +443,13 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, auto-allocation of multiple offenders may not complete successfully.
     @Test
     public void testAllOffendersAllocated() {
-        Integer totalOffenders = 25;
-        Integer totalKeyworkers = 5;
+        final Integer totalOffenders = 25;
+        final Integer totalKeyworkers = 5;
 
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
 
         // Enough available Key workers (with enough total capacity to allocate all offenders)
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers, 0, 0, CAPACITY_TIER_1);
+        final var someKeyworkers = mockKeyworkers(totalKeyworkers, 0, 0, CAPACITY_TIER_1);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -458,7 +458,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockPrisonerAllocationHistory(null);
 
         // Invoke auto-allocate
-        long allocated = keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
+        final var allocated = keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
         assertThat(allocated).isEqualTo(25);
 
@@ -472,7 +472,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(totalOffenders)).getAllocationHistoryForPrisoner(anyString());
 
         // Expecting allocation to succeed - verify request includes expected values
-        ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
         verify(keyworkerService, times(totalOffenders)).allocate(kwaArg.capture());
 
@@ -497,16 +497,16 @@ public class KeyworkerAutoAllocationServiceTest {
     // If this test fails, auto-allocation may fail to allocate some offenders when there is capacity.
     @Test
     public void testSomeOffendersAllocatedBeforeErrorDueToNoCapacity() {
-        Integer totalOffenders = 25;
-        Integer totalKeyworkers = 5;
+        final Integer totalOffenders = 25;
+        final Integer totalKeyworkers = 5;
 
         mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
 
         // Some available Key workers with some capacity but not enough total capacity to allocate all offenders
-        List<KeyworkerDto> someKeyworkers = mockKeyworkers(totalKeyworkers,FULLY_ALLOCATED - 2, FULLY_ALLOCATED, CAPACITY_TIER_1);
+        final var someKeyworkers = mockKeyworkers(totalKeyworkers, FULLY_ALLOCATED - 2, FULLY_ALLOCATED, CAPACITY_TIER_1);
 
         // Determine available capacity
-        int totalCapacity = (totalKeyworkers * FULLY_ALLOCATED) -
+        final var totalCapacity = (totalKeyworkers * FULLY_ALLOCATED) -
                 someKeyworkers.stream().mapToInt(KeyworkerDto::getNumberAllocated).sum();
 
         // A Key worker pool initialised with known capacity tier.
@@ -516,7 +516,7 @@ public class KeyworkerAutoAllocationServiceTest {
         mockPrisonerAllocationHistory(null);
 
         // Invoke auto-allocate (catching expected exception)
-        Throwable thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
+        final var thrown = catchThrowable(() -> keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID));
 
         verifyException(thrown, AllocationException.class, KeyworkerPool.OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
 
@@ -530,7 +530,7 @@ public class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, atLeast(totalCapacity)).getAllocationHistoryForPrisoner(anyString());
 
         // Expecting allocation to succeed - verify request includes expected values
-        ArgumentCaptor<OffenderKeyworker> kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
 
         verify(keyworkerService, times(totalCapacity)).allocate(kwaArg.capture());
 
@@ -542,12 +542,12 @@ public class KeyworkerAutoAllocationServiceTest {
         });
     }
 
-    private void mockUnallocatedOffenders(String prisonId, Set<String> offenderNos) {
-        final String[] offNos = offenderNos.toArray(new String[0]);
+    private void mockUnallocatedOffenders(final String prisonId, final Set<String> offenderNos) {
+        final var offNos = offenderNos.toArray(new String[0]);
 
-        List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
+        final List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
 
-        for (int i = 0; i < offNos.length; i++) {
+        for (var i = 0; i < offNos.length; i++) {
             unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, prisonId, offNos[i]));
         }
 
@@ -555,13 +555,13 @@ public class KeyworkerAutoAllocationServiceTest {
     }
 
     // Provides page of unallocated offenders (consistent with supplied pagination parameters)
-    private Page<OffenderLocationDto> pagedUnallocatedOffenders(String prisonId, Set<String> offenderNos, long total, long startId, long limit) {
-        final String[] offNos = offenderNos.toArray(new String[0]);
+    private Page<OffenderLocationDto> pagedUnallocatedOffenders(final String prisonId, final Set<String> offenderNos, final long total, final long startId, final long limit) {
+        final var offNos = offenderNos.toArray(new String[0]);
 
-        List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
+        final List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
 
         for (long i = 0; i < Math.min(total, limit); i++) {
-            int idx = Long.valueOf(startId + i).intValue() - 1;
+            final var idx = Long.valueOf(startId + i).intValue() - 1;
 
             unallocatedOffenders.add(KeyworkerTestHelper.getOffender(startId + i, prisonId, offNos[idx]));
         }
@@ -569,8 +569,8 @@ public class KeyworkerAutoAllocationServiceTest {
         return new Page<>(unallocatedOffenders, total, 0L, limit);
     }
 
-    private List<KeyworkerDto> mockKeyworkers(long total, int minAllocations, int maxAllocations, int capacity) {
-        List<KeyworkerDto> mockKeyworkers;
+    private List<KeyworkerDto> mockKeyworkers(final long total, final int minAllocations, final int maxAllocations, final int capacity) {
+        final List<KeyworkerDto> mockKeyworkers;
 
         if (total > 0) {
             mockKeyworkers = KeyworkerTestHelper.getKeyworkers(total, minAllocations, maxAllocations, capacity);
@@ -583,8 +583,8 @@ public class KeyworkerAutoAllocationServiceTest {
         return mockKeyworkers;
     }
 
-    private List<KeyworkerDto> mockKeyworkers(KeyworkerDto... keyworkers) {
-        List<KeyworkerDto> mockKeyworkers;
+    private List<KeyworkerDto> mockKeyworkers(final KeyworkerDto... keyworkers) {
+        final List<KeyworkerDto> mockKeyworkers;
 
         if (keyworkers.length > 0) {
             mockKeyworkers = Arrays.asList(keyworkers);
@@ -597,15 +597,15 @@ public class KeyworkerAutoAllocationServiceTest {
         return mockKeyworkers;
     }
 
-    private void mockKeyworkerPool(List<KeyworkerDto> keyworkers) {
-        KeyworkerPool keyworkerPool = KeyworkerTestHelper.initKeyworkerPool(keyworkerService, prisonSupportedService,
+    private void mockKeyworkerPool(final List<KeyworkerDto> keyworkers) {
+        final var keyworkerPool = KeyworkerTestHelper.initKeyworkerPool(keyworkerService, prisonSupportedService,
                 keyworkers, TEST_AGENCY_ID);
 
         when(keyworkerPoolFactory.getKeyworkerPool(TEST_AGENCY_ID, keyworkers)).thenReturn(keyworkerPool);
     }
 
-    private void mockPrisonerAllocationHistory(String offenderNo, OffenderKeyworker... allocations) {
-        List<OffenderKeyworker> allocationHistory =
+    private void mockPrisonerAllocationHistory(final String offenderNo, final OffenderKeyworker... allocations) {
+        final List<OffenderKeyworker> allocationHistory =
                 (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         if (StringUtils.isBlank(offenderNo)) {
@@ -615,8 +615,8 @@ public class KeyworkerAutoAllocationServiceTest {
         }
     }
 
-    private void mockKeyworkerAllocationHistory(Long staffId, OffenderKeyworker... allocations) {
-        List<OffenderKeyworker> allocationHistory =
+    private void mockKeyworkerAllocationHistory(final Long staffId, final OffenderKeyworker... allocations) {
+        final List<OffenderKeyworker> allocationHistory =
                 (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId))).thenReturn(allocationHistory);

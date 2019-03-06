@@ -4,7 +4,6 @@ import groovy.util.logging.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
     @Override
     public RouteBuilder[] createRouteBuilders() throws Exception {
         MockitoAnnotations.initMocks(this);
-        final PrisonStatsRoute route = new PrisonStatsRoute(keyworkerStatsService, prisonSupportedService);
+        final var route = new PrisonStatsRoute(keyworkerStatsService, prisonSupportedService);
 
         return new RouteBuilder[]{route};
     }
@@ -78,7 +77,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
     @Test
     public void testGenerateStatsCall() throws Exception {
 
-        final List<Prison> prisons = List.of(
+        final var prisons = List.of(
                 MDI,
                 LEI,
                 LPI
@@ -86,30 +85,30 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
 
         when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
 
-        LocalDate now = LocalDate.now();
-        PrisonKeyWorkerStatistic mdiStats = PrisonKeyWorkerStatistic.builder().prisonId(MDI.getPrisonId()).snapshotDate(now).build();
+        final var now = LocalDate.now();
+        final var mdiStats = PrisonKeyWorkerStatistic.builder().prisonId(MDI.getPrisonId()).snapshotDate(now).build();
         when(keyworkerStatsService.generatePrisonStats(MDI.getPrisonId())).thenReturn(mdiStats);
-        PrisonKeyWorkerStatistic leiStats = PrisonKeyWorkerStatistic.builder().prisonId(LEI.getPrisonId()).snapshotDate(now).build();
+        final var leiStats = PrisonKeyWorkerStatistic.builder().prisonId(LEI.getPrisonId()).snapshotDate(now).build();
         when(keyworkerStatsService.generatePrisonStats(LEI.getPrisonId())).thenReturn(leiStats);
-        PrisonKeyWorkerStatistic lpiStats = PrisonKeyWorkerStatistic.builder().prisonId(LPI.getPrisonId()).snapshotDate(now).build();
+        final var lpiStats = PrisonKeyWorkerStatistic.builder().prisonId(LPI.getPrisonId()).snapshotDate(now).build();
         when(keyworkerStatsService.generatePrisonStats(LPI.getPrisonId())).thenReturn(lpiStats);
 
         template.send(PrisonStatsRoute.DIRECT_PRISON_STATS, exchange -> {
         });
 
         assertMockEndpointsSatisfied();
-        final MockEndpoint mockEndpoint = getMockEndpoint(MOCK_PRISONS_ENDPOINT);
+        final var mockEndpoint = getMockEndpoint(MOCK_PRISONS_ENDPOINT);
         mockEndpoint.assertIsSatisfied();
 
-        final List<Exchange> receivedExchanges = mockEndpoint.getReceivedExchanges();
+        final var receivedExchanges = mockEndpoint.getReceivedExchanges();
         assertEquals(1, receivedExchanges.size());
-        List<Prison> exchangeData = receivedExchanges.get(0).getIn().getBody(List.class);
+        final List<Prison> exchangeData = receivedExchanges.get(0).getIn().getBody(List.class);
         assertEquals(prisons, exchangeData);
 
-        final MockEndpoint mockEndpoint2 = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
+        final var mockEndpoint2 = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
         mockEndpoint2.assertIsSatisfied();
 
-        final List<Exchange> receivedExchanges2 = mockEndpoint2.getReceivedExchanges();
+        final var receivedExchanges2 = mockEndpoint2.getReceivedExchanges();
         assertEquals(3, receivedExchanges2.size());
         assertEquals(mdiStats, receivedExchanges2.get(0).getIn().getBody(PrisonKeyWorkerStatistic.class));
         assertEquals(leiStats, receivedExchanges2.get(1).getIn().getBody(PrisonKeyWorkerStatistic.class));
@@ -122,7 +121,7 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
     @Test
     public void testGenerateStatsCallError() throws Exception {
 
-        final List<Prison> prisons = List.of(
+        final var prisons = List.of(
                 MDI,
                 LEI,
                 LPI
@@ -139,16 +138,16 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
 
         assertMockEndpointsSatisfied();
 
-        final MockEndpoint statsEndpoint = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
+        final var statsEndpoint = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
         statsEndpoint.assertIsSatisfied();
 
-        final List<Exchange> receivedExchanges = statsEndpoint.getReceivedExchanges();
+        final var receivedExchanges = statsEndpoint.getReceivedExchanges();
         assertEquals(2, receivedExchanges.size());
 
-        final MockEndpoint dlqEndpoint = getMockEndpoint(MOCK_DLQ_ENDPOINT);
+        final var dlqEndpoint = getMockEndpoint(MOCK_DLQ_ENDPOINT);
         dlqEndpoint.assertIsSatisfied();
 
-        final List<Exchange> dlqExchanges = dlqEndpoint.getReceivedExchanges();
+        final var dlqExchanges = dlqEndpoint.getReceivedExchanges();
         assertEquals(1, dlqExchanges.size());
 
         verify(prisonSupportedService).getMigratedPrisons();

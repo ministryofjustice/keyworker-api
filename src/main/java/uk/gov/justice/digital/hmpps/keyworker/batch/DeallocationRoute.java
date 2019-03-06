@@ -24,7 +24,7 @@ public class DeallocationRoute extends RouteBuilder {
     private final KeyworkerBatchService service;
 
     @Autowired
-    public DeallocationRoute(KeyworkerBatchService service) {
+    public DeallocationRoute(final KeyworkerBatchService service) {
         this.service = service;
     }
 

@@ -2,10 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.batch;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import groovy.util.logging.Slf4j;
-import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +43,7 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
     @Override
     public RouteBuilder[] createRouteBuilders() {
         MockitoAnnotations.initMocks(this);
-        final EnableNewNomisRoute route = new EnableNewNomisRoute(nomisService, telemetryClient);
+        final var route = new EnableNewNomisRoute(nomisService, telemetryClient);
         return new RouteBuilder[]{route};
     }
 
@@ -77,14 +75,14 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
     @Test
     public void testEnabledNewNomisCamelRoute() throws Exception {
 
-        var prisons = List.of( MDI, LEI, LPI );
+        final var prisons = List.of(MDI, LEI, LPI);
 
         when(nomisService.getAllPrisons()).thenReturn(prisons);
-        var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
+        final var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
         when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId()))).thenReturn(MDIResponse);
-        var LEIResponse = CaseloadUpdate.builder().caseload(LEI.getPrisonId()).numUsersEnabled(0).build();
+        final var LEIResponse = CaseloadUpdate.builder().caseload(LEI.getPrisonId()).numUsersEnabled(0).build();
         when(nomisService.enableNewNomisForCaseload(eq(LEI.getPrisonId()))).thenReturn(LEIResponse);
-        var LPIResponse = CaseloadUpdate.builder().caseload(LPI.getPrisonId()).numUsersEnabled(14).build();
+        final var LPIResponse = CaseloadUpdate.builder().caseload(LPI.getPrisonId()).numUsersEnabled(14).build();
         when(nomisService.enableNewNomisForCaseload(eq(LPI.getPrisonId()))).thenReturn(LPIResponse);
 
 
@@ -92,18 +90,18 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
         });
 
         assertMockEndpointsSatisfied();
-        var mockEndpoint = getMockEndpoint(MOCK_PRISONS_ENDPOINT);
+        final var mockEndpoint = getMockEndpoint(MOCK_PRISONS_ENDPOINT);
         mockEndpoint.assertIsSatisfied();
 
-        var receivedExchanges = mockEndpoint.getReceivedExchanges();
+        final var receivedExchanges = mockEndpoint.getReceivedExchanges();
         assertEquals(1, receivedExchanges.size());
-        List<Prison> exchangeData = receivedExchanges.get(0).getIn().getBody(List.class);
+        final List<Prison> exchangeData = receivedExchanges.get(0).getIn().getBody(List.class);
         assertEquals(prisons, exchangeData);
 
-        final MockEndpoint mockEndpoint2 = getMockEndpoint(MOCK_ENABLE_ENDPOINT);
+        final var mockEndpoint2 = getMockEndpoint(MOCK_ENABLE_ENDPOINT);
         mockEndpoint2.assertIsSatisfied();
 
-        final List<Exchange> receivedExchanges2 = mockEndpoint2.getReceivedExchanges();
+        final var receivedExchanges2 = mockEndpoint2.getReceivedExchanges();
         assertEquals(3, receivedExchanges2.size());
 
         assertEquals(receivedExchanges2.get(0).getIn().getBody(CaseloadUpdate.class), MDIResponse);

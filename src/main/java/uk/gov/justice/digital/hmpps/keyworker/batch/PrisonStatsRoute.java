@@ -29,7 +29,7 @@ public class PrisonStatsRoute extends RouteBuilder {
     private final PrisonSupportedService prisonSupportedService;
 
     @Autowired
-    public PrisonStatsRoute(KeyworkerStatsService keyworkerStatsService, PrisonSupportedService prisonSupportedService) {
+    public PrisonStatsRoute(final KeyworkerStatsService keyworkerStatsService, final PrisonSupportedService prisonSupportedService) {
         this.keyworkerStatsService = keyworkerStatsService;
         this.prisonSupportedService = prisonSupportedService;
     }

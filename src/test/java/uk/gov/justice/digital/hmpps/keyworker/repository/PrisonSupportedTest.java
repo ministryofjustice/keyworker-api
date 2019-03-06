@@ -26,11 +26,11 @@ public class PrisonSupportedTest {
     @Test
     public void givenATransientKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
-        var transientEntity = transientEntity();
+        final var transientEntity = transientEntity();
 
-        var entity = transientEntity.toBuilder().build();
+        final var entity = transientEntity.toBuilder().build();
 
-        var persistedEntity = repository.save(entity);
+        final var persistedEntity = repository.save(entity);
 
         TestTransaction.flagForCommit();
         TestTransaction.end();
@@ -39,7 +39,7 @@ public class PrisonSupportedTest {
 
         TestTransaction.start();
 
-        var retrievedEntity = repository.findById(entity.getPrisonId()).orElseThrow();
+        final var retrievedEntity = repository.findById(entity.getPrisonId()).orElseThrow();
 
         // equals only compares the business key columns: prisonId
         assertThat(retrievedEntity).isEqualTo(transientEntity);

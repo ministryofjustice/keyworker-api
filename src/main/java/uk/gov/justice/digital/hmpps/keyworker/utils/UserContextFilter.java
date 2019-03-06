@@ -12,13 +12,13 @@ import java.io.IOException;
 @Slf4j
 public class UserContextFilter implements Filter {
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
             throws IOException, ServletException {
 
 
-        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+        final var httpServletRequest = (HttpServletRequest) servletRequest;
 
-        final String authToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        final var authToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
 
         UserContext.setAuthToken(authToken);
 
@@ -26,7 +26,8 @@ public class UserContextFilter implements Filter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {}
+    public void init(final FilterConfig filterConfig) {
+    }
 
     @Override
     public void destroy() {}

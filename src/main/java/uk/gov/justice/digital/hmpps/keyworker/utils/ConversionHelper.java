@@ -17,13 +17,13 @@ public final class ConversionHelper {
     private ConversionHelper() {
     }
 
-    public static Set<OffenderKeyworker> convertOffenderKeyworkerDto2Model(List<OffenderKeyworkerDto> dtos) {
+    public static Set<OffenderKeyworker> convertOffenderKeyworkerDto2Model(final List<OffenderKeyworkerDto> dtos) {
         Validate.notNull(dtos);
 
         return dtos.stream().map(ConversionHelper::convertOffenderKeyworkerDto2Model).collect(Collectors.toSet());
     }
 
-    public static OffenderKeyworker convertOffenderKeyworkerDto2Model(OffenderKeyworkerDto dto) {
+    public static OffenderKeyworker convertOffenderKeyworkerDto2Model(final OffenderKeyworkerDto dto) {
         Validate.notNull(dto);
 
         return OffenderKeyworker.builder()
@@ -37,12 +37,12 @@ public final class ConversionHelper {
                 .build();
     }
 
-    public static List<OffenderKeyworkerDto> convertOffenderKeyworkerModel2Dto(List<OffenderKeyworker> models) {
+    public static List<OffenderKeyworkerDto> convertOffenderKeyworkerModel2Dto(final List<OffenderKeyworker> models) {
         Validate.notNull(models);
         return models.stream().map(ConversionHelper::convertOffenderKeyworkerModel2Dto).collect(Collectors.toList());
     }
 
-    private static OffenderKeyworkerDto convertOffenderKeyworkerModel2Dto(OffenderKeyworker model) {
+    private static OffenderKeyworkerDto convertOffenderKeyworkerModel2Dto(final OffenderKeyworker model) {
         Validate.notNull(model);
 
         return OffenderKeyworkerDto.builder()
@@ -57,7 +57,7 @@ public final class ConversionHelper {
                 .build();
     }
 
-    public static OffenderKeyworker getOffenderKeyworker(KeyworkerAllocationDto newAllocation, String userId) {
+    public static OffenderKeyworker getOffenderKeyworker(final KeyworkerAllocationDto newAllocation, final String userId) {
         return OffenderKeyworker.builder()
                 .offenderNo(newAllocation.getOffenderNo())
                 .staffId(newAllocation.getStaffId())
@@ -70,7 +70,7 @@ public final class ConversionHelper {
                 .build();
     }
 
-    public static KeyworkerAllocationDetailsDto convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(OffenderKeyworker model) {
+    public static KeyworkerAllocationDetailsDto convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(final OffenderKeyworker model) {
         Validate.notNull(model);
 
         return KeyworkerAllocationDetailsDto.builder()
@@ -83,7 +83,7 @@ public final class ConversionHelper {
                 .build();
     }
 
-    public static KeyworkerDto getKeyworkerDto(StaffLocationRoleDto dto) {
+    public static KeyworkerDto getKeyworkerDto(final StaffLocationRoleDto dto) {
         if (dto != null) {
             return KeyworkerDto.builder()
                     .firstName(dto.getFirstName())
@@ -100,7 +100,7 @@ public final class ConversionHelper {
         return null;
     }
 
-    public static OffenderKeyworker getOffenderKeyworker(KeyworkerAllocationDetailsDto model) {
+    public static OffenderKeyworker getOffenderKeyworker(final KeyworkerAllocationDetailsDto model) {
         Validate.notNull(model);
 
         return OffenderKeyworker.builder()

@@ -25,7 +25,7 @@ public class UpdateStatusRoute extends RouteBuilder {
     private final KeyworkerBatchService service;
 
     @Autowired
-    public UpdateStatusRoute(KeyworkerBatchService service) {
+    public UpdateStatusRoute(final KeyworkerBatchService service) {
         this.service = service;
     }
 
