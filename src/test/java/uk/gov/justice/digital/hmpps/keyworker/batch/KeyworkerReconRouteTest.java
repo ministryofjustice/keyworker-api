@@ -11,11 +11,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService;
+import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService.ReconMetrics;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.Mockito.verify;
@@ -27,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class KeyworkerReconRouteTest extends CamelTestSupport {
 
     private final static String MOCK_PRISONS_ENDPOINT ="mock:prisons";
-    private final static String MOCK_GENSTATS_ENDPOINT = "mock:gen-stats";
+    private final static String MOCK_RECON_ENDPOINT = "mock:recon";
     private final static String MOCK_DLQ_ENDPOINT = "mock:dlq";
 
     private static final Prison MDI = Prison.builder().prisonId("MDI").migrated(true).build();
@@ -60,7 +59,7 @@ public class KeyworkerReconRouteTest extends CamelTestSupport {
         context.getRouteDefinitions().get(1).adviceWith(context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
-                weaveAddLast().to(MOCK_GENSTATS_ENDPOINT);
+                weaveAddLast().to(MOCK_RECON_ENDPOINT);
             }
         });
 
@@ -84,12 +83,11 @@ public class KeyworkerReconRouteTest extends CamelTestSupport {
 
         when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
 
-        final var now = LocalDate.now();
-        final var mdiStats = PrisonKeyWorkerStatistic.builder().prisonId(MDI.getPrisonId()).snapshotDate(now).build();
+        when(reconciliationService.reconcileKeyWorkerAllocations(MDI.getPrisonId())).thenReturn(new ReconMetrics(MDI.getPrisonId(), 10, 0));
+        when(reconciliationService.reconcileKeyWorkerAllocations(LEI.getPrisonId())).thenReturn(new ReconMetrics(LEI.getPrisonId(), 5, 1));
+        when(reconciliationService.reconcileKeyWorkerAllocations(LPI.getPrisonId())).thenReturn(new ReconMetrics(LPI.getPrisonId(), 3, 2));
 
-        reconciliationService.reconcileKeyWorkerAllocations(MDI.getPrisonId());
-
-        template.send(PrisonStatsRoute.DIRECT_PRISON_STATS, exchange -> {
+        template.send(KeyworkerReconRoute.DIRECT_KEY_WORKER_RECON, exchange -> {
         });
 
         assertMockEndpointsSatisfied();
@@ -101,7 +99,7 @@ public class KeyworkerReconRouteTest extends CamelTestSupport {
         final List<Prison> exchangeData = receivedExchanges.get(0).getIn().getBody(List.class);
         assertEquals(prisons, exchangeData);
 
-        final var mockEndpoint2 = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
+        final var mockEndpoint2 = getMockEndpoint(MOCK_RECON_ENDPOINT);
         mockEndpoint2.assertIsSatisfied();
 
         final var receivedExchanges2 = mockEndpoint2.getReceivedExchanges();

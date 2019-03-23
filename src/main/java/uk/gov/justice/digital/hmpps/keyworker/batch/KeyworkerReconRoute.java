@@ -56,12 +56,12 @@ public class KeyworkerReconRoute extends RouteBuilder {
                 .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
                 .log("Key Worker Reconciliation for ${body.prisonId}")
                 .bean(reconciliationService, "reconcileKeyWorkerAllocations(${body.prisonId})")
-                .log("Stats completed for ${body.prisonId}");
+                .log("Key Worker Reconciliation completed for ${body.prisonId}");
 
         from(DIRECT_LOG_ERROR)
                 .log(LoggingLevel.ERROR, "Error occurred processing ${body.prisonId}")
                 .to("log:recon-error?level=ERROR&showCaughtException=true&showStackTrace=true&showAll=true")
-                .bean(reconciliationService , "raiseStatsProcessingError(${body.prisonId})");
+                .bean(reconciliationService , "raiseProcessingError(${body.prisonId})");
 
     }
 }
