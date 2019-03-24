@@ -64,37 +64,45 @@ public class ReconciliationService {
                     // check if its a merge
                     log.info("{} not found - Checking if it has been merged", notFoundOffender.getOffenderNo());
                     reconMetrics.notFoundOffenders.getAndIncrement();
-                    final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
-                    mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
-                            newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
-                                    offenderKeyWorker -> {
-                                        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), offenderKeyWorker.getOffenderNo(), newOffenderNo);
-                                        if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
-                                            offenderKeyWorker.deallocate(LocalDateTime.now(), DeallocationReason.MERGED);
-                                            log.info("Offender already re-allocated - deallocating {}", offenderKeyWorker.getOffenderNo());
-                                        }
-                                        offenderKeyWorker.setOffenderNo(newOffenderNo);
-
-                                        nomisService.getPrisonerDetail(newOffenderNo).ifPresent(
-                                                prisonerDetail -> deallocateIfMoved(prisonId, offenderKeyWorker, prisonerDetail, reconMetrics)
-                                        );
-
-                                        reconMetrics.mergedRecords.put(notFoundOffender.getOffenderNo(), newOffenderNo);
-                                    }
-                            ),
-                            () -> {
-                                // can't find but remove anyway.
-                                log.warn("Cannot find this prisoner {}, de-allocating...", notFoundOffender.getOffenderNo());
-                                notFoundOffender.deallocate(LocalDateTime.now(), DeallocationReason.MISSING);
-                                reconMetrics.deAllocatedOffenders.getAndIncrement();
-                                reconMetrics.missingOffenders.getAndIncrement();
-                            }
-                    );
+                    checkAndMerge(prisonId, reconMetrics, notFoundOffender);
                 }
         ));
 
         logMetrics(reconMetrics);
         return reconMetrics;
+    }
+
+    private void checkAndMerge(String prisonId, ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender) {
+        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
+        mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
+                newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
+                        offenderKeyWorker -> mergeRecord(prisonId, reconMetrics, notFoundOffender, newOffenderNo, offenderKeyWorker)
+                ),
+                () -> removeMissingRecord(reconMetrics, notFoundOffender)
+        );
+    }
+
+    private void removeMissingRecord(ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender) {
+        // can't find but remove anyway.
+        log.warn("Cannot find this prisoner {}, de-allocating...", notFoundOffender.getOffenderNo());
+        notFoundOffender.deallocate(LocalDateTime.now(), DeallocationReason.MISSING);
+        reconMetrics.deAllocatedOffenders.getAndIncrement();
+        reconMetrics.missingOffenders.getAndIncrement();
+    }
+
+    private void mergeRecord(String prisonId, ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender, String newOffenderNo, OffenderKeyworker offenderKeyWorker) {
+        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), offenderKeyWorker.getOffenderNo(), newOffenderNo);
+        if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
+            offenderKeyWorker.deallocate(LocalDateTime.now(), DeallocationReason.MERGED);
+            log.info("Offender already re-allocated - deallocating {}", offenderKeyWorker.getOffenderNo());
+        }
+        offenderKeyWorker.setOffenderNo(newOffenderNo);
+
+        nomisService.getPrisonerDetail(newOffenderNo).ifPresent(
+                prisonerDetail -> deallocateIfMoved(prisonId, offenderKeyWorker, prisonerDetail, reconMetrics)
+        );
+
+        reconMetrics.mergedRecords.put(notFoundOffender.getOffenderNo(), newOffenderNo);
     }
 
     private void logMetrics(final ReconMetrics metrics) {
