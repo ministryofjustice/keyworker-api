@@ -69,4 +69,8 @@ public class PrisonerDetail implements Serializable {
 
     @ApiModelProperty(required = true, value = "Date received into prison")
     private LocalDate receptionDate;
+
+    public boolean isInPrison() {
+        return "Y".equals(currentlyInPrison);
+    }
 }

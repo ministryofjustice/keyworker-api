@@ -56,6 +56,7 @@ public class NomisServiceImpl implements NomisService {
 
     private static final ParameterizedTypeReference<List<PrisonContactDetailDto>> PRISON_LIST = new ParameterizedTypeReference<>() {};
 
+    private static final ParameterizedTypeReference<List<PrisonerIdentifier>> PRISONER_ID_LIST = new ParameterizedTypeReference<>() {};
 
     private final RestCallHelper restCallHelper;
 
@@ -248,5 +249,12 @@ public class NomisServiceImpl implements NomisService {
     public CaseloadUpdate enableNewNomisForCaseload(final String caseload) {
         final var uri = new UriTemplate(URI_ENABLE_USERS_WITH_CASELOAD).expand(caseload);
         return restCallHelper.put(uri, CaseloadUpdate.class, true);
+    }
+
+    @Override
+    public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value) {
+        final var uri = new UriTemplate(URI_IDENTIFIERS).expand(type, value);
+
+        return restCallHelper.getForListWithAuthentication(uri, PRISONER_ID_LIST).getBody();
     }
 }

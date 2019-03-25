@@ -25,6 +25,8 @@ public interface NomisService {
     String URI_OFFENDERS_ALLOCATION_HISTORY = "/key-worker/offenders/allocationHistory";
     String URI_GET_ALL_PRISONS = "/agencies/prison";
     String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
+    String URI_IDENTIFIERS = "/identifiers/{type}/{value}";
+
 
     List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate);
 
@@ -61,4 +63,6 @@ public interface NomisService {
     List<Prison> getAllPrisons();
 
     CaseloadUpdate enableNewNomisForCaseload(String caseload);
+
+    List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value);
 }

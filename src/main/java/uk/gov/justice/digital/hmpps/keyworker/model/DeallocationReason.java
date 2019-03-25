@@ -8,6 +8,8 @@ public enum DeallocationReason {
     RELEASED("RELEASED"),
     KEYWORKER_STATUS_CHANGE("KEYWORKER_STATUS_CHANGE"),
     TRANSFER("TRANSFER"),
+    MERGED("MERGED"),
+    MISSING("MISSING"),
     MANUAL("MANUAL");
 
     private final String reasonCode;
