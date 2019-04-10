@@ -69,25 +69,25 @@ public class ReconciliationServiceTest {
                 )
         );
 
-        when(nomisService.getPrisonerDetail("A1234AB")).thenReturn(Optional.empty());
-        when(nomisService.getPrisonerDetail("A1234AC")).thenReturn(Optional.empty());
-        when(nomisService.getPrisonerDetail("A1234AD")).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("A1234AD").latestLocationId("OUT").currentlyInPrison("N").build()));
-        when(nomisService.getPrisonerDetail("A1234AE")).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("A1234AE").latestLocationId("MDI").currentlyInPrison("Y").build()));
-        when(nomisService.getPrisonerDetail("A1234AF")).thenReturn(Optional.empty());
-        when(nomisService.getPrisonerDetail("A1234AG")).thenReturn(Optional.empty());
-        when(nomisService.getPrisonerDetail("A1234AH")).thenReturn(Optional.empty());
+        when(nomisService.getPrisonerDetail("A1234AB", true)).thenReturn(Optional.empty());
+        when(nomisService.getPrisonerDetail("A1234AC", true)).thenReturn(Optional.empty());
+        when(nomisService.getPrisonerDetail("A1234AD", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("A1234AD").latestLocationId("OUT").currentlyInPrison("N").build()));
+        when(nomisService.getPrisonerDetail("A1234AE", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("A1234AE").latestLocationId("MDI").currentlyInPrison("Y").build()));
+        when(nomisService.getPrisonerDetail("A1234AF", true)).thenReturn(Optional.empty());
+        when(nomisService.getPrisonerDetail("A1234AG", true)).thenReturn(Optional.empty());
+        when(nomisService.getPrisonerDetail("A1234AH", true)).thenReturn(Optional.empty());
 
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AB")).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AB", true)).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AB").build()
         ));
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AC")).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AC", true)).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AC").build()
         ));
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AF")).thenReturn(Collections.emptyList());
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AG")).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AF", true)).thenReturn(Collections.emptyList());
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AG", true)).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AG").build()
         ));
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AH")).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AH", true)).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AH").build()
         ));
 
@@ -116,10 +116,10 @@ public class ReconciliationServiceTest {
         when(repository.findByActiveAndOffenderNo(true,"B1234AG")).thenReturn(Collections.emptyList());
         when(repository.findByActiveAndOffenderNo(true,"B1234AH")).thenReturn(Collections.emptyList());
 
-        when(nomisService.getPrisonerDetail("B1234AB")).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AB").latestLocationId("LEI").currentlyInPrison("Y").build()));
-        when(nomisService.getPrisonerDetail("B1234AC")).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AC").latestLocationId("LEI").currentlyInPrison("Y").build()));
-        when(nomisService.getPrisonerDetail("B1234AG")).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AG").latestLocationId("OUT").currentlyInPrison("N").build()));
-        when(nomisService.getPrisonerDetail("B1234AH")).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AH").latestLocationId("MDI").currentlyInPrison("Y").build()));
+        when(nomisService.getPrisonerDetail("B1234AB", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AB").latestLocationId("LEI").currentlyInPrison("Y").build()));
+        when(nomisService.getPrisonerDetail("B1234AC", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AC").latestLocationId("LEI").currentlyInPrison("Y").build()));
+        when(nomisService.getPrisonerDetail("B1234AG", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AG").latestLocationId("OUT").currentlyInPrison("N").build()));
+        when(nomisService.getPrisonerDetail("B1234AH", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AH").latestLocationId("MDI").currentlyInPrison("Y").build()));
 
         ReconMetrics metrics = service.reconcileKeyWorkerAllocations(TEST_AGENCY_ID);
 

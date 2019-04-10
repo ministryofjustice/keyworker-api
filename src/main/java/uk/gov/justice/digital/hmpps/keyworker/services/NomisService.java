@@ -32,7 +32,7 @@ public interface NomisService {
 
     Optional<OffenderLocationDto> getOffenderForPrison(String prisonId, String offenderNo);
 
-    Optional<PrisonerDetail> getPrisonerDetail(String offenderNo);
+    Optional<PrisonerDetail> getPrisonerDetail(String offenderNo, boolean admin);
 
     ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(String prisonId, Optional<String> nameFilter, PagingAndSortingDto pagingAndSorting, boolean admin);
 
@@ -64,5 +64,5 @@ public interface NomisService {
 
     CaseloadUpdate enableNewNomisForCaseload(String caseload);
 
-    List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value);
+    List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value, boolean admin);
 }
