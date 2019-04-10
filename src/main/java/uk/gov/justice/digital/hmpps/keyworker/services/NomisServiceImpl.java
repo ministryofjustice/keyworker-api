@@ -68,7 +68,7 @@ public class NomisServiceImpl implements NomisService {
     public List<PrisonerCustodyStatusDto> getPrisonerStatuses(final LocalDateTime threshold, final LocalDate movementDate) {
         final var uri = new UriTemplate(URI_MOVEMENTS).expand(threshold, movementDate);
 
-        return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST).getBody();
+        return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST, false).getBody();
     }
 
     @Override
@@ -76,16 +76,16 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting offender in prison {} offender No {}", prisonId, offenderNo);
         final var uri = new UriTemplate(URI_ACTIVE_OFFENDER_BY_AGENCY).expand(prisonId, offenderNo);
 
-        final var offenders = restCallHelper.getForList(uri, OFFENDER_LOCATION_DTO_LIST).getBody();
+        final var offenders = restCallHelper.getForList(uri, OFFENDER_LOCATION_DTO_LIST, false).getBody();
         return Optional.ofNullable(offenders.size() > 0 ? offenders.get(0) : null);
     }
 
     @Override
-    public Optional<PrisonerDetail> getPrisonerDetail(final String offenderNo) {
+    public Optional<PrisonerDetail> getPrisonerDetail(final String offenderNo, boolean admin) {
         log.info("Getting prisoner details for NOMIS No {}", offenderNo);
         final var uri = new UriTemplate(URI_PRISONER_LOOKUP).expand(offenderNo);
 
-        final var prisonerDetail = restCallHelper.getForList(uri, PRISONER_DETAIL_LIST).getBody();
+        final var prisonerDetail = restCallHelper.getForList(uri, PRISONER_DETAIL_LIST, admin).getBody();
         return Optional.ofNullable(prisonerDetail.size() > 0 ? prisonerDetail.get(0) : null);
     }
 
@@ -107,7 +107,7 @@ public class NomisServiceImpl implements NomisService {
         final var uri = new UriTemplate(GET_STAFF_IN_SPECIFIC_PRISON + "?staffId={staffId}&activeOnly=false").expand(prisonId, staffId);
         log.debug("About to retrieve keyworker from Elite2api using uri {}", uri.toString());
 
-        final var staff = restCallHelper.getForList(uri, ELITE_STAFF_LOCATION_DTO_LIST).getBody();
+        final var staff = restCallHelper.getForList(uri, ELITE_STAFF_LOCATION_DTO_LIST, false).getBody();
         final var staffLocationRoleDto = Optional.ofNullable(staff.size() > 0 ? staff.get(0) : null);
         log.debug("Result: {}", staffLocationRoleDto);
         return staffLocationRoleDto;
@@ -125,7 +125,7 @@ public class NomisServiceImpl implements NomisService {
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId) {
         log.info("Getting available KW in prison {}", prisonId);
         final var uri = new UriTemplate(URI_AVAILABLE_KEYWORKERS).expand(prisonId);
-        return restCallHelper.getForList(uri, KEYWORKER_DTO_LIST).getBody();
+        return restCallHelper.getForList(uri, KEYWORKER_DTO_LIST, false).getBody();
     }
 
     @Override
@@ -238,7 +238,7 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting all prisons");
         final var uri = new UriTemplate(URI_GET_ALL_PRISONS).expand();
 
-        final var prisonListResponse = restCallHelper.getForListWithAuthentication(uri, PRISON_LIST);
+        final var prisonListResponse = restCallHelper.getForListWithAuthentication(uri, PRISON_LIST, false);
         return prisonListResponse.getBody() != null ?
                 prisonListResponse.getBody().stream()
                         .map(p -> Prison.builder().prisonId(p.getAgencyId()).build())
@@ -252,9 +252,9 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value) {
+    public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value, boolean admin) {
         final var uri = new UriTemplate(URI_IDENTIFIERS).expand(type, value);
 
-        return restCallHelper.getForListWithAuthentication(uri, PRISONER_ID_LIST).getBody();
+        return restCallHelper.getForListWithAuthentication(uri, PRISONER_ID_LIST, admin).getBody();
     }
 }

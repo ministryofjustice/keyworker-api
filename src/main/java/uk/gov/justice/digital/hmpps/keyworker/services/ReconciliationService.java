@@ -58,7 +58,7 @@ public class ReconciliationService {
 
         final var reconMetrics = new ReconMetrics(prisonId, assignedPrisonersToKW.size(), missingOffenders.size());
 
-        missingOffenders.forEach( notFoundOffender -> nomisService.getPrisonerDetail(notFoundOffender.getOffenderNo()).ifPresentOrElse(
+        missingOffenders.forEach(notFoundOffender -> nomisService.getPrisonerDetail(notFoundOffender.getOffenderNo(), true).ifPresentOrElse(
                 prisonerDetail -> deallocateIfMoved(prisonId, notFoundOffender, prisonerDetail, reconMetrics),
                 () -> {
                     // check if its a merge
@@ -73,7 +73,7 @@ public class ReconciliationService {
     }
 
     private void checkAndMerge(String prisonId, ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender) {
-        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
+        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo(), true);
         mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
                 newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
                         offenderKeyWorker -> mergeRecord(prisonId, reconMetrics, notFoundOffender, newOffenderNo, offenderKeyWorker)
@@ -98,7 +98,7 @@ public class ReconciliationService {
         }
         offenderKeyWorker.setOffenderNo(newOffenderNo);
 
-        nomisService.getPrisonerDetail(newOffenderNo).ifPresent(
+        nomisService.getPrisonerDetail(newOffenderNo, true).ifPresent(
                 prisonerDetail -> deallocateIfMoved(prisonId, offenderKeyWorker, prisonerDetail, reconMetrics)
         );
 

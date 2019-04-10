@@ -35,8 +35,8 @@ public class RestCallHelper {
         this.elite2SystemRestTemplate = elite2SystemRestTemplate;
     }
 
-    protected <T> ResponseEntity<T> getForListWithAuthentication(final URI uri, final ParameterizedTypeReference<T> responseType) {
-        return getRestTemplate(true).exchange(
+    protected <T> ResponseEntity<T> getForListWithAuthentication(final URI uri, final ParameterizedTypeReference<T> responseType, boolean admin) {
+        return getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 null,
@@ -99,8 +99,8 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
-    protected <T> ResponseEntity<T> getForList(final URI uri, final ParameterizedTypeReference<T> responseType) {
-        return restTemplate.exchange(
+    protected <T> ResponseEntity<T> getForList(final URI uri, final ParameterizedTypeReference<T> responseType, boolean admin) {
+        return getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 null,
