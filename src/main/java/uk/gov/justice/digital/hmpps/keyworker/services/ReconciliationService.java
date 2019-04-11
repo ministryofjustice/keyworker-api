@@ -76,7 +76,7 @@ public class ReconciliationService {
         final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo(), true);
         mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
                 newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
-                        offenderKeyWorker -> mergeRecord(prisonId, reconMetrics, notFoundOffender, newOffenderNo, offenderKeyWorker)
+                        offenderKeyWorker -> mergeRecord(prisonId, reconMetrics, notFoundOffender.getOffenderNo(), newOffenderNo, offenderKeyWorker)
                 ),
                 () -> removeMissingRecord(reconMetrics, notFoundOffender)
         );
@@ -90,11 +90,11 @@ public class ReconciliationService {
         reconMetrics.missingOffenders.getAndIncrement();
     }
 
-    private void mergeRecord(String prisonId, ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender, String newOffenderNo, OffenderKeyworker offenderKeyWorker) {
-        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), offenderKeyWorker.getOffenderNo(), newOffenderNo);
+    private void mergeRecord(String prisonId, ReconMetrics reconMetrics, final String oldOffenderNo, final String newOffenderNo, OffenderKeyworker offenderKeyWorker) {
+        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), oldOffenderNo, newOffenderNo);
         if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
             offenderKeyWorker.deallocate(LocalDateTime.now(), DeallocationReason.MERGED);
-            log.info("Offender already re-allocated - deallocating {}", offenderKeyWorker.getOffenderNo());
+            log.info("Offender already re-allocated - de-allocating {}", offenderKeyWorker.getOffenderNo());
         }
         offenderKeyWorker.setOffenderNo(newOffenderNo);
 
@@ -102,7 +102,7 @@ public class ReconciliationService {
                 prisonerDetail -> deallocateIfMoved(prisonId, offenderKeyWorker, prisonerDetail, reconMetrics)
         );
 
-        reconMetrics.mergedRecords.put(notFoundOffender.getOffenderNo(), newOffenderNo);
+        reconMetrics.mergedRecords.put(oldOffenderNo, newOffenderNo);
     }
 
     private void logMetrics(final ReconMetrics metrics) {
