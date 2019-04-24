@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -9,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
-import wiremock.org.apache.commons.collections4.SetUtils;
 
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -68,7 +68,7 @@ public class KeyworkerAllocationProcessorTest {
         // Verify
         assertThat(results).isEqualTo(dtos);
 
-        verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+        verify(repository).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
     }
 
     // When offender summary allocation filter processing requested with a list of 5 offender summary dtos
@@ -92,7 +92,7 @@ public class KeyworkerAllocationProcessorTest {
         // Verify
         assertThat(results).isEmpty();
 
-        verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+        verify(repository).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
     }
 
     //should be resilient if duplicate allocations exist
@@ -116,7 +116,7 @@ public class KeyworkerAllocationProcessorTest {
         // Verify
         assertThat(results).isEmpty();
 
-        verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+        verify(repository).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
     }
 
     // When offender summary allocation filter processing requested with a list of 5 offender summary dtos
@@ -145,6 +145,6 @@ public class KeyworkerAllocationProcessorTest {
         assertThat(results.size()).isEqualTo(unallocatedOffNos.size());
         assertThat(results).extracting(OffenderLocationDto::getOffenderNo).hasSameElementsAs(unallocatedOffNos);
 
-        verify(repository, times(1)).findByActiveAndOffenderNoIn(eq(true), eq(SetUtils.union(allocatedOffNos, unallocatedOffNos)));
+        verify(repository).findByActiveAndOffenderNoIn(true, Sets.union(allocatedOffNos, unallocatedOffNos));
     }
 }
