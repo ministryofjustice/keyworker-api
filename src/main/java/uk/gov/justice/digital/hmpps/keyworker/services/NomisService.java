@@ -64,5 +64,5 @@ public interface NomisService {
 
     CaseloadUpdate enableNewNomisForCaseload(String caseload);
 
-    List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value, boolean admin);
+    List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value);
 }
