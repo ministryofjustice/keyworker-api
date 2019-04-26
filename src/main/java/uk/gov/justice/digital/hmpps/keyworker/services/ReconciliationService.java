@@ -73,7 +73,7 @@ public class ReconciliationService {
     }
 
     private void checkAndMerge(String prisonId, ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender) {
-        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo(), true);
+        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
         mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
                 newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
                         offenderKeyWorker -> mergeRecord(prisonId, reconMetrics, notFoundOffender.getOffenderNo(), newOffenderNo, offenderKeyWorker)

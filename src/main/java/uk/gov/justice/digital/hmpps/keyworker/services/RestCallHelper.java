@@ -35,8 +35,8 @@ public class RestCallHelper {
         this.elite2SystemRestTemplate = elite2SystemRestTemplate;
     }
 
-    protected <T> ResponseEntity<T> getForListWithAuthentication(final URI uri, final ParameterizedTypeReference<T> responseType, boolean admin) {
-        return getRestTemplate(admin).exchange(
+    protected <T> ResponseEntity<T> getForListWithAuthentication(final URI uri, final ParameterizedTypeReference<T> responseType) {
+        return getRestTemplate(true).exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 null,

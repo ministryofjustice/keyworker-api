@@ -77,17 +77,17 @@ public class ReconciliationServiceTest {
         when(nomisService.getPrisonerDetail("A1234AG", true)).thenReturn(Optional.empty());
         when(nomisService.getPrisonerDetail("A1234AH", true)).thenReturn(Optional.empty());
 
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AB", true)).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AB")).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AB").build()
         ));
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AC", true)).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AC")).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AC").build()
         ));
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AF", true)).thenReturn(Collections.emptyList());
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AG", true)).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AF")).thenReturn(Collections.emptyList());
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AG")).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AG").build()
         ));
-        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AH", true)).thenReturn(List.of(
+        when(nomisService.getIdentifierByTypeAndValue("MERGED", "A1234AH")).thenReturn(List.of(
                 PrisonerIdentifier.builder().offenderNo("B1234AH").build()
         ));
 

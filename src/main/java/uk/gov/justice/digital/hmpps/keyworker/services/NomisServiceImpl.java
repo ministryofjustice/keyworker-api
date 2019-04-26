@@ -68,7 +68,7 @@ public class NomisServiceImpl implements NomisService {
     public List<PrisonerCustodyStatusDto> getPrisonerStatuses(final LocalDateTime threshold, final LocalDate movementDate) {
         final var uri = new UriTemplate(URI_MOVEMENTS).expand(threshold, movementDate);
 
-        return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST, false).getBody();
+        return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST).getBody();
     }
 
     @Override
@@ -238,7 +238,7 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting all prisons");
         final var uri = new UriTemplate(URI_GET_ALL_PRISONS).expand();
 
-        final var prisonListResponse = restCallHelper.getForListWithAuthentication(uri, PRISON_LIST, false);
+        final var prisonListResponse = restCallHelper.getForListWithAuthentication(uri, PRISON_LIST);
         return prisonListResponse.getBody() != null ?
                 prisonListResponse.getBody().stream()
                         .map(p -> Prison.builder().prisonId(p.getAgencyId()).build())
@@ -252,9 +252,9 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value, boolean admin) {
+    public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value) {
         final var uri = new UriTemplate(URI_IDENTIFIERS).expand(type, value);
 
-        return restCallHelper.getForListWithAuthentication(uri, PRISONER_ID_LIST, admin).getBody();
+        return restCallHelper.getForListWithAuthentication(uri, PRISONER_ID_LIST).getBody();
     }
 }
