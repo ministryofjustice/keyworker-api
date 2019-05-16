@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: keyworker-api
   jpa:
     show-sql: false
     generate-ddl: false
