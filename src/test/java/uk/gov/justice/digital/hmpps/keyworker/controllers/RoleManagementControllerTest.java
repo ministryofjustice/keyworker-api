@@ -8,7 +8,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
-import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService;
 
 import java.util.List;
 
@@ -39,7 +38,7 @@ public class RoleManagementControllerTest {
     @Before
     public void configure() {
         roleAssignmentsService = mock(RoleAssignmentsService.class);
-        mvc = MockMvcBuilders.standaloneSetup(new RoleMangementController(roleAssignmentsService)).build();
+        mvc = MockMvcBuilders.standaloneSetup(new RoleManagementController(roleAssignmentsService)).build();
     }
 
 

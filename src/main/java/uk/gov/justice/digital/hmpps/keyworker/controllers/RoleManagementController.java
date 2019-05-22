@@ -14,11 +14,11 @@ import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsServi
 @RestController
 @RequestMapping(value = "caseloads-roles")
 @Slf4j
-public class RoleMangementController {
+public class RoleManagementController {
 
     private final RoleAssignmentsService roleAssignmentsService;
 
-    public RoleMangementController(RoleAssignmentsService roleAssignmentsService) {
+    public RoleManagementController(RoleAssignmentsService roleAssignmentsService) {
         this.roleAssignmentsService = roleAssignmentsService;
     }
 
