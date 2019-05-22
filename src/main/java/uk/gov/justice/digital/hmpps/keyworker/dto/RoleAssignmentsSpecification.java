@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -10,17 +11,30 @@ import org.springframework.util.MultiValueMap;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonInclude( JsonInclude.Include.NON_EMPTY)
 @ApiModel(description = "A specification of how to select a subset of users by caseload and role membership.  Selected users will be assigned 'rolesToAssign' in the NWEB caseload.  The 'rolesToRemove' will then be removed from each selected user at each of the specified caseloads.")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class RoleAssignmentsSpecification {
-    @ApiModelProperty(required = true, value = "The caseloads to search for users having roles matching 'rolesToMatch'.", position = 0)
+
+    @Builder
+    private RoleAssignmentsSpecification(
+            List<String> caseloads,
+            List<String> rolesToMatch,
+            List<String> rolesToAssign,
+            List<String> rolesToRemove) {
+        this.caseloads = caseloads;
+        this.rolesToMatch = rolesToMatch;
+        this.rolesToAssign = rolesToAssign == null ? List.of() : rolesToAssign;
+        this.rolesToRemove = rolesToRemove == null ? List.of() : rolesToRemove;
+    }
+
+    @ApiModelProperty(required = true, value = "The caseloads to search for users having roles matching 'rolesToMatch'.")
     @NotEmpty(message = "Expected at least one 'caseload'")
     private List<String> caseloads;
 
@@ -30,11 +44,11 @@ public class RoleAssignmentsSpecification {
 
     @ApiModelProperty(value = "Users with the named caseloads, having roles matching rolesToMatch will be assigned these roles in the 'NWEB' caseload.", position = 2)
     @NotNull
-    private List<String> rolesToAssign;
+    private List<String> rolesToAssign = List.of();
 
     @ApiModelProperty(value = "For each caseload in caseloads; find the users having at least one role matching 'rolesToMatch'. For each matched user at the current caseload remove each of the roles in 'rolesToRemove' at that caseload.", position = 3)
     @NotNull
-    private List<String> rolesToRemove;
+    private List<String> rolesToRemove = List.of();
 
 
     public static RoleAssignmentsSpecification fromForm(MultiValueMap<String, String> form) {

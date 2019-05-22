@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -130,6 +131,7 @@ public class UserRolesMigrationServiceTest {
 
         verify(roleService).assignRoleToApiCaseload(USERNAME_1, ROLE_TO_ASSIGN_1);
     }
+
 
     private Set<String> setOf(final String... usernames) {
         return new HashSet<>(List.of(usernames));
