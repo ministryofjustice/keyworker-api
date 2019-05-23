@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 
 import java.util.Collections;
 import java.util.HashSet;

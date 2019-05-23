@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,9 +31,9 @@ public class UserRolesMigrationService {
 
     public UserRolesMigrationService(final RoleService roleService, final RoleMigrationConfiguration configuration) {
         this.roleService = roleService;
-        rolesToMatch = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMatch()));
-        rolesToAssign = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToAssign()));
-        rolesToMigrate = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMigrate()));
+        rolesToMatch = Set.copyOf(configuration.getRolesToMatch());
+        rolesToAssign = Set.copyOf(configuration.getRolesToAssign());
+        rolesToMigrate = Set.copyOf(configuration.getRolesToMigrate());
     }
 
     public void migrate(final String prisonId) {
