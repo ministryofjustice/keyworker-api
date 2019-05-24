@@ -131,6 +131,7 @@ public class UserRolesMigrationServiceTest {
         verify(roleService).assignRoleToApiCaseload(USERNAME_1, ROLE_TO_ASSIGN_1);
     }
 
+
     private Set<String> setOf(final String... usernames) {
         return new HashSet<>(List.of(usernames));
     }

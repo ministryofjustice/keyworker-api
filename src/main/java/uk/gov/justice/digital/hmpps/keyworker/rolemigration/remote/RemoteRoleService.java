@@ -1,27 +1,28 @@
 package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Slf4j
 @Component
 public class RemoteRoleService implements RoleService {
 
-    private static final ParameterizedTypeReference<List<StaffUserRoleDto>> LIST_OF_STAFF_USER_ROLE = new ParameterizedTypeReference<List<StaffUserRoleDto>>() {
-    };
     public static final String STAFF_ACCESS_CODES_LIST_URL = "/users/access-roles/caseload/{caseload}/access-role/{roleCode}";
 
-    private static final ParameterizedTypeReference<List<String>> LIST_OF_USERNAME = new ParameterizedTypeReference<List<String>>() {};
+    private static final ParameterizedTypeReference<List<String>> LIST_OF_USERNAME = new ParameterizedTypeReference<>() {
+    };
 
     private final RestTemplate restTemplate;
 
@@ -43,8 +44,9 @@ public class RemoteRoleService implements RoleService {
                 prisonId,
                 roleCode);
 
-        final Set<String> usernames = new HashSet<>(responseEntity.getBody());
-        log.info("(prison {}, role {}) -> usernames {}", prisonId, roleCode, usernames);
+        final Set<String> usernames = getUsernames(responseEntity);
+
+        log.info("(prison {}, role {}) Found {} usernames: {}", prisonId, roleCode, usernames.size(), usernames);
         return usernames;
 
     }
@@ -69,5 +71,10 @@ public class RemoteRoleService implements RoleService {
                 username,
                 roleCode);
 
+    }
+
+    private static Set<String> getUsernames(ResponseEntity<List<String>> responseEntity) {
+        val body = responseEntity.getBody();
+        return body == null ? Set.of() : new TreeSet<>(body);
     }
 }

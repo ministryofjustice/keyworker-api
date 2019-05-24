@@ -4,9 +4,9 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.HttpServerErrorException;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Validated
 public class UserRolesMigrationService {
 
     private static final BinaryOperator<Set<String>> SET_UNION = (a, b) -> {
@@ -30,16 +31,19 @@ public class UserRolesMigrationService {
 
     public UserRolesMigrationService(final RoleService roleService, final RoleMigrationConfiguration configuration) {
         this.roleService = roleService;
-        rolesToMatch = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMatch()));
-        rolesToAssign = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToAssign()));
-        rolesToMigrate = Collections.unmodifiableSet(new HashSet<>(configuration.getRolesToMigrate()));
+        rolesToMatch = Set.copyOf(configuration.getRolesToMatch());
+        rolesToAssign = Set.copyOf(configuration.getRolesToAssign());
+        rolesToMigrate = Set.copyOf(configuration.getRolesToMigrate());
     }
 
     public void migrate(final String prisonId) {
         migrateRoles(prisonId, rolesToMatch, rolesToAssign, rolesToMigrate);
     }
 
-    private void migrateRoles(final String prisonId, final Set<String> rolesToMatch, final Set<String> rolesToAssign, final Set<String> rolesToMigrate) {
+
+
+    private void migrateRoles(final String prisonId, final Set<String> rolesToMatch,
+                              final Set<String> rolesToAssign, final Set<String> rolesToMigrate) {
 
         final var usernamesByRole = findUsernamesByRole(prisonId, rolesToMatch);
 
@@ -70,10 +74,11 @@ public class UserRolesMigrationService {
      * Extract the set of all usernames contained in the supplied data structure.
      *
      * @param usernamesByRole usernames grouped by role membership.
-     * @param filterRoles roles to include
+     * @param filterRoles     roles to include
      * @return all the supplied usernames as a set.
      */
-    private Set<String> usernamesForUsersHavingRoles(final List<Pair<String, Set<String>>> usernamesByRole, final Set<String> filterRoles) {
+    private Set<String> usernamesForUsersHavingRoles(final List<Pair<String, Set<String>>> usernamesByRole,
+                                                     final Set<String> filterRoles) {
         return usernamesByRole.stream().filter(p -> filterRoles.contains(p.getLeft())).map(Pair::getRight).reduce(new HashSet<>(), SET_UNION);
     }
 
@@ -116,4 +121,5 @@ public class UserRolesMigrationService {
             );
         });
     }
+
 }
