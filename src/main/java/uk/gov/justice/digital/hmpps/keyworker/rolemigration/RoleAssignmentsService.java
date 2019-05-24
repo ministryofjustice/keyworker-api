@@ -31,23 +31,25 @@ public class RoleAssignmentsService {
      * Assign to the user the roles identified in specification.rolesToAssign.
      * Remove from the user (at the caseload) the roles identified by specification.rolesToRemove.
      */
-    @PreAuthorize("hasAnyRole('MAINTAIN_ACCESS_ROLES', 'MAINTAIN_ACESS_ROLES_ADMIN')")
+    @PreAuthorize("hasAnyRole('MAINTAIN_ACCESS_ROLES_ADMIN')")
     public void updateRoleAssignments(@Valid final RoleAssignmentsSpecification specification) {
-        log.debug("Updating role assignments: {}", specification);
+        log.info("Updating role assignments: {}", specification);
         for (val caseload : specification.getCaseloads()) {
 
             val usernamesForCaseload = findUsernamesMatchingRolesAtCaseload(specification.getRolesToMatch(), caseload);
-            log.debug("Found {} users for the {} caseload: {}.", usernamesForCaseload.size(), caseload, usernamesForCaseload);
+            log.info("Found {} users for the {} caseload: {}.", usernamesForCaseload.size(), caseload, usernamesForCaseload);
             usernamesForCaseload.forEach(username -> {
                 try {
                     assignRolesToUser(username, specification.getRolesToAssign());
                     try {
                         removeRolesFromUserAtCaseload(caseload, username, specification.getRolesToRemove());
                     } catch (Exception e) {
-                        log.debug("Failure while removing roles {} from user {} at caseload {}. Some roles may not have been removed.", specification.getRolesToRemove(), username, caseload);
+                        val message = String.format("Failure while removing roles %1$s from user %2$s at caseload %3$s. Some roles may not have been removed. Continuing with next user.",specification.getRolesToRemove(), username, caseload);
+                        log.warn(message, e);
                     }
                 } catch (Exception e) {
-                    log.debug("Failure while assigning roles {} to user {}. No roles will be removed from this user.", specification.getRolesToAssign(), username);
+                    val message = String.format("Failure while assigning roles %1$s to user %2$s. No roles will be removed from this user. Continuing with next user.", specification.getRolesToAssign(), username);
+                    log.warn(message, e);
                 }
             });
         }
@@ -59,7 +61,7 @@ public class RoleAssignmentsService {
                 roleService.removeRole(username, caseload, roleCodeToRemove);
 
             } catch (HttpClientErrorException.NotFound notFoundException) {
-                log.debug("Username {} does not have role {} at caseload {}", username, roleCodeToRemove, caseload);
+                log.info("Username {} does not have role {} at caseload {}", username, roleCodeToRemove, caseload);
             }
         });
     }

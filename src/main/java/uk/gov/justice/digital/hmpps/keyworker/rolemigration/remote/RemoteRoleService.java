@@ -46,7 +46,7 @@ public class RemoteRoleService implements RoleService {
 
         final Set<String> usernames = getUsernames(responseEntity);
 
-        log.info("(prison {}, role {}) -> usernames {}", prisonId, roleCode, usernames);
+        log.info("(prison {}, role {}) Found {} usernames: {}", prisonId, roleCode, usernames.size(), usernames);
         return usernames;
 
     }
