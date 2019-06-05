@@ -2,17 +2,23 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
+
+import java.util.Map;
 
 @Api(tags = {"caseloads-roles"})
 
 @RestController
-@RequestMapping(value = "caseloads-roles")
+@RequestMapping(
+        value = "caseloads-roles",
+        produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
 public class RoleManagementController {
 
@@ -25,16 +31,17 @@ public class RoleManagementController {
     @ApiOperation(
             value = "Assign roles according to the provided specification",
             nickname = "assignRolesJson",
+            notes = "This returns a map of Prison ID to results of the role assignments",
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Successful"),
+            @ApiResponse(code = 200, message = "Ok", response = RoleAssignmentStats.class, responseContainer = "Map"),
             @ApiResponse(code = 400, message = "Client error")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity assignRolesJson(@RequestBody RoleAssignmentsSpecification specification) {
-        roleAssignmentsService.updateRoleAssignments(specification);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Map<String, RoleAssignmentStats>> assignRolesJson(@RequestBody RoleAssignmentsSpecification specification) {
+        val result = roleAssignmentsService.updateRoleAssignments(specification);
+        return ResponseEntity.ok(result);
     }
 
     @ApiOperation(

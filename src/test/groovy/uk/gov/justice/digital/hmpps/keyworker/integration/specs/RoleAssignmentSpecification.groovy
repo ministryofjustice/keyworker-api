@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
+import groovy.json.JsonSlurper
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -12,7 +13,7 @@ class RoleAssignmentSpecification extends TestSpecification {
 
     private static final MAINTAIN_ACCESS_ROLES_ADMIN_USER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpbnRlcm5hbFVzZXIiOnRydWUsInVzZXJfbmFtZSI6Ik1BSU5UQUlOX0FDQ0VTU19ST0xFU19BRE1JTl9VU0VSIiwic2NvcGUiOlsicmVhZCIsIndyaXRlIl0sImV4cCI6MjgyMDE0MDIzMywiY2xpZW50X2lkIjoiZWxpdGUyYXBpY2xpZW50IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9NQUlOVEFJTl9BQ0NFU1NfUk9MRVNfQURNSU4iXSwianRpIjoiZGViZDMyODAtMzQwZC00NjU3LTg4ZGUtYWQ4MTI5MTkyNjhhIn0.ozPcQSieuYcYp3KJGrMUC0aZXAbWehHPLQG5pbfoov6L505Q0MmCQZGi_7o07ughJqeyigp_l8v5QB81hkBoS4qdGKlQYc3IeDWRb7oOYt42oocwdPw6vXS5xtZ4odI4JeYzvb2hL7kH3N0JTKZTkVCdts-WLt1CgaujlXEfGpZwUBvjrQQQ-3OxUEgRw7lEKrPqdCFZdFT0VnLF6pM-0PFztKgZ0y5cPDRApOpX6DE1IAwwiP-9VvgWpZJxbcBj3SI_YbazlbX080QOHbE3VRrSzyHU6QhYIVP3h6mu6DhI7ogrsnBEAPBUOn1_vy4B2ElmnzhRE7zqL9d6RCPJsg'
     private static final MAINTAIN_ACCESS_ROLES_USER_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpbnRlcm5hbFVzZXIiOnRydWUsInVzZXJfbmFtZSI6Ik1BSU5UQUlOX0FDQ0VTU19ST0xFU19BRE1JTl9VU0VSIiwic2NvcGUiOlsicmVhZCIsIndyaXRlIl0sImV4cCI6MjgyMDE0MTI5MSwiY2xpZW50X2lkIjoiZWxpdGUyYXBpY2xpZW50IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9NQUlOVEFJTl9BQ0NFU1NfUk9MRVMiXSwianRpIjoiZGViZDMyODAtMzQwZC00NjU3LTg4ZGUtYWQ4MTI5MTkyNjhhIn0.qOtwHPK8YccIFdYi3ROVp6qDSq1Sp4NqLR_b3c-oajCMK1toX13H7YYuREb7BBCLzwedA8s3BL-S5tIk0pW6OaMFAIURweVaiSGcJuIbILq40xK0OFQ7yiMKb-QIV6H94HkSjdBcbJnvfSveNZe_ghH5R-brg78V_NnsOOlETYfErHzTlUs8CWwBgxcmd5ZRvMLpI1wWpFZk6zcYi4NgcTMmtPrXaROux-p8US1NvoEobdT3qLGLMLRPjIv4b2fwu88oAjjEoLNZC7dVMTUVq_yAI2al-MBV3DXzsBb9li7-7OAVZsAkifazTPaufC304dc07kMQNJi4bi3qlx53pg'
-
+    def jsonSlurper = new JsonSlurper()
 
     def "A user that has the MAINTAIN_ACCESS_ROLES_ADMIN role can make role assignment changes"() {
         given: "That I have the MAINTAIN_ACESS_ROLES_ADMIN role"
@@ -25,7 +26,15 @@ class RoleAssignmentSpecification extends TestSpecification {
 
         then: "The request is accepted"
 
-        response.statusCode == HttpStatus.NO_CONTENT
+        response.statusCode == HttpStatus.OK
+        def roleAssignmentStats = jsonSlurper.parseText(response.body)
+        def moorlandResults = roleAssignmentStats['MDI']
+        moorlandResults != null
+        moorlandResults.numAssignRoleSucceeded == 0
+        moorlandResults.numAssignRoleFailed == 0
+        moorlandResults.numUnAssignRoleSucceeded == 0
+        moorlandResults.numUnAssignRoleIgnored == 0
+        moorlandResults.numUnAssignRoleFailed == 0
     }
 
     def "A user that has does not have the MAINTAIN_ACCESS_ROLES_ADMIN role cannot make assignment changes"() {
@@ -46,7 +55,7 @@ class RoleAssignmentSpecification extends TestSpecification {
         RoleAssignmentsSpecification.builder().caseloads(['MDI']).rolesToMatch(['KW_ADMIN']).build()
     }
 
-    private ResponseEntity<Void> applyRoleAssignmentsSpecification(RoleAssignmentsSpecification specification, String accessToken) {
+    private ResponseEntity<String> applyRoleAssignmentsSpecification(RoleAssignmentsSpecification specification, String accessToken) {
         elite2api.stubAccessCodeListForKeyAdminRole('MDI')
 
         HttpHeaders headers = new HttpHeaders()
@@ -57,6 +66,6 @@ class RoleAssignmentSpecification extends TestSpecification {
                 '/caseloads-roles',
                 HttpMethod.POST,
                 new HttpEntity(specification, headers),
-                Void.class)
+                String.class)
     }
 }

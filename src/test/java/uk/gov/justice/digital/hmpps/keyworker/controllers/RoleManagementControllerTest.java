@@ -6,15 +6,16 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 public class RoleManagementControllerTest {
 
@@ -44,11 +45,26 @@ public class RoleManagementControllerTest {
 
     @Test
     public void testValidJson() throws Exception {
+
+        when(roleAssignmentsService.updateRoleAssignments(any())).thenReturn(Map.of("MDI", RoleAssignmentStats.builder()
+                .numAssignRoleSucceeded(1L)
+                .numAssignRoleFailed(2L)
+                .numUnAssignRoleSucceeded(3L)
+                .numUnAssignRoleIgnored(4L)
+                .numUnAssignRoleFailed(5L)
+                .build()));
+
         mvc.perform(
                 post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(specification))
-        ).andExpect(status().isNoContent());
+        ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.MDI.numAssignRoleSucceeded").value(1))
+                .andExpect(jsonPath("$.MDI.numAssignRoleFailed").value(2))
+                .andExpect(jsonPath("$.MDI.numUnAssignRoleSucceeded").value(3))
+                .andExpect(jsonPath("$.MDI.numUnAssignRoleIgnored").value(4))
+                .andExpect(jsonPath("$.MDI.numUnAssignRoleFailed").value(5));
+
 
         verify(roleAssignmentsService).updateRoleAssignments(specification);
     }
@@ -67,7 +83,7 @@ public class RoleManagementControllerTest {
                 post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
-        ).andExpect(status().isNoContent());
+        ).andExpect(status().isOk());
     }
 
 
