@@ -24,7 +24,7 @@ public class RoleManagementController {
 
     private final RoleAssignmentsService roleAssignmentsService;
 
-    public RoleManagementController(RoleAssignmentsService roleAssignmentsService) {
+    public RoleManagementController(final RoleAssignmentsService roleAssignmentsService) {
         this.roleAssignmentsService = roleAssignmentsService;
     }
 
@@ -39,7 +39,7 @@ public class RoleManagementController {
             @ApiResponse(code = 400, message = "Client error")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<RoleAssignmentStats>> assignRolesJson(@RequestBody RoleAssignmentsSpecification specification) {
+    public ResponseEntity<List<RoleAssignmentStats>> assignRolesJson(@RequestBody final RoleAssignmentsSpecification specification) {
         val result = roleAssignmentsService.updateRoleAssignments(specification);
         return ResponseEntity.ok(result);
     }
@@ -55,7 +55,7 @@ public class RoleManagementController {
             @ApiResponse(code = 400, message = "Client error")
     })
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity assignRolesForm(@ApiParam(value = "An application/x-www-form-urlencoded form.  Keys 'caseloads' and 'rolesToMatch' are mandatory, 'rolesToAdd' and 'rolesToRemove' should be supplied as needed") @RequestParam MultiValueMap<String, String> form) {
+    public ResponseEntity assignRolesForm(@ApiParam(value = "An application/x-www-form-urlencoded form.  Keys 'caseloads' and 'rolesToMatch' are mandatory, 'rolesToAdd' and 'rolesToRemove' should be supplied as needed") @RequestParam final MultiValueMap<String, String> form) {
         roleAssignmentsService.updateRoleAssignments(RoleAssignmentsSpecification.fromForm(form));
         return ResponseEntity.noContent().build();
     }

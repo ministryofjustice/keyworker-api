@@ -4,15 +4,15 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Map;
 
 @Builder
 @Getter
 @EqualsAndHashCode
+@ToString
 public class RoleAssignmentStats {
-
-    public enum Status {SUCCESS, FAIL, IGNORE}
 
     @ApiModelProperty(required = true, value = "Caseload")
     private String caseload;
@@ -29,38 +29,24 @@ public class RoleAssignmentStats {
     @ApiModelProperty(required = true, value = "Number of role unassignments failed")
     private long numUnassignRoleFailed;
 
-    public void addAssignResults(Map<Status, Long> assignResults) {
-        assignResults.forEach((status, count) -> {
-            switch (status) {
-                case SUCCESS:
-                    numAssignRoleSucceeded+= count;
-                    break;
-                case FAIL:
-                    numAssignRoleFailed+= count;
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + status);
-            }
-        });
-
+    public void incrementAssignmentFailure() {
+        numAssignRoleFailed++;
     }
 
-    public void addUnassignResults(Map<Status, Long> unassigningResults) {
-        unassigningResults.forEach(((status, count) -> {
-            switch (status) {
-                case SUCCESS:
-                    numUnassignRoleSucceeded+= count;
-                    break;
-                case FAIL:
-                    numUnassignRoleFailed+= count;
-                    break;
-                case IGNORE:
-                    numUnassignRoleIgnored+= count;
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + status);
-            }
-        }));
+    public void incrementAssignmentSuccess() {
+        numAssignRoleSucceeded++;
+    }
+
+    public void incrementUnassignmentSuccess() {
+        numUnassignRoleSucceeded++;
+    }
+    public void incrementUnassignmentFailure() {
+        numUnassignRoleFailed++;
+    }
+
+
+    public void incrementUnassignmentIgnore() {
+        numUnassignRoleIgnored++;
     }
 
     public Map<String, String> toMap() {
