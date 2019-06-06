@@ -1,14 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Map;
 
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
 @Getter
 @EqualsAndHashCode
 public class RoleAssignmentStats {
