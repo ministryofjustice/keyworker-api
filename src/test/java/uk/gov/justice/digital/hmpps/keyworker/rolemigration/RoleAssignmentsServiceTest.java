@@ -150,9 +150,9 @@ public class RoleAssignmentsServiceTest {
         val expected = RoleAssignmentStats.builder()
                 .numAssignRoleSucceeded(4)
                 .numAssignRoleFailed(2)
-                .numUnAssignRoleSucceeded(1)
-                .numUnAssignRoleIgnored(0)
-                .numUnAssignRoleFailed(0)
+                .numUnassignRoleSucceeded(1)
+                .numUnassignRoleIgnored(0)
+                .numUnassignRoleFailed(0)
                 .build();
 
         val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
@@ -188,9 +188,9 @@ public class RoleAssignmentsServiceTest {
         val expected = RoleAssignmentStats.builder()
                 .numAssignRoleSucceeded(0)
                 .numAssignRoleFailed(0)
-                .numUnAssignRoleSucceeded(2)
-                .numUnAssignRoleIgnored(1)
-                .numUnAssignRoleFailed(0)
+                .numUnassignRoleSucceeded(2)
+                .numUnassignRoleIgnored(1)
+                .numUnassignRoleFailed(0)
                 .build();
 
         val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
@@ -221,9 +221,9 @@ public class RoleAssignmentsServiceTest {
         val expected = RoleAssignmentStats.builder()
                 .numAssignRoleSucceeded(0)
                 .numAssignRoleFailed(0)
-                .numUnAssignRoleSucceeded(2)
-                .numUnAssignRoleIgnored(0)
-                .numUnAssignRoleFailed(1)
+                .numUnassignRoleSucceeded(2)
+                .numUnassignRoleIgnored(0)
+                .numUnassignRoleFailed(1)
                 .build();
 
         val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
@@ -249,9 +249,9 @@ public class RoleAssignmentsServiceTest {
                 "numUsersMatched", numberOfUsers,
                 "numAssignRoleSucceeded", String.valueOf(results.getNumAssignRoleSucceeded()),
                 "numAssignRoleFailed", String.valueOf(results.getNumAssignRoleFailed()),
-                "numUnAssignRoleSucceeded", String.valueOf(results.getNumUnAssignRoleSucceeded()),
-                "numUnAssignRoleIgnored", String.valueOf(results.getNumUnAssignRoleIgnored()),
-                "numUnAssignRoleFailed", String.valueOf(results.getNumUnAssignRoleFailed()));
+                "numUnassignRoleSucceeded", String.valueOf(results.getNumUnassignRoleSucceeded()),
+                "numUnassignRoleIgnored", String.valueOf(results.getNumUnassignRoleIgnored()),
+                "numUnassignRoleFailed", String.valueOf(results.getNumUnassignRoleFailed()));
         verify(telemetryClient).trackEvent("UpdateRollAssignment", infoMap,null);
     }
 

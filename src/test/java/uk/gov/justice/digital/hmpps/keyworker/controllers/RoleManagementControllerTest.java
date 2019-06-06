@@ -15,7 +15,8 @@ import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class RoleManagementControllerTest {
 
@@ -49,9 +50,9 @@ public class RoleManagementControllerTest {
         when(roleAssignmentsService.updateRoleAssignments(any())).thenReturn(Map.of("MDI", RoleAssignmentStats.builder()
                 .numAssignRoleSucceeded(1L)
                 .numAssignRoleFailed(2L)
-                .numUnAssignRoleSucceeded(3L)
-                .numUnAssignRoleIgnored(4L)
-                .numUnAssignRoleFailed(5L)
+                .numUnassignRoleSucceeded(3L)
+                .numUnassignRoleIgnored(4L)
+                .numUnassignRoleFailed(5L)
                 .build()));
 
         mvc.perform(
@@ -61,9 +62,9 @@ public class RoleManagementControllerTest {
         ).andExpect(status().isOk())
                 .andExpect(jsonPath("$.MDI.numAssignRoleSucceeded").value(1))
                 .andExpect(jsonPath("$.MDI.numAssignRoleFailed").value(2))
-                .andExpect(jsonPath("$.MDI.numUnAssignRoleSucceeded").value(3))
-                .andExpect(jsonPath("$.MDI.numUnAssignRoleIgnored").value(4))
-                .andExpect(jsonPath("$.MDI.numUnAssignRoleFailed").value(5));
+                .andExpect(jsonPath("$.MDI.numUnassignRoleSucceeded").value(3))
+                .andExpect(jsonPath("$.MDI.numUnassignRoleIgnored").value(4))
+                .andExpect(jsonPath("$.MDI.numUnassignRoleFailed").value(5));
 
 
         verify(roleAssignmentsService).updateRoleAssignments(specification);

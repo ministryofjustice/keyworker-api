@@ -1,12 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
 import groovy.json.JsonSlurper
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification
 
 class RoleAssignmentSpecification extends TestSpecification {
@@ -29,12 +24,13 @@ class RoleAssignmentSpecification extends TestSpecification {
         response.statusCode == HttpStatus.OK
         def roleAssignmentStats = jsonSlurper.parseText(response.body)
         def moorlandResults = roleAssignmentStats['MDI']
-        moorlandResults != null
-        moorlandResults.numAssignRoleSucceeded == 0
-        moorlandResults.numAssignRoleFailed == 0
-        moorlandResults.numUnAssignRoleSucceeded == 0
-        moorlandResults.numUnAssignRoleIgnored == 0
-        moorlandResults.numUnAssignRoleFailed == 0
+        moorlandResults == [
+                numAssignRoleSucceeded  : 0,
+                numAssignRoleFailed     : 0,
+                numUnassignRoleSucceeded: 0,
+                numUnassignRoleIgnored  : 0,
+                numUnassignRoleFailed   : 0
+        ]
     }
 
     def "A user that has does not have the MAINTAIN_ACCESS_ROLES_ADMIN role cannot make assignment changes"() {

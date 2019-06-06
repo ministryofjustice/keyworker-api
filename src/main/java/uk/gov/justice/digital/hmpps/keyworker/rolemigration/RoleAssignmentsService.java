@@ -26,7 +26,7 @@ public class RoleAssignmentsService {
     private final RoleService roleService;
     private final TelemetryClient telemetryClient;
 
-    public RoleAssignmentsService(RoleService roleService, TelemetryClient telemetryClient) {
+    public RoleAssignmentsService(final RoleService roleService, final TelemetryClient telemetryClient) {
         this.roleService = roleService;
         this.telemetryClient = telemetryClient;
     }
@@ -41,29 +41,27 @@ public class RoleAssignmentsService {
     public Map<String, RoleAssignmentStats> updateRoleAssignments(@Valid final RoleAssignmentsSpecification specification) {
         log.info("Updating role assignments: {}", specification);
         val caseloadResults = new TreeMap<String, RoleAssignmentStats>();
-        for (val caseload : specification.getCaseloads()) {
-
+        specification.getCaseloads().forEach(caseload -> {
             val usernamesForCaseload = findUsernamesMatchingRolesAtCaseload(specification.getRolesToMatch(), caseload);
             log.info("Found {} users for the {} caseload: {}.", usernamesForCaseload.size(), caseload, usernamesForCaseload);
             val results = new RoleAssignmentStats();
-
             for (val username : usernamesForCaseload) {
-                var success = assignRolesToUser(results, username, specification.getRolesToAssign());
+                val success = assignRolesToUser(results, username, specification.getRolesToAssign());
                 if (success) {
                     removeRolesFromUserAtCaseload(results, caseload, username, specification.getRolesToRemove());
                 }
             }
-            var infoMap = Map.of(
+            val infoMap = Map.of(
                     "prisonId", caseload,
                     "numUsersMatched", String.valueOf(usernamesForCaseload.size()),
                     "numAssignRoleSucceeded", String.valueOf(results.getNumAssignRoleSucceeded()),
                     "numAssignRoleFailed", String.valueOf(results.getNumAssignRoleFailed()),
-                    "numUnAssignRoleSucceeded", String.valueOf(results.getNumUnAssignRoleSucceeded()),
-                    "numUnAssignRoleIgnored", String.valueOf(results.getNumUnAssignRoleIgnored()),
-                    "numUnAssignRoleFailed", String.valueOf(results.getNumUnAssignRoleFailed()));
-            telemetryClient.trackEvent("UpdateRollAssignment", infoMap,null);
-            caseloadResults.put(caseload,results);
-        }
+                    "numUnassignRoleSucceeded", String.valueOf(results.getNumUnassignRoleSucceeded()),
+                    "numUnassignRoleIgnored", String.valueOf(results.getNumUnassignRoleIgnored()),
+                    "numUnassignRoleFailed", String.valueOf(results.getNumUnassignRoleFailed()));
+            telemetryClient.trackEvent("UpdateRollAssignment", infoMap, null);
+            caseloadResults.put(caseload, results);
+        });
         return caseloadResults;
     }
 
@@ -73,7 +71,7 @@ public class RoleAssignmentsService {
             if (!hasFail) {
                 val status = assignRole(username, roleCodeToAssign);
                 results.addAssignResult(status);
-                if(status == FAIL){
+                if (status == FAIL) {
                     hasFail = true;
                 }
             } else {
@@ -100,12 +98,12 @@ public class RoleAssignmentsService {
         for (val roleCodeToRemove : rolesToRemove) {
             if (!hasFail) {
                 val status = removeRole(caseload, username, roleCodeToRemove);
-                results.addUnAssignResult(status);
-                if(status == FAIL){
+                results.addUnassignResult(status);
+                if (status == FAIL) {
                     hasFail = true;
                 }
             } else {
-                results.addUnAssignResult(FAIL);
+                results.addUnassignResult(FAIL);
             }
         }
     }
