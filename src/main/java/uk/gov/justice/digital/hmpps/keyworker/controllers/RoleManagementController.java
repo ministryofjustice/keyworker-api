@@ -7,11 +7,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
 
-import java.util.Map;
+import java.util.List;
 
 @Api(tags = {"caseloads-roles"})
 
@@ -35,11 +35,11 @@ public class RoleManagementController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Ok", response = RoleAssignmentStats.class, responseContainer = "Map"),
+            @ApiResponse(code = 200, message = "Ok", response = RoleAssignmentStats.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "Client error")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, RoleAssignmentStats>> assignRolesJson(@RequestBody RoleAssignmentsSpecification specification) {
+    public ResponseEntity<List<RoleAssignmentStats>> assignRolesJson(@RequestBody RoleAssignmentsSpecification specification) {
         val result = roleAssignmentsService.updateRoleAssignments(specification);
         return ResponseEntity.ok(result);
     }

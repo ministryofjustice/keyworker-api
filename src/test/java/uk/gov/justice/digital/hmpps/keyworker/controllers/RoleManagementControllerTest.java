@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -47,7 +46,7 @@ public class RoleManagementControllerTest {
     @Test
     public void testValidJson() throws Exception {
 
-        when(roleAssignmentsService.updateRoleAssignments(any())).thenReturn(Map.of("MDI", RoleAssignmentStats.builder()
+        when(roleAssignmentsService.updateRoleAssignments(any())).thenReturn(List.of(RoleAssignmentStats.builder()
                 .numAssignRoleSucceeded(1L)
                 .numAssignRoleFailed(2L)
                 .numUnassignRoleSucceeded(3L)
@@ -60,11 +59,11 @@ public class RoleManagementControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsBytes(specification))
         ).andExpect(status().isOk())
-                .andExpect(jsonPath("$.MDI.numAssignRoleSucceeded").value(1))
-                .andExpect(jsonPath("$.MDI.numAssignRoleFailed").value(2))
-                .andExpect(jsonPath("$.MDI.numUnassignRoleSucceeded").value(3))
-                .andExpect(jsonPath("$.MDI.numUnassignRoleIgnored").value(4))
-                .andExpect(jsonPath("$.MDI.numUnassignRoleFailed").value(5));
+                .andExpect(jsonPath("$[0].numAssignRoleSucceeded").value(1))
+                .andExpect(jsonPath("$[0].numAssignRoleFailed").value(2))
+                .andExpect(jsonPath("$[0].numUnassignRoleSucceeded").value(3))
+                .andExpect(jsonPath("$[0].numUnassignRoleIgnored").value(4))
+                .andExpect(jsonPath("$[0].numUnassignRoleFailed").value(5));
 
 
         verify(roleAssignmentsService).updateRoleAssignments(specification);

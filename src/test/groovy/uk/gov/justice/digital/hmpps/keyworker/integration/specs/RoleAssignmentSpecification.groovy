@@ -23,14 +23,15 @@ class RoleAssignmentSpecification extends TestSpecification {
 
         response.statusCode == HttpStatus.OK
         def roleAssignmentStats = jsonSlurper.parseText(response.body)
-        def moorlandResults = roleAssignmentStats['MDI']
-        moorlandResults == [
+        roleAssignmentStats == [[
+                caseload : "MDI",
+                numMatchedUsers : 0,
                 numAssignRoleSucceeded  : 0,
                 numAssignRoleFailed     : 0,
                 numUnassignRoleSucceeded: 0,
                 numUnassignRoleIgnored  : 0,
                 numUnassignRoleFailed   : 0
-        ]
+        ]]
     }
 
     def "A user that has does not have the MAINTAIN_ACCESS_ROLES_ADMIN role cannot make assignment changes"() {

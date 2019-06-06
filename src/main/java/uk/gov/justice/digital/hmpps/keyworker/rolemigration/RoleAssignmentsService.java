@@ -14,14 +14,13 @@ import javax.validation.Valid;
 import java.util.*;
 
 import static java.util.stream.Collectors.toCollection;
-import static uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService.Status.*;
+import static java.util.stream.Collectors.toList;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats.Status.*;
 
 @Service
 @Slf4j
 @Validated
 public class RoleAssignmentsService {
-
-    public enum Status {SUCCESS, FAIL, IGNORE}
 
     private final RoleService roleService;
     private final TelemetryClient telemetryClient;
@@ -38,50 +37,47 @@ public class RoleAssignmentsService {
      * Remove from the user (at the caseload) the roles identified by specification.rolesToRemove.
      */
     @PreAuthorize("hasAnyRole('MAINTAIN_ACCESS_ROLES_ADMIN')")
-    public Map<String, RoleAssignmentStats> updateRoleAssignments(@Valid final RoleAssignmentsSpecification specification) {
+    public List<RoleAssignmentStats> updateRoleAssignments(@Valid final RoleAssignmentsSpecification specification) {
         log.info("Updating role assignments: {}", specification);
-        val caseloadResults = new TreeMap<String, RoleAssignmentStats>();
-        specification.getCaseloads().forEach(caseload -> {
-            val usernamesForCaseload = findUsernamesMatchingRolesAtCaseload(specification.getRolesToMatch(), caseload);
-            log.info("Found {} users for the {} caseload: {}.", usernamesForCaseload.size(), caseload, usernamesForCaseload);
-            val results = new RoleAssignmentStats();
-            for (val username : usernamesForCaseload) {
-                val success = assignRolesToUser(results, username, specification.getRolesToAssign());
-                if (success) {
-                    removeRolesFromUserAtCaseload(results, caseload, username, specification.getRolesToRemove());
-                }
-            }
-            val infoMap = Map.of(
-                    "prisonId", caseload,
-                    "numUsersMatched", String.valueOf(usernamesForCaseload.size()),
-                    "numAssignRoleSucceeded", String.valueOf(results.getNumAssignRoleSucceeded()),
-                    "numAssignRoleFailed", String.valueOf(results.getNumAssignRoleFailed()),
-                    "numUnassignRoleSucceeded", String.valueOf(results.getNumUnassignRoleSucceeded()),
-                    "numUnassignRoleIgnored", String.valueOf(results.getNumUnassignRoleIgnored()),
-                    "numUnassignRoleFailed", String.valueOf(results.getNumUnassignRoleFailed()));
-            telemetryClient.trackEvent("UpdateRollAssignment", infoMap, null);
-            caseloadResults.put(caseload, results);
+        return specification.getCaseloads().stream().map(caseload -> getResultsForCaseload(specification, caseload)).collect(toList());
+    }
+
+    private RoleAssignmentStats getResultsForCaseload(@Valid RoleAssignmentsSpecification specification, String caseload) {
+
+        val usernamesForCaseload = findUsernamesMatchingRolesAtCaseload(specification.getRolesToMatch(), caseload);
+
+        log.info("Found {} users for the {} caseload: {}.", usernamesForCaseload.size(), caseload, usernamesForCaseload);
+        val results = RoleAssignmentStats.builder()
+                .numMatchedUsers(usernamesForCaseload.size())
+                .caseload(caseload)
+                .build();
+
+        usernamesForCaseload.forEach(username -> {
+            val assignResults = assignRolesToUser(username, specification.getRolesToAssign());
+            val unassigningResults = assignResults.containsKey(FAIL)
+                    ? Map.<RoleAssignmentStats.Status, Long>of()
+                    : removeRolesFromUserAtCaseload(caseload, username, specification.getRolesToRemove());
+            results.addAssignResults(assignResults);
+            results.addUnassignResults(unassigningResults);
         });
-        return caseloadResults;
+
+        telemetryClient.trackEvent("UpdateRollAssignment", results.toMap(), null);
+        return results;
     }
 
-    private boolean assignRolesToUser(final RoleAssignmentStats results, final String username, final List<String> rolesToAssign) {
-        boolean hasFail = false;
-        for (val roleCodeToAssign : rolesToAssign) {
-            if (!hasFail) {
-                val status = assignRole(username, roleCodeToAssign);
-                results.addAssignResult(status);
-                if (status == FAIL) {
-                    hasFail = true;
-                }
-            } else {
-                results.addAssignResult(FAIL);
+    private Map<RoleAssignmentStats.Status, Long> assignRolesToUser(final String username, final List<String> rolesToAssign) {
+        return rolesToAssign.stream().reduce(new HashMap<RoleAssignmentStats.Status, Long>(), (results, role) -> {
+            if (!results.containsKey(FAIL)) {
+                val status = assignRole(username, role);
+                results.compute(status, (key, count) -> count == null ? 1 : count + 1);
+                return results;
             }
-        }
-        return !hasFail;
+            results.put(FAIL, results.get(FAIL) + 1);
+            return results;
+        }, (map1, map2) -> map1);
     }
 
-    private Status assignRole(final String username, final String roleCodeToAssign) {
+    private RoleAssignmentStats.Status assignRole(final String username, final String roleCodeToAssign) {
         try {
             roleService.assignRoleToApiCaseload(username, roleCodeToAssign);
             return SUCCESS;
@@ -93,22 +89,20 @@ public class RoleAssignmentsService {
         }
     }
 
-    private void removeRolesFromUserAtCaseload(final RoleAssignmentStats results, final String caseload, final String username, final List<String> rolesToRemove) {
-        boolean hasFail = false;
-        for (val roleCodeToRemove : rolesToRemove) {
-            if (!hasFail) {
-                val status = removeRole(caseload, username, roleCodeToRemove);
-                results.addUnassignResult(status);
-                if (status == FAIL) {
-                    hasFail = true;
-                }
-            } else {
-                results.addUnassignResult(FAIL);
+    private Map<RoleAssignmentStats.Status, Long> removeRolesFromUserAtCaseload(final String caseload, final String username,
+                                                                                final List<String> rolesToRemove) {
+        return rolesToRemove.stream().reduce(new HashMap<RoleAssignmentStats.Status, Long>(), (results, role) -> {
+            if (!results.containsKey(FAIL)) {
+                val status = removeRole(caseload, username, role);
+                results.compute(status, (key, count) -> count == null ? 1 : count + 1);
+                return results;
             }
-        }
+            results.put(FAIL, results.get(FAIL) + 1);
+            return results;
+        }, (map1, map2) -> map1);
     }
 
-    private Status removeRole(final String caseload, final String username, final String roleCodeToRemove) {
+    private RoleAssignmentStats.Status removeRole(final String caseload, final String username, final String roleCodeToRemove) {
         try {
             roleService.removeRole(username, caseload, roleCodeToRemove);
             return SUCCESS;
@@ -122,7 +116,8 @@ public class RoleAssignmentsService {
         }
     }
 
-    private Set<String> findUsernamesMatchingRolesAtCaseload(final List<String> rolesToMatch, final String caseload) {
+    private Set<String> findUsernamesMatchingRolesAtCaseload(final List<String> rolesToMatch,
+                                                             final String caseload) {
         return rolesToMatch
                 .stream()
                 .flatMap(roleCodeToMatch -> roleService.findUsersForPrisonHavingRole(caseload, roleCodeToMatch).stream())

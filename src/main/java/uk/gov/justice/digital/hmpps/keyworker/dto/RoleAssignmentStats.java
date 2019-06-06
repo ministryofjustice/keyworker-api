@@ -2,16 +2,23 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
-import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
+
+import java.util.Map;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
 @ToString
+@Getter
 @EqualsAndHashCode
 public class RoleAssignmentStats {
 
+    public enum Status {SUCCESS, FAIL, IGNORE}
+
+    @ApiModelProperty(required = true, value = "Caseload")
+    private String caseload;
+    @ApiModelProperty(required = true, value = "Number of matched users")
+    private int numMatchedUsers;
     @ApiModelProperty(required = true, value = "Number of role assignments succeeded")
     private long numAssignRoleSucceeded;
     @ApiModelProperty(required = true, value = "Number of role assignments failed")
@@ -23,33 +30,48 @@ public class RoleAssignmentStats {
     @ApiModelProperty(required = true, value = "Number of role unassignments failed")
     private long numUnassignRoleFailed;
 
+    public void addAssignResults(Map<Status, Long> assignResults) {
+        assignResults.forEach((status, count) -> {
+            switch (status) {
+                case SUCCESS:
+                    numAssignRoleSucceeded+= count;
+                    break;
+                case FAIL:
+                    numAssignRoleFailed+= count;
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + status);
+            }
+        });
 
-    public void addAssignResult(final RoleAssignmentsService.Status status) {
-        switch (status) {
-            case SUCCESS:
-                numAssignRoleSucceeded++;
-                break;
-            case FAIL:
-                numAssignRoleFailed++;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + status);
-        }
     }
 
-    public void addUnassignResult(final RoleAssignmentsService.Status status) {
-        switch (status) {
-            case SUCCESS:
-                numUnassignRoleSucceeded++;
-                break;
-            case FAIL:
-                numUnassignRoleFailed++;
-                break;
-            case IGNORE:
-                numUnassignRoleIgnored++;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + status);
-        }
+    public void addUnassignResults(Map<Status, Long> unassigningResults) {
+        unassigningResults.forEach(((status, count) -> {
+            switch (status) {
+                case SUCCESS:
+                    numUnassignRoleSucceeded+= count;
+                    break;
+                case FAIL:
+                    numUnassignRoleFailed+= count;
+                    break;
+                case IGNORE:
+                    numUnassignRoleIgnored+= count;
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + status);
+            }
+        }));
+    }
+
+    public Map<String, String> toMap() {
+        return Map.of(
+                "caseload", caseload,
+                "numUsersMatched", String.valueOf(numMatchedUsers),
+                "numAssignRoleSucceeded", String.valueOf(getNumAssignRoleSucceeded()),
+                "numAssignRoleFailed", String.valueOf(getNumAssignRoleFailed()),
+                "numUnassignRoleSucceeded", String.valueOf(getNumUnassignRoleSucceeded()),
+                "numUnassignRoleIgnored", String.valueOf(getNumUnassignRoleIgnored()),
+                "numUnassignRoleFailed", String.valueOf(getNumUnassignRoleFailed()));
     }
 }
