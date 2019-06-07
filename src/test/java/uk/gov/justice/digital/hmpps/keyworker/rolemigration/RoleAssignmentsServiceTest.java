@@ -1,16 +1,20 @@
 package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 
+import com.microsoft.applicationinsights.TelemetryClient;
+import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -19,6 +23,8 @@ public class RoleAssignmentsServiceTest {
 
     @Mock
     private RoleService roleService;
+    @Mock
+    private TelemetryClient telemetryClient;
 
     @InjectMocks
     private RoleAssignmentsService service;
@@ -139,12 +145,24 @@ public class RoleAssignmentsServiceTest {
         doThrow(RuntimeException.class)
                 .when(roleService).assignRoleToApiCaseload("U1", "Q");
 
-        service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
+        val expected = RoleAssignmentStats.builder()
+                .caseload("MDI")
+                .numMatchedUsers(2)
+                .numAssignRoleSucceeded(4)
+                .numAssignRoleFailed(2)
+                .numUnassignRoleSucceeded(1)
+                .numUnassignRoleIgnored(0)
+                .numUnassignRoleFailed(0)
+                .build();
+
+        val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
                 .caseloads(List.of("MDI"))
                 .rolesToMatch(List.of("A"))
                 .rolesToAssign(List.of("P", "Q", "R"))
                 .rolesToRemove(List.of("X"))
                 .build());
+
+        assertThat(results).containsExactly(expected);
 
         verify(roleService, atMost(2)).assignRoleToApiCaseload(eq("U1"), anyString());
 
@@ -155,6 +173,7 @@ public class RoleAssignmentsServiceTest {
         verify(roleService).removeRole("U2", "MDI", "X");
 
         verify(roleService, atLeastOnce()).findUsersForPrisonHavingRole(any(), any());
+
         verifyNoMoreInteractions(roleService);
     }
 
@@ -165,18 +184,30 @@ public class RoleAssignmentsServiceTest {
         doThrow(HttpClientErrorException.NotFound.class)
                 .when(roleService).removeRole("U1", "MDI", "Y");
 
+        val expected = RoleAssignmentStats.builder()
+                .caseload("MDI")
+                .numMatchedUsers(1)
+                .numAssignRoleSucceeded(0)
+                .numAssignRoleFailed(0)
+                .numUnassignRoleSucceeded(2)
+                .numUnassignRoleIgnored(1)
+                .numUnassignRoleFailed(0)
+                .build();
 
-        service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
+        val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
                 .caseloads(List.of("MDI"))
                 .rolesToMatch(List.of("A"))
                 .rolesToRemove(List.of("X", "Y", "Z"))
                 .build());
+
+        assertThat(results).containsExactly(expected);
 
         verify(roleService).removeRole("U1", "MDI", "X");
         verify(roleService).removeRole("U1", "MDI", "Y");
         verify(roleService).removeRole("U1", "MDI", "Z");
 
         verify(roleService, atLeastOnce()).findUsersForPrisonHavingRole(any(), any());
+
         verifyNoMoreInteractions(roleService);
     }
 
@@ -187,19 +218,57 @@ public class RoleAssignmentsServiceTest {
         doThrow(RuntimeException.class)
                 .when(roleService).removeRole("U2", "MDI", "X");
 
+        val expected = RoleAssignmentStats.builder()
+                .caseload("MDI")
+                .numMatchedUsers(3)
+                .numAssignRoleSucceeded(0)
+                .numAssignRoleFailed(0)
+                .numUnassignRoleSucceeded(2)
+                .numUnassignRoleIgnored(0)
+                .numUnassignRoleFailed(1)
+                .build();
 
-        service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
+        val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
                 .caseloads(List.of("MDI"))
                 .rolesToMatch(List.of("A"))
                 .rolesToRemove(List.of("X"))
                 .build());
 
+        assertThat(results).containsExactly(expected);
         verify(roleService).removeRole("U1", "MDI", "X");
         verify(roleService).removeRole("U2", "MDI", "X");
         verify(roleService).removeRole("U3", "MDI", "X");
 
         verify(roleService, atLeastOnce()).findUsersForPrisonHavingRole(any(), any());
+
         verifyNoMoreInteractions(roleService);
     }
 
+    @Test
+    public void raisesTelemetryEvent() {
+        when(roleService.findUsersForPrisonHavingRole("MDI", "A")).thenReturn(Set.of("U1", "U2", "U3"));
+
+        doThrow(RuntimeException.class)
+                .when(roleService).removeRole("U2", "MDI", "X");
+
+        val expected = RoleAssignmentStats.builder()
+                .caseload("MDI")
+                .numMatchedUsers(3)
+                .numAssignRoleSucceeded(0)
+                .numAssignRoleFailed(0)
+                .numUnassignRoleSucceeded(2)
+                .numUnassignRoleIgnored(0)
+                .numUnassignRoleFailed(1)
+                .build();
+
+        val results = service.updateRoleAssignments(RoleAssignmentsSpecification.builder()
+                .caseloads(List.of("MDI"))
+                .rolesToMatch(List.of("A"))
+                .rolesToRemove(List.of("X"))
+                .build());
+
+        assertThat(results).containsExactly(expected);
+
+        verify(telemetryClient).trackEvent("UpdateRollAssignment", expected.toMap(), null);
+    }
 }

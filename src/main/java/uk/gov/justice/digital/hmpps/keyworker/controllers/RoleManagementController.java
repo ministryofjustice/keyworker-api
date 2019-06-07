@@ -2,39 +2,46 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleAssignmentsService;
+
+import java.util.List;
 
 @Api(tags = {"caseloads-roles"})
 
 @RestController
-@RequestMapping(value = "caseloads-roles")
+@RequestMapping(
+        value = "caseloads-roles",
+        produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
 public class RoleManagementController {
 
     private final RoleAssignmentsService roleAssignmentsService;
 
-    public RoleManagementController(RoleAssignmentsService roleAssignmentsService) {
+    public RoleManagementController(final RoleAssignmentsService roleAssignmentsService) {
         this.roleAssignmentsService = roleAssignmentsService;
     }
 
     @ApiOperation(
             value = "Assign roles according to the provided specification",
             nickname = "assignRolesJson",
+            notes = "This returns a map of Prison ID to results of the role assignments",
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Successful"),
+            @ApiResponse(code = 200, message = "Ok", response = RoleAssignmentStats.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "Client error")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity assignRolesJson(@RequestBody RoleAssignmentsSpecification specification) {
-        roleAssignmentsService.updateRoleAssignments(specification);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<List<RoleAssignmentStats>> assignRolesJson(@RequestBody final RoleAssignmentsSpecification specification) {
+        val result = roleAssignmentsService.updateRoleAssignments(specification);
+        return ResponseEntity.ok(result);
     }
 
     @ApiOperation(
@@ -48,7 +55,7 @@ public class RoleManagementController {
             @ApiResponse(code = 400, message = "Client error")
     })
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity assignRolesForm(@ApiParam(value = "An application/x-www-form-urlencoded form.  Keys 'caseloads' and 'rolesToMatch' are mandatory, 'rolesToAdd' and 'rolesToRemove' should be supplied as needed") @RequestParam MultiValueMap<String, String> form) {
+    public ResponseEntity assignRolesForm(@ApiParam(value = "An application/x-www-form-urlencoded form.  Keys 'caseloads' and 'rolesToMatch' are mandatory, 'rolesToAdd' and 'rolesToRemove' should be supplied as needed") @RequestParam final MultiValueMap<String, String> form) {
         roleAssignmentsService.updateRoleAssignments(RoleAssignmentsSpecification.fromForm(form));
         return ResponseEntity.noContent().build();
     }
