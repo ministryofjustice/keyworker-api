@@ -60,7 +60,7 @@ public class RoleAssignmentsService {
             }
         });
 
-        telemetryClient.trackEvent("UpdateRollAssignment", results.toMap(), null);
+        telemetryClient.trackEvent("UpdateRoleAssignment", results.toMap(), null);
         return results;
     }
 
