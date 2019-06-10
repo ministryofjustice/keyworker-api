@@ -269,6 +269,6 @@ public class RoleAssignmentsServiceTest {
 
         assertThat(results).containsExactly(expected);
 
-        verify(telemetryClient).trackEvent("UpdateRollAssignment", expected.toMap(), null);
+        verify(telemetryClient).trackEvent("UpdateRoleAssignment", expected.toMap(), null);
     }
 }
