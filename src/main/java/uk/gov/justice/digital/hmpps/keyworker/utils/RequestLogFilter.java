@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,6 +23,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.utils.MdcUtility.*;
 
 @Component
 @Slf4j
+@Order(3)
 public class RequestLogFilter extends OncePerRequestFilter {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
@@ -47,8 +49,8 @@ public class RequestLogFilter extends OncePerRequestFilter {
         try {
             final var start = LocalDateTime.now();
             MDC.put(REQUEST_ID, mdcUtility.generateUUID());
-            if (log.isDebugEnabled() && isLoggingAllowed()) {
-                log.debug("Request: {} {}", request.getMethod(), request.getRequestURI());
+            if (log.isTraceEnabled() && isLoggingAllowed()) {
+                log.trace("Request: {} {}", request.getMethod(), request.getRequestURI());
             }
 
             filterChain.doFilter(request, response);
@@ -57,8 +59,8 @@ public class RequestLogFilter extends OncePerRequestFilter {
             MDC.put(REQUEST_DURATION, String.valueOf(duration));
             final var status = response.getStatus();
             MDC.put(RESPONSE_STATUS, String.valueOf(status));
-            if (log.isDebugEnabled() && isLoggingAllowed()) {
-                log.debug("Response: {} {} - Status {} - Start {}, Duration {} ms", request.getMethod(), request.getRequestURI(), status, start.format(formatter), duration);
+            if (log.isTraceEnabled() && isLoggingAllowed()) {
+                log.trace("Response: {} {} - Status {} - Start {}, Duration {} ms", request.getMethod(), request.getRequestURI(), status, start.format(formatter), duration);
             }
         } finally {
             MDC.remove(REQUEST_DURATION);
