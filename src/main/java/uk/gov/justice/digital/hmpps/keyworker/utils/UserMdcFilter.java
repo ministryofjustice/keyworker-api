@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.justice.digital.hmpps.keyworker.security.UserSecurityUtils;
 
@@ -13,6 +14,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.utils.MdcUtility.USER_ID_HE
 
 @Slf4j
 @Component
+@Order(1)
 public class UserMdcFilter implements Filter {
 
     private final UserSecurityUtils userSecurityUtils;
