@@ -65,4 +65,10 @@ mkdir ~/.postgresql
 curl https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem > ~/.postgresql/root.crt
 ```
 
- 
+#### Health
+
+- `/ping`: will respond `pong` to all requests.  This should be used by dependent systems to check connectivity to keyworker,
+rather than calling the `/health` endpoint.
+- `/health`: provides information about the application health and its dependencies.  This should only be used
+by keyworker health monitoring (e.g. pager duty) and not other systems who wish to find out the state of keyworker.
+- `/info`: provides information about the version of deployed application.
