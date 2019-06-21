@@ -18,12 +18,10 @@ class HealthSpecification extends TestSpecification {
         elite2api.stubHealthOKResponse()
 
         when:
-        def response = restTemplate.exchange("/health", HttpMethod.GET, createHeaderEntity("headers"), String.class)
+        def response = restTemplate.exchange("/ping", HttpMethod.GET, createHeaderEntity("headers"), String.class)
 
         then:
         response.statusCode == HttpStatus.OK
-        def details = jsonSlurper.parseText(response.body)
-
-        details.status == "UP"
+        response.body == 'pong'
     }
 }
