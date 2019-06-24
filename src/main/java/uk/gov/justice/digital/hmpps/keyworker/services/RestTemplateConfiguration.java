@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
-import uk.gov.justice.digital.hmpps.keyworker.utils.UserContextInterceptor;
+import uk.gov.justice.digital.hmpps.keyworker.utils.W3cTracingInterceptor;
 
 import java.util.List;
 
@@ -25,18 +25,19 @@ public class RestTemplateConfiguration {
     private final OAuth2ClientContext oauth2ClientContext;
     private final ClientCredentialsResourceDetails elite2apiDetails;
 
-    @Value("${elite2.uri.root}")
-    private String elite2UriRoot;
-
-    @Value("${elite2.api.uri.root}")
-    private String apiRootUri;
+    private final String elite2UriRoot;
+    private final String apiRootUri;
 
     @Autowired
     public RestTemplateConfiguration(
             final OAuth2ClientContext oauth2ClientContext,
-            final ClientCredentialsResourceDetails elite2apiDetails) {
+            final ClientCredentialsResourceDetails elite2apiDetails,
+            @Value("${elite2.uri.root}") final String elite2UriRoot,
+            @Value("${elite2.api.uri.root}") final String apiRootUri) {
         this.oauth2ClientContext = oauth2ClientContext;
         this.elite2apiDetails = elite2apiDetails;
+        this.elite2UriRoot = elite2UriRoot;
+        this.apiRootUri = apiRootUri;
     }
 
     @Bean(name = "elite2ApiRestTemplate")
@@ -58,7 +59,7 @@ public class RestTemplateConfiguration {
 
     private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
         return List.of(
-                new UserContextInterceptor(),
+                new W3cTracingInterceptor(),
                 new JwtAuthInterceptor());
     }
 
@@ -67,7 +68,7 @@ public class RestTemplateConfiguration {
 
         final var elite2SystemRestTemplate = new OAuth2RestTemplate(elite2apiDetails, oauth2ClientContext);
         final var systemInterceptors = elite2SystemRestTemplate.getInterceptors();
-        systemInterceptors.add(new UserContextInterceptor());
+        systemInterceptors.add(new W3cTracingInterceptor());
 
         elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);
 

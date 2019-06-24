@@ -24,7 +24,7 @@ spring:
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     serialization:
-      WRITE_DATES_AS_TIMESTAMPS : false
+      WRITE_DATES_AS_TIMESTAMPS: false
 
 server:
   port: 8080
@@ -73,3 +73,8 @@ elite2api:
     tokenName: elite2_token
     authenticationScheme: header
     clientAuthenticationScheme: header
+
+azure:
+  application-insights:
+    web:
+      enable-W3C: true
