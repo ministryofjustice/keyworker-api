@@ -10,7 +10,7 @@ import org.springframework.lang.NonNull;
 import java.io.IOException;
 
 /**
- * Temporary hack to pass w3c tracing headers.  Once https://github.com/microsoft/ApplicationInsights-Java/pull/943 has
+ * Temporary hack to pass w3c tracing headers.  Once https://github.com/microsoft/ApplicationInsights-Java/issues/674 has
  * been fixed can be removed and switch to apache httpclient instead.
  */
 public class W3cTracingInterceptor implements ClientHttpRequestInterceptor {
