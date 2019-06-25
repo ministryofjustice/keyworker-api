@@ -1,5 +1,7 @@
 defaults: &defaults
   working_directory: ~/app
+  environment:
+    JAVA_TOOL_OPTIONS: -Xmx1024m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2
 
 version: 2
 jobs:
@@ -60,13 +62,11 @@ jobs:
                --label "build.url=$CIRCLE_BUILD_URL" \
                --label "build.gitref=$CIRCLE_SHA1"
 
-            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              # publish to docker hub as the tag
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
-              docker push mojdigitalstudio/keyworker-api:$TAG
-              docker tag mojdigitalstudio/keyworker-api:$TAG mojdigitalstudio/keyworker-api:latest
-              docker push mojdigitalstudio/keyworker-api:latest
-            fi
+            # publish to docker hub as the tag
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push mojdigitalstudio/keyworker-api:$TAG
+            docker tag mojdigitalstudio/keyworker-api:$TAG mojdigitalstudio/keyworker-api:latest
+            docker push mojdigitalstudio/keyworker-api:latest
 
             # generate Dockerrun manifest
             node scripts/plant-beanstalk.js $TAG
@@ -100,6 +100,9 @@ workflows:
       - build_docker:
           requires:
             - build
+          filters:
+            branches:
+              only: master
       - deploy_release:
           requires:
             - build_docker
