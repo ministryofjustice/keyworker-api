@@ -101,7 +101,7 @@ class Elite2Api extends WireMockRule {
 
         def body = [offenderNos: offendersNos, staffId: staffId, type: type, fromDate: fromDate, toDate: toDate]
 
-        stubFor(post(urlPathMatching(new UriTemplate(NOMIS_API_PREFIX + CASE_NOTE_USAGE_BY_PRISONER).expand().toString()))
+        stubFor(post(urlPathMatching(new UriTemplate(NOMIS_API_PREFIX + CASE_NOTE_USAGE_FOR_PRISONERS).expand().toString()))
                 .withRequestBody(equalTo(JsonOutput.toJson(body)))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(JsonOutput.toJson(response))

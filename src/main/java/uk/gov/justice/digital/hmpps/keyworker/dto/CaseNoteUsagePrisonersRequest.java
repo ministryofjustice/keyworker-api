@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
@@ -21,27 +20,29 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CaseNoteUsagePrisonersRequest {
 
-    @ApiModelProperty(required = true, value = "List of offender Nos to look at case notes")
-    @NotEmpty
+    @ApiModelProperty(value = "The prison to filter by for case notes")
+    private String agencyId;
+
+    @ApiModelProperty(value = "List of offender Nos to look at case notes")
     private List<String> offenderNos;
 
-    @ApiModelProperty(required = true, value = "Staff Id linked to these case notes (optional)")
+    @ApiModelProperty(value = "Staff Id linked to these case notes (optional)")
     private Long staffId;
 
     @ApiModelProperty(required = true, value = "Case Note Type")
     @NotNull
     private String type;
 
-    @ApiModelProperty(required = true, value = "Case Note Sub Type")
+    @ApiModelProperty(value = "Case Note Sub Type")
     private String subType;
 
-    @ApiModelProperty(required = true, value = "Number of Months to look at")
+    @ApiModelProperty(value = "Number of Months to look at")
     private Integer numMonths;
 
-    @ApiModelProperty(required = true, value = "From Date to search from")
+    @ApiModelProperty(value = "From Date to search from")
     private LocalDate fromDate;
 
-    @ApiModelProperty(required = true, value = "To Date to search to")
+    @ApiModelProperty(value = "To Date to search to")
     private LocalDate toDate;
 
 }
