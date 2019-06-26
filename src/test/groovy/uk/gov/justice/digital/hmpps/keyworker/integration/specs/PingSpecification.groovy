@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.util.MimeType
 
 class PingSpecification extends TestSpecification {
 
@@ -13,6 +14,7 @@ class PingSpecification extends TestSpecification {
 
         then:
         response.statusCode == HttpStatus.OK
+        response.headers.getContentType() == MimeType.valueOf("text/plain;charset=UTF-8")
         response.body == 'pong'
     }
 }
