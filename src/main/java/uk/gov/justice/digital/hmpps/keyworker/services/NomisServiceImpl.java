@@ -195,11 +195,27 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(final List<String> offenderNos, final Long staffId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final boolean admin) {
         log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
-        final var uri = new UriTemplate(CASE_NOTE_USAGE_BY_PRISONER).expand();
+        final var uri = new UriTemplate(CASE_NOTE_USAGE_FOR_PRISONERS).expand();
 
         final var body = CaseNoteUsagePrisonersRequest.builder()
                 .offenderNos(offenderNos)
                 .staffId(staffId)
+                .type(caseNoteType)
+                .subType(caseNoteSubType)
+                .fromDate(fromDate)
+                .toDate(toDate)
+                .build();
+
+        return restCallHelper.post(uri, body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, admin);
+    }
+
+    @Override
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final boolean admin) {
+        log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
+        final var uri = new UriTemplate(CASE_NOTE_USAGE_FOR_PRISONERS).expand();
+
+        final var body = CaseNoteUsagePrisonersRequest.builder()
+                .agencyId(prisonId)
                 .type(caseNoteType)
                 .subType(caseNoteSubType)
                 .fromDate(fromDate)

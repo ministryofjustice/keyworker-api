@@ -659,7 +659,7 @@ public class KeyworkerStatsServiceTest {
         when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build()));
         when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build()));
 
-        when(nomisService.getCaseNoteUsageForPrisoners(eq(offenderNos), isNull(),
+        when(nomisService.getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),
                 eq(toDate.minusDays(1)), eq(true)))
                 .thenReturn(getCaseNoteUsagePrisonersDtos());
@@ -689,7 +689,7 @@ public class KeyworkerStatsServiceTest {
         verify(nomisService).getOffendersAtLocation(eq(TEST_AGENCY_ID), isA(String.class), isA(SortOrder.class), eq(true));
         verify(repository).findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(eq(true), eq(TEST_AGENCY_ID), eq(offenderNos), eq(AllocationType.PROVISIONAL));
         verify(nomisService).getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true));
-        verify(nomisService).getCaseNoteUsageForPrisoners(eq(offenderNos), isNull(),
+        verify(nomisService).getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),
                 eq(toDate.minusDays(1)), eq(true));
         verify(repository).findByPrisonIdAndAssignedDateTimeBetween(eq(TEST_AGENCY_ID), eq(toDate.atStartOfDay().minusDays(1)), eq(toDate.atStartOfDay()));
