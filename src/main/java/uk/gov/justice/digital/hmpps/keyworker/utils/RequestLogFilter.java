@@ -5,6 +5,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,18 +29,15 @@ public class RequestLogFilter extends OncePerRequestFilter {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
 
-    private final MdcUtility mdcUtility;
-
     private final Pattern excludeUriRegex;
 
     @Autowired
-    public RequestLogFilter(final MdcUtility mdcUtility, @Value("${logging.uris.exclude.regex}") final String excludeUris) {
-        this.mdcUtility = mdcUtility;
+    public RequestLogFilter(@Value("${logging.uris.exclude.regex}") final String excludeUris) {
         excludeUriRegex = Pattern.compile(excludeUris);
     }
 
     @Override
-    protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
+    protected void doFilterInternal(final HttpServletRequest request, @NonNull final HttpServletResponse response, @NonNull final FilterChain filterChain)
             throws ServletException, IOException {
 
         if (excludeUriRegex.matcher(request.getRequestURI()).matches()) {
@@ -48,7 +46,6 @@ public class RequestLogFilter extends OncePerRequestFilter {
 
         try {
             final var start = LocalDateTime.now();
-            MDC.put(REQUEST_ID, mdcUtility.generateUUID());
             if (log.isTraceEnabled() && isLoggingAllowed()) {
                 log.trace("Request: {} {}", request.getMethod(), request.getRequestURI());
             }
@@ -65,7 +62,6 @@ public class RequestLogFilter extends OncePerRequestFilter {
         } finally {
             MDC.remove(REQUEST_DURATION);
             MDC.remove(RESPONSE_STATUS);
-            MDC.remove(REQUEST_ID);
             MDC.remove(SKIP_LOGGING);
         }
     }
