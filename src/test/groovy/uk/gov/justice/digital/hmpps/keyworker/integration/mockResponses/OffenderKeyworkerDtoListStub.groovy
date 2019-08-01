@@ -177,4 +177,14 @@ class OffenderKeyworkerDtoListStub {
 ]"""
     }
 
+    static getResponseOffenderKeyWorker() {
+        return """
+ {
+    "staffId": "-4",
+    "firstName": "John",
+    "lastName": "Henry",
+    "email": "john@justice.gov.uk"
+ }
+"""
+    }
 }
