@@ -26,6 +26,7 @@ public interface NomisService {
     String URI_GET_ALL_PRISONS = "/agencies/prison";
     String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
     String URI_IDENTIFIERS = "/identifiers/{type}/{value}";
+    String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 
 
     List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate);

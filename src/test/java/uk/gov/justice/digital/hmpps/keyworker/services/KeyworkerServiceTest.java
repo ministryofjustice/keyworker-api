@@ -375,9 +375,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final var staffId = 5L;
         expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, true);
 
-        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo);
+        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
 
-        KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.get(), staffId, "First", "Last");
+        KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.orElseThrow(), staffId, "First", "Last");
     }
 
     @Test
@@ -386,7 +386,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final var staffId = 6L;
         final var expectedKeyworkerDto = expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, false).orElseThrow();
 
-        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(TEST_AGENCY, offenderNo).orElseThrow(EntityNotFoundException::new);
+        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow(EntityNotFoundException::new);
 
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails, staffId, expectedKeyworkerDto.getFirstName(), expectedKeyworkerDto.getLastName());
     }

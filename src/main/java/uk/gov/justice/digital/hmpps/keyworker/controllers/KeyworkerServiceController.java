@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
@@ -250,30 +251,53 @@ public class KeyworkerServiceController {
 
     /* --------------------------------------------------------------------------------*/
 
+    @ApiIgnore
     @ApiOperation(
             value = "Offenders current Keyworker",
             notes = "Offenders current Keyworker",
-            nickname="getOffendersKeyworker")
+            nickname = "getOffendersKeyworker")
 
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = BasicKeyworkerDto.class),
             @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
             @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)})
 
-    @GetMapping(path="/{prisonId}/offender/{offenderNo}")
-
-    public BasicKeyworkerDto getOffendersKeyworker(
+    @GetMapping(path = "/{prisonId}/offender/{offenderNo}")
+    @Deprecated
+    /** Deprecated - don't need to pass in the prison id */
+    public BasicKeyworkerDto deprecated_getOffendersKeyworker(
             @ApiParam(value = "prisonId", required = true)
             @NotEmpty
-            @PathVariable("prisonId") final
-            String prisonId,
+            @PathVariable("prisonId") final String prisonId,
             @ApiParam(value = "offenderNo", required = true)
             @NotEmpty
-            @PathVariable("offenderNo") final
-            String offenderNo) {
+            @PathVariable("offenderNo") final String offenderNo) {
 
-        return keyworkerService.getCurrentKeyworkerForPrisoner(prisonId, offenderNo).orElseThrow(EntityNotFoundException::new);
+        return keyworkerService.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow(EntityNotFoundException::new);
+    }
+
+    /* --------------------------------------------------------------------------------*/
+
+    @ApiOperation(
+            value = "Offenders current Keyworker",
+            notes = "Offenders current Keyworker",
+            nickname = "getOffendersKeyworker")
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK", response = BasicKeyworkerDto.class),
+            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class),
+            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
+            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class)})
+
+    @GetMapping(path = "/offender/{offenderNo}")
+
+    public BasicKeyworkerDto getOffendersKeyworker(
+            @ApiParam(value = "offenderNo", required = true, example = "A1234BC")
+            @NotEmpty
+            @PathVariable("offenderNo") final String offenderNo) {
+
+        return keyworkerService.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow(EntityNotFoundException::new);
     }
 
     /* --------------------------------------------------------------------------------*/

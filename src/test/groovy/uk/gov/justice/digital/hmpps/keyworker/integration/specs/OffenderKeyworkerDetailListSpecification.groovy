@@ -16,14 +16,12 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
         when:
         //2 matched and active, 1 matched and inactive and 1 unknown offender
         def response = restTemplate.exchange("/key-worker/LEI/offenders", HttpMethod.POST,
-                createHeaderEntity([ 'A1176RS', "A5576RS", "A6676RS", "unknown"]), String.class)
+                createHeaderEntity(['A1176RS', "A5576RS", "A6676RS", "unknown"]), String.class)
 
         then:
         response.statusCode == HttpStatus.OK
         def allocationList = jsonSlurper.parseText(response.body)
-        allocationList.size() == 2
-        allocationList[0].offenderNo == 'A1176RS'
-        allocationList[1].offenderNo == 'A5576RS'
+        allocationList.collect { it.offenderNo } == ['A1176RS', 'A5576RS']
     }
 
     def 'Retrieve offender keyworker details using POST endpoint - no offender list provided'() {
@@ -36,5 +34,19 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
 
         then:
         response.statusCode == HttpStatus.BAD_REQUEST
+    }
+
+    def 'Retrieve single offender keyworker details using GET endpoint'() {
+
+        given:
+        elite2api.stubOffenderKeyWorker('A6676RS')
+
+        when:
+        def response = restTemplate.exchange("/key-worker/offender/A6676RS", HttpMethod.GET, createHeaderEntity(), String.class)
+
+        then:
+        response.statusCode == HttpStatus.OK
+        def allocationList = jsonSlurper.parseText(response.body)
+        allocationList == [staffId: -4, firstName: 'John', lastName: 'Henry', email: 'john@justice.gov.uk']
     }
 }
