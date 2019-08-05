@@ -150,7 +150,7 @@ public class KeyworkerService {
             }
             return Optional.empty();
         }
-        final var detail = nomisService.getPrisonerDetail(offenderNo, true);
+        final var detail = nomisService.getPrisonerDetail(offenderNo, false);
         final boolean isMigrated = detail.map(PrisonerDetail::getLatestLocationId).map(prisonSupportedService::isMigrated).orElse(true);
         // we don't want to fallback to nomis for migrated prisons or if offender not found
         if (isMigrated) {

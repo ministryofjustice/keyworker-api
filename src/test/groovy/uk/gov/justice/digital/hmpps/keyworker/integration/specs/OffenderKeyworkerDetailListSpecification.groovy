@@ -40,6 +40,7 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
 
         given:
         elite2api.stubOffenderKeyWorker('A6676RS')
+        elite2api.stubPrisonerLookup('A6676RS')
 
         when:
         def response = restTemplate.exchange("/key-worker/offender/A6676RS", HttpMethod.GET, createHeaderEntity(), String.class)
