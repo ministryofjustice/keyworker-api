@@ -370,10 +370,26 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testGetActiveKeyworkerForOffender() {
+    public void testGetCurrentKeyworkerForPrisoner_NoStaffDetails() {
         final var offenderNo = "X5555XX";
         final var staffId = 5L;
-        expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, true);
+        when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
+        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(OffenderKeyworker.builder()
+                .staffId(staffId)
+                .build());
+        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
+        assertThat(keyworkerDetails).isEmpty();
+    }
+
+    @Test
+    public void testGetCurrentKeyworkerForPrisoner() {
+        final var offenderNo = "X5555XX";
+        final var staffId = 5L;
+        when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
+        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(OffenderKeyworker.builder()
+                .staffId(staffId)
+                .build());
+        expectBasicStaffApiCall(staffId);
 
         final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
 
@@ -381,33 +397,40 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testGetActiveKeyworkerForOffenderNonYetMigrated() {
+    public void testGetCurrentKeyworkerForPrisonerNotYetMigrated() {
         final var offenderNo = "X5555YY";
         final var staffId = 6L;
-        final var expectedKeyworkerDto = expectGetActiveKeyworkerForOffenderCall(offenderNo, staffId, false).orElseThrow();
+        when(prisonSupportedService.isMigrated(anyString())).thenReturn(false);
+
+        when(nomisService.getPrisonerDetail(anyString(), anyBoolean())).thenReturn(Optional.of(PrisonerDetail.builder().latestLocationId("HMP").build()));
+
+        final var expectedKeyworkerDto = KeyworkerTestHelper.getKeyworker(staffId);
+        when(nomisService.getBasicKeyworkerDtoForOffender(offenderNo)).thenReturn(expectedKeyworkerDto);
 
         final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow(EntityNotFoundException::new);
 
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails, staffId, expectedKeyworkerDto.getFirstName(), expectedKeyworkerDto.getLastName());
+        verify(prisonSupportedService).isMigrated("HMP");
     }
 
-    private Optional<BasicKeyworkerDto> expectGetActiveKeyworkerForOffenderCall(final String offenderNo, final long staffId, final boolean agencyMigrated) {
+    @Test
+    public void testGetCurrentKeyworkerForPrisoner_NotFound() {
+        final var offenderNo = "X5555YY";
+        when(prisonSupportedService.isMigrated(anyString())).thenReturn(false);
 
-        when(prisonSupportedService.isMigrated(isA(String.class))).thenReturn(agencyMigrated);
+        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
+        assertThat(keyworkerDetails).isEmpty();
+        verify(nomisService, never()).getBasicKeyworkerDtoForOffender(anyString());
+    }
 
-        if (agencyMigrated) {
-            when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(OffenderKeyworker.builder()
-                    .staffId(staffId)
-                    .build()
-            );
-            expectBasicStaffApiCall(staffId);
-            return Optional.empty();
+    @Test
+    public void testGetCurrentKeyworkerForPrisoner_MigratedButNotInRepository() {
+        final var offenderNo = "X5555YY";
+        when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
 
-        } else {
-            final var keyworkerDto = KeyworkerTestHelper.getKeyworker(staffId);
-            when(nomisService.getBasicKeyworkerDtoForOffender(offenderNo)).thenReturn(keyworkerDto);
-            return Optional.of(keyworkerDto);
-        }
+        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
+        assertThat(keyworkerDetails).isEmpty();
+        verify(nomisService, never()).getBasicKeyworkerDtoForOffender(anyString());
     }
 
     private void expectKeyworkerDetailsCall(final long staffId, final Integer CAPACITY, final int ALLOCATIONS, final LocalDate activeDate) {

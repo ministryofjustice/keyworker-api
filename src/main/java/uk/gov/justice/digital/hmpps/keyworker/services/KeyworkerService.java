@@ -146,7 +146,15 @@ public class KeyworkerService {
                         .staffId(staffDetail.getStaffId())
                         .email(staffDetail.getEmail())
                         .build());
+
             }
+            return Optional.empty();
+        }
+        final var detail = nomisService.getPrisonerDetail(offenderNo, true);
+        final boolean isMigrated = detail.map(PrisonerDetail::getLatestLocationId).map(prisonSupportedService::isMigrated).orElse(true);
+        // we don't want to fallback to nomis for migrated prisons or if offender not found
+        if (isMigrated) {
+            return Optional.empty();
         }
         return Optional.of(nomisService.getBasicKeyworkerDtoForOffender(offenderNo));
     }
