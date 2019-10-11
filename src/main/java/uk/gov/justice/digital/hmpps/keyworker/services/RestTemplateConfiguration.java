@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
 import uk.gov.justice.digital.hmpps.keyworker.utils.W3cTracingInterceptor;
 
+import java.time.Duration;
 import java.util.List;
 
 @Configuration
@@ -27,17 +28,20 @@ public class RestTemplateConfiguration {
 
     private final String elite2UriRoot;
     private final String apiRootUri;
+    private final Duration healthTimeout;
 
     @Autowired
     public RestTemplateConfiguration(
             final OAuth2ClientContext oauth2ClientContext,
             final ClientCredentialsResourceDetails elite2apiDetails,
             @Value("${elite2.uri.root}") final String elite2UriRoot,
-            @Value("${elite2.api.uri.root}") final String apiRootUri) {
+            @Value("${elite2.api.uri.root}") final String apiRootUri,
+            @Value("${api.health-timeout:1s}") final Duration healthTimeout) {
         this.oauth2ClientContext = oauth2ClientContext;
         this.elite2apiDetails = elite2apiDetails;
         this.elite2UriRoot = elite2UriRoot;
         this.apiRootUri = apiRootUri;
+       this.healthTimeout = healthTimeout;
     }
 
     @Bean(name = "elite2ApiRestTemplate")
@@ -47,13 +51,22 @@ public class RestTemplateConfiguration {
 
     @Bean(name = "elite2ApiHealthRestTemplate")
     public RestTemplate elite2ApiHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder) {
-        return getRestTemplate(restTemplateBuilder, elite2UriRoot);
+        return getHealthRestTemplate(restTemplateBuilder, elite2UriRoot);
     }
 
     private RestTemplate getRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
         return restTemplateBuilder
                 .rootUri(uri)
                 .additionalInterceptors(getRequestInterceptors())
+                .build();
+    }
+
+    private RestTemplate getHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
+        return restTemplateBuilder
+                .rootUri(uri)
+                .additionalInterceptors(getRequestInterceptors())
+                .setConnectTimeout(Duration.ofSeconds(1))
+                .setReadTimeout(Duration.ofSeconds(1))
                 .build();
     }
 
