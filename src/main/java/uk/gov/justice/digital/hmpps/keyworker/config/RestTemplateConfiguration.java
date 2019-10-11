@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -6,7 +6,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RootUriTemplateHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
@@ -15,10 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthInterceptor;
-import uk.gov.justice.digital.hmpps.keyworker.utils.W3cTracingInterceptor;
 
 import java.time.Duration;
-import java.util.List;
 
 @Configuration
 public class RestTemplateConfiguration {
@@ -41,7 +38,7 @@ public class RestTemplateConfiguration {
         this.elite2apiDetails = elite2apiDetails;
         this.elite2UriRoot = elite2UriRoot;
         this.apiRootUri = apiRootUri;
-       this.healthTimeout = healthTimeout;
+        this.healthTimeout = healthTimeout;
     }
 
     @Bean(name = "elite2ApiRestTemplate")
@@ -57,31 +54,23 @@ public class RestTemplateConfiguration {
     private RestTemplate getRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
         return restTemplateBuilder
                 .rootUri(uri)
-                .additionalInterceptors(getRequestInterceptors())
+                .additionalInterceptors(new JwtAuthInterceptor())
                 .build();
     }
 
     private RestTemplate getHealthRestTemplate(final RestTemplateBuilder restTemplateBuilder, final String uri) {
         return restTemplateBuilder
                 .rootUri(uri)
-                .additionalInterceptors(getRequestInterceptors())
+                .additionalInterceptors(new JwtAuthInterceptor())
                 .setConnectTimeout(healthTimeout)
                 .setReadTimeout(healthTimeout)
                 .build();
-    }
-
-    private List<ClientHttpRequestInterceptor> getRequestInterceptors() {
-        return List.of(
-                new W3cTracingInterceptor(),
-                new JwtAuthInterceptor());
     }
 
     @Bean
     public OAuth2RestTemplate elite2SystemRestTemplate(final GatewayAwareAccessTokenProvider accessTokenProvider) {
 
         final var elite2SystemRestTemplate = new OAuth2RestTemplate(elite2apiDetails, oauth2ClientContext);
-        final var systemInterceptors = elite2SystemRestTemplate.getInterceptors();
-        systemInterceptors.add(new W3cTracingInterceptor());
 
         elite2SystemRestTemplate.setAccessTokenProvider(accessTokenProvider);
 
@@ -93,7 +82,7 @@ public class RestTemplateConfiguration {
      * This subclass is necessary to make OAuth2AccessTokenSupport.getRestTemplate() public
      */
     @Component("accessTokenProvider")
-    public class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
+    public static class GatewayAwareAccessTokenProvider extends ClientCredentialsAccessTokenProvider {
         @Override
         public RestOperations getRestTemplate() {
             return super.getRestTemplate();

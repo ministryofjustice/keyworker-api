@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.config;
 
 import net.sf.ehcache.CacheManager;
 import org.springframework.beans.factory.annotation.Autowired;

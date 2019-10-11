@@ -2,7 +2,6 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 plugins {
     id 'java'
@@ -17,6 +16,11 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    agentDeps
+    agentDeps.transitive = false
+}
+
 ext {
     ext {
         drivers = [
@@ -28,18 +32,16 @@ ext {
 project.sourceCompatibility = 11
 project.targetCompatibility = 11
 
-def today = Instant.now()
 group = 'uk.gov.justice.digital.hmpps'
 
-def todayDate = LocalDate.now()
-def formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-version todayDate.format(formatter)
+def today = Instant.now()
+def todaysDate = LocalDate.now().format('yyyy-MM-dd')
+version = System.getenv('CI') ? "${todaysDate}.${System.getenv('CIRCLE_BUILD_NUM')}" : todaysDate
 
 jar {
     baseName = rootProject.name
     manifest {
-        attributes 'Implementation-Title': rootProject.name,
-                'Implementation-Version': System.getenv('CI') ? "${version}.${System.getenv('CIRCLE_BUILD_NUM')}" : version
+        attributes 'Implementation-Title': rootProject.name, 'Implementation-Version': version
     }
 }
 
@@ -47,8 +49,8 @@ springBoot {
     buildInfo {
         properties {
             artifact = rootProject.name
-            version = System.getenv('CI') ? "${version}.${System.getenv('CIRCLE_BUILD_NUM')}" : version
-            group = 'uk.gov.justice.digital.hmpps'
+            version = version
+            group = group
             name = rootProject.name
             time = today
             additional = [
@@ -73,8 +75,8 @@ configurations {
 
 dependencies {
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.10'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-devtools'
@@ -95,6 +97,7 @@ dependencies {
     implementation 'net.logstash.logback:logstash-logback-encoder:6.2'
     implementation 'com.microsoft.azure:applicationinsights-logging-logback:2.5.1-BETA'
     implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.5.1-BETA'
+    agentDeps 'com.microsoft.azure:applicationinsights-agent:2.5.1-BETA'
 
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
@@ -139,4 +142,13 @@ dependencies {
     testImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.0'
     testImplementation 'com.github.tomjankes:wiremock-groovy:0.2.0'
     testImplementation group: 'org.apache.camel', name: 'camel-test-spring', version: '2.23.2'
+
+    compile configurations.agentDeps
 }
+
+task copyAgent(type: Copy) {
+    from configurations.agentDeps
+    into "$buildDir/libs"
+}
+
+assemble.dependsOn copyAgent
