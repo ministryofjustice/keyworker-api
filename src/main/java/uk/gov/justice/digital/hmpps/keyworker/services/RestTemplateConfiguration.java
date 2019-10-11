@@ -65,8 +65,8 @@ public class RestTemplateConfiguration {
         return restTemplateBuilder
                 .rootUri(uri)
                 .additionalInterceptors(getRequestInterceptors())
-                .setConnectTimeout(Duration.ofSeconds(1))
-                .setReadTimeout(Duration.ofSeconds(1))
+                .setConnectTimeout(healthTimeout)
+                .setReadTimeout(healthTimeout)
                 .build();
     }
 
