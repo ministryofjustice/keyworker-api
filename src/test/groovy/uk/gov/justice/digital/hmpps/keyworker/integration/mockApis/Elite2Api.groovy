@@ -144,10 +144,17 @@ class Elite2Api extends WireMockRule {
     }
 
     void stubHealthOKResponse() {
-        stubFor(get(urlEqualTo("/health"))
+        stubFor(get(urlEqualTo("/ping"))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody("""{"status":"UP","HttpStatus":200}""")
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
+    }
+
+    void stubHealthDependencyTimeoutResponse() {
+        stubFor(get(urlEqualTo("/ping"))
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withFixedDelay(1000)
+                        .withBody("""{"status":"UP","HttpStatus":200}""")
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
     }
 
     void stubOffenderLookup(String prisonId, String offenderNo) {

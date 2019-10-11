@@ -7,9 +7,9 @@ import java.time.format.DateTimeFormatter
 plugins {
     id 'java'
     id 'groovy'
-    id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'org.springframework.boot' version '2.1.9.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
-    id 'com.github.ben-manes.versions' version '0.21.0'
+    id 'com.github.ben-manes.versions' version '0.26.0'
 }
 
 repositories {
@@ -92,9 +92,9 @@ dependencies {
 
     implementation 'org.hibernate:hibernate-java8'
 
-    implementation 'net.logstash.logback:logstash-logback-encoder:6.1'
-    implementation 'com.microsoft.azure:applicationinsights-logging-logback:2.4.0-BETA'
-    implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:1.2.0-BETA'
+    implementation 'net.logstash.logback:logstash-logback-encoder:6.2'
+    implementation 'com.microsoft.azure:applicationinsights-logging-logback:2.5.1-BETA'
+    implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.5.1-BETA'
 
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
@@ -110,8 +110,8 @@ dependencies {
 
     implementation 'net.sf.ehcache:ehcache:2.10.6'
     implementation 'org.apache.commons:commons-lang3:3.9'
-    implementation 'org.apache.commons:commons-text:1.6'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9'
+    implementation 'org.apache.commons:commons-text:1.8'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.10.0'
 
     implementation 'com.github.timpeeters:spring-boot-graceful-shutdown:2.1.1'
 
@@ -119,7 +119,7 @@ dependencies {
 
     runtime 'org.hsqldb:hsqldb:2.5.0'
     runtime 'org.flywaydb:flyway-core:5.2.4'
-    runtime 'org.postgresql:postgresql:42.2.6'
+    runtime 'org.postgresql:postgresql:42.2.8'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.codehaus.groovy:groovy-all:2.5.6'
@@ -129,14 +129,14 @@ dependencies {
     }
 
     testCompileOnly 'org.projectlombok:lombok:1.18.8'
-    testImplementation 'org.gebish:geb-core:3.0.1'
-    testImplementation 'org.gebish:geb-spock:3.0.1'
+    testImplementation 'org.gebish:geb-core:3.1'
+    testImplementation 'org.gebish:geb-spock:3.1'
     testImplementation 'org.seleniumhq.selenium:selenium-support:3.141.59'
     testImplementation 'org.seleniumhq.selenium:selenium-chrome-driver:3.141.59'
     testImplementation 'org.seleniumhq.selenium:selenium-firefox-driver:3.141.59'
-    testImplementation 'io.github.http-builder-ng:http-builder-ng-apache:1.0.3'
+    testImplementation 'io.github.http-builder-ng:http-builder-ng-apache:1.0.4'
 
-    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.23.2'
+    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.0'
     testImplementation 'com.github.tomjankes:wiremock-groovy:0.2.0'
     testImplementation group: 'org.apache.camel', name: 'camel-test-spring', version: '2.23.2'
 }
