@@ -1,5 +1,5 @@
 FROM openjdk:11-slim
-MAINTAINER HMPPS Digital Studio <info@digital.justice.gov.uk>
+LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
 RUN apt-get update && \
     apt-get install -y curl && \
@@ -19,7 +19,9 @@ RUN mkdir /home/appuser/.postgresql \
 WORKDIR /app
 
 COPY --chown=appuser:appgroup build/libs/keyworker-api*.jar /app/app.jar
+COPY --chown=appuser:appgroup build/libs/applicationinsights-agent*.jar /app/agent.jar
 COPY --chown=appuser:appgroup run.sh /app
+COPY --chown=appuser:appgroup AI-Agent.xml /app
 
 USER 2000
 

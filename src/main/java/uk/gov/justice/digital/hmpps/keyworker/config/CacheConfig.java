@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.config;
 
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
@@ -19,7 +19,7 @@ public class CacheConfig implements CachingConfigurer {
     private int staffInformationTimeoutSeconds;
 
 
-    @Bean(destroyMethod="shutdown")
+    @Bean(destroyMethod = "shutdown")
     public net.sf.ehcache.CacheManager ehCacheManager() {
         final var config = new net.sf.ehcache.config.Configuration();
 
@@ -53,7 +53,7 @@ public class CacheConfig implements CachingConfigurer {
 
     @Bean
     @Override
-    public CacheResolver cacheResolver()    {
+    public CacheResolver cacheResolver() {
         return new SimpleCacheResolver(cacheManager());
     }
 

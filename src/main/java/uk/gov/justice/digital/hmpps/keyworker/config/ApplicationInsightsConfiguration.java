@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.config;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import org.apache.commons.lang3.StringUtils;
