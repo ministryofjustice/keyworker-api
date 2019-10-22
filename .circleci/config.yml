@@ -87,7 +87,7 @@ jobs:
             name: Deploy to Elastic Beanstalk Dev
             command: |
               VERSION=$(egrep keyworker-api Dockerrun.aws.json | awk -F"\"" '{print $4}' |  awk -F":" '{print $2}')
-              ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
+              AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_EB AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_EB ~/.local/bin/eb deploy --process --verbose --label ${VERSION}
 
 workflows:
   version: 2
