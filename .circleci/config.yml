@@ -63,7 +63,7 @@ orbs:
   helm: circleci/helm@0.1.2
 
 jobs:
-  validate_build:
+  build:
     executor: builder
     steps:
       - checkout
@@ -78,6 +78,19 @@ jobs:
             - gradle-{{ checksum "build.gradle" }}
             - gradle-
       - run: ./gradlew build
+      - run:
+          name: Record the Application Version
+          command: |
+            jar xvf build/libs/whereabouts-api-*.jar BOOT-INF/classes/META-INF/build-info.properties
+            APP_VERSION=$(grep 'build.version=' BOOT-INF/classes/META-INF/build-info.properties | awk -F= '{print $2}')
+            rm BOOT-INF/classes/META-INF/build-info.properties
+
+            # make up a good version name
+            TAG=${APP_VERSION}.${CIRCLE_BRANCH}
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              TAG=${APP_VERSION}
+            fi
+            echo $TAG > ./app_version.txt
       - save_cache:
           paths:
             - ~/.gradle
@@ -91,6 +104,7 @@ jobs:
           paths:
             - build/libs
             - build.gradle
+            - app_version.txt
 
   build_docker:
     executor: deployer
@@ -103,16 +117,8 @@ jobs:
       - run:
           name: Build container and publish to docker hub
           command: |
-            jar xvf build/libs/keyworker-api-*.jar BOOT-INF/classes/META-INF/build-info.properties
-            API_VERSION=$(grep 'build.version=' BOOT-INF/classes/META-INF/build-info.properties | awk -F= '{print $2}')
-            rm BOOT-INF/classes/META-INF/build-info.properties
-
-            # make up a good version name
-            APP_VERSION=${API_VERSION}.${CIRCLE_BRANCH}
-            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              APP_VERSION=${API_VERSION}
-            fi
-
+            APP_VERSION=$(cat ./app_version.txt)
+            
             docker build --rm=false . \
               --build-arg BUILD_NUMBER=$APP_VERSION \
               --build-arg GIT_REF=$CIRCLE_SHA1 \
@@ -131,12 +137,6 @@ jobs:
               docker push mojdigitalstudio/keyworker-api:$APP_VERSION
               docker push mojdigitalstudio/keyworker-api:latest
             #fi
-            
-            echo $APP_VERSION > ./app_version.txt
-      - persist_to_workspace:
-          root: .
-          paths:
-            - app_version.txt
 
   deploy_dev:
     executor: deployer
@@ -158,13 +158,13 @@ workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - validate_build:
+      - build:
           filters:
             tags:
               ignore: /.*/
       - build_docker:
           requires:
-            - validate_build
+            - build
           #filters:
             #branches:
               #only: master
