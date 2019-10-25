@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.annotation.CreatedBy;
@@ -24,6 +25,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"offenderNo", "staffId", "assignedDateTime"})
 @EntityListeners(AuditingEntityListener.class)
+@Slf4j
 public class OffenderKeyworker {
 
     @Id()
@@ -100,6 +102,7 @@ public class OffenderKeyworker {
 
 
     public void deallocate(final LocalDateTime expiryDateTime, final DeallocationReason deallocationReason) {
+        log.info("De-allocating {} in prison {} reason: {}", offenderNo, prisonId, deallocationReason);
         active = false;
         setExpiryDateTime(expiryDateTime);
         setDeallocationReason(deallocationReason);
