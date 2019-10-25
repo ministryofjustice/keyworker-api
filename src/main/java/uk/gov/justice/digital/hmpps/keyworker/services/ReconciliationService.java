@@ -8,10 +8,7 @@ import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
-import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -133,6 +130,28 @@ public class ReconciliationService {
         logMap.put("prisonId", prisonId);
 
         telemetryClient.trackException(exchange.getException(), logMap, null);
+    }
+
+    public void checkForMergeAndDeallocate(final OffenderEvent offenderEvent) {
+        nomisService.getIdentifiersByBookingId(offenderEvent.getBookingId()).stream()
+                .filter(id -> "MERGED".equals(id.getType()))
+                .forEach(id -> nomisService.getBooking(offenderEvent.getBookingId())
+                        .ifPresent(booking -> offenderKeyworkerRepository.findByActiveAndOffenderNo(true, booking.getOffenderNo())
+                                .forEach(offenderKeyWorker -> mergeRecord(offenderKeyWorker.getPrisonId(),
+                                        new ReconMetrics(offenderKeyWorker.getPrisonId(), 0, 0),
+                                        id.getValue(), booking.getOffenderNo(), offenderKeyWorker))));
+    }
+
+    public void checkMovementAndDeallocate(final OffenderEvent offenderEvent) {
+        nomisService.getMovement(offenderEvent.getBookingId(), offenderEvent.getMovementSeq())
+                .ifPresent(movement -> {
+                    // check if movement out
+                    if ("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType()))) {
+                        // check if prisoner is in this system if so, deallocate
+                        offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderNo())
+                                .forEach(offenderKeyWorker -> offenderKeyWorker.deallocate(movement.getCreateDateTime(), "TRN".equals(movement.getMovementType()) ? DeallocationReason.TRANSFER : DeallocationReason.RELEASED));
+                    }
+                });
     }
 
     @ToString

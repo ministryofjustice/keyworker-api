@@ -43,8 +43,8 @@ public class RestCallHelper {
                 responseType);
     }
 
-    protected <T> T get(final URI uri, final Class<T> responseType) {
-        final var exchange = restTemplate.exchange(
+    protected <T> T get(final URI uri, final Class<T> responseType, boolean admin) {
+        final var exchange = getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,
                 new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),

@@ -56,6 +56,8 @@ public class NomisServiceImpl implements NomisService {
 
     private static final ParameterizedTypeReference<List<PrisonerIdentifier>> PRISONER_ID_LIST = new ParameterizedTypeReference<>() {};
 
+    private static final ParameterizedTypeReference<List<BookingIdentifier>> BOOKING_IDENTIFIER_LIST = new ParameterizedTypeReference<>() {};
+
     private final RestCallHelper restCallHelper;
 
     public NomisServiceImpl(final RestCallHelper restCallHelper) {
@@ -116,7 +118,7 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting KW for offender", offenderNo);
 
         final var uri = new UriTemplate(GET_KEY_WORKER).expand(offenderNo);
-        return restCallHelper.get(uri, BasicKeyworkerDto.class);
+        return restCallHelper.get(uri, BasicKeyworkerDto.class, false);
     }
 
     @Override
@@ -141,7 +143,7 @@ public class NomisServiceImpl implements NomisService {
     public StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(final Long staffId) {
         final var uri = new UriTemplate(URI_STAFF).expand(staffId);
         log.debug("Getting basic keyworker details for staffId {} from Elite2api using uri {}", staffId, uri.toString());
-        return restCallHelper.get(uri, StaffLocationRoleDto.class);
+        return restCallHelper.get(uri, StaffLocationRoleDto.class, false);
     }
 
     @Override
@@ -162,7 +164,7 @@ public class NomisServiceImpl implements NomisService {
         log.debug("About to retrieve staff details from Elite2api using uri {}", uri.toString());
 
         try {
-            final var staffUser = restCallHelper.get(uri, StaffUser.class);
+            final var staffUser = restCallHelper.get(uri, StaffUser.class, false);
             log.debug("Result: {}", staffUser);
             return staffUser;
         } catch (final HttpClientErrorException e) {
@@ -270,5 +272,23 @@ public class NomisServiceImpl implements NomisService {
         final var uri = new UriTemplate(URI_IDENTIFIERS).expand(type, value);
 
         return restCallHelper.getForListWithAuthentication(uri, PRISONER_ID_LIST).getBody();
+    }
+
+    @Override
+    public Optional<Movement> getMovement(final Long bookingId, final Long movementSeq) {
+        final var uri = new UriTemplate(BOOKING_MOVEMENT).expand(bookingId, movementSeq);
+        return Optional.ofNullable(restCallHelper.get(uri, Movement.class, true));
+    }
+
+    @Override
+    public List<BookingIdentifier> getIdentifiersByBookingId(final Long bookingId) {
+        final var uri = new UriTemplate(BOOKING_IDENTIFIERS).expand(bookingId);
+        return restCallHelper.getForListWithAuthentication(uri, BOOKING_IDENTIFIER_LIST).getBody();
+    }
+
+    @Override
+    public Optional<OffenderBooking> getBooking(final Long bookingId) {
+        final var uri = new UriTemplate(BOOKING_DETAILS).expand(bookingId);
+        return Optional.ofNullable(restCallHelper.get(uri, OffenderBooking.class, true));
     }
 }

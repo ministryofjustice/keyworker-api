@@ -72,3 +72,63 @@ rather than calling the `/health` endpoint.
 - `/health`: provides information about the application health and its dependencies.  This should only be used
 by keyworker health monitoring (e.g. pager duty) and not other systems who wish to find out the state of keyworker.
 - `/info`: provides information about the version of deployed application.
+
+## Running localstack and database
+```bash
+TMPDIR=/private$TMPDIR docker-compose up localstack keyworker-api-db
+```
+
+## Creating the Topic and Queue
+Simpliest way is running the following script
+```bash
+./setup-queue.bash
+```
+
+Or you can run the scripts individually as shown below.
+
+## Creating a topic and queue on localstack
+
+```bash
+aws --endpoint-url=http://localhost:4575 sns create-topic --name offender_events
+```
+
+Results in:
+```json
+{
+    "TopicArn": "arn:aws:sns:eu-west-2:000000000000:offender_events"
+}
+
+```
+
+## Creating a queue
+```bash
+aws --endpoint-url=http://localhost:4576 sqs create-queue --queue-name keyworker_api_queue
+```
+
+Results in:
+```json
+{
+   "QueueUrl": "http://localhost:4576/queue/keyworker_api_queue"
+}
+```
+
+## Creating a subscription
+```bash
+aws --endpoint-url=http://localhost:4575 sns subscribe \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:offender_events \
+    --protocol sqs \
+    --notification-endpoint http://localhost:4576/queue/keyworker_api_queue \
+    --attributes '{"FilterPolicy":"{\"eventType\":[\"EXTERNAL_MOVEMENT_RECORD-INSERTED\", \"BOOKING_NUMBER-CHANGED\"]}"}'
+```
+
+Results in:
+```json
+{
+    "SubscriptionArn": "arn:aws:sns:eu-west-2:000000000000:offender_events:074545bd-393c-4a43-ad62-95b1809534f0"
+}
+```
+
+## Read off the queue
+```bash
+aws --endpoint-url=http://localhost:4576 sqs receive-message --queue-url http://localhost:4576/queue/keyworker_api_queue
+```
