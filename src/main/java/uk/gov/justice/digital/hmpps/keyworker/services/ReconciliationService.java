@@ -136,6 +136,7 @@ public class ReconciliationService {
     }
 
     public void checkForMergeAndDeallocate(final OffenderEvent offenderEvent) {
+        log.debug("Check for merged booking for ID {}", offenderEvent.getBookingId());
         nomisService.getIdentifiersByBookingId(offenderEvent.getBookingId()).stream()
                 .filter(id -> "MERGED".equals(id.getType()))
                 .forEach(id -> nomisService.getBooking(offenderEvent.getBookingId())
@@ -145,6 +146,7 @@ public class ReconciliationService {
     }
 
     public void checkMovementAndDeallocate(final OffenderEvent offenderEvent) {
+        log.debug("Check for Transfer/Release and Deallocate for booking {} seq {}", offenderEvent.getBookingId(), offenderEvent.getMovementSeq());
         nomisService.getMovement(offenderEvent.getBookingId(), offenderEvent.getMovementSeq())
                 .ifPresent(movement -> {
                     // check if movement out

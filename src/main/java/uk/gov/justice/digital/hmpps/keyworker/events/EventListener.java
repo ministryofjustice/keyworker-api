@@ -26,8 +26,6 @@ public class EventListener {
 
     @JmsListener(destination = "${sqs.queue.name}")
     public void eventListener(final String requestJson) {
-
-        log.debug("Processing Message {}", requestJson);
         final var event = getOffenderEvent(requestJson);
         if (event != null) {
             if ("EXTERNAL_MOVEMENT_RECORD-INSERTED".equals(event.getEventType())) {
