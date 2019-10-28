@@ -78,9 +78,3 @@ azure:
   application-insights:
     web:
       enable-W3C: true
-
-camel:
-  component:
-    aws-sqs:
-      configuration:
-        region: eu-west-2

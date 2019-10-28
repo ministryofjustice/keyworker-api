@@ -42,7 +42,7 @@ public class JmsConfig {
     @ConditionalOnProperty(name = "sqs.provider", havingValue = "localstack")
     @Primary
     public AmazonSQSAsync awsSqsClient(@Value("${sqs.endpoint.url}") String serviceEndpoint,
-                                       @Value("${camel.component.aws-sqs.configuration.region}")
+                                       @Value("${sqs.region}")
                                                String region) {
         return AmazonSQSAsyncClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
@@ -54,7 +54,7 @@ public class JmsConfig {
     @Primary
     public AmazonSQSAsync awsLocalClient(@Value("${sqs.aws.access.key.id}") final String accessKey,
                                        @Value("${sqs.aws.secret.access.key}") final String secretKey,
-                                       @Value("${camel.component.aws-sqs.configuration.region}") final String region) {
+                                       @Value("${sqs.region}") final String region) {
         var creds = new BasicAWSCredentials(accessKey, secretKey);
         return AmazonSQSAsyncClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(creds))
