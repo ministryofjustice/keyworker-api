@@ -1,9 +1,0 @@
-branch-defaults:
-  master:
-    environment: keyworker-api-dev
-global:
-    application_name: keyworker-api
-    default_platform: Docker running on 64bit Amazon Linux
-    default_region: eu-west-2
-deploy:
-  artifact: Dockerrun.aws.json
