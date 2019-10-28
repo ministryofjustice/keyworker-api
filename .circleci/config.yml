@@ -130,13 +130,13 @@ jobs:
               --label "build.url=$CIRCLE_BUILD_URL" \
               --label "build.gitref=$CIRCLE_SHA1"
             
-            #if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
               #publish to docker hub as the tag
               docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
               docker tag mojdigitalstudio/keyworker-api:$APP_VERSION mojdigitalstudio/keyworker-api:latest
               docker push mojdigitalstudio/keyworker-api:$APP_VERSION
               docker push mojdigitalstudio/keyworker-api:latest
-            #fi
+            fi
 
   deploy_dev:
     executor: deployer
@@ -165,15 +165,15 @@ workflows:
       - build_docker:
           requires:
             - build
-          #filters:
-            #branches:
-              #only: master
+          filters:
+            branches:
+              only: master
       - deploy_dev:
           requires:
             - build_docker
-          #filters:
-            #branches:
-              #only: master
+          filters:
+            branches:
+              only: master
       - request-preprod-approval:
           type: approval
           requires:
