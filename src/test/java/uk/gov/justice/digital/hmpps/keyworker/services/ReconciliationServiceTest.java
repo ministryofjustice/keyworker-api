@@ -7,10 +7,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
-import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService.ReconMetrics;
@@ -19,13 +18,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.time.LocalDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
 public class ReconciliationServiceTest {
 
+    private static final String OFFENDER_NO = "A1234AA";
+    private static final String MERGED_OFFENDER_NO = "B1234BB";
     @Mock
     private NomisService nomisService;
 
@@ -50,7 +53,7 @@ public class ReconciliationServiceTest {
 
         when(repository.findByActiveAndPrisonId(true, TEST_AGENCY_ID)).thenReturn(
                 List.of(
-                        OffenderKeyworker.builder().offenderNo("A1234AA").build(), //correct
+                        OffenderKeyworker.builder().offenderNo(OFFENDER_NO).build(), //correct
                         OffenderKeyworker.builder().offenderNo("A1234AB").build(), //merged
                         OffenderKeyworker.builder().offenderNo("A1234AC").build(), //merged new now active
                         OffenderKeyworker.builder().offenderNo("A1234AD").build(), //released
@@ -63,7 +66,7 @@ public class ReconciliationServiceTest {
 
         when(nomisService.getOffendersAtLocation(TEST_AGENCY_ID, "bookingId", SortOrder.ASC, true)).thenReturn(
                 List.of(
-                        OffenderLocationDto.builder().offenderNo("A1234AA").build(),
+                        OffenderLocationDto.builder().offenderNo(OFFENDER_NO).build(),
                         OffenderLocationDto.builder().offenderNo("B1234AB").build(),
                         OffenderLocationDto.builder().offenderNo("B1234AC").build()
                 )
@@ -132,5 +135,190 @@ public class ReconciliationServiceTest {
         assertThat(metrics.getDeAllocatedOffenders().get()).isEqualTo(5);
         assertThat(metrics.getMissingOffenders().get()).isEqualTo(1);
         assertThat(metrics.getMergedRecords()).hasSize(4);
+    }
+
+    @Test
+    public void testCheckWhenTransferredOutDeallocationOccurs() {
+        final var now = now();
+        when(nomisService.getMovement(eq(-1L), eq(1L)))
+                .thenReturn(Optional.of(Movement.builder()
+                        .directionCode("OUT")
+                        .offenderNo(OFFENDER_NO)
+                        .movementType("TRN")
+                        .createDateTime(now)
+                        .build()));
+
+        final var offenderKw = OffenderKeyworker.builder()
+                .offenderNo(OFFENDER_NO)
+                .prisonId("LEI")
+                .active(true)
+                .assignedDateTime(now)
+                .allocationType(AllocationType.AUTO)
+                .offenderKeyworkerId(-100L)
+                .build();
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+                .thenReturn(List.of(offenderKw));
+
+        assertThat(offenderKw.isActive()).isTrue();
+        assertThat(offenderKw.getDeallocationReason()).isNull();
+        assertThat(offenderKw.getExpiryDateTime()).isNull();
+
+
+        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+
+        assertThat(offenderKw.isActive()).isFalse();
+        assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
+        assertThat(offenderKw.getExpiryDateTime()).isNotNull();
+
+    }
+
+    @Test
+    public void testCheckWhenReleasedDeallocationOccurs() {
+        final var now = now();
+        when(nomisService.getMovement(eq(-1L), eq(1L)))
+                .thenReturn(Optional.of(Movement.builder()
+                        .directionCode("OUT")
+                        .offenderNo(OFFENDER_NO)
+                        .movementType("REL")
+                        .createDateTime(now)
+                        .build()));
+
+        final var offenderKw = OffenderKeyworker.builder()
+                .offenderNo(OFFENDER_NO)
+                .prisonId("LEI")
+                .active(true)
+                .assignedDateTime(now)
+                .allocationType(AllocationType.AUTO)
+                .offenderKeyworkerId(-100L)
+                .build();
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+                .thenReturn(List.of(offenderKw));
+
+        assertThat(offenderKw.isActive()).isTrue();
+        assertThat(offenderKw.getDeallocationReason()).isNull();
+        assertThat(offenderKw.getExpiryDateTime()).isNull();
+
+
+        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+
+        assertThat(offenderKw.isActive()).isFalse();
+        assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.RELEASED);
+        assertThat(offenderKw.getExpiryDateTime()).isNotNull();
+
+    }
+
+    @Test
+    public void testCheckWhenOtherMovementNoDeallocationOccurs() {
+        final var now = now();
+
+        when(nomisService.getMovement(eq(-1L), eq(1L)))
+                .thenReturn(Optional.of(Movement.builder()
+                        .directionCode("OUT")
+                        .offenderNo(OFFENDER_NO)
+                        .movementType("HOS")
+                        .createDateTime(now)
+                        .build()));
+
+        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+
+        verify(repository, never()).findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO));
+
+    }
+
+    @Test
+    public void testCheckForExistingAllocatedThatNeedsMerging() {
+        when(nomisService.getIdentifiersByBookingId(eq(-1L)))
+                .thenReturn(List.of(
+                        BookingIdentifier.builder().type("MERGED").value(MERGED_OFFENDER_NO).build(),
+                        BookingIdentifier.builder().type("PNC").value("XX/11XX").build()
+                        ));
+
+        when(nomisService.getBooking(eq(-1L)))
+                .thenReturn(Optional.of(OffenderBooking.builder()
+                        .bookingId(-1L)
+                        .offenderNo(OFFENDER_NO)
+                        .agencyId("LEI")
+                        .build()));
+
+        final var now = now();
+
+        final var oldOffenderKw = OffenderKeyworker.builder()
+                .offenderNo(MERGED_OFFENDER_NO)
+                .prisonId("LEI")
+                .active(true)
+                .assignedDateTime(now)
+                .allocationType(AllocationType.AUTO)
+                .offenderKeyworkerId(-100L)
+                .build();
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(MERGED_OFFENDER_NO)))
+                .thenReturn(List.of(oldOffenderKw));
+
+        final var newOffenderKw = OffenderKeyworker.builder()
+                .offenderNo(OFFENDER_NO)
+                .prisonId("LEI")
+                .active(true)
+                .assignedDateTime(now)
+                .allocationType(AllocationType.AUTO)
+                .offenderKeyworkerId(-100L)
+                .build();
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+                .thenReturn(List.of(newOffenderKw));
+
+        service.checkForMergeAndDeallocate(OffenderEvent.builder().bookingId(-1L).build());
+
+        assertThat(oldOffenderKw.isActive()).isFalse();
+        assertThat(oldOffenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.MERGED);
+        assertThat(oldOffenderKw.getExpiryDateTime()).isNotNull();
+        assertThat(oldOffenderKw.getOffenderNo()).isEqualTo(OFFENDER_NO);
+
+        assertThat(newOffenderKw.isActive()).isTrue();
+        assertThat(newOffenderKw.getDeallocationReason()).isNull();
+        assertThat(newOffenderKw.getExpiryDateTime()).isNull();
+    }
+
+    @Test
+    public void testCheckForExistingAllocatedThatNeedsMergingNotDealloc() {
+        when(nomisService.getIdentifiersByBookingId(eq(-1L)))
+                .thenReturn(List.of(
+                        BookingIdentifier.builder().type("MERGED").value(MERGED_OFFENDER_NO).build(),
+                        BookingIdentifier.builder().type("PNC").value("XX/11XX").build()
+                ));
+
+        when(nomisService.getBooking(eq(-1L)))
+                .thenReturn(Optional.of(OffenderBooking.builder()
+                        .bookingId(-1L)
+                        .offenderNo(OFFENDER_NO)
+                        .agencyId("LEI")
+                        .build()));
+
+        final var now = now();
+
+        final var oldOffenderKw = OffenderKeyworker.builder()
+                .offenderNo(MERGED_OFFENDER_NO)
+                .prisonId("LEI")
+                .active(true)
+                .assignedDateTime(now)
+                .allocationType(AllocationType.AUTO)
+                .offenderKeyworkerId(-100L)
+                .build();
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(MERGED_OFFENDER_NO)))
+                .thenReturn(List.of(oldOffenderKw));
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+                .thenReturn(List.of());
+
+        service.checkForMergeAndDeallocate(OffenderEvent.builder().bookingId(-1L).build());
+
+        assertThat(oldOffenderKw.isActive()).isTrue();
+        assertThat(oldOffenderKw.getDeallocationReason()).isNull();
+        assertThat(oldOffenderKw.getExpiryDateTime()).isNull();
+        assertThat(oldOffenderKw.getOffenderNo()).isEqualTo(OFFENDER_NO);
+
+
     }
 }

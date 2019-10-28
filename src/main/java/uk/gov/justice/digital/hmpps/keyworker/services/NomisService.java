@@ -26,6 +26,9 @@ public interface NomisService {
     String URI_GET_ALL_PRISONS = "/agencies/prison";
     String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
     String URI_IDENTIFIERS = "/identifiers/{type}/{value}";
+    String BOOKING_MOVEMENT = "/bookings/{bookingId}/movement/{seq}";
+    String BOOKING_DETAILS = "/bookings/{bookingId}?basicInfo=true";
+    String BOOKING_IDENTIFIERS = "/bookings/{bookingId}/identifiers";
     String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 
 
@@ -68,4 +71,10 @@ public interface NomisService {
     CaseloadUpdate enableNewNomisForCaseload(String caseload);
 
     List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value);
+
+    Optional<Movement> getMovement(Long bookingId, Long movementSeq);
+
+    List<BookingIdentifier> getIdentifiersByBookingId(Long bookingId);
+
+    Optional<OffenderBooking> getBooking(Long bookingId);
 }

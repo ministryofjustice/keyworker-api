@@ -8,10 +8,7 @@ import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
-import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
+import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -76,7 +73,7 @@ public class ReconciliationService {
         final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
         mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
                 newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
-                        offenderKeyWorker -> mergeRecord(prisonId, reconMetrics, notFoundOffender.getOffenderNo(), newOffenderNo, offenderKeyWorker)
+                        offenderKeyWorker -> mergeRecord(prisonId, notFoundOffender.getOffenderNo(), newOffenderNo, offenderKeyWorker, reconMetrics)
                 ),
                 () -> removeMissingRecord(reconMetrics, notFoundOffender)
         );
@@ -90,18 +87,21 @@ public class ReconciliationService {
         reconMetrics.missingOffenders.getAndIncrement();
     }
 
-    private void mergeRecord(String prisonId, ReconMetrics reconMetrics, final String oldOffenderNo, final String newOffenderNo, OffenderKeyworker offenderKeyWorker) {
-        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), oldOffenderNo, newOffenderNo);
-        if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
-            offenderKeyWorker.deallocate(LocalDateTime.now(), DeallocationReason.MERGED);
-            log.info("Offender already re-allocated - de-allocating {}", offenderKeyWorker.getOffenderNo());
-        }
-        offenderKeyWorker.setOffenderNo(newOffenderNo);
+    private void mergeRecord(String prisonId, final String oldOffenderNo, final String newOffenderNo, OffenderKeyworker offenderKeyWorker, ReconMetrics reconMetrics) {
+        mergeOffenders(oldOffenderNo, newOffenderNo, offenderKeyWorker, reconMetrics);
 
         nomisService.getPrisonerDetail(newOffenderNo, true).ifPresent(
                 prisonerDetail -> deallocateIfMoved(prisonId, offenderKeyWorker, prisonerDetail, reconMetrics)
         );
+    }
 
+    private void mergeOffenders(final String oldOffenderNo, final String newOffenderNo, final OffenderKeyworker offenderKeyWorker, final ReconMetrics reconMetrics) {
+        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), oldOffenderNo, newOffenderNo);
+        if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
+            log.info("Offender already re-allocated - de-allocating {}", offenderKeyWorker.getOffenderNo());
+            offenderKeyWorker.deallocate(LocalDateTime.now(), DeallocationReason.MERGED);
+        }
+        offenderKeyWorker.setOffenderNo(newOffenderNo);
         reconMetrics.mergedRecords.put(oldOffenderNo, newOffenderNo);
     }
 
@@ -133,6 +133,29 @@ public class ReconciliationService {
         logMap.put("prisonId", prisonId);
 
         telemetryClient.trackException(exchange.getException(), logMap, null);
+    }
+
+    public void checkForMergeAndDeallocate(final OffenderEvent offenderEvent) {
+        log.debug("Check for merged booking for ID {}", offenderEvent.getBookingId());
+        nomisService.getIdentifiersByBookingId(offenderEvent.getBookingId()).stream()
+                .filter(id -> "MERGED".equals(id.getType()))
+                .forEach(id -> nomisService.getBooking(offenderEvent.getBookingId())
+                        .ifPresent(booking -> offenderKeyworkerRepository.findByActiveAndOffenderNo(true, id.getValue())
+                                .forEach(offenderKeyWorker -> mergeOffenders(id.getValue(), booking.getOffenderNo(), offenderKeyWorker, new ReconMetrics(offenderKeyWorker.getPrisonId(), 0, 0)
+                                ))));
+    }
+
+    public void checkMovementAndDeallocate(final OffenderEvent offenderEvent) {
+        log.debug("Check for Transfer/Release and Deallocate for booking {} seq {}", offenderEvent.getBookingId(), offenderEvent.getMovementSeq());
+        nomisService.getMovement(offenderEvent.getBookingId(), offenderEvent.getMovementSeq())
+                .ifPresent(movement -> {
+                    // check if movement out
+                    if ("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType()))) {
+                        // check if prisoner is in this system if so, deallocate
+                        offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderNo())
+                                .forEach(offenderKeyWorker -> offenderKeyWorker.deallocate(movement.getCreateDateTime(), "TRN".equals(movement.getMovementType()) ? DeallocationReason.TRANSFER : DeallocationReason.RELEASED));
+                    }
+                });
     }
 
     @ToString

@@ -2,6 +2,8 @@ version: '3.1'
 services:
   oauth-server:
     image: mojdigitalstudio/nomis-oauth2-server:latest
+    networks:
+      - hmpps
     container_name: oauth-server
     ports:
       - "9090:8080"
@@ -13,9 +15,11 @@ services:
 
   elite2-api:
     image: mojdigitalstudio/elite2-api:latest
+    networks:
+      - hmpps
     container_name: elite2-api
     depends_on:
-    - oauth-server
+      - oauth-server
     ports:
       - "8080:8080"
     healthcheck:
@@ -26,6 +30,8 @@ services:
 
   keyworker-api:
     image: mojdigitalstudio/keyworker-api:latest
+    networks:
+      - hmpps
     depends_on:
       - elite2-api
       - oauth-server
@@ -38,3 +44,45 @@ services:
       - SERVER_PORT=8080
       - ELITE2_URI_ROOT=http://elite2-api:8080
       - AUTH_URI_ROOT=http://oauth-server:8080/auth
+      - SPRING_PROFILES_ACTIVE=localstack,batch
+      - APP_DB_URL=jdbc:postgresql://localhost:5432/keyworker-api-db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin_password
+
+  localstack:
+    image: localstack/localstack
+    networks:
+      - hmpps
+    container_name: localstack
+    ports:
+      - "4567-4597:4567-4597"
+      - 8999:8080
+    environment:
+      - SERVICES=sns,sqs
+      - DEBUG=${DEBUG- }
+      - DATA_DIR=${DATA_DIR- }
+      - PORT_WEB_UI=${PORT_WEB_UI- }
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_EXECUTION_ENV=True
+      - DEFAULT_REGION=eu-west-2
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  keyworker-api-db:
+    image: postgres
+    networks:
+      - hmpps
+    container_name: keyworker-api-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=admin_password
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=keyworker-api-db
+
+networks:
+  hmpps:
