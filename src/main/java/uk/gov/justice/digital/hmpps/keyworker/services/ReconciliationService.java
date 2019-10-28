@@ -140,7 +140,7 @@ public class ReconciliationService {
         nomisService.getIdentifiersByBookingId(offenderEvent.getBookingId()).stream()
                 .filter(id -> "MERGED".equals(id.getType()))
                 .forEach(id -> nomisService.getBooking(offenderEvent.getBookingId())
-                        .ifPresent(booking -> offenderKeyworkerRepository.findByActiveAndOffenderNo(true, id.getValue())
+                        .ifPresent(booking -> offenderKeyworkerRepository.findByOffenderNo(id.getValue())
                                 .forEach(offenderKeyWorker -> mergeOffenders(id.getValue(), booking.getOffenderNo(), offenderKeyWorker, new ReconMetrics(offenderKeyWorker.getPrisonId(), 0, 0)
                                 ))));
     }
