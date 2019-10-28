@@ -253,7 +253,7 @@ public class ReconciliationServiceTest {
                 .offenderKeyworkerId(-100L)
                 .build();
 
-        when(repository.findByActiveAndOffenderNo(eq(true), eq(MERGED_OFFENDER_NO)))
+        when(repository.findByOffenderNo(eq(MERGED_OFFENDER_NO)))
                 .thenReturn(List.of(oldOffenderKw));
 
         final var newOffenderKw = OffenderKeyworker.builder()
@@ -306,7 +306,7 @@ public class ReconciliationServiceTest {
                 .offenderKeyworkerId(-100L)
                 .build();
 
-        when(repository.findByActiveAndOffenderNo(eq(true), eq(MERGED_OFFENDER_NO)))
+        when(repository.findByOffenderNo(eq(MERGED_OFFENDER_NO)))
                 .thenReturn(List.of(oldOffenderKw));
 
         when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
