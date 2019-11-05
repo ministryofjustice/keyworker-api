@@ -4,14 +4,12 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface NomisService {
     String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
     String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
-    String URI_MOVEMENTS = "/movements?fromDateTime={fromDateTime}&movementDate={movementDate}";
     String URI_STAFF = "/staff/{staffId}";
     String GET_USER_DETAILS = "/users/{username}";
     String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
@@ -32,8 +30,6 @@ public interface NomisService {
     String BOOKING_IDENTIFIERS = "/bookings/{bookingId}/identifiers";
     String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 
-
-    List<PrisonerCustodyStatusDto> getPrisonerStatuses(LocalDateTime threshold, LocalDate movementDate);
 
     Optional<OffenderLocationDto> getOffenderForPrison(String prisonId, String offenderNo);
 
