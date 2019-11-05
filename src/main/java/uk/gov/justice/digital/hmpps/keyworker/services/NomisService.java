@@ -30,7 +30,6 @@ public interface NomisService {
     String BOOKING_IDENTIFIERS = "/bookings/{bookingId}/identifiers";
     String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 
-
     Optional<OffenderLocationDto> getOffenderForPrison(String prisonId, String offenderNo);
 
     Optional<PrisonerDetail> getPrisonerDetail(String offenderNo, boolean admin);
