@@ -153,9 +153,25 @@ public class ReconciliationService {
                     if ("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType()))) {
                         // check if prisoner is in this system if so, deallocate
                         offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderNo())
-                                .forEach(offenderKeyWorker -> offenderKeyWorker.deallocate(movement.getCreateDateTime(), "TRN".equals(movement.getMovementType()) ? DeallocationReason.TRANSFER : DeallocationReason.RELEASED));
+                                .forEach(offenderKeyWorker -> checkValidTransferOrRelease(movement, offenderKeyWorker));
                     }
                 });
+    }
+
+    private void checkValidTransferOrRelease(final Movement movement, final OffenderKeyworker offenderKeyWorker) {
+        log.debug("Offender {} moved from {} to {} (type {})", movement.getOffenderNo(), movement.getFromAgency(), movement.getToAgency(), movement.getMovementType());
+        // check that FROM agency is from where the key-worker / prisoner relationship resides and the TO agency is not the same prison!
+        if (!offenderKeyWorker.getPrisonId().equals(movement.getToAgency()) && offenderKeyWorker.getPrisonId().equals(movement.getFromAgency())) {
+            // check if its a transfer then its to another prison
+            if ("TRN".equals(movement.getMovementType())) {
+                if (nomisService.isPrison(movement.getToAgency())) {
+                    offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.TRANSFER);
+                }
+            } else {
+                // otherwise its a release
+                offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.RELEASED);
+            }
+        }
     }
 
     @ToString
