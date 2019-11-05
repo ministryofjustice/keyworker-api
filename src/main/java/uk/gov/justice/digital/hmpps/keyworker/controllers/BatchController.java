@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 
 import java.util.List;
 
-import static uk.gov.justice.digital.hmpps.keyworker.batch.DeallocationRoute.DIRECT_DEALLOCATION;
 import static uk.gov.justice.digital.hmpps.keyworker.batch.KeyworkerReconRoute.DIRECT_KEY_WORKER_RECON;
 import static uk.gov.justice.digital.hmpps.keyworker.batch.PrisonStatsRoute.DIRECT_PRISON_STATS;
 import static uk.gov.justice.digital.hmpps.keyworker.batch.UpdateStatusRoute.DIRECT_UPDATE_STATUS;
@@ -93,23 +92,6 @@ public class BatchController {
     }
 
     /* --------------------------------------------------------------------------------*/
-
-    @ApiOperation(
-            value = "Force Runs the Batch De-allocation process",
-            notes = "Can only be run with SYSTEM_USER role",
-            authorizations = { @Authorization("SYSTEM_USER") },
-            nickname="runBatchDeallocation",
-            hidden = true)
-
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Batch process complete", response = String.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
-
-    @PostMapping(path = "/deallocate")
-    @PreAuthorize("hasRole('SYSTEM_USER')")
-    public void runBatchDeallocation() {
-        producerTemplate.send(DIRECT_DEALLOCATION, exchange -> {});
-    }
 
     @ApiOperation(
             value = "Run the KW reconciliation process",

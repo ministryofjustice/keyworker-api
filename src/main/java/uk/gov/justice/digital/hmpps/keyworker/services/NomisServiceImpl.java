@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -259,6 +260,13 @@ public class NomisServiceImpl implements NomisService {
                 prisonListResponse.getBody().stream()
                         .map(p -> Prison.builder().prisonId(p.getAgencyId()).build())
                         .collect(Collectors.toList()) : Collections.emptyList();
+    }
+
+    @Override
+    public boolean isPrison(final String prisonId) {
+        final var uri = new UriTemplate(URI_GET_AGENCY).expand(prisonId, "INST");
+        final var result = restCallHelper.get(uri, Map.class, true);
+        return result.get("agencyId") != null;
     }
 
     @Override

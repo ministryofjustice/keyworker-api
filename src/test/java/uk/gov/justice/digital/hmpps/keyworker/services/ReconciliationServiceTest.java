@@ -143,6 +143,8 @@ public class ReconciliationServiceTest {
         when(nomisService.getMovement(eq(-1L), eq(1L)))
                 .thenReturn(Optional.of(Movement.builder()
                         .directionCode("OUT")
+                        .fromAgency("LEI")
+                        .toAgency("MDI")
                         .offenderNo(OFFENDER_NO)
                         .movementType("TRN")
                         .createDateTime(now)
@@ -160,10 +162,11 @@ public class ReconciliationServiceTest {
         when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(offenderKw));
 
+        when(nomisService.isPrison(eq("MDI"))).thenReturn(true);
+
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
-
 
         service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
 
@@ -180,6 +183,8 @@ public class ReconciliationServiceTest {
                 .thenReturn(Optional.of(Movement.builder()
                         .directionCode("OUT")
                         .offenderNo(OFFENDER_NO)
+                        .fromAgency("LEI")
+                        .toAgency("OUT")
                         .movementType("REL")
                         .createDateTime(now)
                         .build()));
