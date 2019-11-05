@@ -11,7 +11,6 @@ import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +62,6 @@ public class NomisServiceImpl implements NomisService {
 
     public NomisServiceImpl(final RestCallHelper restCallHelper) {
         this.restCallHelper = restCallHelper;
-    }
-
-    @Override
-    public List<PrisonerCustodyStatusDto> getPrisonerStatuses(final LocalDateTime threshold, final LocalDate movementDate) {
-        final var uri = new UriTemplate(URI_MOVEMENTS).expand(threshold, movementDate);
-
-        return restCallHelper.getForListWithAuthentication(uri, PRISONER_STATUS_DTO_LIST).getBody();
     }
 
     @Override
