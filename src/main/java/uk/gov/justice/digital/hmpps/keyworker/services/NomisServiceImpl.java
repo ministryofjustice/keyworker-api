@@ -6,6 +6,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -15,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
@@ -257,8 +260,15 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public boolean isPrison(final String prisonId) {
         final var uri = new UriTemplate(URI_GET_AGENCY).expand(prisonId, "INST");
-        final var result = restCallHelper.get(uri, Map.class, true);
-        return result.get("agencyId") != null;
+        final var isAPrison = new AtomicBoolean(false);
+        try {
+            final var result = restCallHelper.get(uri, Map.class, true);
+            isAPrison.set(result.get("agencyId") != null);
+        } catch (RestClientException e) {
+           isAPrison.set(false);
+        }
+        return isAPrison.get();
+
     }
 
     @Override
@@ -277,7 +287,13 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public Optional<Movement> getMovement(final Long bookingId, final Long movementSeq) {
         final var uri = new UriTemplate(BOOKING_MOVEMENT).expand(bookingId, movementSeq);
-        return Optional.ofNullable(restCallHelper.get(uri, Movement.class, true));
+        final var movement = new AtomicReference<Optional<Movement>>();
+        try {
+            movement.set(Optional.ofNullable(restCallHelper.get(uri, Movement.class, true)));
+        } catch (RestClientException e) {
+            movement.set(Optional.empty());
+        }
+        return movement.get();
     }
 
     @Override
@@ -289,6 +305,12 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public Optional<OffenderBooking> getBooking(final Long bookingId) {
         final var uri = new UriTemplate(BOOKING_DETAILS).expand(bookingId);
-        return Optional.ofNullable(restCallHelper.get(uri, OffenderBooking.class, true));
+        final var booking = new AtomicReference<Optional<OffenderBooking>>();
+        try {
+            booking.set(Optional.ofNullable(restCallHelper.get(uri, OffenderBooking.class, true)));
+        } catch (RestClientException e) {
+            booking.set(Optional.empty());
+        }
+        return booking.get();
     }
 }
