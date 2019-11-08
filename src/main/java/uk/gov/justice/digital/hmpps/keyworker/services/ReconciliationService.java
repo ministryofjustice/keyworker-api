@@ -150,7 +150,8 @@ public class ReconciliationService {
         nomisService.getMovement(offenderEvent.getBookingId(), offenderEvent.getMovementSeq())
                 .ifPresent(movement -> {
                     // check if movement out
-                    if ("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType()))) {
+                    if (("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType())))
+                      || ("IN".equals(movement.getDirectionCode()) && "ADM".equals(movement.getMovementType())) ) {
                         // check if prisoner is in this system if so, deallocate
                         offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderNo())
                                 .forEach(offenderKeyWorker -> checkValidTransferOrRelease(movement, offenderKeyWorker));
@@ -160,16 +161,19 @@ public class ReconciliationService {
 
     private void checkValidTransferOrRelease(final Movement movement, final OffenderKeyworker offenderKeyWorker) {
         log.debug("Offender {} moved from {} to {} (type {})", movement.getOffenderNo(), movement.getFromAgency(), movement.getToAgency(), movement.getMovementType());
+
         // check that FROM agency is from where the key-worker / prisoner relationship resides and the TO agency is not the same prison!
-        if (!offenderKeyWorker.getPrisonId().equals(movement.getToAgency()) && offenderKeyWorker.getPrisonId().equals(movement.getFromAgency())) {
+        if (!offenderKeyWorker.getPrisonId().equals(movement.getToAgency())) {
             // check if its a transfer then its to another prison
             if ("TRN".equals(movement.getMovementType())) {
                 if (nomisService.isPrison(movement.getToAgency())) {
                     offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.TRANSFER);
                 }
-            } else {
-                // otherwise its a release
+            } else if ("REL".equals(movement.getMovementType())) {
                 offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.RELEASED);
+
+            } else if ("ADM".equals(movement.getMovementType())) {
+                offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.TRANSFER);
             }
         }
     }
