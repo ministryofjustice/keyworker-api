@@ -546,9 +546,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Mock allocation lookup
         when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
-        when(nomisService.getPrisonerDetail(offender1.getOffenderNo(), false)).thenReturn(Optional.of(offender1));
-        when(nomisService.getPrisonerDetail(offender2.getOffenderNo(), false)).thenReturn(Optional.of(offender2));
-        when(nomisService.getPrisonerDetail(offender3.getOffenderNo(), false)).thenReturn(Optional.of(offender3));
+        when(nomisService.getPrisonerDetails(List.of(offender1.getOffenderNo(),offender2.getOffenderNo(),offender3.getOffenderNo()), true)).thenReturn(List.of(offender1, offender2, offender3));
 
         // Invoke service method
         final var allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
@@ -593,9 +591,7 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
 
         when(repository.findByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
 
-        when(nomisService.getPrisonerDetail(offender1.getOffenderNo(), false)).thenReturn(Optional.of(offender1));
-        when(nomisService.getPrisonerDetail("2", false)).thenReturn(Optional.empty());
-        when(nomisService.getPrisonerDetail(offender3.getOffenderNo(), false)).thenReturn(Optional.of(offender3));
+        when(nomisService.getPrisonerDetails(List.of(offender1.getOffenderNo(),"2",offender3.getOffenderNo()), true)).thenReturn(List.of(offender1, offender3));
 
         // Invoke service method
         final var allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);

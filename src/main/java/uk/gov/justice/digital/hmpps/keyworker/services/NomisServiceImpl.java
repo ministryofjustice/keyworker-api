@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +43,6 @@ public class NomisServiceImpl implements NomisService {
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
             new ParameterizedTypeReference<>() {};
 
-    private static final ParameterizedTypeReference<List<PrisonerCustodyStatusDto>> PRISONER_STATUS_DTO_LIST =
-            new ParameterizedTypeReference<>() {};
-
     private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
             new ParameterizedTypeReference<>() {};
 
@@ -78,11 +78,25 @@ public class NomisServiceImpl implements NomisService {
 
     @Override
     public Optional<PrisonerDetail> getPrisonerDetail(final String offenderNo, boolean admin) {
-        log.info("Getting prisoner details for NOMIS No {}", offenderNo);
-        final var uri = new UriTemplate(URI_PRISONER_LOOKUP).expand(offenderNo);
+        log.debug("Getting prisoner details for NOMIS No {}", offenderNo);
+        final var uri = new UriTemplate(URI_PRISONER_LOOKUP + "/{offenderNo}").expand(offenderNo);
 
         final var prisonerDetail = restCallHelper.getForList(uri, PRISONER_DETAIL_LIST, admin).getBody();
         return Optional.ofNullable(prisonerDetail.size() > 0 ? prisonerDetail.get(0) : null);
+    }
+
+    @Override
+    public List<PrisonerDetail> getPrisonerDetails(final List<String> offenderNos, boolean admin) {
+        final var uri = new UriTemplate(URI_PRISONER_LOOKUP).expand();
+        final var payload = PrisonerDetailLookup.builder().offenderNos(offenderNos).build();
+        return restCallHelper.post(uri, payload, PRISONER_DETAIL_LIST, admin);
+    }
+
+    @Data
+    @Builder
+    private static class PrisonerDetailLookup {
+        @JsonProperty("offenderNo")
+        private final List<String> offenderNos;
     }
 
     @Override
@@ -111,7 +125,7 @@ public class NomisServiceImpl implements NomisService {
 
     @Override
     public BasicKeyworkerDto getBasicKeyworkerDtoForOffender(final String offenderNo) {
-        log.info("Getting KW for offender", offenderNo);
+        log.info("Getting KW for offender {}", offenderNo);
 
         final var uri = new UriTemplate(GET_KEY_WORKER).expand(offenderNo);
         return restCallHelper.get(uri, BasicKeyworkerDto.class, false);
@@ -173,7 +187,7 @@ public class NomisServiceImpl implements NomisService {
 
     @Override
     public List<CaseNoteUsageDto> getCaseNoteUsage(final List<Long> staffIds, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final Integer numMonths) {
-        log.info("Getting case note details of type {} sub type {}, from {}, to {} for {} months", caseNoteType, caseNoteSubType, fromDate, toDate);
+        log.info("Getting case note details of type {} sub type {}, from {}, to {} for {} months", caseNoteType, caseNoteSubType, fromDate, toDate, numMonths);
         final var uri = new UriTemplate(CASE_NOTE_USAGE).expand();
 
         final var body = CaseNoteUsageRequest.builder()
