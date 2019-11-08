@@ -343,7 +343,7 @@ public class KeyworkerService {
             } else {
 
                 final var offenderNos = allocations.stream().map(OffenderKeyworker::getOffenderNo).collect(Collectors.toList());
-                final var prisonerDetailMap = nomisService.getPrisonerDetails(offenderNos, true).stream()
+                final var prisonerDetailMap = nomisService.getPrisonerDetails(offenderNos, false).stream()
                         .collect(Collectors.toMap(PrisonerDetail::getOffenderNo, prisoner -> prisoner));
 
                 detailsDtoList = allocations.stream()
