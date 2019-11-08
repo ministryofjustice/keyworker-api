@@ -89,7 +89,7 @@ public class NomisServiceImpl implements NomisService {
     public List<PrisonerDetail> getPrisonerDetails(final List<String> offenderNos, boolean admin) {
         final var uri = new UriTemplate(URI_PRISONER_LOOKUP).expand();
         final var payload = PrisonerDetailLookup.builder().offenderNos(offenderNos).build();
-        return restCallHelper.post(uri, payload, PRISONER_DETAIL_LIST, admin);
+        return restCallHelper.postWithLimit(uri, payload, PRISONER_DETAIL_LIST, offenderNos.size(), admin);
     }
 
     @Data
