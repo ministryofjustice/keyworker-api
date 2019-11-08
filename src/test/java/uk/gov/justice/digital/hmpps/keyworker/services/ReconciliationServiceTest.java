@@ -210,7 +210,41 @@ public class ReconciliationServiceTest {
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
         assertThat(offenderKw.getExpiryDateTime()).isNotNull();
+    }
+    @Test
+    public void testCheckWhenAdmittedIntoSamePrisonNoDeallocationOccurs() {
+        final var now = now();
+        when(nomisService.getMovement(eq(-1L), eq(1L)))
+                .thenReturn(Optional.of(Movement.builder()
+                        .directionCode("IN")
+                        .fromAgency("CRTTRN")
+                        .toAgency("LEI")
+                        .offenderNo(OFFENDER_NO)
+                        .movementType("ADM")
+                        .createDateTime(now)
+                        .build()));
 
+        final var offenderKw = OffenderKeyworker.builder()
+                .offenderNo(OFFENDER_NO)
+                .prisonId("LEI")
+                .active(true)
+                .assignedDateTime(now)
+                .allocationType(AllocationType.AUTO)
+                .offenderKeyworkerId(-100L)
+                .build();
+
+        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+                .thenReturn(List.of(offenderKw));
+
+        assertThat(offenderKw.isActive()).isTrue();
+        assertThat(offenderKw.getDeallocationReason()).isNull();
+        assertThat(offenderKw.getExpiryDateTime()).isNull();
+
+        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+
+        assertThat(offenderKw.isActive()).isTrue();
+        assertThat(offenderKw.getDeallocationReason()).isNull();
+        assertThat(offenderKw.getExpiryDateTime()).isNull();
     }
 
     @Test
