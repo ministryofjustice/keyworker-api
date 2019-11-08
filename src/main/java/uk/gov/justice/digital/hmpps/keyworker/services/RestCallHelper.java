@@ -60,6 +60,21 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
+    protected <T, E> List<T> postWithLimit(final URI uri, final E body, final ParameterizedTypeReference<List<T>> responseType, int limit, final boolean admin) {
+        final var exchange = getRestTemplate(admin).exchange(uri.toString(),
+                HttpMethod.POST,
+                withLimit(body, limit),
+                responseType);
+        return exchange.getBody();
+    }
+
+    private <E> HttpEntity<E> withLimit(final E body, final int limit) {
+        final var headers = new HttpHeaders();
+        headers.add(HEADER_PAGE_LIMIT, String.valueOf(limit));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<E>(body, headers);
+    }
+
     protected <T> ResponseEntity<T> getWithPagingAndSorting(final URI uri, final PagingAndSortingDto pagingAndSorting,
                                                             final ParameterizedTypeReference<T> responseType, final boolean admin) {
         return getRestTemplate(admin).exchange(
