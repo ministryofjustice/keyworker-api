@@ -341,8 +341,13 @@ public class KeyworkerService {
                                 .build())
                         .collect(Collectors.toList());
             } else {
+
+                final var offenderNos = allocations.stream().map(OffenderKeyworker::getOffenderNo).collect(Collectors.toList());
+                final var prisonerDetailMap = nomisService.getPrisonerDetails(offenderNos, true).stream()
+                        .collect(Collectors.toMap(PrisonerDetail::getOffenderNo, prisoner -> prisoner));
+
                 detailsDtoList = allocations.stream()
-                        .map(allocation -> decorateWithOffenderDetails(prisonId, allocation))
+                        .map(allocation -> decorateWithOffenderDetails(allocation, prisonerDetailMap.get(allocation.getOffenderNo())))
                         //remove allocations from returned list that do not have associated booking records - these are movements or merges
                         .filter(dto -> dto.getBookingId() != null)
                         .sorted(Comparator
@@ -360,33 +365,26 @@ public class KeyworkerService {
         return detailsDtoList;
     }
 
-    private KeyworkerAllocationDetailsDto decorateWithOffenderDetails(final String prisonId, final OffenderKeyworker allocation) {
-        final KeyworkerAllocationDetailsDto dto;
-
-        final var prisoner = nomisService.getPrisonerDetail(allocation.getOffenderNo(), false);
-
-        if (prisoner.isPresent()) {
-            final var offenderSummaryDto = prisoner.get();
-            final var samePrison = allocation.getPrisonId().equals(offenderSummaryDto.getLatestLocationId());
-            dto = KeyworkerAllocationDetailsDto.builder()
-                    .bookingId(offenderSummaryDto.getLatestBookingId())
-                    .offenderNo(allocation.getOffenderNo())
-                    .firstName(offenderSummaryDto.getFirstName())
-                    .middleNames(offenderSummaryDto.getMiddleNames())
-                    .lastName(offenderSummaryDto.getLastName())
-                    .staffId(allocation.getStaffId())
-                    .agencyId(offenderSummaryDto.getLatestLocationId()) //TODO: remove
-                    .prisonId(offenderSummaryDto.getLatestLocationId())
-                    .assigned(allocation.getAssignedDateTime())
-                    .allocationType(allocation.getAllocationType())
-                    .internalLocationDesc(samePrison ? stripAgencyId(offenderSummaryDto.getInternalLocation(), allocation.getPrisonId()) : offenderSummaryDto.getInternalLocation())
-                    .deallocOnly(!samePrison)
-                    .build();
-        } else {
-            log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using nomis service", allocation.getOffenderNo(), prisonId));
-            dto = KeyworkerAllocationDetailsDto.builder().build();
+    private KeyworkerAllocationDetailsDto decorateWithOffenderDetails(final OffenderKeyworker allocation, final PrisonerDetail prisonerDetail) {
+        if (prisonerDetail == null) {
+            log.error(format("Allocation does not have associated booking, removing from keyworker allocation list:\noffender %s in agency %s not found using nomis service", allocation.getOffenderNo(), allocation.getPrisonId()));
+            return KeyworkerAllocationDetailsDto.builder().build();
         }
-        return dto;
+        final var samePrison = allocation.getPrisonId().equals(prisonerDetail.getLatestLocationId());
+        return KeyworkerAllocationDetailsDto.builder()
+                .bookingId(prisonerDetail.getLatestBookingId())
+                .offenderNo(allocation.getOffenderNo())
+                .firstName(prisonerDetail.getFirstName())
+                .middleNames(prisonerDetail.getMiddleNames())
+                .lastName(prisonerDetail.getLastName())
+                .staffId(allocation.getStaffId())
+                .agencyId(prisonerDetail.getLatestLocationId()) //TODO: remove
+                .prisonId(prisonerDetail.getLatestLocationId())
+                .assigned(allocation.getAssignedDateTime())
+                .allocationType(allocation.getAllocationType())
+                .internalLocationDesc(samePrison ? stripAgencyId(prisonerDetail.getInternalLocation(), allocation.getPrisonId()) : prisonerDetail.getInternalLocation())
+                .deallocOnly(!samePrison)
+                .build();
     }
 
     public static String stripAgencyId(final String description, final String agencyId) {

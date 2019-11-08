@@ -178,7 +178,7 @@ class Elite2Api extends WireMockRule {
     }
 
     void stubPrisonerLookup(String offenderNo) {
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ URI_PRISONER_LOOKUP).expand(offenderNo).toString()))
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX+ URI_PRISONER_LOOKUP + "/{offenderNo}").expand(offenderNo).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(OffenderLocationDtoListStub.getResponsePrisoner(offenderNo))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
