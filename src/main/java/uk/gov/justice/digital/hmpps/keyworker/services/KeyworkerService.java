@@ -310,7 +310,7 @@ public class KeyworkerService {
                         .comparing(KeyWorkerAllocation::getAssigned).reversed())
                 .collect(Collectors.toList());
         // use prison for most recent allocation
-        final var prisonerDetail = nomisService.getPrisonerDetail(offenderNo, false).orElseThrow(EntityNotFoundException::new);
+        final var prisonerDetail = nomisService.getPrisonerDetail(offenderNo, true).orElseThrow(EntityNotFoundException::new);
 
         final var offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
                 .offender(prisonerDetail)
@@ -343,7 +343,7 @@ public class KeyworkerService {
             } else {
 
                 final var offenderNos = allocations.stream().map(OffenderKeyworker::getOffenderNo).collect(Collectors.toList());
-                final var prisonerDetailMap = nomisService.getPrisonerDetails(offenderNos, false).stream()
+                final var prisonerDetailMap = nomisService.getPrisonerDetails(offenderNos, true).stream()
                         .collect(Collectors.toMap(PrisonerDetail::getOffenderNo, prisoner -> prisoner));
 
                 detailsDtoList = allocations.stream()
