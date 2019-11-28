@@ -11,7 +11,7 @@ env:
     value: "batch,sqs"
 
   - name: JAVA_OPTS
-    value: ""
+    value: "{{ .Values.env.JAVA_OPTS }}"
 
   - name: JWT_PUBLIC_KEY
     value: "{{ .Values.env.JWT_PUBLIC_KEY }}"
