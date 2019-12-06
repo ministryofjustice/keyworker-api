@@ -35,6 +35,6 @@ class HealthSpecification extends TestSpecification {
 
         then:
         response.statusCode == HttpStatus.SERVICE_UNAVAILABLE
-        response.body.contains("{\"status\":\"DOWN\",\"details\":{\"elite2ApiHealth\":{\"status\":\"DOWN\",\"details\":{\"error\":\"org.springframework.web.client.ResourceAccessException: I/O error on GET request for \\\"http://localhost:8999/ping\\\": Read timed out; nested exception is java.net.SocketTimeoutException: Read timed out\"}}")
+        response.body.contains("\"elite2ApiHealth\":{\"status\":\"DOWN\",\"details\":{\"error\":\"org.springframework.web.client.ResourceAccessException: I/O error on GET request for \\\"http://localhost:8999/ping\\\": Read timed out; nested exception is java.net.SocketTimeoutException: Read timed out\"}}")
     }
 }

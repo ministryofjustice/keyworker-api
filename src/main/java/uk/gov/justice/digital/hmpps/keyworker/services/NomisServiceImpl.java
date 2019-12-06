@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
