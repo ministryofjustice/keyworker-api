@@ -103,7 +103,6 @@ dependencies {
     implementation 'org.apache.camel:camel-quartz2:2.24.2'
 
     implementation 'org.springframework:spring-jms'
-//    implementation 'com.amazonaws:aws-java-sdk:1.11.688'
     implementation 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8'
 
     implementation 'org.hibernate:hibernate-java8'
