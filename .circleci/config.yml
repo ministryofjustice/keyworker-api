@@ -61,6 +61,7 @@ orbs:
   aws-cli: circleci/aws-cli@0.1.13
   kubernetes: circleci/kubernetes@0.3.0
   helm: circleci/helm@0.1.2
+  owasp: entur/owasp@0.0.6
 
 jobs:
   build:
@@ -190,3 +191,15 @@ workflows:
           context: keyworker-api-prod
           requires:
             - request-prod-approval
+  scheduled:
+    triggers:
+      - schedule:
+          cron: "20 10 * * 1-5"
+          filters:
+            branches:
+              only:
+                - master
+                - sm-DT-404-add-owasp-check
+    jobs:
+      - owasp/gradle_owasp_dependency_check:
+          executor: builder
