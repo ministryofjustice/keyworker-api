@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,7 +21,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
 
 @Component
 @Slf4j
@@ -88,14 +86,13 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public List<PrisonerDetail> getPrisonerDetails(final List<String> offenderNos, boolean admin) {
         final var uri = new UriTemplate(URI_PRISONER_LOOKUP).expand();
-        final var payload = PrisonerDetailLookup.builder().offenderNos(offenderNos).build();
+        final var payload = new PrisonerDetailLookup(offenderNos);
         return restCallHelper.postWithLimit(uri, payload, PRISONER_DETAIL_LIST, offenderNos.size(), admin);
     }
 
     @Data
-    @Builder
+    @AllArgsConstructor
     private static class PrisonerDetailLookup {
-        @JsonProperty("offenderNo")
         private final List<String> offenderNos;
     }
 
