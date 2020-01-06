@@ -10,6 +10,7 @@ public enum DeallocationReason {
     TRANSFER("TRANSFER"),
     MERGED("MERGED"),
     MISSING("MISSING"),
+    DUP("DUPLICATE"),
     MANUAL("MANUAL");
 
     private final String reasonCode;

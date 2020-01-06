@@ -374,9 +374,9 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final var offenderNo = "X5555XX";
         final var staffId = 5L;
         when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
-        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(OffenderKeyworker.builder()
+        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(List.of(OffenderKeyworker.builder()
                 .staffId(staffId)
-                .build());
+                .build()));
         final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
         assertThat(keyworkerDetails).isEmpty();
     }
@@ -386,15 +386,38 @@ public class KeyworkerServiceTest extends AbstractServiceTest {
         final var offenderNo = "X5555XX";
         final var staffId = 5L;
         when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
-        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(OffenderKeyworker.builder()
+        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(List.of(OffenderKeyworker.builder()
                 .staffId(staffId)
-                .build());
+                .build()));
         expectBasicStaffApiCall(staffId);
 
         final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
 
         KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.orElseThrow(), staffId, "First", "Last");
     }
+
+    @Test
+    public void testGetCurrentKeyworkerWithDuplicatesForPrisoner() {
+        final var offenderNo = "X5555XX";
+        final var staffId = 5L;
+        when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
+        final var now = LocalDateTime.now();
+        final var keyWorkers = List.of(
+                OffenderKeyworker.builder().staffId(staffId).creationDateTime(now.minusSeconds(2)).offenderKeyworkerId(1L).build(),
+                OffenderKeyworker.builder().staffId(6L).creationDateTime(now).offenderKeyworkerId(3L).build(),
+                OffenderKeyworker.builder().staffId(staffId).creationDateTime(now.minusSeconds(1)).offenderKeyworkerId(2L).build()
+            );
+        when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(keyWorkers);
+        expectBasicStaffApiCall(6L);
+
+        final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
+
+        KeyworkerTestHelper.verifyBasicKeyworkerDto(keyworkerDetails.orElseThrow(), 6L, "First", "Last");
+        assertThat(keyWorkers.get(0).getDeallocationReason()).isEqualTo(DeallocationReason.DUP);
+        assertThat(keyWorkers.get(1).getDeallocationReason()).isNull();
+        assertThat(keyWorkers.get(2).getDeallocationReason()).isEqualTo(DeallocationReason.DUP);
+    }
+
 
     @Test
     public void testGetCurrentKeyworkerForPrisonerNotYetMigrated() {
