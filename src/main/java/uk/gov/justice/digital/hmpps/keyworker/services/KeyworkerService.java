@@ -108,7 +108,7 @@ public class KeyworkerService {
 
         final var results = processor.decorateAllocated(allocations, allOffenders);
 
-        return new Page<>(results, (long) allocations.size(), 0L, (long) allocations.size());
+        return new Page<>(results, allocations.size(), 0L, allocations.size());
     }
 
 
@@ -136,9 +136,19 @@ public class KeyworkerService {
     }
 
     public Optional<BasicKeyworkerDto> getCurrentKeyworkerForPrisoner(final String offenderNo) {
-        final var activeOffenderKeyworker = repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, AllocationType.PROVISIONAL);
-        if (activeOffenderKeyworker != null) {
-            final var staffDetail = nomisService.getBasicKeyworkerDtoForStaffId(activeOffenderKeyworker.getStaffId());
+        final var activeOffenderKeyworkers = repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, AllocationType.PROVISIONAL);
+
+        if (!activeOffenderKeyworkers.isEmpty()) {
+            // this should be a single record - but can have duplicates - get latest
+            final var latestKw = activeOffenderKeyworkers.stream().max(Comparator.comparing(OffenderKeyworker::getCreationDateTime)).orElseThrow();
+
+            if (activeOffenderKeyworkers.size() > 1) {
+                // de-allocate dups
+                activeOffenderKeyworkers.stream()
+                        .filter(kw -> !latestKw.getOffenderKeyworkerId().equals(kw.getOffenderKeyworkerId()))
+                        .forEach(kw -> kw.deallocate(LocalDateTime.now(), DeallocationReason.DUP));
+            }
+            final var staffDetail = nomisService.getBasicKeyworkerDtoForStaffId(latestKw.getStaffId());
             if (staffDetail != null) {
                 return Optional.of(BasicKeyworkerDto.builder()
                         .firstName(staffDetail.getFirstName())
@@ -357,7 +367,6 @@ public class KeyworkerService {
             }
         } else {
             detailsDtoList = nomisService.getCurrentAllocations(Collections.singletonList(staffId), prisonId);
-
         }
 
         log.debug("Retrieved allocations for keyworker {}:\n{}", staffId, detailsDtoList);
@@ -403,17 +412,17 @@ public class KeyworkerService {
         final List<KeyworkerDto> convertedKeyworkerDtoList = new ArrayList<>();
         final var prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
         if (prisonDetail.isMigrated()) {
-            convertedKeyworkerDtoList.addAll(response.getBody().stream().distinct()
+            convertedKeyworkerDtoList.addAll(Objects.requireNonNull(response.getBody()).stream().distinct()
                     .map(ConversionHelper::getKeyworkerDto)
                     .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                    .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
+                    .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
                     .peek(this::decorateWithAllocationsCount)
                     .collect(Collectors.toList()));
         } else {
-            convertedKeyworkerDtoList.addAll(response.getBody().stream().distinct()
+            convertedKeyworkerDtoList.addAll(Objects.requireNonNull(response.getBody()).stream().distinct()
                     .map(ConversionHelper::getKeyworkerDto)
                     .peek(this::decorateWithNomisKeyworkerData)
-                    .filter(t -> !statusFilter.isPresent() || t.getStatus() == statusFilter.get())
+                    .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
                     .collect(Collectors.toList()));
 
             populateWithAllocations(convertedKeyworkerDtoList, prisonId);
