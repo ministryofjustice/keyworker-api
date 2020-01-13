@@ -1,134 +1,69 @@
-# keyworker-api
+# Deployment Notes
 
-OMIC Keyworker API
+## Prerequisites
 
+- Ensure you have helm v3 client installed.
 
-#### Env Variables:
-
-```properties
-      SERVER_PORT=8081
-      SPRING_PROFILES_ACTIVE=dev
-      JWT_PUBLIC_KEY=secret
-      ELITE2_URI_ROOT=http://localhost:8080
-      QUARTZ_ENABLED=false
-      DEALLOCATION_JOB_CRON=0 15 09 ? * *
-      API_KEYWORKER_INITIAL_DEALLOCATE_THRESHOLD=2018-04-01T12:00
-      ELITE2API_CLIENT_CLIENTSECRET=**
+```sh
+$ helm version
+version.BuildInfo{Version:"v3.0.1", GitCommit:"7c22ef9ce89e0ebeb7125ba2ebf7d421f3e82ffa", GitTreeState:"clean", GoVersion:"go1.13.4"}
 ```
 
-### Setting secrets
+- Ensure a TLS cert for your intended hostname is configured and ready, see section below.
 
-`JWT_PUBLIC_KEY` is generated from:-
+### Useful helm (v3) commands:
 
-```bash
-keytool -list -rfc --keystore elite2api.jks | openssl x509 -inform pem -pubkey -noout | base64
+__Test chart template rendering:__
+
+This will out the fully rendered kubernetes resources in raw yaml.
+
+```sh
+helm template [path to chart] --values=values-dev.yaml --values=secrets-example.yaml
 ```
 
-`elite2api.jks` is the pub/private key pair that elite2-api holds.
+__List releases:__
 
-### Other Variables
-####QUARTZ_ENABLED
-Switch running batch processes on or off
-####DEALLOCATION_JOB_CRON
-Defines when the deallocation job runs. Can be as often as desired provided there isnt a significant load on NOMIS.
-####API_KEYWORKER_INITIAL_DEALLOCATE_THRESHOLD
-The earliest date the deallocate batch job needs to go back to, e.g. migration time of the earliest prison. This is used when there is no previous batch run timestamp available.
-####ELITE2API_CLIENT_CLIENTSECRET
-The secret for the "omicadmin" oauth2 client id.
-
-### To build:
-
-```bash
-./gradlew build
+```sh
+helm --namespace [namespace] list
 ```
 
-### To Run:
-```bash
-docker-compose up
+__List current and previously installed application versions:__
+
+```sh
+helm --namespace [namespace] history [release name]
 ```
 
-#### Running against local postgres docker:
-Run the postgres docker image:
-```bash
-docker run --name=keyworker-postgres -e POSTGRES_PASSWORD=password -p5432:5432 -d postgres
-```
-Run spring boot with the the postgres spring profile
+__Rollback to previous version:__
 
-### Connecting to Dev / Stage keyworker RDS DB instances
-
-The RDS DB required SSL mode to connect therefore add `sslmode=verify-full` to the end of the JDBC URL
-
-In addition you will need to add the root Amazon CA certificate
-
-```bash
-mkdir ~/.postgresql
-curl https://s3.amazonaws.com/rds-downloads/rds-ca-2015-root.pem > ~/.postgresql/root.crt
+```sh
+helm --namespace [namespace] rollback [release name] [revision number] --wait
 ```
 
-#### Health
+Note: replace _revision number_ with one from listed in the `history` command)
 
-- `/ping`: will respond `pong` to all requests.  This should be used by dependent systems to check connectivity to keyworker,
-rather than calling the `/health` endpoint.
-- `/health`: provides information about the application health and its dependencies.  This should only be used
-by keyworker health monitoring (e.g. pager duty) and not other systems who wish to find out the state of keyworker.
-- `/info`: provides information about the version of deployed application.
+__Example deploy command:__
 
-## Running localstack and database
-```bash
-TMPDIR=/private$TMPDIR docker-compose up localstack keyworker-api-db
+The following example is `--dry-run` mode - which will allow for testing. CircleCI normally runs this command with actual secret values (from AWS secret manager), and also updated the chart's application version to match the release version:
+
+```sh
+helm upgrade [release name] [path to chart]. \
+  --install --wait --force --reset-values --timeout 5m --history-max 10 \
+  --dry-run \
+  --namespace [namespace] \
+  --values values-dev.yaml \
+  --values example-secrets.yaml
 ```
 
-## Creating the Topic and Queue
-Simpliest way is running the following script
-```bash
-./setup-queue.bash
+### Ingress TLS certificate
+
+Ensure a certificate definition exists in the cloud-platform-environments repo under the relevant namespaces folder:
+
+e.g.
+
+```sh
+cloud-platform-environments/namespaces/live-1.cloud-platform.service.justice.gov.uk/[INSERT NAMESPACE NAME]/05-certificate.yaml
 ```
 
-Or you can run the scripts individually as shown below.
+Ensure the certificate is created and ready for use.
 
-## Creating a topic and queue on localstack
-
-```bash
-aws --endpoint-url=http://localhost:4575 sns create-topic --name offender_events
-```
-
-Results in:
-```json
-{
-    "TopicArn": "arn:aws:sns:eu-west-2:000000000000:offender_events"
-}
-
-```
-
-## Creating a queue
-```bash
-aws --endpoint-url=http://localhost:4576 sqs create-queue --queue-name keyworker_api_queue
-```
-
-Results in:
-```json
-{
-   "QueueUrl": "http://localhost:4576/queue/keyworker_api_queue"
-}
-```
-
-## Creating a subscription
-```bash
-aws --endpoint-url=http://localhost:4575 sns subscribe \
-    --topic-arn arn:aws:sns:eu-west-2:000000000000:offender_events \
-    --protocol sqs \
-    --notification-endpoint http://localhost:4576/queue/keyworker_api_queue \
-    --attributes '{"FilterPolicy":"{\"eventType\":[\"EXTERNAL_MOVEMENT_RECORD-INSERTED\", \"BOOKING_NUMBER-CHANGED\"]}"}'
-```
-
-Results in:
-```json
-{
-    "SubscriptionArn": "arn:aws:sns:eu-west-2:000000000000:offender_events:074545bd-393c-4a43-ad62-95b1809534f0"
-}
-```
-
-## Read off the queue
-```bash
-aws --endpoint-url=http://localhost:4576 sqs receive-message --queue-url http://localhost:4576/queue/keyworker_api_queue
-```
+The name of the kubernetes secret where the certificate is stored is used as a value to the helm chart - this is used to configured the ingress.
