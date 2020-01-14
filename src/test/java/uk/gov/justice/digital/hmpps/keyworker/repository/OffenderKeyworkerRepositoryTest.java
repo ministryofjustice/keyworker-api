@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.within;
 @Transactional
 class OffenderKeyworkerRepositoryTest {
 
-    private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016,1, 2, 3, 4, 5);
+    private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016, 1, 2, 3, 4, 5);
     private static final LocalDateTime EXPIRY_DATE_TIME = LocalDateTime.of(2020, 12, 30, 9, 34, 56);
     private static final String AGENCY_ID_LEI = "LEI";
     private static long currentId;
@@ -166,6 +166,20 @@ class OffenderKeyworkerRepositoryTest {
         TestTransaction.end();
         assertThat(repository.findById(entity1.getOffenderKeyworkerId()).orElseThrow().getAllocationType()).isEqualTo(AllocationType.AUTO);
         assertThat(repository.findById(entity2.getOffenderKeyworkerId()).orElseThrow().getAllocationType()).isEqualTo(AllocationType.AUTO);
+    }
+
+    @Test
+    public void deleteByOffenderNo() {
+        final var offenderNo = "A12345B";
+        final var transientEntity = transientEntity().toBuilder().offenderNo(offenderNo).build();
+        repository.save(transientEntity);
+        final var transientEntity2 = transientEntity().toBuilder().offenderNo(offenderNo).build();
+        repository.save(transientEntity2);
+        assertThat(repository.findByOffenderNo(offenderNo)).hasSize(2);
+
+        assertThat(repository.deleteByOffenderNo(offenderNo)).isEqualTo(2);
+
+        assertThat(repository.findByOffenderNo(offenderNo)).hasSize(0);
     }
 
     private OffenderKeyworker transientEntity() {

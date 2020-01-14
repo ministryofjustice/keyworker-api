@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.microsoft.applicationinsights.TelemetryClient;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +33,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIV
 @Transactional
 @Validated
 @Slf4j
+@AllArgsConstructor
 public class KeyworkerService {
     public static final String KEYWORKER_ENTRY_SUB_TYPE = "KE";
     public static final String KEYWORKER_SESSION_SUB_TYPE = "KS";
@@ -43,20 +46,7 @@ public class KeyworkerService {
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
-
-    public KeyworkerService(final AuthenticationFacade authenticationFacade,
-                            final OffenderKeyworkerRepository repository,
-                            final KeyworkerRepository keyworkerRepository,
-                            final KeyworkerAllocationProcessor processor,
-                            final PrisonSupportedService prisonSupportedService,
-                            final NomisService nomisService) {
-        this.authenticationFacade = authenticationFacade;
-        this.repository = repository;
-        this.keyworkerRepository = keyworkerRepository;
-        this.processor = processor;
-        this.prisonSupportedService = prisonSupportedService;
-        this.nomisService = nomisService;
-    }
+    private final TelemetryClient telemetryClient;
 
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {
 
@@ -439,6 +429,12 @@ public class KeyworkerService {
 
 
         return new Page<>(keyworkers, response.getHeaders());
+    }
+
+    public void deleteKeyworkersForOffender(final String offenderNo) {
+        final var count = repository.deleteByOffenderNo(offenderNo);
+        log.info("Deleted {} case notes for offender identifier {}", count, offenderNo);
+        telemetryClient.trackEvent("KeyworkersDeletedForOffender", Map.of("offenderNo", offenderNo, "count", String.valueOf(count)), null);
     }
 
     private void populateWithAllocations(final List<KeyworkerDto> convertedKeyworkerDtoList, final String prisonId) {
