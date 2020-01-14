@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,8 +12,8 @@ import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class UserRolesMigrationServiceTest {
+@ExtendWith(MockitoExtension.class)
+class UserRolesMigrationServiceTest {
     private static final String ROLE_TO_MATCH_1 = "SR1";
     private static final String ROLE_TO_MATCH_2 = "SR2";
 
@@ -41,14 +41,14 @@ public class UserRolesMigrationServiceTest {
     private UserRolesMigrationService service;
 
     @Test
-    public void givenNoRolesToMigrateThenDoNothing() {
+    void givenNoRolesToMigrateThenDoNothing() {
         initialiseService(NO_ROLES, NO_ROLES, SINGLE_ROLE_TO_MIGRATE);
         service.migrate(PRISON_ID);
         verifyZeroInteractions(roleService);
     }
 
     @Test
-    public void givenNoStaffToMigrateThenOnlySearchForStaff() {
+    void givenNoStaffToMigrateThenOnlySearchForStaff() {
         when(roleService.findUsersForPrisonHavingRole(any(), any())).thenReturn(setOf());
 
         initialiseService(SINGLE_ROLE_TO_MATCH, SINGLE_ROLE_TO_ASSIGN, SINGLE_ROLE_TO_MIGRATE);
@@ -59,7 +59,7 @@ public class UserRolesMigrationServiceTest {
     }
 
     @Test
-    public void givenMatchingStaffThenSingleMatchingRoleIsRemoved() {
+    void givenMatchingStaffThenSingleMatchingRoleIsRemoved() {
         when(roleService.findUsersForPrisonHavingRole(any(), any())).thenReturn(setOf(USERNAME_1));
 
         initialiseService(SINGLE_ROLE_TO_MATCH, NO_ROLES, SINGLE_ROLE_TO_MIGRATE);
@@ -69,7 +69,7 @@ public class UserRolesMigrationServiceTest {
     }
 
     @Test
-    public void givenMatchingStaffThenMatchingRolesAreRemoved() {
+    void givenMatchingStaffThenMatchingRolesAreRemoved() {
         when(roleService.findUsersForPrisonHavingRole(any(), any())).thenReturn(setOf(USERNAME_1));
 
         initialiseService(TWO_ROLES_TO_MATCH, NO_ROLES, SINGLE_ROLE_TO_MIGRATE);
@@ -80,7 +80,7 @@ public class UserRolesMigrationServiceTest {
     }
 
     @Test
-    public void givenOverlappingStaffPerRoleThenAllMatchingRolesAreRemoved() {
+    void givenOverlappingStaffPerRoleThenAllMatchingRolesAreRemoved() {
         when(roleService.findUsersForPrisonHavingRole(PRISON_ID, ROLE_TO_MATCH_1)).thenReturn(setOf(USERNAME_1, USERNAME_2));
         when(roleService.findUsersForPrisonHavingRole(PRISON_ID, ROLE_TO_MATCH_2)).thenReturn(setOf(USERNAME_2 ,USERNAME_3));
 
@@ -100,7 +100,7 @@ public class UserRolesMigrationServiceTest {
     }
 
     @Test
-    public void givenOverlappingStaffPerRoleThenRolesAreAssigned() {
+    void givenOverlappingStaffPerRoleThenRolesAreAssigned() {
         when(roleService.findUsersForPrisonHavingRole(PRISON_ID, ROLE_TO_MATCH_1)).thenReturn(setOf(USERNAME_1, USERNAME_2));
         when(roleService.findUsersForPrisonHavingRole(PRISON_ID, ROLE_TO_MATCH_2)).thenReturn(setOf(USERNAME_2 ,USERNAME_3));
 
@@ -122,7 +122,7 @@ public class UserRolesMigrationServiceTest {
     }
 
     @Test
-    public void givenMatchingStaffThenSingleRoleIsAdded() {
+    void givenMatchingStaffThenSingleRoleIsAdded() {
         when(roleService.findUsersForPrisonHavingRole(any(), any())).thenReturn(setOf(USERNAME_1));
 
         initialiseService(SINGLE_ROLE_TO_MATCH_2, SINGLE_ROLE_TO_ASSIGN, SINGLE_ROLE_TO_MIGRATE);

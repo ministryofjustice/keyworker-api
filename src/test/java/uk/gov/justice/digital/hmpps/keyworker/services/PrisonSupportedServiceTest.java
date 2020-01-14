@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
@@ -16,12 +16,13 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedReposito
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class PrisonSupportedServiceTest {
+@ExtendWith(MockitoExtension.class)
+class PrisonSupportedServiceTest {
 
     private static final String TEST_AGENCY = "LEI";
 
@@ -30,34 +31,34 @@ public class PrisonSupportedServiceTest {
     @Mock
     private PrisonSupportedRepository repository;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         prisonSupportedService = new PrisonSupportedService(repository);
         ReflectionTestUtils.setField(prisonSupportedService, "capacityTiers", List.of(6,9));
     }
 
-    @Test(expected = PrisonNotSupportedException.class)
-    public void testVerifyPrisonSupportForUnsupportedPrison() {
+    @Test
+    void testVerifyPrisonSupportForUnsupportedPrison() {
         when(repository.existsByPrisonId("XXX")).thenReturn(false);
-        prisonSupportedService.verifyPrisonMigrated("XXX");
-    }
-
-    @Test(expected = PrisonNotMigratedException.class)
-    public void testVerifyPrisonSupportForSupportedPrison() {
-        when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(true);
-        when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(false).build()));
-        prisonSupportedService.verifyPrisonMigrated(TEST_AGENCY);
+        assertThatThrownBy(() -> prisonSupportedService.verifyPrisonMigrated("XXX")).isInstanceOf(PrisonNotSupportedException.class);
     }
 
     @Test
-    public void testVerifyPrisonMigratedForSupportedPrison() {
+    void testVerifyPrisonSupportForSupportedPrison() {
+        when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(true);
+        when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(false).build()));
+        assertThatThrownBy(() -> prisonSupportedService.verifyPrisonMigrated(TEST_AGENCY)).isInstanceOf(PrisonNotMigratedException.class);
+    }
+
+    @Test
+    void testVerifyPrisonMigratedForSupportedPrison() {
         when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(true);
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(true).build()));
         prisonSupportedService.verifyPrisonMigrated(TEST_AGENCY);
     }
 
     @Test
-    public void testIsMigratedSupportedPrison() {
+    void testIsMigratedSupportedPrison() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(true).build()));
         final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
@@ -65,7 +66,7 @@ public class PrisonSupportedServiceTest {
     }
 
     @Test
-    public void testIsNotMigratedSupportedPrison() {
+    void testIsNotMigratedSupportedPrison() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).migrated(false).build()));
         final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
@@ -73,7 +74,7 @@ public class PrisonSupportedServiceTest {
     }
 
     @Test
-    public void testIsNotExistsSupportedPrison() {
+    void testIsNotExistsSupportedPrison() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.empty());
         final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
@@ -81,21 +82,21 @@ public class PrisonSupportedServiceTest {
     }
 
     @Test
-    public void testAutoAllocationSupportedForPrison() {
+    void testAutoAllocationSupportedForPrison() {
         when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(true);
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).autoAllocate(true).build()));
         prisonSupportedService.verifyPrisonSupportsAutoAllocation(TEST_AGENCY);
     }
 
-    @Test(expected = PrisonNotSupportAutoAllocationException.class)
-    public void testAutoAllocationNotSupportedForPrison() {
+    @Test
+    void testAutoAllocationNotSupportedForPrison() {
         when(repository.existsByPrisonId(TEST_AGENCY)).thenReturn(true);
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).autoAllocate(false).build()));
-        prisonSupportedService.verifyPrisonSupportsAutoAllocation(TEST_AGENCY);
+        assertThatThrownBy(() -> prisonSupportedService.verifyPrisonSupportsAutoAllocation(TEST_AGENCY)).isInstanceOf(PrisonNotSupportAutoAllocationException.class);
     }
 
     @Test
-    public void testUpdateSupportedPrisonAutoAllocateUpdate() {
+    void testUpdateSupportedPrisonAutoAllocateUpdate() {
         final var prison = PrisonSupported.builder().prisonId(TEST_AGENCY).build();
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.of(prison));
 
@@ -107,7 +108,7 @@ public class PrisonSupportedServiceTest {
     }
 
     @Test
-    public void testUpdateSupportedPrisonAutoAllocateNew() {
+    void testUpdateSupportedPrisonAutoAllocateNew() {
         when(repository.findById(TEST_AGENCY)).thenReturn(Optional.empty());
 
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true);

@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
-public class KeyworkerTestHelper {
+class KeyworkerTestHelper {
     public static final int CAPACITY_TIER_1 = 6;
     public static final int CAPACITY_TIER_2 = 9;
     public static final int FULLY_ALLOCATED = CAPACITY_TIER_2;
@@ -85,7 +85,7 @@ public class KeyworkerTestHelper {
     }
 
     // Provides list of Key workers with varying number of allocations (within specified range)
-    public static List<KeyworkerDto> getKeyworkers(final long total, final int minAllocations, final int maxAllocations, final int capacity, final String agencyId) {
+    private static List<KeyworkerDto> getKeyworkers(final long total, final int minAllocations, final int maxAllocations, final int capacity, final String agencyId) {
         final List<KeyworkerDto> keyworkers = new ArrayList<>();
 
         for (long i = 1; i <= total; i++) {

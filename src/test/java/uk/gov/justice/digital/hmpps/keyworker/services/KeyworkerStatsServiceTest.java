@@ -1,12 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
@@ -23,15 +22,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.*;
 
-
-@RunWith(MockitoJUnitRunner.class)
-public class KeyworkerStatsServiceTest {
+@ExtendWith(MockitoExtension.class)
+class KeyworkerStatsServiceTest {
 
     @Mock
     private NomisService nomisService;
@@ -59,36 +57,34 @@ public class KeyworkerStatsServiceTest {
     private final static String TEST_AGENCY_ID = "LEI";
     private final static Long TEST_STAFF_ID = (long) -5;
     private final static Long TEST_STAFF_ID2 = (long) -3;
-    private final static List<String> offenderNos = List.of( "A9876RS","A1176RS","A5576RS" );
+    private final static List<String> offenderNos = List.of("A9876RS", "A1176RS", "A5576RS");
     private final static String inactiveOffender = "B1176RS";
     private final static String activeInFuture = "B8876RS";
-    private final static List<String> otherOffenderNos = List.of( "B9876RS","B5576RS","B5886RS","C5576RS","C5886RS","C8876RS" );
+    private final static List<String> otherOffenderNos = List.of("B9876RS", "B5576RS", "B5886RS", "C5576RS", "C5886RS", "C8876RS");
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    @BeforeEach
+    void setUp() {
         service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, keyworkerRepository, telemetryClient);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
-        when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(10).atStartOfDay()).build());
-        when(prisonSupportedService.getPrisonDetail("MDI")).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(2).migrated(true).migratedDateTime(toDate.minusDays(10).atStartOfDay()).build());
+        lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(10).atStartOfDay()).build());
+        lenient().when(prisonSupportedService.getPrisonDetail("MDI")).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(2).migrated(true).migratedDateTime(toDate.minusDays(10).atStartOfDay()).build());
     }
-
-    @Test(expected = NullPointerException.class)
-    public void testShouldThrowIfRequiredParametersAreMissing() {
-        service.getStatsForStaff(null, null, null, null);
-    }
-
 
     @Test
-    public void testThatCorrectCalculationsAreMadeForAnActiveSetOfOffenders() {
+    void testShouldThrowIfRequiredParametersAreMissing() {
+        assertThatThrownBy(() -> service.getStatsForStaff(null, null, null, null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void testThatCorrectCalculationsAreMadeForAnActiveSetOfOffenders() {
 
         when(repository.findByStaffIdAndPrisonId(TEST_STAFF_ID, TEST_AGENCY_ID)).thenReturn(getDefaultOffenderKeyworkers());
 
         final var usageCounts = getCaseNoteUsagePrisonersDtos();
 
 
-        when(nomisService.getCaseNoteUsageForPrisoners( offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+        when(nomisService.getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
         final var stats = service.getStatsForStaff(
@@ -175,7 +171,7 @@ public class KeyworkerStatsServiceTest {
     }
 
     @Test
-    public void testThatNoActiveOffendersAreNotConsideredAndLimitedOffenderAssignmentIsHandled() {
+    void testThatNoActiveOffendersAreNotConsideredAndLimitedOffenderAssignmentIsHandled() {
 
         when(repository.findByStaffIdAndPrisonId(TEST_STAFF_ID2, TEST_AGENCY_ID)).thenReturn(List.of(
                 OffenderKeyworker.builder() // Active for 3 weeks
@@ -289,7 +285,7 @@ public class KeyworkerStatsServiceTest {
                 .numCaseNotes(2)
                 .build());
 
-        when(nomisService.getCaseNoteUsageForPrisoners( otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+        when(nomisService.getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
                 .thenReturn(usageCounts);
 
         final var stats = service.getStatsForStaff(
@@ -308,11 +304,11 @@ public class KeyworkerStatsServiceTest {
     }
 
     @Test
-    public void testHappyPathGeneratePrisonStats() {
+    void testHappyPathGeneratePrisonStats() {
 
         basicSetup();
 
-        when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
+        lenient().when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true)))
                 .thenReturn(List.of(
                         CaseNoteUsagePrisonersDto.builder()
@@ -345,11 +341,11 @@ public class KeyworkerStatsServiceTest {
     }
 
     @Test
-    public void testNoTranfersGenerateNoAvgStats() {
+    void testNoTranfersGenerateNoAvgStats() {
 
         basicSetup();
 
-        when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
+        lenient().when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true)))
                 .thenReturn(Collections.emptyList());
 
@@ -367,7 +363,7 @@ public class KeyworkerStatsServiceTest {
     }
 
     @Test
-    public void testPrisonStats() {
+    void testPrisonStats() {
         final var prisonIds = Collections.singletonList(TEST_AGENCY_ID);
 
         final var now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
@@ -387,8 +383,8 @@ public class KeyworkerStatsServiceTest {
                                 840D,
                                 3D,
                                 5D)
-                        )
-                );
+                )
+        );
 
         final var previousFromDate = fromDate.minusDays(DAYS.between(fromDate, toDate) + 1);
         when(statisticRepository.getAggregatedData(eq(prisonIds), eq(previousFromDate), eq(fromDate.minusDays(1)))).thenReturn(
@@ -446,7 +442,7 @@ public class KeyworkerStatsServiceTest {
     }
 
     @Test
-    public void testPrisonStatsWeekOnly() {
+    void testPrisonStatsWeekOnly() {
         final var prisonIds = Collections.singletonList("MDI");
 
         final var now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
@@ -525,7 +521,7 @@ public class KeyworkerStatsServiceTest {
     }
 
     @Test
-    public void testPrisonStatsSmallData() {
+    void testPrisonStatsSmallData() {
         final var prisonIds = Collections.singletonList("MDI");
 
         final var now = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
@@ -586,7 +582,7 @@ public class KeyworkerStatsServiceTest {
         final List<PrisonKeyWorkerStatistic> timeline = new ArrayList<>();
 
         var day = 0;
-        double between = DAYS.between(fromDate, toDate)+1;
+        double between = DAYS.between(fromDate, toDate) + 1;
         while (day <= DAYS.between(fromDate, toDate)) {
             timeline.add(PrisonKeyWorkerStatistic.builder()
                     .prisonId(prisonId)
@@ -594,8 +590,8 @@ public class KeyworkerStatsServiceTest {
                     .totalNumPrisoners(totalNumPrisoners)
                     .numPrisonersAssignedKeyWorker(numPrisonersAssignedKeyWorker)
                     .numberOfActiveKeyworkers(numberOfActiveKeyworkers)
-                    .numberKeyWorkerEntries((int)(kwEntriesCurrent / between))
-                    .numberKeyWorkerSessions((int)(kwSessionsCurrent / between))
+                    .numberKeyWorkerEntries((int) (kwEntriesCurrent / between))
+                    .numberKeyWorkerSessions((int) (kwSessionsCurrent / between))
                     .avgNumDaysFromReceptionToKeyWorkingSession(5)
                     .avgNumDaysFromReceptionToAllocationDays(3)
                     .build());
@@ -604,7 +600,7 @@ public class KeyworkerStatsServiceTest {
 
         if (kwSessionsPrevious > 0) {
             day = 0;
-            between = DAYS.between(previousFromDate, fromDate)+1;
+            between = DAYS.between(previousFromDate, fromDate) + 1;
             while (day < DAYS.between(previousFromDate, fromDate)) {
                 timeline.add(PrisonKeyWorkerStatistic.builder()
                         .prisonId(prisonId)
@@ -656,8 +652,8 @@ public class KeyworkerStatsServiceTest {
         when(nomisService.getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true)))
                 .thenReturn(new ResponseEntity<>(staffLocationRoleDtos, HttpStatus.OK));
 
-        when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build()));
-        when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build()));
+        lenient().when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build()));
+        lenient().when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build()));
 
         when(nomisService.getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),

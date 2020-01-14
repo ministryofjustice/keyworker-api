@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
@@ -17,8 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -28,8 +27,8 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 /**
  * Unit test for Key worker pool.
  */
-@RunWith(MockitoJUnitRunner.class)
-public class KeyworkerPoolTest {
+@ExtendWith(MockitoExtension.class)
+class KeyworkerPoolTest {
     private static final String TEST_AGENCY_ID = "LEI";
 
     private KeyworkerPool keyworkerPool;
@@ -39,8 +38,8 @@ public class KeyworkerPoolTest {
     @Mock
     private PrisonSupportedService prisonSupportedService;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         final var prisonDetail = Prison.builder()
                 .prisonId(TEST_AGENCY_ID).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
                 .build();
@@ -65,7 +64,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, an offender will not be allocated to a Key worker.
     @Test
-    public void testSingleKeyworkerWithSpareCapacity() {
+    void testSingleKeyworkerWithSpareCapacity() {
         // Single KW, with capacity, in KWP
         final var keyworker = getKeyworker(1, CAPACITY_TIER_1, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, Collections.singleton(keyworker), TEST_AGENCY_ID);
@@ -87,7 +86,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, a Key worker will be allocated too many offenders.
     @Test
-    public void testPoolErrorsWhenSingleKeyworkerIsFullyAllocated() {
+    void testPoolErrorsWhenSingleKeyworkerIsFullyAllocated() {
         // Single KW, fully allocated, in KWP
         final var keyworker = getKeyworker(1, FULLY_ALLOCATED, CAPACITY_TIER_1);
         keyworkerPool = initKeyworkerPool(keyworkerService, prisonSupportedService, Collections.singleton(keyworker), TEST_AGENCY_ID);
@@ -109,7 +108,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, offenders may not be allocated evenly across Key workers.
     @Test
-    public void testKeyworkerWithMostSpareCapacityIsReturned() {
+    void testKeyworkerWithMostSpareCapacityIsReturned() {
         // Multiple KWs, all with capacity, in KWP
         final var lowAllocCount = 1;
         final var highAllocCount = FULLY_ALLOCATED - 1;
@@ -134,7 +133,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, offenders may be wrongly allocated to a PT or otherwise low-capacity Key worker.
     @Test
-    public void testKeyworkerWithLowerCapacityIsNotReturned() {
+    void testKeyworkerWithLowerCapacityIsNotReturned() {
         // Multiple KWs, all with capacity, in KWP
         final var lowAllocCount = 6;
         final var highAllocCount = FULLY_ALLOCATED - 1;
@@ -152,7 +151,7 @@ public class KeyworkerPoolTest {
 
     // Check the staffid last resort ordering
     @Test
-    public void testKeyworkerOrderAllIdentical() {
+    void testKeyworkerOrderAllIdentical() {
         final var keyworkers = getKeyworkers(5, 1, 1, CAPACITY_TIER_1);
         // Make life difficult for the comparator - decreasing staff id order
         Collections.shuffle(keyworkers);
@@ -178,7 +177,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, offenders may not be allocated to Key worker with most capacity and least-recent auto-allocation.
     @Test
-    public void testKeyworkerWithMostCapacityAndLeastRecentAllocationIsReturned() {
+    void testKeyworkerWithMostCapacityAndLeastRecentAllocationIsReturned() {
         // Multiple KWs, all with capacity and a couple with same least number of allocations, in KWP
         final var lowAllocCount = 1;
         final var highAllocCount = FULLY_ALLOCATED - 1;
@@ -233,7 +232,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, an offender will not be allocated to a Key worker they have previously been allocated to.
     @Test
-    public void testPreviouslyAllocatedKeyworkerIsReturned() {
+    void testPreviouslyAllocatedKeyworkerIsReturned() {
         // Multiple KWs, all with capacity, in KWP
         final var lowAllocCount = 1;
         final var highAllocCount = FULLY_ALLOCATED - 1;
@@ -262,7 +261,7 @@ public class KeyworkerPoolTest {
     //
     // If this test fails, an offender will not be allocated to the Key worker they were most recently allocated to.
     @Test
-    public void testMostRecentPreviouslyAllocatedKeyworkerIsReturned() {
+    void testMostRecentPreviouslyAllocatedKeyworkerIsReturned() {
         // Multiple KWs, all with capacity, in KWP
         final var lowAllocCount = 1;
         final var highAllocCount = FULLY_ALLOCATED - 1;
@@ -295,8 +294,8 @@ public class KeyworkerPoolTest {
     // Then an IllegalStateException is thrown because the KW is not in the KWP
     //
     // If this test fails, a KW who is not a member of the KWP may be added to the KWP when they shouldn't be
-    @Test(expected = IllegalStateException.class)
-    public void testExceptionThrownWhenKeyworkerRefreshedButNotMemberOfKeyworkerPool() {
+    @Test
+    void testExceptionThrownWhenKeyworkerRefreshedButNotMemberOfKeyworkerPool() {
         // KWP initialised with an initial set of KWs
         final var lowAllocCount = 1;
         final var highAllocCount = FULLY_ALLOCATED - 1;
@@ -308,7 +307,7 @@ public class KeyworkerPoolTest {
         final var otherKeyworker = getKeyworker(8, 5, CAPACITY_TIER_1);
 
         // Attempt refresh
-        keyworkerPool.incrementAndRefreshKeyworker(otherKeyworker);
+        assertThatThrownBy(() -> keyworkerPool.incrementAndRefreshKeyworker(otherKeyworker)).isInstanceOf(IllegalStateException.class);
     }
 
     // Given a KW is in the KWP
@@ -318,7 +317,7 @@ public class KeyworkerPoolTest {
     // If this test fails, a KW who is a member of the KWP may not be refreshed correctly in KWP and this may result in
     // incorrect allocations taking place for the KW due to KWP having an out-of-date KW entry.
     @Test
-    public void testKeyworkerRefreshedWhenMemberOfKeyworkerPool() {
+    void testKeyworkerRefreshedWhenMemberOfKeyworkerPool() {
         // KWP initialised with an initial set of KWs
         final var lowAllocCount = 1;
         final var highAllocCount = FULLY_ALLOCATED - 1;

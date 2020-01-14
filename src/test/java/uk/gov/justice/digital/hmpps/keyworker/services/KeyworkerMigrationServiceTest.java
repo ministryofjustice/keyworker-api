@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
@@ -18,11 +18,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @RestClientTest(KeyworkerMigrationService.class)
-public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
+class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private static final String TEST_AGENCY = "LEI";
     private static final int TEST_PAGE_SIZE = Integer.MAX_VALUE;
     private static final String INVALID_AGENCY_ID = "XXX";
@@ -42,23 +43,23 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     @MockBean
     private PrisonSupportedService prisonSupportedService;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         doThrow(new PrisonNotSupportedException(INVALID_AGENCY_ID)).when(prisonSupportedService).verifyPrisonMigrated(eq(INVALID_AGENCY_ID));
     }
 
     // When request made to check and migrate agency that is not eligible for migration
     // Then migration does not start and PrisonNotSupportedException is thrown
-    @Test(expected = PrisonNotSupportedException.class)
-    public void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() {
+    @Test
+    void testCheckAndMigrateOffenderKeyWorkerIneligibleAgency() {
         when(prisonSupportedService.isMigrated(eq(INVALID_AGENCY_ID))).thenThrow(PrisonNotSupportedException.class);
-        service.migrateKeyworkerByPrison(INVALID_AGENCY_ID);
+        assertThatThrownBy(() -> service.migrateKeyworkerByPrison(INVALID_AGENCY_ID)).isInstanceOf(PrisonNotSupportedException.class);
     }
 
     // When request made to check and migrate agency that is eligible for migration and has already been migrated
     // Then migration does not start but no error is thrown
     @Test
-    public void testCheckAndMigrateOffenderKeyWorkerAgencyAlreadyMigrated() {
+    void testCheckAndMigrateOffenderKeyWorkerAgencyAlreadyMigrated() {
         when(prisonSupportedService.isMigrated(eq(TEST_AGENCY))).thenReturn(true);
 
         service.migrateKeyworkerByPrison(TEST_AGENCY);
@@ -69,8 +70,8 @@ public class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     // When request made to check and migrate agency that is eligible for migration but has not yet been migrated
     // Then migration completes successfully
     @Test
-    public void testCheckAndMigrateOffenderKeyWorker() {
-        final Long count = 39L;
+    void testCheckAndMigrateOffenderKeyWorker() {
+        final var count = 39L;
 
         final var testDtos = getTestOffenderKeyworkerDtos(count);
 

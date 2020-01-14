@@ -1,18 +1,17 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
-import lombok.val;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RoleAssignmentStatsTest {
+class RoleAssignmentStatsTest {
 
     @Test
-    public void checkToMap() {
+    void checkToMap() {
 
-        val expected = RoleAssignmentStats.builder()
+        final var expected = RoleAssignmentStats.builder()
                 .caseload("MDI")
                 .numMatchedUsers(6)
                 .numAssignRoleSucceeded(4)

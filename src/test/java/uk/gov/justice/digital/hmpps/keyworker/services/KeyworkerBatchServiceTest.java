@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class KeyworkerBatchServiceTest {
+@ExtendWith(MockitoExtension.class)
+class KeyworkerBatchServiceTest {
 
     private KeyworkerBatchService batchService;
 
@@ -29,14 +29,14 @@ public class KeyworkerBatchServiceTest {
     @Mock
     private TelemetryClient telemetryClient;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         batchService = new KeyworkerBatchService(keyworkerRepository, telemetryClient);
     }
 
 
     @Test
-    public void testUpdateStatusBatchHappy() {
+    void testUpdateStatusBatchHappy() {
         final var DATE_14_JAN_2018 = LocalDate.of(2018, Month.JANUARY, 14);
         final var today = LocalDate.now();
 
@@ -50,7 +50,7 @@ public class KeyworkerBatchServiceTest {
     }
 
     @Test
-    public void testUpdateStatusJobException() {
+    void testUpdateStatusJobException() {
         final var today = LocalDate.now();
 
         when(keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1))).thenThrow(new RuntimeException("test"));

@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class RoleManagementControllerTest {
+class RoleManagementControllerTest {
 
     private static final String PATH = "/caseloads-roles";
 
@@ -36,15 +36,15 @@ public class RoleManagementControllerTest {
             .build();
 
 
-    @Before
-    public void configure() {
+    @BeforeEach
+    void configure() {
         roleAssignmentsService = mock(RoleAssignmentsService.class);
         mvc = MockMvcBuilders.standaloneSetup(new RoleManagementController(roleAssignmentsService)).build();
     }
 
 
     @Test
-    public void testValidJson() throws Exception {
+    void testValidJson() throws Exception {
 
         when(roleAssignmentsService.updateRoleAssignments(any())).thenReturn(List.of(RoleAssignmentStats.builder()
                 .numAssignRoleSucceeded(1L)
@@ -70,7 +70,7 @@ public class RoleManagementControllerTest {
     }
 
     @Test
-    public void testJsonNoContent() throws Exception {
+    void testJsonNoContent() throws Exception {
         mvc.perform(
                 post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +78,7 @@ public class RoleManagementControllerTest {
     }
 
     @Test
-    public void testJsonEmptyObject() throws Exception {
+    void testJsonEmptyObject() throws Exception {
         mvc.perform(
                 post(PATH)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +88,7 @@ public class RoleManagementControllerTest {
 
 
     @Test
-    public void testValidUrlEncodedForm() throws Exception {
+    void testValidUrlEncodedForm() throws Exception {
         mvc.perform(
                 post(PATH)
                         .param("caseloads", "MDI", "LEI")
