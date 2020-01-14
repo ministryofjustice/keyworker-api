@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @ToString
 public class OffenderEvent {
-    private String eventType;
-    private LocalDateTime eventDatetime;
     private Long bookingId;
     private Long movementSeq;
+    private String offenderIdDisplay;
 }
 

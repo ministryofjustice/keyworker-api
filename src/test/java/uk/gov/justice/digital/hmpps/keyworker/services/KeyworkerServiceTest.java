@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,6 +72,8 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @MockBean
     private NomisService nomisService;
 
+    @MockBean
+    private TelemetryClient telemetryClient;
 
     @BeforeEach
     void setup() {
@@ -1284,6 +1287,14 @@ class KeyworkerServiceTest extends AbstractServiceTest {
                 TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
 
         verify(repository, never()).findByStaffIdAndPrisonIdAndActive(any(), any(), anyBoolean());
+    }
+
+    @Test
+    void testDeleteKeyworkersForOffender() {
+        when(repository.deleteByOffenderNo(anyString())).thenReturn(3);
+        service.deleteKeyworkersForOffender("12345");
+        verify(repository).deleteByOffenderNo("12345");
+        verify(telemetryClient).trackEvent("KeyworkersDeletedForOffender", Map.of("offenderNo", "12345", "count", "3"), null);
     }
 
     private OffenderKeyworker getTestOffenderKeyworker(final String offenderNo, final long staffId) {

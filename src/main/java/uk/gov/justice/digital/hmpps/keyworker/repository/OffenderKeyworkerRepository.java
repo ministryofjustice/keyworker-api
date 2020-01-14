@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyworker,Long> {
+    int deleteByOffenderNo(String offenderNo);
 
     List<OffenderKeyworker> findByOffenderNo(String offenderNo);
 
