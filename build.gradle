@@ -179,3 +179,8 @@ task copyAgent(type: Copy) {
 }
 
 assemble.dependsOn copyAgent
+
+test {
+    useJUnitPlatform()
+}
+

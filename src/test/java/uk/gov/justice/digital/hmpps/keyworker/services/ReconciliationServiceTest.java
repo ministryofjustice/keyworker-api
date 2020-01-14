@@ -1,18 +1,17 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
-import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService.ReconMetrics;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,8 +23,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(MockitoJUnitRunner.class)
-public class ReconciliationServiceTest {
+@ExtendWith(MockitoExtension.class)
+class ReconciliationServiceTest {
 
     private static final String OFFENDER_NO = "A1234AA";
     private static final String MERGED_OFFENDER_NO = "B1234BB";
@@ -42,14 +41,14 @@ public class ReconciliationServiceTest {
 
     private ReconciliationService service;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         MockitoAnnotations.initMocks(this);
         service = new ReconciliationService(nomisService, repository, telemetryClient);
     }
 
     @Test
-    public void testReconciliation() {
+    void testReconciliation() {
 
         when(repository.findByActiveAndPrisonId(true, TEST_AGENCY_ID)).thenReturn(
                 List.of(
@@ -124,7 +123,7 @@ public class ReconciliationServiceTest {
         when(nomisService.getPrisonerDetail("B1234AG", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AG").latestLocationId("OUT").currentlyInPrison("N").build()));
         when(nomisService.getPrisonerDetail("B1234AH", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AH").latestLocationId("MDI").currentlyInPrison("Y").build()));
 
-        ReconMetrics metrics = service.reconcileKeyWorkerAllocations(TEST_AGENCY_ID);
+        final var metrics = service.reconcileKeyWorkerAllocations(TEST_AGENCY_ID);
 
         assertThat(metrics).isNotNull();
 
@@ -138,7 +137,7 @@ public class ReconciliationServiceTest {
     }
 
     @Test
-    public void testCheckWhenTransferredOutDeallocationOccurs() {
+    void testCheckWhenTransferredOutDeallocationOccurs() {
         final var now = now();
         when(nomisService.getMovement(eq(-1L), eq(1L)))
                 .thenReturn(Optional.of(Movement.builder()
@@ -177,7 +176,7 @@ public class ReconciliationServiceTest {
     }
 
     @Test
-    public void testCheckWhenAdmittedInDeallocationOccurs() {
+    void testCheckWhenAdmittedInDeallocationOccurs() {
         final var now = now();
         when(nomisService.getMovement(eq(-1L), eq(1L)))
                 .thenReturn(Optional.of(Movement.builder()
@@ -212,7 +211,7 @@ public class ReconciliationServiceTest {
         assertThat(offenderKw.getExpiryDateTime()).isNotNull();
     }
     @Test
-    public void testCheckWhenAdmittedIntoSamePrisonNoDeallocationOccurs() {
+    void testCheckWhenAdmittedIntoSamePrisonNoDeallocationOccurs() {
         final var now = now();
         when(nomisService.getMovement(eq(-1L), eq(1L)))
                 .thenReturn(Optional.of(Movement.builder()
@@ -248,7 +247,7 @@ public class ReconciliationServiceTest {
     }
 
     @Test
-    public void testCheckWhenReleasedDeallocationOccurs() {
+    void testCheckWhenReleasedDeallocationOccurs() {
         final var now = now();
         when(nomisService.getMovement(eq(-1L), eq(1L)))
                 .thenReturn(Optional.of(Movement.builder()
@@ -286,7 +285,7 @@ public class ReconciliationServiceTest {
     }
 
     @Test
-    public void testCheckWhenOtherMovementNoDeallocationOccurs() {
+    void testCheckWhenOtherMovementNoDeallocationOccurs() {
         final var now = now();
 
         when(nomisService.getMovement(eq(-1L), eq(1L)))
@@ -304,7 +303,7 @@ public class ReconciliationServiceTest {
     }
 
     @Test
-    public void testCheckForExistingAllocatedThatNeedsMerging() {
+    void testCheckForExistingAllocatedThatNeedsMerging() {
         when(nomisService.getIdentifiersByBookingId(eq(-1L)))
                 .thenReturn(List.of(
                         BookingIdentifier.builder().type("MERGED").value(MERGED_OFFENDER_NO).build(),
@@ -357,7 +356,7 @@ public class ReconciliationServiceTest {
     }
 
     @Test
-    public void testCheckForExistingAllocatedThatNeedsMergingNotDealloc() {
+    void testCheckForExistingAllocatedThatNeedsMergingNotDealloc() {
         when(nomisService.getIdentifiersByBookingId(eq(-1L)))
                 .thenReturn(List.of(
                         BookingIdentifier.builder().type("MERGED").value(MERGED_OFFENDER_NO).build(),

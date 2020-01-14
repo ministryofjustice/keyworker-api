@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -15,12 +15,13 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class KeyworkerAllocationProcessorTest {
-    public static final String TEST_AGENCY = "ABC";
+@ExtendWith(MockitoExtension.class)
+class KeyworkerAllocationProcessorTest {
+    private static final String TEST_AGENCY = "ABC";
 
     @Mock
     private OffenderKeyworkerRepository repository;
@@ -30,15 +31,15 @@ public class KeyworkerAllocationProcessorTest {
 
     // When offender summary allocation filter processing requested with a 'null' dto list
     // Then NPE is thrown
-    @Test(expected = NullPointerException.class)
-    public void testFilterByUnallocatedNullInput() {
-        processor.filterByUnallocated(null);
+    @Test
+    void testFilterByUnallocatedNullInput() {
+        assertThatThrownBy(() -> processor.filterByUnallocated(null)).isInstanceOf(NullPointerException.class);
     }
 
     // When offender summary allocation filter processing requested with an empty dto list
     // Then response is an empty dto list
     @Test
-    public void testFilterByUnallocatedEmptyInput() {
+    void testFilterByUnallocatedEmptyInput() {
         final var results = processor.filterByUnallocated(Collections.emptyList());
 
         assertThat(results).isNotNull();
@@ -49,7 +50,7 @@ public class KeyworkerAllocationProcessorTest {
     // And none of the offenders has an active non-provisional allocation to a Key worker
     // Then response is same list of 5 offender summary dtos
     @Test
-    public void testFilterByUnallocatedNoAllocations() {
+    void testFilterByUnallocatedNoAllocations() {
         // Get some OffenderSummaryDto records
         final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
@@ -75,7 +76,7 @@ public class KeyworkerAllocationProcessorTest {
     // And all of the offenders have an active allocation to a Key worker
     // Then response is an empty list
     @Test
-    public void testFilterByUnallocatedAllAllocated() {
+    void testFilterByUnallocatedAllAllocated() {
         // Get some OffenderSummaryDto records
         final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
@@ -97,7 +98,7 @@ public class KeyworkerAllocationProcessorTest {
 
     //should be resilient if duplicate allocations exist
     @Test
-    public void testFilterByUnallocatedHandlesDuplicateActiveAllocations() {
+    void testFilterByUnallocatedHandlesDuplicateActiveAllocations() {
         // Get some OffenderSummaryDto records
         final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 
@@ -123,7 +124,7 @@ public class KeyworkerAllocationProcessorTest {
     // And 3 of the offenders have an active allocation to a Key worker (so 2 do not)
     // Then response is a list of 2 offender summary dtos for the offenders who do not have an allocation
     @Test
-    public void testFilterByUnallocatedSomeAllocated() {
+    void testFilterByUnallocatedSomeAllocated() {
         // Get some OffenderSummaryDto records
         final var dtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, 5);
 

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -11,17 +11,17 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification.builder;
 
-public class RoleAssignmentSpecificationTest {
+class RoleAssignmentSpecificationTest {
 
     private static Validator validator;
 
-    @BeforeClass
-    public static void createValidator() {
+    @BeforeAll
+    static void createValidator() {
         validator = Validation.buildDefaultValidatorFactory().getValidator();
     }
 
     @Test
-    public void validObject() {
+    void validObject() {
         assertThat(validator.validate(builder()
                 .caseloads(List.of("MDI"))
                 .rolesToMatch(List.of("X"))
@@ -30,7 +30,7 @@ public class RoleAssignmentSpecificationTest {
     }
 
     @Test
-    public void missingCaseload() {
+    void missingCaseload() {
         assertThat(validator.validate(builder()
                 .caseloads(List.of())
                 .rolesToMatch(List.of("X"))
@@ -41,7 +41,7 @@ public class RoleAssignmentSpecificationTest {
     }
 
     @Test
-    public void missingRolesToMatch() {
+    void missingRolesToMatch() {
         assertThat(validator.validate(builder()
                 .caseloads(List.of("MDI"))
                 .rolesToMatch(List.of())
@@ -52,7 +52,7 @@ public class RoleAssignmentSpecificationTest {
     }
 
     @Test
-    public void allMissing() {
+    void allMissing() {
         assertThat(validator.validate(builder()
                 .caseloads(List.of())
                 .rolesToMatch(List.of())

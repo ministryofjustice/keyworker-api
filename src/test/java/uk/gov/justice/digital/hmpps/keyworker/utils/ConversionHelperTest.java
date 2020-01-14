@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
@@ -13,10 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Test class for {@link ConversionHelper}.
  */
-public class ConversionHelperTest {
+class ConversionHelperTest {
 
     @Test
-    public void convertOffenderKeyworkerDto2ModelItem1() {
+    void convertOffenderKeyworkerDto2ModelItem1() {
         final var testDto = getActiveOffenderKeyworkerDto();
 
         final var okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
@@ -25,7 +25,7 @@ public class ConversionHelperTest {
     }
 
     @Test
-    public void convertOffenderKeyworkerDto2ModelItem2() {
+    void convertOffenderKeyworkerDto2ModelItem2() {
         final var testDto = getExpiredOffenderKeyworkerDto();
 
         final var okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
@@ -34,7 +34,7 @@ public class ConversionHelperTest {
     }
 
     @Test
-    public void convertOffenderKeyworkerDto2ModelList() {
+    void convertOffenderKeyworkerDto2ModelList() {
         final var testActiveDto = getActiveOffenderKeyworkerDto();
         final var testExpiredDto = getExpiredOffenderKeyworkerDto();
 
@@ -53,7 +53,7 @@ public class ConversionHelperTest {
         });
     }
 
-    public static OffenderKeyworkerDto getActiveOffenderKeyworkerDto() {
+    static OffenderKeyworkerDto getActiveOffenderKeyworkerDto() {
         return OffenderKeyworkerDto.builder()
                 .offenderNo("A1234AA")
                 .staffId(1L)
@@ -64,7 +64,7 @@ public class ConversionHelperTest {
                 .build();
     }
 
-    public static OffenderKeyworkerDto getExpiredOffenderKeyworkerDto() {
+    static OffenderKeyworkerDto getExpiredOffenderKeyworkerDto() {
         return OffenderKeyworkerDto.builder()
                 .offenderNo("A1234AB")
                 .staffId(2L)
@@ -76,7 +76,7 @@ public class ConversionHelperTest {
                 .build();
     }
 
-    public static void verifyConversion(final OffenderKeyworkerDto dto, final OffenderKeyworker okw) {
+    static void verifyConversion(final OffenderKeyworkerDto dto, final OffenderKeyworker okw) {
         assertThat(okw.getOffenderNo()).isEqualTo(dto.getOffenderNo());
         assertThat(okw.getStaffId()).isEqualTo(dto.getStaffId());
         assertThat(okw.isActive()).isEqualTo(StringUtils.equals("Y", dto.getActive()));

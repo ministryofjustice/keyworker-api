@@ -1,14 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
@@ -22,11 +22,11 @@ import java.time.temporal.ChronoUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @ActiveProfiles("test")
 @Transactional
-public class OffenderKeyworkerRepositoryTest {
+class OffenderKeyworkerRepositoryTest {
 
     private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016,1, 2, 3, 4, 5);
     private static final LocalDateTime EXPIRY_DATE_TIME = LocalDateTime.of(2020, 12, 30, 9, 34, 56);
@@ -36,13 +36,13 @@ public class OffenderKeyworkerRepositoryTest {
     @Autowired
     private OffenderKeyworkerRepository repository;
 
-    @BeforeClass
-    public static void beforeClass() {
+    @BeforeAll
+    static void beforeClass() {
         SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("user", "pw"));
     }
 
     @Test
-    public void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
+    void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
         final var transientEntity = transientEntity();
 
@@ -77,7 +77,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void givenAPersistentInstanceThenNullableValuesAreUpdateable() throws InterruptedException {
+    void givenAPersistentInstanceThenNullableValuesAreUpdateable() throws InterruptedException {
 
         final var entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();
@@ -104,7 +104,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void shouldReturnCountByStaffIdAndPrisonIdAndActive() {
+    void shouldReturnCountByStaffIdAndPrisonIdAndActive() {
         final var UNKNOWN_STAFFID = 98765L;
 
         final var nextId = nextId();
@@ -126,7 +126,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void shouldDeleteProvisionalRows() {
+    void shouldDeleteProvisionalRows() {
 
         var entity1 = buildEntity(nextId());
         var entity2 = buildEntity(nextId());
@@ -148,7 +148,7 @@ public class OffenderKeyworkerRepositoryTest {
     }
 
     @Test
-    public void shouldUpdateProvisionalRows() {
+    void shouldUpdateProvisionalRows() {
 
         var entity1 = buildEntity(nextId());
         var entity2 = buildEntity(nextId());

@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.repository;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
@@ -13,11 +13,11 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @ActiveProfiles("test")
 @Transactional
-public class KeyworkerRepositoryTest {
+class KeyworkerRepositoryTest {
 
     private static long currentId;
 
@@ -25,7 +25,7 @@ public class KeyworkerRepositoryTest {
     private KeyworkerRepository repository;
 
     @Test
-    public void givenATransientKeyworkerWhenPersistedItShoudBeRetrievableById() {
+    void givenATransientKeyworkerWhenPersistedItShoudBeRetrievableById() {
 
         final var transientEntity = transientEntity();
 
@@ -50,7 +50,7 @@ public class KeyworkerRepositoryTest {
     }
 
     @Test
-    public void givenAPersistentInstanceThenNullableValuesAreUpdateable() {
+    void givenAPersistentInstanceThenNullableValuesAreUpdateable() {
 
         final var entity = repository.save(transientEntity());
         TestTransaction.flagForCommit();

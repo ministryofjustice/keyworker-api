@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.keyworker.config;
 
 import com.microsoft.applicationinsights.web.internal.RequestTelemetryContext;
 import com.microsoft.applicationinsights.web.internal.ThreadContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.context.annotation.Import;
@@ -14,7 +14,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthenticationHelper;
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthenticationHelper.JwtParameters;
 
@@ -23,11 +23,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @Import({JwtAuthenticationHelper.class, ClientTrackingTelemetryModule.class})
 @ContextConfiguration(initializers = {ConfigFileApplicationContextInitializer.class})
 @ActiveProfiles("test")
-public class ClientTrackingTelemetryModuleTest {
+class ClientTrackingTelemetryModuleTest {
 
     @Autowired
     private ClientTrackingTelemetryModule clientTrackingTelemetryModule;
@@ -35,24 +35,24 @@ public class ClientTrackingTelemetryModuleTest {
     @Autowired
     private JwtAuthenticationHelper jwtAuthenticationHelper;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         ThreadContext.setRequestTelemetryContext(new RequestTelemetryContext(1L));
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         ThreadContext.remove();
     }
 
     @Test
-    public void shouldAddClientIdAndUserNameToInsightTelemetry() {
+    void shouldAddClientIdAndUserNameToInsightTelemetry() {
 
         final var token = createJwt("bob", List.of(), 1L);
 
-        MockHttpServletRequest req = new MockHttpServletRequest();
+        final var req = new MockHttpServletRequest();
         req.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-        MockHttpServletResponse res = new MockHttpServletResponse();
+        final var res = new MockHttpServletResponse();
 
         clientTrackingTelemetryModule.onBeginRequest(req, res);
 
@@ -65,13 +65,13 @@ public class ClientTrackingTelemetryModuleTest {
     }
 
     @Test
-    public void shouldAddOnlyClientIdIfUsernameNullToInsightTelemetry() {
+    void shouldAddOnlyClientIdIfUsernameNullToInsightTelemetry() {
 
         final var token = createJwt(null, List.of(), 1L);
 
-        MockHttpServletRequest req = new MockHttpServletRequest();
+        final var req = new MockHttpServletRequest();
         req.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-        MockHttpServletResponse res = new MockHttpServletResponse();
+        final var res = new MockHttpServletResponse();
 
         clientTrackingTelemetryModule.onBeginRequest(req, res);
 
@@ -83,13 +83,13 @@ public class ClientTrackingTelemetryModuleTest {
     }
 
     @Test
-    public void shouldNotAddClientIdAndUserNameToInsightTelemetryAsTokenExpired() {
+    void shouldNotAddClientIdAndUserNameToInsightTelemetryAsTokenExpired() {
 
         final var token = createJwt("Fred", List.of(), -1L);
 
-        MockHttpServletRequest req = new MockHttpServletRequest();
+        final var req = new MockHttpServletRequest();
         req.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-        MockHttpServletResponse res = new MockHttpServletResponse();
+        final var res = new MockHttpServletResponse();
 
         clientTrackingTelemetryModule.onBeginRequest(req, res);
 
@@ -98,7 +98,7 @@ public class ClientTrackingTelemetryModuleTest {
         assertThat(insightTelemetry).isEmpty();
     }
 
-    private String createJwt(final String user, final List<String> roles, Long duration) {
+    private String createJwt(final String user, final List<String> roles, final Long duration) {
         return jwtAuthenticationHelper.createJwt(JwtParameters.builder()
                 .username(user)
                 .roles(roles)

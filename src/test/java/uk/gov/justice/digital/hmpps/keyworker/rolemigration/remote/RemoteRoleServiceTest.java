@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-public class RemoteRoleServiceTest extends AbstractServiceTest {
+class RemoteRoleServiceTest extends AbstractServiceTest {
 
     private static final String USERNAME_1 = "UN1";
     private static final String USERNAME_2 = "UN2";
@@ -27,15 +27,15 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
 
     private MockRestServiceServer server;
 
-    @Before
-    public void initialiseMockRestServiceServer() {
+    @BeforeEach
+    void initialiseMockRestServiceServer() {
         final var restTemplate = new RestTemplate();
         server = MockRestServiceServer.bindTo(restTemplate).build();
         service = new RemoteRoleService(restTemplate);
     }
 
    @Test
-    public void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() throws JsonProcessingException {
+   void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() {
         server
                 .expect(requestTo("/users/UN1/access-role/RC"))
                 .andExpect(method(HttpMethod.PUT))
@@ -48,7 +48,7 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void givenRoleService_whenRemoveRoleInvoked_thenExpectedHttpExchangeOccurs() {
+    void givenRoleService_whenRemoveRoleInvoked_thenExpectedHttpExchangeOccurs() {
         server
                 .expect(requestTo("/users/UN1/caseload/CL/access-role/RC"))
                 .andExpect(method(HttpMethod.DELETE))
@@ -60,7 +60,7 @@ public class RemoteRoleServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void givenRoleService_whenFindStaffMatchingCaseloadAndRoleInvoked_thenExpectedHttpExchangeOccursAndResultsAreCorrect() throws JsonProcessingException {
+    void givenRoleService_whenFindStaffMatchingCaseloadAndRoleInvoked_thenExpectedHttpExchangeOccursAndResultsAreCorrect() throws JsonProcessingException {
         server
                 .expect(requestTo("/users/access-roles/caseload/CL/access-role/RC"))
                 .andExpect(method(HttpMethod.GET))
