@@ -44,32 +44,22 @@ public class EventListener {
                 reconciliationService.checkForMergeAndDeallocate(event);
                 break;
             case "DATA_COMPLIANCE_DELETE-OFFENDER":
-                Preconditions.checkState(StringUtils.isNotBlank(event.getOffenderIdDisplay()), String.format("Found null offender id for %s", requestJson));
+                Preconditions.checkState(StringUtils.isNotBlank(event.getOffenderIdDisplay()), "Found null offender id for %s", requestJson);
                 keyworkerService.deleteKeyworkersForOffender(event.getOffenderIdDisplay());
                 break;
         }
     }
 
     private Message getMessage(final String requestJson) throws JsonProcessingException {
-        try {
-            final var message = objectMapper.readValue(requestJson, new TypeReference<Message>() {
-            });
-            return Optional.ofNullable(message).orElseThrow(() -> new RuntimeException(String.format("Missing message from %s", requestJson)));
-        } catch (final JsonProcessingException e) {
-            log.error("Failed to parse Message {}", requestJson, e);
-            throw e;
-        }
+        final var message = objectMapper.readValue(requestJson, new TypeReference<Message>() {
+        });
+        return Optional.ofNullable(message).orElseThrow(() -> new RuntimeException(String.format("Missing message from %s", requestJson)));
     }
 
     private OffenderEvent getOffenderEvent(final String requestJson) throws JsonProcessingException {
-        try {
-            final var event = objectMapper.readValue(requestJson, new TypeReference<OffenderEvent>() {
-            });
-            return Optional.ofNullable(event).orElseThrow(() -> new RuntimeException(String.format("Missing offender event from %s", requestJson)));
-        } catch (final JsonProcessingException e) {
-            log.error("Failed to parse event {}", requestJson, e);
-            throw e;
-        }
+        final var event = objectMapper.readValue(requestJson, new TypeReference<OffenderEvent>() {
+        });
+        return Optional.ofNullable(event).orElseThrow(() -> new RuntimeException(String.format("Missing offender event from %s", requestJson)));
     }
 
     @Getter
