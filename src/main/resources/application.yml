@@ -35,7 +35,7 @@ server:
   port: 8080
   servlet:
     context-path: /
-  use-forward-headers: true
+  forward-headers-strategy: native
   tomcat:
     remote-ip-header: x-forwarded-for
     protocol_header: x-forwarded-proto
@@ -79,8 +79,3 @@ elite2api:
     tokenName: elite2_token
     authenticationScheme: header
     clientAuthenticationScheme: header
-
-azure:
-  application-insights:
-    web:
-      enable-W3C: true
