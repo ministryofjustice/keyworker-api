@@ -58,7 +58,7 @@ class EventListenerTest {
     @Test
     void testDeleteEventBadMessage() {
         assertThatThrownBy(() -> eventListener.eventListener(getJson("offender-deletion-request-bad-message.json")))
-                .hasMessageContaining("Unrecognized token 'BAD'");
+                .hasMessageContaining("Expected BEGIN_OBJECT but was STRING at line 1");
 
         verifyNoInteractions(keyworkerService, reconciliationService);
     }
