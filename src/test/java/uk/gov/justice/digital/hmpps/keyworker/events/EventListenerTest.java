@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +19,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class EventListenerTest {
-    private final ObjectMapper objectMapper = new ObjectMapper();
     @Mock
     private ReconciliationService reconciliationService;
     @Mock
@@ -30,7 +28,7 @@ class EventListenerTest {
 
     @BeforeEach
     void setUp() {
-        eventListener = new EventListener(objectMapper, reconciliationService, keyworkerService);
+        eventListener = new EventListener(reconciliationService, keyworkerService);
     }
 
     @Test

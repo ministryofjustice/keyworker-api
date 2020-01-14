@@ -1,10 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.GsonBuilder
 import lombok.extern.slf4j.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,19 +13,20 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 @Service
 @ConditionalOnProperty(name = ["sqs.provider"])
 @Slf4j
-open class EventListener(private val objectMapper: ObjectMapper,
-                         private val reconciliationService: ReconciliationService,
+open class EventListener(private val reconciliationService: ReconciliationService,
                          private val keyworkerService: KeyworkerService) {
+  private val gson = GsonBuilder().create()
+
   companion object {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
   @JmsListener(destination = "\${sqs.queue.name}")
   open fun eventListener(requestJson: String) {
-    val (message, messageAttributes) = getMessage(requestJson)
-    val eventType = messageAttributes.eventType.value
+    val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
+    val eventType = messageAttributes.eventType.Value
     log.info("Processing message of type {}", eventType)
-    val event = getOffenderEvent(message)
+    val event = gson.fromJson(message, OffenderEvent::class.java)
     when (eventType) {
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
       "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event)
@@ -40,26 +37,8 @@ open class EventListener(private val objectMapper: ObjectMapper,
     }
   }
 
-  private fun getMessage(requestJson: String): Message =
-      objectMapper.readValue<Message>(requestJson, object : TypeReference<Message>() {})
-
-  private fun getOffenderEvent(requestJson: String): OffenderEvent =
-      objectMapper.readValue<OffenderEvent>(requestJson, object : TypeReference<OffenderEvent>() {})
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private data class Message @JsonCreator constructor(
-      @JsonProperty("Message") val message: String,
-      @JsonProperty("MessageAttributes") val messageAttributes: MessageAttributes)
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private data class MessageAttributes @JsonCreator constructor(@JsonProperty("eventType") val eventType: Attribute)
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  private data class Attribute @JsonCreator constructor(@JsonProperty("Value") val value: String)
-
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  data class OffenderEvent @JsonCreator constructor(
-      @JsonProperty("bookingId") val bookingId: Long?,
-      @JsonProperty("movementSeq") val movementSeq: Long?,
-      @JsonProperty("offenderIdDisplay") val offenderIdDisplay: String?)
+  private data class Message(val Message: String, val MessageAttributes: MessageAttributes)
+  private data class MessageAttributes(val eventType: Attribute)
+  private data class Attribute(val Value: String)
+  data class OffenderEvent(val bookingId: Long?, val movementSeq: Long?, val offenderIdDisplay: String?)
 }
