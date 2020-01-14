@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderEvent;
+import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService;
 import wiremock.org.apache.commons.io.IOUtils;
@@ -68,7 +68,7 @@ class EventListenerTest {
     @Test
     void testDeleteEventEmpty() {
         assertThatThrownBy(() -> eventListener.eventListener(getJson("offender-deletion-request-empty.json")))
-                .hasMessageContaining("Found null offender id for");
+                .hasMessageContaining("Found blank offender id for");
 
         verifyNoInteractions(keyworkerService, reconciliationService);
     }
