@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderEvent;
+import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService;
 import wiremock.org.apache.commons.io.IOUtils;
@@ -20,7 +20,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class EventListenerTest {
-    private final ObjectMapper objectMapper = new ObjectMapper();
     @Mock
     private ReconciliationService reconciliationService;
     @Mock
@@ -30,7 +29,7 @@ class EventListenerTest {
 
     @BeforeEach
     void setUp() {
-        eventListener = new EventListener(objectMapper, reconciliationService, keyworkerService);
+        eventListener = new EventListener(reconciliationService, keyworkerService, new GsonBuilder().create());
     }
 
     @Test
@@ -60,7 +59,7 @@ class EventListenerTest {
     @Test
     void testDeleteEventBadMessage() {
         assertThatThrownBy(() -> eventListener.eventListener(getJson("offender-deletion-request-bad-message.json")))
-                .hasMessageContaining("Unrecognized token 'BAD'");
+                .hasMessageContaining("Expected BEGIN_OBJECT but was STRING at line 1");
 
         verifyNoInteractions(keyworkerService, reconciliationService);
     }
@@ -68,7 +67,7 @@ class EventListenerTest {
     @Test
     void testDeleteEventEmpty() {
         assertThatThrownBy(() -> eventListener.eventListener(getJson("offender-deletion-request-empty.json")))
-                .hasMessageContaining("Found null offender id for");
+                .hasMessageContaining("Found blank offender id for");
 
         verifyNoInteractions(keyworkerService, reconciliationService);
     }

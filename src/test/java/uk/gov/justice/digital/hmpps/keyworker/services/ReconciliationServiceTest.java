@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -167,7 +168,7 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
-        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
@@ -204,7 +205,7 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
-        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
@@ -239,7 +240,7 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
-        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
@@ -276,7 +277,7 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
 
-        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.RELEASED);
@@ -296,7 +297,7 @@ class ReconciliationServiceTest {
                         .createDateTime(now)
                         .build()));
 
-        service.checkMovementAndDeallocate(OffenderEvent.builder().bookingId(-1L).movementSeq(1L).build());
+        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
 
         verify(repository, never()).findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO));
 
@@ -343,7 +344,7 @@ class ReconciliationServiceTest {
         when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(newOffenderKw));
 
-        service.checkForMergeAndDeallocate(OffenderEvent.builder().bookingId(-1L).build());
+        service.checkForMergeAndDeallocate(new OffenderEvent(-1L, null, null));
 
         assertThat(oldOffenderKw.isActive()).isFalse();
         assertThat(oldOffenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.MERGED);
@@ -387,13 +388,11 @@ class ReconciliationServiceTest {
         when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of());
 
-        service.checkForMergeAndDeallocate(OffenderEvent.builder().bookingId(-1L).build());
+        service.checkForMergeAndDeallocate(new OffenderEvent(-1L, null, null));
 
         assertThat(oldOffenderKw.isActive()).isTrue();
         assertThat(oldOffenderKw.getDeallocationReason()).isNull();
         assertThat(oldOffenderKw.getExpiryDateTime()).isNull();
         assertThat(oldOffenderKw.getOffenderNo()).isEqualTo(OFFENDER_NO);
-
-
     }
 }

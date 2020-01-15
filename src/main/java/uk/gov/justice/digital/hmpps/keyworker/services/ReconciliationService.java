@@ -9,6 +9,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
