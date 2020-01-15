@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
-import com.google.gson.GsonBuilder
+import com.google.gson.Gson
 import lombok.extern.slf4j.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,8 +14,8 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 @ConditionalOnProperty(name = ["sqs.provider"])
 @Slf4j
 open class EventListener(private val reconciliationService: ReconciliationService,
-                         private val keyworkerService: KeyworkerService) {
-  private val gson = GsonBuilder().create()
+                         private val keyworkerService: KeyworkerService,
+                         private val gson: Gson) {
 
   companion object {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)

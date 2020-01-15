@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.events;
 
+import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +29,7 @@ class EventListenerTest {
 
     @BeforeEach
     void setUp() {
-        eventListener = new EventListener(reconciliationService, keyworkerService);
+        eventListener = new EventListener(reconciliationService, keyworkerService, new GsonBuilder().create());
     }
 
     @Test
