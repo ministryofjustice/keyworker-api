@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import com.google.common.base.Preconditions;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -432,6 +433,7 @@ public class KeyworkerService {
     }
 
     public void deleteKeyworkersForOffender(final String offenderNo) {
+        Preconditions.checkState(StringUtils.isNotBlank(offenderNo), "Found blank offender id");
         final var count = repository.deleteByOffenderNo(offenderNo);
         log.info("Deleted {} case notes for offender identifier {}", count, offenderNo);
         telemetryClient.trackEvent("KeyworkersDeletedForOffender", Map.of("offenderNo", offenderNo, "count", String.valueOf(count)), null);

@@ -30,10 +30,7 @@ open class EventListener(private val reconciliationService: ReconciliationServic
     when (eventType) {
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
       "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event)
-      "DATA_COMPLIANCE_DELETE-OFFENDER" -> {
-        require(!event.offenderIdDisplay.isNullOrBlank()) { "Found blank offender id for $requestJson" }
-        keyworkerService.deleteKeyworkersForOffender(event.offenderIdDisplay)
-      }
+      "DATA_COMPLIANCE_DELETE-OFFENDER" -> keyworkerService.deleteKeyworkersForOffender(event.offenderIdDisplay)
     }
   }
 
