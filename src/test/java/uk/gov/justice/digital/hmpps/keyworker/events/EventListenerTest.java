@@ -65,11 +65,11 @@ class EventListenerTest {
     }
 
     @Test
-    void testDeleteEventEmpty() {
-        assertThatThrownBy(() -> eventListener.eventListener(getJson("offender-deletion-request-empty.json")))
-                .hasMessageContaining("Found blank offender id for");
+    void testDeleteEventEmpty() throws IOException {
+        eventListener.eventListener(getJson("offender-deletion-request-empty.json"));
 
-        verifyNoInteractions(keyworkerService, reconciliationService);
+        verify(keyworkerService).deleteKeyworkersForOffender("");
+        verifyNoInteractions(reconciliationService);
     }
 
     private String getJson(final String filename) throws IOException {

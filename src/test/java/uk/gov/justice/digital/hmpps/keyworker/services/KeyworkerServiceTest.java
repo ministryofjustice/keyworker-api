@@ -1297,6 +1297,16 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         verify(telemetryClient).trackEvent("KeyworkersDeletedForOffender", Map.of("offenderNo", "12345", "count", "3"), null);
     }
 
+    @Test
+    void testDeleteKeyworkersForOffender_null() {
+        assertThatThrownBy(() -> service.deleteKeyworkersForOffender(null)).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void testDeleteKeyworkersForOffender_blank() {
+        assertThatThrownBy(() -> service.deleteKeyworkersForOffender("   ")).isInstanceOf(IllegalStateException.class);
+    }
+
     private OffenderKeyworker getTestOffenderKeyworker(final String offenderNo, final long staffId) {
         return OffenderKeyworker.builder()
                 .prisonId(TEST_AGENCY)
