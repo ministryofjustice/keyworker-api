@@ -436,7 +436,7 @@ public class KeyworkerService {
         Preconditions.checkState(StringUtils.isNotBlank(offenderNo), "Found blank offender id");
         final var count = repository.deleteByOffenderNo(offenderNo);
         log.info("Deleted {} case notes for offender identifier {}", count, offenderNo);
-        telemetryClient.trackEvent("KeyworkersDeletedForOffender", Map.of("offenderNo", offenderNo, "count", String.valueOf(count)), null);
+        telemetryClient.trackEvent("OffenderDelete", Map.of("offenderNo", offenderNo, "count", String.valueOf(count)), null);
     }
 
     private void populateWithAllocations(final List<KeyworkerDto> convertedKeyworkerDtoList, final String prisonId) {

@@ -1294,7 +1294,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.deleteByOffenderNo(anyString())).thenReturn(3);
         service.deleteKeyworkersForOffender("12345");
         verify(repository).deleteByOffenderNo("12345");
-        verify(telemetryClient).trackEvent("KeyworkersDeletedForOffender", Map.of("offenderNo", "12345", "count", "3"), null);
+        verify(telemetryClient).trackEvent("OffenderDelete", Map.of("offenderNo", "12345", "count", "3"), null);
     }
 
     @Test
