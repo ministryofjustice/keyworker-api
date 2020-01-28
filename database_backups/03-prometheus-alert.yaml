@@ -13,7 +13,7 @@ spec:
       annotations:
         message: Database snapshot job {{ $labels.namespace }}/{{ $labels.job_name }} failed to complete.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobfailed
-      expr: max(kube_job_status_failed{namespace="keyworker-api-dev",job_name=~"rds-snapshot-job.*"}) by (namespace, pod, job_name) > 0
+      expr: max(kube_job_status_failed{namespace="keyworker-api-prod",job_name=~"rds-snapshot-job.*"}) by (namespace, pod, job_name) > 0
       for: 1m
       labels:
         severity: digital-prison-service
