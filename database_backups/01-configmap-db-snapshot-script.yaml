@@ -8,9 +8,9 @@ data:
     #!/bin/bash
     set -xe
     DB_INSTANCE_IDENTIFIER=$(echo -n $DB_INSTANCE | cut -d"." -f1)
-    SNAPSHOT_PREFIX="dps-weekly"
+    SNAPSHOT_PREFIX="dps-monthly"
     # Total number of snapshots to retain
-    RETENTION=52
+    RETENTION=12
     SNAPSHOT_TIME="$(date +%s)"
     DB_SNAPSHOT_IDENTIFIER="${SNAPSHOT_PREFIX}-${SNAPSHOT_TIME}"
     SORT_FIELD="$(echo -n "${DB_SNAPSHOT_IDENTIFIER}-" | tr -cd '-' | wc -c)"
