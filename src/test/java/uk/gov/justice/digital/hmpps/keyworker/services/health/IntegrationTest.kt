@@ -25,6 +25,7 @@ abstract class IntegrationTest {
   internal lateinit var awsSqsClient: AmazonSQS
 
   companion object {
+    @JvmField
     internal val eliteMockServer = EliteMockServer()
 
     @BeforeAll
