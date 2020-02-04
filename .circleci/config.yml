@@ -64,7 +64,7 @@ executors:
           - DEFAULT_REGION=eu-west-2
           - TMPDIR=/private
     environment:
-      JAVA_TOOL_OPTIONS: -Xmx1024m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2
+      JAVA_TOOL_OPTIONS: -Xmx512m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false
     working_directory: ~/app
 
 orbs:
