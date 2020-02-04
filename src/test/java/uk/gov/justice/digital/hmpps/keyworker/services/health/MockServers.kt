@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.whereabouts.integration.wiremock
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.WireMockServer
 
-class EliteMockServer : WireMockRule(8081)
-
-class OAuthMockServer : WireMockRule(8090)
+class EliteMockServer : WireMockServer(9999)
 

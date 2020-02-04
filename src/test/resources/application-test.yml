@@ -17,3 +17,5 @@ sqs:
   endpoint.url: http://localhost:4576
   queue.name: keyworker_api_queue
   dlq.name: keyworker_api_dlq
+
+elite2.uri.root: http://localhost:9999
