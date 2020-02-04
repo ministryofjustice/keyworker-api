@@ -13,7 +13,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockApis.Elite2Api
@@ -22,7 +21,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @TestPropertySource(locations = "classpath:test-application-override.properties")
-@ContextConfiguration
 @ActiveProfiles("test")
 @Slf4j
 abstract class TestSpecification extends Specification {

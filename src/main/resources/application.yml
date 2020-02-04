@@ -79,3 +79,8 @@ elite2api:
     tokenName: elite2_token
     authenticationScheme: header
     clientAuthenticationScheme: header
+
+sqs:
+  provider: aws
+  endpoint.region: eu-west-2
+  embedded: false

@@ -53,8 +53,18 @@ executors:
   builder:  
     docker:
       - image: circleci/openjdk:11-jdk-browsers
+      - image: localstack/localstack:0.10.5
+        environment:
+          - SERVICES=sqs
+          - DEBUG=${DEBUG- }
+          - DATA_DIR=/tmp/localstack/data
+          - DOCKER_HOST=unix:///var/run/docker.sock
+          - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+          - AWS_EXECUTION_ENV=True
+          - DEFAULT_REGION=eu-west-2
+          - TMPDIR=/private
     environment:
-      JAVA_TOOL_OPTIONS: -Xmx1024m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2
+      JAVA_TOOL_OPTIONS: -Xmx512m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false
     working_directory: ~/app
 
 orbs:
@@ -78,7 +88,11 @@ jobs:
           keys:
             - gradle-{{ checksum "build.gradle" }}
             - gradle-
-      - run: ./gradlew build
+      - run:
+          environment:
+            SQS_PROVIDER: 'localstack'
+            SQS_EMBEDDED: 'false'
+          command: ./gradlew build
       - run:
           name: Record the Application Version
           command: |
