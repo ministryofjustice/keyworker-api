@@ -49,7 +49,7 @@ public class ReconciliationService {
         final var offenderNosInPrison = getOffenderNosInPrison(prisonId);
 
         // find allocations no longer in this prison
-        var missingOffenders = assignedPrisonersToKW.stream()
+        final var missingOffenders = assignedPrisonersToKW.stream()
                 .filter(kw -> !offenderNosInPrison.contains(kw.getOffenderNo()))
                 .collect(Collectors.toList());
         log.info("There are {} missing prisoners from {}", missingOffenders.size(), prisonId);
@@ -70,7 +70,7 @@ public class ReconciliationService {
         return reconMetrics;
     }
 
-    private void checkAndMerge(String prisonId, ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender) {
+    private void checkAndMerge(final String prisonId, final ReconMetrics reconMetrics, final OffenderKeyworker notFoundOffender) {
         final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
         mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
                 newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
@@ -80,7 +80,7 @@ public class ReconciliationService {
         );
     }
 
-    private void removeMissingRecord(ReconMetrics reconMetrics, OffenderKeyworker notFoundOffender) {
+    private void removeMissingRecord(final ReconMetrics reconMetrics, final OffenderKeyworker notFoundOffender) {
         // can't find but remove anyway.
         log.warn("Cannot find this prisoner {}, de-allocating...", notFoundOffender.getOffenderNo());
         notFoundOffender.deallocate(LocalDateTime.now(), DeallocationReason.MISSING);
@@ -88,7 +88,7 @@ public class ReconciliationService {
         reconMetrics.missingOffenders.getAndIncrement();
     }
 
-    private void mergeRecord(String prisonId, final String oldOffenderNo, final String newOffenderNo, OffenderKeyworker offenderKeyWorker, ReconMetrics reconMetrics) {
+    private void mergeRecord(final String prisonId, final String oldOffenderNo, final String newOffenderNo, final OffenderKeyworker offenderKeyWorker, final ReconMetrics reconMetrics) {
         mergeOffenders(oldOffenderNo, newOffenderNo, offenderKeyWorker, reconMetrics);
 
         nomisService.getPrisonerDetail(newOffenderNo, true).ifPresent(
@@ -190,7 +190,7 @@ public class ReconciliationService {
         private final AtomicInteger missingOffenders = new AtomicInteger();
         private final Map<String, String> mergedRecords = new HashMap<>();
 
-        public ReconMetrics(String prisonId, int activeKeyWorkerAllocations, int unmatchedOffenders) {
+        public ReconMetrics(final String prisonId, final int activeKeyWorkerAllocations, final int unmatchedOffenders) {
             this.prisonId = prisonId;
             this.activeKeyWorkerAllocations = activeKeyWorkerAllocations;
             this.unmatchedOffenders = unmatchedOffenders;

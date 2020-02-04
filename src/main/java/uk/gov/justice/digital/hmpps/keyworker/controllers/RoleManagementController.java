@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -40,7 +39,7 @@ public class RoleManagementController {
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<RoleAssignmentStats>> assignRolesJson(@RequestBody final RoleAssignmentsSpecification specification) {
-        val result = roleAssignmentsService.updateRoleAssignments(specification);
+        final var result = roleAssignmentsService.updateRoleAssignments(specification);
         return ResponseEntity.ok(result);
     }
 

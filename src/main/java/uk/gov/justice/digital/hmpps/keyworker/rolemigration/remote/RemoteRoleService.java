@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,7 +43,7 @@ public class RemoteRoleService implements RoleService {
                 prisonId,
                 roleCode);
 
-        final Set<String> usernames = getUsernames(responseEntity);
+        final var usernames = getUsernames(responseEntity);
 
         log.info("(prison {}, role {}) Found {} usernames: {}", prisonId, roleCode, usernames.size(), usernames);
         return usernames;
@@ -73,8 +72,8 @@ public class RemoteRoleService implements RoleService {
 
     }
 
-    private static Set<String> getUsernames(ResponseEntity<List<String>> responseEntity) {
-        val body = responseEntity.getBody();
+    private static Set<String> getUsernames(final ResponseEntity<List<String>> responseEntity) {
+        final var body = responseEntity.getBody();
         return body == null ? Set.of() : new TreeSet<>(body);
     }
 }

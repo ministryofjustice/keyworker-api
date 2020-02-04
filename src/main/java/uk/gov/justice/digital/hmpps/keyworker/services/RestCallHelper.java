@@ -43,7 +43,7 @@ public class RestCallHelper {
                 responseType);
     }
 
-    protected <T> T get(final URI uri, final Class<T> responseType, boolean admin) {
+    protected <T> T get(final URI uri, final Class<T> responseType, final boolean admin) {
         final var exchange = getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,
@@ -60,7 +60,7 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
-    protected <T, E> List<T> postWithLimit(final URI uri, final E body, final ParameterizedTypeReference<List<T>> responseType, int limit, final boolean admin) {
+    protected <T, E> List<T> postWithLimit(final URI uri, final E body, final ParameterizedTypeReference<List<T>> responseType, final int limit, final boolean admin) {
         final var exchange = getRestTemplate(admin).exchange(uri.toString(),
                 HttpMethod.POST,
                 withLimit(body, limit),
@@ -114,7 +114,7 @@ public class RestCallHelper {
         return exchange.getBody();
     }
 
-    protected <T> ResponseEntity<T> getForList(final URI uri, final ParameterizedTypeReference<T> responseType, boolean admin) {
+    protected <T> ResponseEntity<T> getForList(final URI uri, final ParameterizedTypeReference<T> responseType, final boolean admin) {
         return getRestTemplate(admin).exchange(
                 uri.toString(),
                 HttpMethod.GET,

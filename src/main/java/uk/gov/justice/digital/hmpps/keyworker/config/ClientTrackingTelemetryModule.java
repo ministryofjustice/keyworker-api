@@ -38,7 +38,7 @@ public class ClientTrackingTelemetryModule implements WebTelemetryModule, Teleme
     @Override
     public void onBeginRequest(final ServletRequest req, final ServletResponse res) {
 
-        HttpServletRequest httpServletRequest = (HttpServletRequest) req;
+        final var httpServletRequest = (HttpServletRequest) req;
         final var token = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
         final var bearer = "Bearer ";
         if (StringUtils.startsWithIgnoreCase(token, bearer)) {
@@ -53,9 +53,9 @@ public class ClientTrackingTelemetryModule implements WebTelemetryModule, Teleme
 
                 properties.put("clientId", String.valueOf(jwtBody.get("client_id")));
 
-            } catch (ExpiredJwtException e) {
+            } catch (final ExpiredJwtException e) {
                 // Expired token which spring security will handle
-            } catch (GeneralSecurityException e) {
+            } catch (final GeneralSecurityException e) {
                 log.warn("problem decoding jwt public key for application insights", e);
             }
         }

@@ -161,7 +161,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.10'
 
     runtime 'org.hsqldb:hsqldb:2.5.0'
-    runtime 'org.flywaydb:flyway-core:6.2.0'
+    runtime 'org.flywaydb:flyway-core:6.2.1'
     runtime 'org.postgresql:postgresql:42.2.9'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -179,7 +179,7 @@ dependencies {
     testImplementation 'org.seleniumhq.selenium:selenium-firefox-driver:3.141.59'
     testImplementation 'io.github.http-builder-ng:http-builder-ng-apache:1.0.4'
 
-    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.1'
+    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.26.0'
     testImplementation 'com.github.tomjankes:wiremock-groovy:0.2.0'
     testImplementation 'org.apache.camel:camel-test-spring:2.24.3'
     testImplementation 'com.nhaarman:mockito-kotlin-kt1.1:1.6.0'
