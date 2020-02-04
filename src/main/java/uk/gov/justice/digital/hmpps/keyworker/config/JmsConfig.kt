@@ -1,64 +1,96 @@
-package uk.gov.justice.digital.hmpps.keyworker.config;
+package uk.gov.justice.digital.hmpps.keyworker.config
 
-import com.amazon.sqs.javamessaging.ProviderConfiguration;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.jms.annotation.EnableJms;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.support.destination.DynamicDestinationResolver;
-
-import javax.jms.Session;
+import com.amazon.sqs.javamessaging.ProviderConfiguration
+import com.amazon.sqs.javamessaging.SQSConnectionFactory
+import com.amazonaws.auth.AWSStaticCredentialsProvider
+import com.amazonaws.auth.AnonymousAWSCredentials
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.client.builder.AwsClientBuilder
+import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder
+import com.amazonaws.services.sqs.model.CreateQueueRequest
+import com.amazonaws.services.sqs.model.QueueAttributeName
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.jms.annotation.EnableJms
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory
+import org.springframework.jms.support.destination.DynamicDestinationResolver
+import javax.jms.Session
 
 @Configuration
 @EnableJms
-@ConditionalOnProperty(name = "sqs.provider")
-@Slf4j
-public class JmsConfig {
+open class JmsConfig {
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
-    @Bean
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(final AmazonSQS awsSqs) {
-        final var factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(new SQSConnectionFactory(new ProviderConfiguration(), awsSqs));
-        factory.setDestinationResolver(new DynamicDestinationResolver());
-        factory.setConcurrency("3-10");
-        factory.setSessionAcknowledgeMode(Session.CLIENT_ACKNOWLEDGE);
-        factory.setErrorHandler(t -> log.error("JMS error occurred", t));
-        return factory;
-    }
+  @Bean
+  @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+  open fun jmsListenerContainerFactory(awsSqsClient: AmazonSQS): DefaultJmsListenerContainerFactory {
+    val factory = DefaultJmsListenerContainerFactory()
+    factory.setConnectionFactory(SQSConnectionFactory(ProviderConfiguration(), awsSqsClient))
+    factory.setDestinationResolver(DynamicDestinationResolver())
+    factory.setConcurrency("1")
+    factory.setSessionAcknowledgeMode(Session.CLIENT_ACKNOWLEDGE)
+    factory.setErrorHandler { t: Throwable? -> log.error("Error caught in jms listener", t) }
+    return factory
+  }
 
-    @Bean
-    @ConditionalOnProperty(name = "sqs.provider", havingValue = "localstack")
-    @Primary
-    public AmazonSQSAsync awsSqsClient(@Value("${sqs.endpoint.url}") final String serviceEndpoint,
-                                       @Value("${sqs.region}") final
-                                       String region) {
-        return AmazonSQSAsyncClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
-                .build();
-    }
+  @Bean
+  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "aws")
+  open fun awsSqsClient(@Value("\${sqs.aws.access.key.id}") accessKey: String,
+                        @Value("\${sqs.aws.secret.access.key}") secretKey: String,
+                        @Value("\${sqs.endpoint.region}") region: String): AmazonSQS =
+      AmazonSQSClientBuilder.standard()
+          .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
+          .withRegion(region)
+          .build()
 
-    @Bean
-    @ConditionalOnProperty(name = "sqs.provider", havingValue = "aws")
-    @Primary
-    public AmazonSQSAsync awsLocalClient(@Value("${sqs.aws.access.key.id}") final String accessKey,
-                                       @Value("${sqs.aws.secret.access.key}") final String secretKey,
-                                       @Value("${sqs.region}") final String region) {
-        final var creds = new BasicAWSCredentials(accessKey, secretKey);
-        return AmazonSQSAsyncClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(creds))
-                .withRegion(region)
-                .build();
-    }
+  @Bean
+  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "aws")
+  open fun awsSqsDlqClient(@Value("\${sqs.aws.dlq.access.key.id}") accessKey: String,
+                           @Value("\${sqs.aws.dlq.secret.access.key}") secretKey: String,
+                           @Value("\${sqs.endpoint.region}") region: String): AmazonSQS =
+      AmazonSQSClientBuilder.standard()
+          .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
+          .withRegion(region)
+          .build()
+
+  @Bean("awsSqsClient")
+  @ConditionalOnExpression("'\${sqs.provider}'.equals('localstack') and '\${sqs.embedded}'.equals('false')")
+  open fun awsSqsClientLocalstack(@Value("\${sqs.endpoint.url}") serviceEndpoint: String,
+                                  @Value("\${sqs.endpoint.region}") region: String): AmazonSQS =
+      AmazonSQSClientBuilder.standard()
+          .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
+          .withCredentials(AWSStaticCredentialsProvider(AnonymousAWSCredentials()))
+          .build()
+
+  @Bean("awsSqsDlqClient")
+  @ConditionalOnExpression("'\${sqs.provider}'.equals('localstack') and '\${sqs.embedded}'.equals('false')")
+  open fun awsSqsDlqClientLocalstack(@Value("\${sqs.endpoint.url}") serviceEndpoint: String,
+                                     @Value("\${sqs.endpoint.region}") region: String): AmazonSQS =
+      AmazonSQSClientBuilder.standard()
+          .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
+          .withCredentials(AWSStaticCredentialsProvider(AnonymousAWSCredentials()))
+          .build()
+
+  @Bean
+  @ConditionalOnExpression("'\${sqs.provider}'.equals('localstack')")
+  @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+  open fun queueUrl(@Autowired awsSqsClient: AmazonSQS,
+                    @Value("\${sqs.queue.name}") queueName: String,
+                    @Value("\${sqs.dlq.name}") dlqName: String): String {
+    val result = awsSqsClient.createQueue(CreateQueueRequest(dlqName))
+    val dlqArn = awsSqsClient.getQueueAttributes(result.queueUrl, listOf(QueueAttributeName.QueueArn.toString()))
+    awsSqsClient.createQueue(CreateQueueRequest(queueName).withAttributes(
+        mapOf(QueueAttributeName.RedrivePolicy.toString() to
+            """{"deadLetterTargetArn":"${dlqArn.attributes["QueueArn"]}","maxReceiveCount":"5"}""")
+    ))
+    return awsSqsClient.getQueueUrl(queueName).queueUrl
+  }
 }
