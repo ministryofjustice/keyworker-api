@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -45,16 +44,16 @@ public class RoleAssignmentsService {
 
     private RoleAssignmentStats performAssignment(final RoleAssignmentsSpecification specification, final String caseload) {
 
-        val usernamesForCaseload = findUsernamesMatchingRolesAtCaseload(specification.getRolesToMatch(), caseload);
+        final var usernamesForCaseload = findUsernamesMatchingRolesAtCaseload(specification.getRolesToMatch(), caseload);
 
         log.info("Found {} users for the {} caseload: {}.", usernamesForCaseload.size(), caseload, usernamesForCaseload);
-        val results = RoleAssignmentStats.builder()
+        final var results = RoleAssignmentStats.builder()
                 .numMatchedUsers(usernamesForCaseload.size())
                 .caseload(caseload)
                 .build();
 
         usernamesForCaseload.forEach(username -> {
-            val assignmentSuccess = assignRolesToUser(results, username, specification.getRolesToAssign());
+            final var assignmentSuccess = assignRolesToUser(results, username, specification.getRolesToAssign());
             if (assignmentSuccess) {
                 removeRolesFromUserAtCaseload(results, caseload, username, specification.getRolesToRemove());
             }
@@ -67,7 +66,7 @@ public class RoleAssignmentsService {
     private boolean assignRolesToUser(final RoleAssignmentStats stats, final String username, final List<String> rolesToAssign) {
         return rolesToAssign.stream().reduce(true, (allSuccess, role) -> {
             if (allSuccess) {
-                boolean success = assignRole(stats, username, role);
+                final var success = assignRole(stats, username, role);
                 return success;
             }
             stats.incrementAssignmentFailure();
@@ -80,8 +79,8 @@ public class RoleAssignmentsService {
             roleService.assignRoleToApiCaseload(username, roleCodeToAssign);
             stats.incrementAssignmentSuccess();
             return true;
-        } catch (Exception e) {
-            val message = String.format("Failure while assigning roles %1$s to user %2$s. No roles will be removed from this user. Continuing with next user.", roleCodeToAssign, username);
+        } catch (final Exception e) {
+            final var message = String.format("Failure while assigning roles %1$s to user %2$s. No roles will be removed from this user. Continuing with next user.", roleCodeToAssign, username);
             log.warn(message, e);
             stats.incrementAssignmentFailure();
             return false;
@@ -91,7 +90,7 @@ public class RoleAssignmentsService {
     private void removeRolesFromUserAtCaseload(final RoleAssignmentStats stats, final String caseload, final String username, final List<String> rolesToRemove) {
         rolesToRemove.stream().reduce(true, (allSuccess, role) -> {
             if (allSuccess) {
-                boolean success = removeRole(stats, caseload, username, role);
+                final var success = removeRole(stats, caseload, username, role);
                 return success;
             }
             stats.incrementUnassignmentFailure();
@@ -104,12 +103,12 @@ public class RoleAssignmentsService {
             roleService.removeRole(username, caseload, roleCodeToRemove);
             stats.incrementUnassignmentSuccess();
             return true;
-        } catch (HttpClientErrorException.NotFound notFoundException) {
+        } catch (final HttpClientErrorException.NotFound notFoundException) {
             log.info("Username {} does not have role {} at caseload {}", username, roleCodeToRemove, caseload);
             stats.incrementUnassignmentIgnore();
             return true;
-        } catch (Exception e) {
-            val message = String.format("Failure while removing roles %1$s from user %2$s at caseload %3$s. Some roles may not have been removed. Continuing with next user.", roleCodeToRemove, username, caseload);
+        } catch (final Exception e) {
+            final var message = String.format("Failure while removing roles %1$s from user %2$s at caseload %3$s. Some roles may not have been removed. Continuing with next user.", roleCodeToRemove, username, caseload);
             log.warn(message, e);
             stats.incrementUnassignmentFailure();
             return false;

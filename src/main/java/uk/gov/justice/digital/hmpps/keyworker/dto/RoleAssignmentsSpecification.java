@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +10,6 @@ import org.springframework.util.MultiValueMap;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,10 +22,10 @@ public class RoleAssignmentsSpecification {
 
     @Builder
     private RoleAssignmentsSpecification(
-            List<String> caseloads,
-            List<String> rolesToMatch,
-            List<String> rolesToAssign,
-            List<String> rolesToRemove) {
+            final List<String> caseloads,
+            final List<String> rolesToMatch,
+            final List<String> rolesToAssign,
+            final List<String> rolesToRemove) {
         this.caseloads = caseloads;
         this.rolesToMatch = rolesToMatch;
         this.rolesToAssign = rolesToAssign == null ? List.of() : rolesToAssign;
@@ -51,7 +49,7 @@ public class RoleAssignmentsSpecification {
     private List<String> rolesToRemove = List.of();
 
 
-    public static RoleAssignmentsSpecification fromForm(MultiValueMap<String, String> form) {
+    public static RoleAssignmentsSpecification fromForm(final MultiValueMap<String, String> form) {
         return RoleAssignmentsSpecification.builder()
                 .caseloads(fromFormField("caseloads", form))
                 .rolesToMatch(fromFormField("rolesToMatch", form))
@@ -60,7 +58,7 @@ public class RoleAssignmentsSpecification {
                 .build();
     }
 
-    private static List<String> fromFormField(String key, MultiValueMap<String, String> form) {
+    private static List<String> fromFormField(final String key, final MultiValueMap<String, String> form) {
         return form.getOrDefault(key, Collections.emptyList())
                 .stream()
                 .filter(value -> !value.isBlank())

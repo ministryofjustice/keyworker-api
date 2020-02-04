@@ -75,7 +75,7 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public Optional<PrisonerDetail> getPrisonerDetail(final String offenderNo, boolean admin) {
+    public Optional<PrisonerDetail> getPrisonerDetail(final String offenderNo, final boolean admin) {
         log.debug("Getting prisoner details for NOMIS No {}", offenderNo);
         final var uri = new UriTemplate(URI_PRISONER_LOOKUP + "/{offenderNo}").expand(offenderNo);
 
@@ -84,7 +84,7 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<PrisonerDetail> getPrisonerDetails(final List<String> offenderNos, boolean admin) {
+    public List<PrisonerDetail> getPrisonerDetails(final List<String> offenderNos, final boolean admin) {
         final var uri = new UriTemplate(URI_PRISONER_LOOKUP).expand();
         final var payload = new PrisonerDetailLookup(offenderNos);
         return restCallHelper.postWithLimit(uri, payload, PRISONER_DETAIL_LIST, offenderNos.size(), admin);
@@ -275,7 +275,7 @@ public class NomisServiceImpl implements NomisService {
         try {
             final var result = restCallHelper.get(uri, Map.class, true);
             isAPrison.set(result.get("agencyId") != null);
-        } catch (RestClientException e) {
+        } catch (final RestClientException e) {
            isAPrison.set(false);
         }
         return isAPrison.get();
@@ -301,7 +301,7 @@ public class NomisServiceImpl implements NomisService {
         final var movement = new AtomicReference<Optional<Movement>>();
         try {
             movement.set(Optional.ofNullable(restCallHelper.get(uri, Movement.class, true)));
-        } catch (RestClientException e) {
+        } catch (final RestClientException e) {
             movement.set(Optional.empty());
         }
         return movement.get();
@@ -319,7 +319,7 @@ public class NomisServiceImpl implements NomisService {
         final var booking = new AtomicReference<Optional<OffenderBooking>>();
         try {
             booking.set(Optional.ofNullable(restCallHelper.get(uri, OffenderBooking.class, true)));
-        } catch (RestClientException e) {
+        } catch (final RestClientException e) {
             booking.set(Optional.empty());
         }
         return booking.get();
