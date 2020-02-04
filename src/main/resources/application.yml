@@ -81,5 +81,6 @@ elite2api:
     clientAuthenticationScheme: header
 
 sqs:
-  provider: localstack
-  embedded: true
+  provider: aws
+  endpoint.region: eu-west-2
+  embedded: false
