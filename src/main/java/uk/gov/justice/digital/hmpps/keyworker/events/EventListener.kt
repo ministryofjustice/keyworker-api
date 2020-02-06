@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
 import com.google.gson.Gson
-import lombok.extern.slf4j.Slf4j
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.jms.annotation.JmsListener
@@ -11,14 +9,13 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 
 @Service
-@ConditionalOnProperty(name = ["sqs.provider"])
-@Slf4j
+@ConditionalOnProperty("sqs.provider")
 open class EventListener(private val reconciliationService: ReconciliationService,
                          private val keyworkerService: KeyworkerService,
                          private val gson: Gson) {
 
   companion object {
-    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @JmsListener(destination = "\${sqs.queue.name}")

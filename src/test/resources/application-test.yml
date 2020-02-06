@@ -12,8 +12,7 @@ management.endpoint:
   info.cache.time-to-live: 0
 
 sqs:
-  provider: localstack
-  embedded: true
+  provider: embedded-localstack
   endpoint.url: http://localhost:4576
   queue.name: keyworker_api_queue
   dlq.name: keyworker_api_dlq

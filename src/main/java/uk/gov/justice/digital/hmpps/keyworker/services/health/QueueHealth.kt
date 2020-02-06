@@ -4,7 +4,6 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.*
 import com.amazonaws.services.sqs.model.QueueAttributeName.ApproximateNumberOfMessages
 import com.amazonaws.services.sqs.model.QueueAttributeName.ApproximateNumberOfMessagesNotVisible
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -12,7 +11,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.Health.Builder
 import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.*
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.*
 
 enum class DlqStatus(val description: String) {
@@ -29,13 +30,14 @@ enum class QueueAttributes(val awsName: String, val healthName: String) {
 }
 
 @Component
-class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
+@ConditionalOnProperty("sqs.provider")
+open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
                   @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
                   @Value("\${sqs.queue.name}") private val queueName: String,
                   @Value("\${sqs.dlq.name}") private val dlqName: String) : HealthIndicator {
 
   companion object {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   override fun health(): Health {
@@ -60,7 +62,7 @@ class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient
   private fun Builder.addDlqHealth(mainQueueAttributes: GetQueueAttributesResult): Builder {
     if (!mainQueueAttributes.attributes.containsKey("RedrivePolicy")) {
       log.error("Queue '{}' is missing a RedrivePolicy attribute indicating it does not have a dead letter queue", queueName)
-      return this.down().withDetail("dlqStatus", DlqStatus.NOT_ATTACHED.description)
+      return down().withDetail("dlqStatus", NOT_ATTACHED.description)
     }
 
     val dlqAttributes = try {
@@ -68,13 +70,13 @@ class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient
       awsSqsDlqClient.getQueueAttributes(getQueueAttributesRequest(url))
     } catch (e: QueueDoesNotExistException) {
       log.error("Unable to retrieve dead letter queue URL for queue '{}' due to exception:", queueName, e)
-      return this.down(e).withDetail("dlqStatus", DlqStatus.NOT_FOUND.description)
+      return down(e).withDetail("dlqStatus", NOT_FOUND.description)
     } catch (e: Exception) {
       log.error("Unable to retrieve dead letter queue attributes for queue '{}' due to exception:", queueName, e)
-      return this.down(e).withDetail("dlqStatus", DlqStatus.NOT_AVAILABLE.description)
+      return down(e).withDetail("dlqStatus", NOT_AVAILABLE.description)
     }
 
-    return this.withDetail("dlqStatus", DlqStatus.UP.description)
+    return withDetail("dlqStatus", UP.description)
         .withDetail(MESSAGES_ON_DLQ.healthName, dlqAttributes.attributes[MESSAGES_ON_DLQ.awsName]?.toInt())
   }
 
