@@ -1,13 +1,16 @@
 package uk.gov.justice.digital.hmpps.keyworker.config
 
+import com.amazonaws.services.sqs.AmazonSQS
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.testcontainers.containers.localstack.LocalStackContainer
 
 @Configuration
-@ConditionalOnExpression("'\${sqs.provider}'.equals('localstack') and '\${sqs.embedded}'.equals('true')")
+@ConditionalOnProperty(name = ["sqs.provider"], havingValue = "embedded-localstack")
 open class LocalStackConfig {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -25,4 +28,10 @@ open class LocalStackConfig {
     return localStackContainer
   }
 
+  @Bean
+  @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+  open fun queueUrl(@Autowired awsSqsClient: AmazonSQS,
+                    @Value("\${sqs.queue.name}") queueName: String,
+                    @Value("\${sqs.dlq.name}") dlqName: String): String =
+      JmsConfig().queueUrl(awsSqsClient, queueName, dlqName)
 }

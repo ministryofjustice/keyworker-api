@@ -50,7 +50,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=admin_password
 
   localstack:
-    image: localstack/localstack
+    # pinned to 10.4 due to https://github.com/localstack/localstack/issues/1992
+    image: localstack/localstack:0.10.4
     networks:
       - hmpps
     container_name: localstack
