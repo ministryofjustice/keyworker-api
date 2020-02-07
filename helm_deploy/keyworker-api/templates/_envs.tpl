@@ -8,7 +8,7 @@ env:
     value: "{{ .Values.image.port }}"
 
   - name: SPRING_PROFILES_ACTIVE
-    value: "batch,sqs"
+    value: "batch"
 
   - name: JAVA_OPTS
     value: "{{ .Values.env.JAVA_OPTS }}"
@@ -19,13 +19,13 @@ env:
   - name: ELITE2_URI_ROOT
     value: "{{ .Values.env.ELITE2_URI_ROOT }}"
 
-  - name: AUTH_URI_ROOT 
+  - name: AUTH_URI_ROOT
     value: "{{ .Values.env.AUTH_URI_ROOT }}"
 
-  - name: SERVER_CONNECTION_TIMEOUT 
+  - name: SERVER_CONNECTION_TIMEOUT
     value: "180000"
 
-  - name: APPLICATION_INSIGHTS_IKEY 
+  - name: APPLICATION_INSIGHTS_IKEY
     valueFrom:
       secretKeyRef:
         name: {{ template "app.name" . }}
