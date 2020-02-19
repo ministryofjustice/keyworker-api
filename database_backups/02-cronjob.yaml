@@ -4,7 +4,7 @@ kind: CronJob
 metadata:
   name: rds-snapshot-job
 spec:
-  schedule: "00 10 * * 0"
+  schedule: "0 4 1 * *"
   concurrencyPolicy: "Forbid"
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 3
