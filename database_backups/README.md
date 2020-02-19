@@ -1,9 +1,9 @@
-# Weekly RDS Snapshots
+# Scheduled RDS Snapshots
 
 This folder contains the following kubernetes config:
 
 - `01-configmap-db-snapshot-script.yaml` Defines the bash script used to perform the rds snapshots, and clean up of older ones 
-- `02-cronjob.yaml` Defines the cronjob which launches the job on a weekly basis.
+- `02-cronjob.yaml` Defines the cronjob which launches the job on a scheduled basis (see cron value in this file)
 - `03-prometheus-alert.yaml` Define alert which will tell us if the snapshot job failed, alert sent to `#dps_alerts`
 
 Also:
