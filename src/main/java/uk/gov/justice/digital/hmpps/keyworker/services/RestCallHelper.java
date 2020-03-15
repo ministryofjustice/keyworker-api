@@ -164,29 +164,4 @@ public class RestCallHelper {
     private WebClient getWebClient(final boolean admin) {
         return admin ? oauth2WebClient : webClient;
     }
-
-    // TODO DT-611 Replace the for loops
-    static MultiValueMap<String, String> queryParamsOf(final String... params) {
-        if (params.length % 2 > 0) {
-            throw new IllegalArgumentException(format("Query parameters must come in pairs: %s", params));
-        }
-
-        final var queryParams = new LinkedMultiValueMap<String, String>();
-        for (int i = 0; i < params.length/2; i++) {
-            queryParams.add(params[2*i], params[2*i+1]);
-        }
-        return queryParams;
-    }
-
-    static Map<String, String> uriVariablesOf(final String... vars) {
-        if (vars.length % 2 > 0) {
-            throw new IllegalArgumentException(format("Uri variables must come in pairs: %s", vars));
-        }
-
-        final var uriVariables = new HashMap<String, String>();
-        for (int i = 0; i < vars.length/2; i++) {
-            uriVariables.put(vars[2*i], vars[2*i+1]);
-        }
-        return Map.copyOf(uriVariables);
-    }
 }

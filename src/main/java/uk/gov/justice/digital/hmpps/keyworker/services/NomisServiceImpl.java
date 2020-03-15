@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelper.queryParamsOf;
-import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelper.uriVariablesOf;
+import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.queryParamsOf;
+import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.uriVariablesOf;
 
 @Component
 @Slf4j
