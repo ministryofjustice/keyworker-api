@@ -1,27 +1,16 @@
 package uk.gov.justice.digital.hmpps.keyworker.security;
 
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2ClientContext;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.stereotype.Service;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -39,15 +28,15 @@ import java.util.Optional;
 
 @Configuration
 @EnableSwagger2
-@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
-public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
+@EnableWebSecurity
+public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Value("${jwt.public.key}")
-    private String jwtPublicKey;
-
-    @Autowired(required = false)
     private BuildProperties buildProperties;
+
+    public ResourceServerConfiguration(@Autowired(required = false) final BuildProperties buildProperties) {
+        this.buildProperties = buildProperties;
+    }
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
@@ -58,39 +47,14 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
 
                 // Can't have CSRF protection as requires session
                 .and().csrf().disable()
-        .authorizeRequests()
-                .antMatchers("/webjars/**", "/favicon.ico", "/csrf",
+        .authorizeRequests(auth ->
+                auth.antMatchers("/webjars/**", "/favicon.ico", "/csrf",
                         "/health","/health/ping", "/info", "/ping",
                         "/v2/api-docs",
                         "/swagger-ui.html", "/swagger-resources", "/swagger-resources/configuration/ui",
-                        "/swagger-resources/configuration/security").permitAll()
-          .anyRequest()
-          .authenticated();
-    }
-
-    @Override
-    public void configure(final ResourceServerSecurityConfigurer config) {
-        config.tokenServices(tokenServices());
-    }
-
-    @Bean
-    public TokenStore tokenStore() {
-        return new JwtTokenStore(accessTokenConverter());
-    }
-
-    @Bean
-    public JwtAccessTokenConverter accessTokenConverter() {
-        final var converter = new JwtAccessTokenConverter();
-        converter.setVerifierKey(new String(Base64.decodeBase64(jwtPublicKey)));
-        return converter;
-    }
-
-    @Bean
-    @Primary
-    public DefaultTokenServices tokenServices() {
-        final var defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore(tokenStore());
-        return defaultTokenServices;
+                        "/swagger-resources/configuration/security")
+                        .permitAll().anyRequest().authenticated())
+        .oauth2ResourceServer().jwt().jwtAuthenticationConverter(new AuthAwareTokenConverter());
     }
 
     @Bean
@@ -143,16 +107,5 @@ public class ResourceServerConfiguration extends ResourceServerConfigurerAdapter
         public Optional<String> getCurrentAuditor() {
              return Optional.ofNullable(authenticationFacade.getCurrentUsername());
         }
-    }
-
-    @Bean
-    @ConfigurationProperties("elite2api.client")
-    public ClientCredentialsResourceDetails elite2apiClientCredentials() {
-        return new ClientCredentialsResourceDetails();
-    }
-
-    @Bean
-    public OAuth2ClientContext oAuth2ClientContext() {
-        return new DefaultOAuth2ClientContext();
     }
 }

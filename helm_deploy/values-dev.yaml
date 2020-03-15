@@ -22,3 +22,4 @@ env:
   ELITE2_URI_ROOT: "https://gateway.t3.nomis-api.hmpps.dsd.io/elite2api" 
   AUTH_URI_ROOT: "https://gateway.t3.nomis-api.hmpps.dsd.io/auth"
   JAVA_OPTS: "-Xmx512m"
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "https://gateway.t3.nomis-api.hmpps.dsd.io/auth/.well-known/jwks.json"

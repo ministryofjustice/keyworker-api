@@ -120,9 +120,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    implementation 'org.springframework.security.oauth:spring-security-oauth2:2.4.0.RELEASE'
-    implementation 'org.springframework.security:spring-security-jwt:1.1.0.RELEASE'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'org.springframework:spring-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
 
     implementation 'org.apache.camel:camel-spring-boot:2.25.0'
     implementation 'org.apache.camel:camel-quartz2:2.25.0'

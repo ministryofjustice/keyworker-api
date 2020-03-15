@@ -18,3 +18,13 @@ sqs:
   dlq.name: keyworker_api_dlq
 
 elite2.uri.root: http://localhost:9999
+auth.uri.root: http://localhost:8090
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:local-public-key.pub
+
+api.health-timeout-ms: 400
