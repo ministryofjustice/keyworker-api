@@ -18,13 +18,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static java.lang.String.format;
 import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 
 /**
  * Helper class that takes care of setting up rest template with base API url and request headers.
  */
-// TODO DT-611 Check if we need to put a timeout on all blocks
 @Component
 public class RestCallHelper {
 
@@ -38,7 +36,7 @@ public class RestCallHelper {
         this.oauth2WebClient = oauth2WebClient;
     }
 
-    <T> ResponseEntity<T> getEntity(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final ParameterizedTypeReference<T> responseType, final boolean admin) {
+    public <T> ResponseEntity<T> getEntity(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final ParameterizedTypeReference<T> responseType, final boolean admin) {
         return getWebClient(admin)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -119,7 +117,15 @@ public class RestCallHelper {
         return response.getBody() != null ? new ArrayList<T>(response.getBody()) : new ArrayList<>();
     }
 
-    <T> T put(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final Class<T> responseType, final boolean admin) {
+    public void delete(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final boolean admin) {
+        getWebClient(admin)
+                .delete()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .exchange()
+                .block();
+    }
+
+    public <T> T put(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final Class<T> responseType, final boolean admin) {
         return getWebClient(admin)
                 .put()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
