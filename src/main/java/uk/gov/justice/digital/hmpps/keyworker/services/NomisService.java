@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NomisService {
-    String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings?query=agencyId:eq:'{prisonId}'";
-    String URI_ACTIVE_OFFENDER_BY_AGENCY = URI_ACTIVE_OFFENDERS_BY_AGENCY + "&offenderNo={offenderNo}&iepLevel=true";
+    String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings";
     String URI_STAFF = "/staff/{staffId}";
     String GET_USER_DETAILS = "/users/{username}";
     String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
@@ -22,11 +21,11 @@ public interface NomisService {
     String URI_CURRENT_ALLOCATIONS_BY_OFFENDERS = "/key-worker/{agencyId}/current-allocations/offenders";
     String URI_OFFENDERS_ALLOCATION_HISTORY = "/key-worker/offenders/allocationHistory";
     String URI_GET_ALL_PRISONS = "/agencies/prison";
-    String URI_GET_AGENCY = "/agencies/{agencyId}?activeOnly=false&agencyType={agencyType}";
+    String URI_GET_AGENCY = "/agencies/{agencyId}";
     String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
     String URI_IDENTIFIERS = "/identifiers/{type}/{value}";
     String BOOKING_MOVEMENT = "/bookings/{bookingId}/movement/{seq}";
-    String BOOKING_DETAILS = "/bookings/{bookingId}?basicInfo=true";
+    String BOOKING_DETAILS = "/bookings/{bookingId}";
     String BOOKING_IDENTIFIERS = "/bookings/{bookingId}/identifiers";
     String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 

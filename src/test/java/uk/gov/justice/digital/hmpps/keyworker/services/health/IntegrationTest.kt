@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.whereabouts.integration.wiremock.EliteMockSe
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTest {
-  @Autowired
+  @Autowired // TODO DT-611 Replace with TestWebClient
   lateinit var restTemplate: TestRestTemplate
 
   @SpyBean

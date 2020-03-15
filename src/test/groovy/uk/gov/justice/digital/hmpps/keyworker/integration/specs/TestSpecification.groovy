@@ -43,6 +43,7 @@ abstract class TestSpecification extends Specification {
         }
     }
 
+    // TODO DT-611 Replace with TestWebClient
     @Autowired
     TestRestTemplate restTemplate
 
