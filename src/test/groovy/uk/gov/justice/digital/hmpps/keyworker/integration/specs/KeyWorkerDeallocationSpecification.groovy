@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-
 class KeyWorkerDeallocationSpecification extends TestSpecification {
 
     def 'Existing Active Offender can be de-allocated'() {
@@ -12,11 +9,11 @@ class KeyWorkerDeallocationSpecification extends TestSpecification {
 
         when:
         //deallocate an active offender
-        def response = restTemplate.exchange("/key-worker/deallocate/A1234XY", HttpMethod.PUT,
-                createHeaderEntity(), Void.class)
+        putForEntity("/key-worker/deallocate/A1234XY", createHeaderEntity(), "")
+                .expectStatus().is2xxSuccessful()
 
         then:
-        response.statusCode == HttpStatus.OK
+        noExceptionThrown()
     }
 
     def 'De-allocate inactive offender'() {
@@ -25,9 +22,10 @@ class KeyWorkerDeallocationSpecification extends TestSpecification {
         migrated("LEI")
 
         when:
-        def response = restTemplate.exchange("/key-worker/deallocate/A6676RS", HttpMethod.PUT, createHeaderEntity(), Void.class)
+        putForEntity("/key-worker/deallocate/A6676RS", createHeaderEntity(), "")
+                .expectStatus().isNotFound()
 
         then:
-        response.statusCode == HttpStatus.NOT_FOUND
+        noExceptionThrown()
     }
 }

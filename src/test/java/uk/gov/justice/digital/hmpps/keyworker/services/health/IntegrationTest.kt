@@ -8,17 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.whereabouts.integration.wiremock.EliteMockServer
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTest {
-  @Autowired // TODO DT-611 Replace with TestWebClient
-  lateinit var restTemplate: TestRestTemplate
+
+  @Autowired
+  lateinit var webTestClient: WebTestClient
 
   @SpyBean
   @Qualifier("awsSqsClient")
@@ -51,4 +52,12 @@ abstract class IntegrationTest {
   fun resetStubs() {
     eliteMockServer.resetAll()
   }
+
+
+  fun getForEntity(url: String): WebTestClient.ResponseSpec {
+    return webTestClient.get()
+        .uri(url)
+        .exchange()
+  }
+
 }

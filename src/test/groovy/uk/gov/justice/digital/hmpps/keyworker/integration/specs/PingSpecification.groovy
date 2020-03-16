@@ -1,20 +1,15 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
-
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.util.MimeType
-
 class PingSpecification extends TestSpecification {
 
     def "Ping page returns pong"() {
-
         when:
-        def response = restTemplate.exchange("/ping", HttpMethod.GET, null, String.class)
+        getForEntity("/ping", {})
+                .expectStatus().is2xxSuccessful()
+                .expectHeader().contentType("text/plain;charset=UTF8")
+                .expectBody().is("pong")
 
         then:
-        response.statusCode == HttpStatus.OK
-        response.headers.getContentType() == MimeType.valueOf("text/plain;charset=UTF-8")
-        response.body == 'pong'
+        noExceptionThrown()
     }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
 import uk.gov.justice.digital.hmpps.keyworker.services.AbstractServiceTest;
+import uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelper;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.lang.String.format;
@@ -35,7 +36,7 @@ class RemoteRoleServiceTest extends AbstractServiceTest {
     void setUp() {
         final var webClient = WebClient.builder().baseUrl(format("http://localhost:%s", TEST_PORT)).build();
         server.start();
-        service = new RemoteRoleService(webClient);
+        service = new RemoteRoleService(new RestCallHelper(webClient, webClient));
     }
 
     @AfterEach

@@ -1,12 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
-import groovy.json.JsonSlurper
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-
 class OffenderKeyworkerDetailListSpecification extends TestSpecification {
-
-    def jsonSlurper = new JsonSlurper()
 
     def 'Retrieve offender keyworker details using POST endpoint'() {
 
@@ -15,13 +9,13 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
 
         when:
         //2 matched and active, 1 matched and inactive and 1 unknown offender
-        def response = restTemplate.exchange("/key-worker/LEI/offenders", HttpMethod.POST,
-                createHeaderEntity(['A1176RS', "A5576RS", "A6676RS", "unknown"]), String.class)
+        postForEntity("/key-worker/LEI/offenders", createHeaderEntity(), ['A1176RS', "A5576RS", "A6676RS", "unknown"])
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath('$..offenderNo').isEqualTo(['A1176RS', 'A5576RS'])
 
         then:
-        response.statusCode == HttpStatus.OK
-        def allocationList = jsonSlurper.parseText(response.body)
-        allocationList.collect { it.offenderNo } == ['A1176RS', 'A5576RS']
+        noExceptionThrown()
     }
 
     def 'Retrieve offender keyworker details using POST endpoint - no offender list provided'() {
@@ -30,10 +24,11 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
         migrated("LEI")
 
         when:
-        def response = restTemplate.exchange("/key-worker/LEI/offenders", HttpMethod.POST, createHeaderEntity("[]"), String.class)
+        postForEntity("/key-worker/LEI/offenders", createHeaderEntity(), "[]")
+                .expectStatus().isBadRequest()
 
         then:
-        response.statusCode == HttpStatus.BAD_REQUEST
+        noExceptionThrown()
     }
 
     def 'Retrieve single offender keyworker details using GET endpoint'() {
@@ -43,11 +38,15 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
         elite2api.stubPrisonerLookup('A6676RS')
 
         when:
-        def response = restTemplate.exchange("/key-worker/offender/A6676RS", HttpMethod.GET, createHeaderEntity(), String.class)
+        getForEntity("/key-worker/offender/A6676RS", createHeaderEntity())
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath('$.staffId').isEqualTo(-4)
+                .jsonPath('$.firstName').isEqualTo('John')
+                .jsonPath('$.lastName').isEqualTo('Henry')
+                .jsonPath('$.email').isEqualTo('john@justice.gov.uk')
 
         then:
-        response.statusCode == HttpStatus.OK
-        def allocationList = jsonSlurper.parseText(response.body)
-        allocationList == [staffId: -4, firstName: 'John', lastName: 'Henry', email: 'john@justice.gov.uk']
+        noExceptionThrown()
     }
 }
