@@ -15,6 +15,6 @@ class AuthAwareAuthenticationToken extends JwtAuthenticationToken {
     AuthAwareAuthenticationToken(final Jwt jwt, final Object principal, final Collection<? extends GrantedAuthority> authorities) {
         super(jwt, authorities);
         this.principal = principal;
-        this.name = principal.toString();
+        this.name = principal != null ? principal.toString() : "";
     }
 }

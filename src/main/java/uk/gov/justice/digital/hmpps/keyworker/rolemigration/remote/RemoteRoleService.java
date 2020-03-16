@@ -33,7 +33,7 @@ public class RemoteRoleService implements RoleService {
     public Set<String> findUsersForPrisonHavingRole(final String prisonId, final String roleCode) {
         log.info("Looking for users matching (prison {}, role {})", prisonId, roleCode);
         final var uriVariables = uriVariablesOf("caseload", prisonId, "roleCode", roleCode);
-        final var responseEntity = restCallHelper.getEntity(STAFF_ACCESS_CODES_LIST_URL, queryParamsOf(), uriVariables, new ParameterizedTypeReference<List<String>>() {}, true);
+        final var responseEntity = restCallHelper.getEntity(STAFF_ACCESS_CODES_LIST_URL, queryParamsOf(), uriVariables, new ParameterizedTypeReference<List<String>>() {}, false);
 
         final var usernames = getUsernames(responseEntity);
 
@@ -46,14 +46,14 @@ public class RemoteRoleService implements RoleService {
     public void removeRole(final String username, final String prisonId, final String roleCode) {
         log.info("Remove role association (username {}, prison {}, role {})", username, prisonId, roleCode);
         final var uriVariables = uriVariablesOf("username", username, "caseload", prisonId, "roleCode", roleCode);
-        restCallHelper.delete("/users/{username}/caseload/{caseload}/access-role/{roleCode}", queryParamsOf(), uriVariables, true);
+        restCallHelper.delete("/users/{username}/caseload/{caseload}/access-role/{roleCode}", queryParamsOf(), uriVariables, false);
     }
 
     @Override
     public void assignRoleToApiCaseload(final String username, final String roleCode) {
         log.info("Assign (username {}, role {}) to the API caseload", username, roleCode);
         final var uriVariables = uriVariablesOf("username", username, "roleCode", roleCode);
-        restCallHelper.put("/users/{username}/access-role/{roleCode}", queryParamsOf(), uriVariables, Void.class, true);
+        restCallHelper.put("/users/{username}/access-role/{roleCode}", queryParamsOf(), uriVariables, Void.class, false);
     }
 
     private static Set<String> getUsernames(final ResponseEntity<List<String>> responseEntity) {
