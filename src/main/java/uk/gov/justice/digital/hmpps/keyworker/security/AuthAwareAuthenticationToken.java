@@ -10,9 +10,11 @@ import java.util.Collection;
 @Getter
 class AuthAwareAuthenticationToken extends JwtAuthenticationToken {
     private final Object principal;
+    private final String name;
 
     AuthAwareAuthenticationToken(final Jwt jwt, final Object principal, final Collection<? extends GrantedAuthority> authorities) {
         super(jwt, authorities);
         this.principal = principal;
+        this.name = principal.toString();
     }
 }

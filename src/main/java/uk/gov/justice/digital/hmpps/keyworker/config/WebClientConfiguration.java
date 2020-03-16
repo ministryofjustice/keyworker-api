@@ -1,16 +1,21 @@
 package uk.gov.justice.digital.hmpps.keyworker.config;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
+import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext;
 
 @Configuration
 public class WebClientConfiguration {
@@ -50,11 +55,29 @@ public class WebClientConfiguration {
 
     @Bean
     WebClient webClient(final WebClient.Builder builder) {
-        return builder.baseUrl(elite2ApiRootUri).build();
+        return builder
+                .baseUrl(elite2ApiRootUri)
+                .filter(addAuthHeaderFilterFunction())
+                .build();
     }
 
     @Bean
     WebClient healthWebClient(final WebClient.Builder builder) {
-        return builder.baseUrl(healthRootUri).build();
+        return builder
+                .baseUrl(healthRootUri)
+                .filter(addAuthHeaderFilterFunction())
+                .build();
     }
+
+    @NotNull
+    private ExchangeFilterFunction addAuthHeaderFilterFunction() {
+        return (request, next) -> {
+            ClientRequest filtered = ClientRequest.from(request)
+                    .header(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken())
+                    .build();
+            return next.exchange(filtered);
+        };
+    }
+
+
 }
