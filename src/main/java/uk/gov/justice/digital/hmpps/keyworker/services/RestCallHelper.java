@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId;
 import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 
 /**
@@ -40,6 +41,7 @@ public class RestCallHelper {
         return getWebClient(admin)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .toEntity(responseType)
                 .block();
@@ -49,6 +51,7 @@ public class RestCallHelper {
         return getWebClient(admin)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
@@ -60,6 +63,7 @@ public class RestCallHelper {
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .bodyValue(body)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
@@ -72,6 +76,7 @@ public class RestCallHelper {
                 .bodyValue(body)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .header(HEADER_PAGE_LIMIT, String.valueOf(limit))
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
@@ -84,6 +89,7 @@ public class RestCallHelper {
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .headers(withPagingAndSorting(pagingAndSorting))
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .toEntity(responseType)
                 .block();
@@ -96,6 +102,7 @@ public class RestCallHelper {
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .headers(withPaging(pagingAndSorting))
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .toEntity(responseType)
                 .block();
@@ -130,6 +137,7 @@ public class RestCallHelper {
                 .put()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .attributes(clientRegistrationId("elite2-api"))
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
