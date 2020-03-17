@@ -1,3 +1,11 @@
+# Running locally
+
+When running locally there will be no Auth server to supply the JWT public key, and you won't need localstack.
+
+Use spring profiles `local` to pick up the public key defined in src/main/resources.
+
+Use Spring profile `noqueue` to ignore the localstack config.
+
 # Deployment Notes
 
 ## Prerequisites
