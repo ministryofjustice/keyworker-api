@@ -69,11 +69,8 @@ public class JwtAuthenticationHelper {
 
 
     private KeyPair getKeyPair(final Resource resource, final String alias, final char[] password) {
-        InputStream inputStream = null;
-        KeyStore store;
-        try {
-            store = KeyStore.getInstance("jks");
-            inputStream = resource.getInputStream();
+        try (InputStream inputStream = resource.getInputStream()){
+            final var store = KeyStore.getInstance("jks");
             store.load(inputStream, password);
             final var key = (RSAPrivateCrtKey) store.getKey(alias, password);
             final var spec = new RSAPublicKeySpec(key.getModulus(), key.getPublicExponent());
@@ -82,16 +79,6 @@ public class JwtAuthenticationHelper {
         }
         catch (Exception e) {
             throw new IllegalStateException("Cannot load keys from store: " + resource, e);
-        }
-        finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            }
-            catch (IOException e) {
-                throw new IllegalStateException("Cannot close open stream: ", e);
-            }
         }
     }
 
