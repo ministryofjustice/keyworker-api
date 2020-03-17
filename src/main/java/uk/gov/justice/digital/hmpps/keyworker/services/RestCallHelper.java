@@ -37,7 +37,11 @@ public class RestCallHelper {
         this.oauth2WebClient = oauth2WebClient;
     }
 
-    public <T> ResponseEntity<T> getEntity(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final ParameterizedTypeReference<T> responseType, final boolean admin) {
+    public <T> ResponseEntity<T> getEntity(final String path,
+                                           final MultiValueMap<String, String> queryParams,
+                                           final Map<String, String> uriVariables,
+                                           final ParameterizedTypeReference<T> responseType,
+                                           final boolean admin) {
         return getWebClient(admin)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -47,7 +51,11 @@ public class RestCallHelper {
                 .block();
     }
 
-    protected <T> T getObject(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final Class<T> responseType, final boolean admin) {
+    protected <T> T getObject(final String path,
+                              final MultiValueMap<String, String> queryParams,
+                              final Map<String, String> uriVariables,
+                              final Class<T> responseType,
+                              final boolean admin) {
         return getWebClient(admin)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -57,7 +65,12 @@ public class RestCallHelper {
                 .block();
     }
 
-    <T, E> T post(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final E body, final ParameterizedTypeReference<T> responseType, final boolean admin) {
+    <T, E> T post(final String path,
+                  final MultiValueMap<String, String> queryParams,
+                  final Map<String, String> uriVariables,
+                  final E body,
+                  final ParameterizedTypeReference<T> responseType,
+                  final boolean admin) {
         return getWebClient(admin)
                 .post()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -69,7 +82,13 @@ public class RestCallHelper {
                 .block();
     }
 
-    <T, E> T postWithLimit(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final E body, final ParameterizedTypeReference<T> responseType, final int limit, final boolean admin) {
+    <T, E> T postWithLimit(final String path,
+                           final MultiValueMap<String, String> queryParams,
+                           final Map<String, String> uriVariables,
+                           final E body,
+                           final ParameterizedTypeReference<T> responseType,
+                           final int limit,
+                           final boolean admin) {
         return getWebClient(admin)
                 .post()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -82,8 +101,12 @@ public class RestCallHelper {
                 .block();
     }
 
-    <T> ResponseEntity<T> getEntityWithPagingAndSorting(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables,
-                                                        final PagingAndSortingDto pagingAndSorting, final ParameterizedTypeReference<T> responseType, final boolean admin) {
+    <T> ResponseEntity<T> getEntityWithPagingAndSorting(final String path,
+                                                        final MultiValueMap<String, String> queryParams,
+                                                        final Map<String, String> uriVariables,
+                                                        final PagingAndSortingDto pagingAndSorting,
+                                                        final ParameterizedTypeReference<T> responseType,
+                                                        final boolean admin) {
         return getWebClient(admin)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -95,7 +118,10 @@ public class RestCallHelper {
                 .block();
     }
 
-    <T> ResponseEntity<T> getEntityWithPaging(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final PagingAndSortingDto pagingAndSorting,
+    <T> ResponseEntity<T> getEntityWithPaging(final String path,
+                                              final MultiValueMap<String, String> queryParams,
+                                              final Map<String, String> uriVariables,
+                                              final PagingAndSortingDto pagingAndSorting,
                                               final ParameterizedTypeReference<T> responseType) {
         return getWebClient(false)
                 .get()
@@ -108,8 +134,13 @@ public class RestCallHelper {
                 .block();
     }
 
-    <T> List<T> getObjectListWithSorting(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final String sortFields, final SortOrder sortOrder,
-                                         final ParameterizedTypeReference<List<T>> responseType, final boolean admin) {
+    <T> List<T> getObjectListWithSorting(final String path,
+                                         final MultiValueMap<String, String> queryParams,
+                                         final Map<String, String> uriVariables,
+                                         final String sortFields,
+                                         final SortOrder sortOrder,
+                                         final ParameterizedTypeReference<List<T>> responseType,
+                                         final boolean admin) {
         final long initialPageSize = Integer.MAX_VALUE;
 
         final var pagingAndSorting = PagingAndSortingDto.builder()
@@ -124,7 +155,10 @@ public class RestCallHelper {
         return response.getBody() != null ? new ArrayList<T>(response.getBody()) : new ArrayList<>();
     }
 
-    public void delete(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final boolean admin) {
+    public void delete(final String path,
+                       final MultiValueMap<String, String> queryParams,
+                       final Map<String, String> uriVariables,
+                       final boolean admin) {
         getWebClient(admin)
                 .delete()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
@@ -132,7 +166,11 @@ public class RestCallHelper {
                 .block();
     }
 
-    public <T> T put(final String path, final MultiValueMap<String, String> queryParams, final Map<String, String> uriVariables, final Class<T> responseType, final boolean admin) {
+    public <T> T put(final String path,
+                     final MultiValueMap<String, String> queryParams,
+                     final Map<String, String> uriVariables,
+                     final Class<T> responseType,
+                     final boolean admin) {
         return getWebClient(admin)
                 .put()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
