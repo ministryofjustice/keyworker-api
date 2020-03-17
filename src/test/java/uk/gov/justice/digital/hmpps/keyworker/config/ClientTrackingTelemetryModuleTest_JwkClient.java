@@ -72,7 +72,7 @@ public class ClientTrackingTelemetryModuleTest_JwkClient {
 
         final var expected = Map.of("username", "bob", "clientId", "keyworkerApiClient");
 
-        assertThat(insightTelemetry).containsExactlyEntriesOf(expected);
+        assertThat(insightTelemetry).containsExactlyInAnyOrderEntriesOf(expected);
     }
 
     @Test
