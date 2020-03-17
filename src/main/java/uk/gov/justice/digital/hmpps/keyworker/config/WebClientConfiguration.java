@@ -43,6 +43,7 @@ public class WebClientConfiguration {
     @Bean
     WebClient oauth2WebClient(final OAuth2AuthorizedClientManager authorizedClientManager, final WebClient.Builder builder) {
         final var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oauth2Client.setDefaultClientRegistrationId("elite2-api");
         final var exchangeStrategies =
                 ExchangeStrategies.builder()
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1))
