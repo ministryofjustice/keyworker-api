@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
 import uk.gov.justice.digital.hmpps.keyworker.services.AbstractServiceTest;
 import uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelper;
 
+import java.util.Random;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +22,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 class RemoteRoleServiceTest extends AbstractServiceTest {
 
-    private static final int TEST_PORT = 8080;
+    private static final int TEST_PORT = new Random().nextInt(100) + 8700;
     private static final String USERNAME_1 = "UN1";
     private static final String USERNAME_2 = "UN2";
     private static final String USERNAME_3 = "UN3";
