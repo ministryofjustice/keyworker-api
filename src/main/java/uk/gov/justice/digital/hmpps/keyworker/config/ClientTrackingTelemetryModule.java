@@ -4,35 +4,31 @@ import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.applicationinsights.extensibility.TelemetryModule;
 import com.microsoft.applicationinsights.web.extensibility.modules.WebTelemetryModule;
 import com.microsoft.applicationinsights.web.internal.ThreadContext;
+import com.nimbusds.jwt.SignedJWT;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.PublicKey;
+import java.text.ParseException;
 import java.util.Optional;
 
 @Slf4j
 @Configuration
 public class ClientTrackingTelemetryModule implements WebTelemetryModule, TelemetryModule {
-    private final String jwtPublicKey;
+    private final PublicKeySupplier publicKeySupplier;
 
     @Autowired
-    public ClientTrackingTelemetryModule(
-            @Value("${jwt.public.key}") final String jwtPublicKey) {
-        this.jwtPublicKey = jwtPublicKey;
+    public ClientTrackingTelemetryModule(final PublicKeySupplier publicKeySupplier) {
+        this.publicKeySupplier = publicKeySupplier;
     }
 
     @Override
@@ -55,27 +51,24 @@ public class ClientTrackingTelemetryModule implements WebTelemetryModule, Teleme
 
             } catch (final ExpiredJwtException e) {
                 // Expired token which spring security will handle
-            } catch (final GeneralSecurityException e) {
+            } catch (final Exception e) {
                 log.warn("problem decoding jwt public key for application insights", e);
             }
         }
     }
 
-    private Claims getClaimsFromJWT(final String token) throws ExpiredJwtException, GeneralSecurityException {
+    private Claims getClaimsFromJWT(final String token) throws Exception {
 
         return Jwts.parser()
-                .setSigningKey(getPublicKeyFromString(jwtPublicKey))
+                .setSigningKey(getPublicKey(token))
                 .parseClaimsJws(token.substring(7))
                 .getBody();
     }
 
-    RSAPublicKey getPublicKeyFromString(final String key) throws GeneralSecurityException {
-        final var publicKey = new String(Base64.decodeBase64(key))
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\R", "");
-        final var encoded = Base64.decodeBase64(publicKey);
-        return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encoded));
+    private PublicKey getPublicKey(final String token) throws ParseException {
+        final var signedJWT = SignedJWT.parse(token.replace("Bearer ", ""));
+        final var kid = signedJWT.getHeader().getKeyID();
+        return publicKeySupplier.getPublicKeyForKeyId(kid);
     }
 
     @Override

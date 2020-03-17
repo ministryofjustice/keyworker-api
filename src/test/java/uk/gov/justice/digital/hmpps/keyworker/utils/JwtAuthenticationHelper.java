@@ -29,7 +29,7 @@ public class JwtAuthenticationHelper {
 
     public JwtAuthenticationHelper(@Value("${jwt.signing.key.pair}") final String privateKeyPair,
                                    @Value("${jwt.keystore.password}") final String keystorePassword,
-                                   @Value("${jwt.keystore.alias:elite2api}") final String keystoreAlias) {
+                                   @Value("${jwt.keystore.alias:keyworkerApi}") final String keystoreAlias) {
 
         keyPair = getKeyPair(new ByteArrayResource(Base64.decodeBase64(privateKeyPair)), keystoreAlias, keystorePassword.toCharArray());
     }
@@ -40,7 +40,7 @@ public class JwtAuthenticationHelper {
 
         claims.put("user_name", parameters.getUsername());
         claims.put("user_id", parameters.getUserId());
-        claims.put("client_id", "elite2apiclient");
+        claims.put("client_id", "keyworkerApiClient");
 
         if (parameters.getRoles() != null && !parameters.getRoles().isEmpty())
             claims.put("authorities", parameters.getRoles());
@@ -65,6 +65,10 @@ public class JwtAuthenticationHelper {
         private List<String> scope;
         private List<String> roles;
         private Duration expiryTime;
+        @Builder.Default
+        private String clientId = "keyworkerApiClient";
+        @Builder.Default
+        private boolean internalUser = true;
     }
 
 

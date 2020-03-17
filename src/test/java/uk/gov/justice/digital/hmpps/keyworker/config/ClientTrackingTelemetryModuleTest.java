@@ -24,7 +24,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@Import({JwtAuthenticationHelper.class, ClientTrackingTelemetryModule.class})
+@Import({JwtAuthenticationHelper.class, ClientTrackingTelemetryModule.class, PublicKeyClient.class})
 @ContextConfiguration(initializers = {ConfigFileApplicationContextInitializer.class})
 @ActiveProfiles("test")
 class ClientTrackingTelemetryModuleTest {
@@ -60,7 +60,7 @@ class ClientTrackingTelemetryModuleTest {
 
         assertThat(insightTelemetry).hasSize(2);
         assertThat(insightTelemetry.get("username")).isEqualTo("bob");
-        assertThat(insightTelemetry.get("clientId")).isEqualTo("elite2apiclient");
+        assertThat(insightTelemetry.get("clientId")).isEqualTo("keyworkerApiClient");
 
     }
 
@@ -78,7 +78,7 @@ class ClientTrackingTelemetryModuleTest {
         final var insightTelemetry = ThreadContext.getRequestTelemetryContext().getHttpRequestTelemetry().getProperties();
 
         assertThat(insightTelemetry).hasSize(1);
-        assertThat(insightTelemetry.get("clientId")).isEqualTo("elite2apiclient");
+        assertThat(insightTelemetry.get("clientId")).isEqualTo("keyworkerApiClient");
 
     }
 
