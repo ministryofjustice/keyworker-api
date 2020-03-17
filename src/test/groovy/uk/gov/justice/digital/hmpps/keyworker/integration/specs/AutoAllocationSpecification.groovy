@@ -1,17 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
-import groovy.json.JsonSlurper
-import org.junit.Assert
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import static org.assertj.core.api.Assertions.assertThat
+
 class AutoAllocationSpecification extends TestSpecification {
 
     final static TODAY = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
-    def jsonSlurper = new JsonSlurper()
 
     def "Allocation service reports ok"() {
 
@@ -22,63 +19,62 @@ class AutoAllocationSpecification extends TestSpecification {
         capacityOf1002is1And1001is3()
 
         when:
-        def response = restTemplate.exchange("/key-worker/SYI/allocate/start", HttpMethod.POST, createHeaderEntity("headers"), String.class)
-        def confirm = restTemplate.exchange("/key-worker/SYI/allocate/confirm", HttpMethod.POST, createHeaderEntity("headers"), String.class)
-        def allocations = restTemplate.exchange("/key-worker/SYI/allocations", HttpMethod.GET, createHeaderEntity("headers"), String.class)
-        def result = jsonSlurper.parseText(allocations.body)
+        postForEntity("/key-worker/SYI/allocate/start", createHeaderEntity(), "headers")
+                .expectStatus().is2xxSuccessful()
+                .expectBody().is(10)
+        postForEntity("/key-worker/SYI/allocate/confirm", createHeaderEntity(), "headers")
+                .expectStatus().is2xxSuccessful()
+                .expectBody().is(10)
+        getForEntity("/key-worker/SYI/allocations", createHeaderEntity())
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath('$.length()').isEqualTo(11)
+                .jsonPath('$[0].offenderNo').isEqualTo('ALLOCED1')// KW is already 1001
+                .jsonPath('$[0].allocationType').isEqualTo('M')
+
+                .jsonPath('$[1].offenderNo').isEqualTo('UNALLOC1')
+                .jsonPath('$[1].staffId').isEqualTo(1002)// 1001 not chosen as its no allocated > 0
+                .jsonPath('$[1].allocationType').isEqualTo('A')
+                .jsonPath('$[1].assigned').value { assigned -> assertThat(assigned).contains(TODAY) }
+
+                .jsonPath('$[2].offenderNo').isEqualTo('UNALLOC2')
+                .jsonPath('$[2].staffId').isEqualTo(1003)
+
+                .jsonPath('$[3].offenderNo').isEqualTo('UNALLOC3')
+                .jsonPath('$[3].staffId').isEqualTo(1001)// Now chosen in staffId numerical order
+                  // 1001 is not bypassed due to an old allocation because this was NOT auto!
+
+                .jsonPath('$[4].offenderNo').isEqualTo('UNALLOC4')
+                .jsonPath('$[4].staffId').isEqualTo(1003)// 1002 is now full
+
+                .jsonPath('$[5].offenderNo').isEqualTo('UNALLOC5')
+                .jsonPath('$[5].staffId').isEqualTo(1001)
+
+                .jsonPath('$[6].offenderNo').isEqualTo('UNALLOC6')
+                .jsonPath('$[6].staffId').isEqualTo(1003)
+
+                .jsonPath('$[7].offenderNo').isEqualTo('UNALLOC7')
+                .jsonPath('$[7].staffId').isEqualTo(1001)
+
+                .jsonPath('$[8].offenderNo').isEqualTo('UNALLOC8')
+                .jsonPath('$[8].staffId').isEqualTo(1003)
+
+                .jsonPath('$[9].offenderNo').isEqualTo('UNALLOC9')
+                .jsonPath('$[9].staffId').isEqualTo(1003)// 1001 is now full
+
+                .jsonPath('$[10].offenderNo').isEqualTo('EXPIRED1')// KW set to previous: 1002, despite being full
+                .jsonPath('$[10].staffId').isEqualTo(1002)
+                .jsonPath('$[10].allocationType').isEqualTo("A")
+                .jsonPath('$[1].assigned').value { assigned -> assertThat(assigned).contains(TODAY) }
 
         then:
-        response.statusCode == HttpStatus.OK
-        jsonSlurper.parseText(response.body) == 10
-        confirm.statusCode == HttpStatus.OK
-        jsonSlurper.parseText(confirm.body) == 10
-        allocations.statusCode == HttpStatus.OK
-
-        // Result list is in the same order as the allocations are done
-        result.size() == 11
-        result[0].offenderNo == "ALLOCED1" // KW is already 1001
-        result[0].allocationType == "M"
-
-        result[1].offenderNo == "UNALLOC1"
-        result[1].staffId == 1002 // 1001 not chosen as its no allocated > 0
-        result[1].allocationType == "A"
-        result[1].assigned.substring(0, 10) == TODAY
-
-        result[2].offenderNo == "UNALLOC2"
-        result[2].staffId == 1003
-
-        result[3].offenderNo == "UNALLOC3"
-        result[3].staffId == 1001 // Now chosen in staffId numerical order
-        // 1001 is not bypassed due to an old allocation because this was NOT auto!
-
-        result[4].offenderNo == "UNALLOC4"
-        result[4].staffId == 1003 // 1002 is now full
-
-        result[5].offenderNo == "UNALLOC5"
-        result[5].staffId == 1001
-
-        result[6].offenderNo == "UNALLOC6"
-        result[6].staffId == 1003
-
-        result[7].offenderNo == "UNALLOC7"
-        result[7].staffId == 1001
-
-        result[8].offenderNo == "UNALLOC8"
-        result[8].staffId == 1003
-
-        result[9].offenderNo == "UNALLOC9"
-        result[9].staffId == 1003 // 1001 is now full
-
-        result[10].offenderNo == "EXPIRED1" // KW set to previous: 1002, despite being full
-        result[10].staffId == 1002
-        result[10].allocationType == "A"
-        result[10].assigned.substring(0, 10) == TODAY
+        noExceptionThrown()
     }
 
     private void capacityOf1002is1And1001is3() {
-        Assert.assertEquals(HttpStatus.OK, restTemplate.exchange("/key-worker/1002/prison/SYI", HttpMethod.POST,
-                createHeaderEntity("{\"capacity\": 1, \"status\": \"ACTIVE\"}"), String.class).statusCode)
-        Assert.assertEquals(HttpStatus.OK, restTemplate.exchange("/key-worker/1001/prison/SYI", HttpMethod.POST,
-                createHeaderEntity("{\"capacity\": 3, \"status\": \"ACTIVE\"}"), String.class).statusCode)
+        postForEntity("/key-worker/1002/prison/SYI", createHeaderEntity(), "{\"capacity\": 1, \"status\": \"ACTIVE\"}")
+                .expectStatus().is2xxSuccessful()
+        postForEntity("/key-worker/1001/prison/SYI", createHeaderEntity(), "{\"capacity\": 3, \"status\": \"ACTIVE\"}")
+                .expectStatus().is2xxSuccessful()
     }
 }

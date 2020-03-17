@@ -4,17 +4,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.client.WebClient;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
+import static org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId;
 import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 
 /**
@@ -23,78 +27,114 @@ import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
 @Component
 public class RestCallHelper {
 
-    private static final HttpHeaders CONTENT_TYPE_APPLICATION_JSON = httpContentTypeHeaders(MediaType.APPLICATION_JSON);
-
-    private final RestTemplate restTemplate;
-    private final OAuth2RestTemplate elite2SystemRestTemplate;
+    private final WebClient webClient;
+    private final WebClient oauth2WebClient;
 
     @Autowired
-    public RestCallHelper(@Qualifier(value = "elite2ApiRestTemplate") final RestTemplate restTemplate,
-                          final OAuth2RestTemplate elite2SystemRestTemplate) {
-        this.restTemplate = restTemplate;
-        this.elite2SystemRestTemplate = elite2SystemRestTemplate;
+    public RestCallHelper(@Qualifier(value = "webClient") final WebClient webClient,
+                          @Qualifier(value = "oauth2WebClient") final WebClient oauth2WebClient) {
+        this.webClient = webClient;
+        this.oauth2WebClient = oauth2WebClient;
     }
 
-    protected <T> ResponseEntity<T> getForListWithAuthentication(final URI uri, final ParameterizedTypeReference<T> responseType) {
-        return getRestTemplate(true).exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                null,
-                responseType);
+    public <T> ResponseEntity<T> getEntity(final String path,
+                                           final MultiValueMap<String, String> queryParams,
+                                           final Map<String, String> uriVariables,
+                                           final ParameterizedTypeReference<T> responseType,
+                                           final boolean admin) {
+        return getWebClient(admin)
+                .get()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .retrieve()
+                .toEntity(responseType)
+                .block();
     }
 
-    protected <T> T get(final URI uri, final Class<T> responseType, final boolean admin) {
-        final var exchange = getRestTemplate(admin).exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON),
-                responseType);
-        return exchange.getBody();
+    <T> T getObject(final String path,
+                              final MultiValueMap<String, String> queryParams,
+                              final Map<String, String> uriVariables,
+                              final Class<T> responseType,
+                              final boolean admin) {
+        return getWebClient(admin)
+                .get()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .retrieve()
+                .bodyToMono(responseType)
+                .block();
     }
 
-    protected <T, E> List<T> post(final URI uri, final E body, final ParameterizedTypeReference<List<T>> responseType, final boolean admin) {
-        final var exchange = getRestTemplate(admin).exchange(uri.toString(),
-                HttpMethod.POST,
-                new HttpEntity<E>(body, CONTENT_TYPE_APPLICATION_JSON),
-                responseType);
-        return exchange.getBody();
+    <T, E> T post(final String path,
+                  final MultiValueMap<String, String> queryParams,
+                  final Map<String, String> uriVariables,
+                  final E body,
+                  final ParameterizedTypeReference<T> responseType,
+                  final boolean admin) {
+        return getWebClient(admin)
+                .post()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .bodyValue(body)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .retrieve()
+                .bodyToMono(responseType)
+                .block();
     }
 
-    protected <T, E> List<T> postWithLimit(final URI uri, final E body, final ParameterizedTypeReference<List<T>> responseType, final int limit, final boolean admin) {
-        final var exchange = getRestTemplate(admin).exchange(uri.toString(),
-                HttpMethod.POST,
-                withLimit(body, limit),
-                responseType);
-        return exchange.getBody();
+    <T, E> T postWithLimit(final String path,
+                           final MultiValueMap<String, String> queryParams,
+                           final Map<String, String> uriVariables,
+                           final E body,
+                           final ParameterizedTypeReference<T> responseType,
+                           final int limit,
+                           final boolean admin) {
+        return getWebClient(admin)
+                .post()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .bodyValue(body)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(HEADER_PAGE_LIMIT, String.valueOf(limit))
+                .retrieve()
+                .bodyToMono(responseType)
+                .block();
     }
 
-    private <E> HttpEntity<E> withLimit(final E body, final int limit) {
-        final var headers = new HttpHeaders();
-        headers.add(HEADER_PAGE_LIMIT, String.valueOf(limit));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity<E>(body, headers);
+    <T> ResponseEntity<T> getEntityWithPagingAndSorting(final String path,
+                                                        final MultiValueMap<String, String> queryParams,
+                                                        final Map<String, String> uriVariables,
+                                                        final PagingAndSortingDto pagingAndSorting,
+                                                        final ParameterizedTypeReference<T> responseType,
+                                                        final boolean admin) {
+        return getWebClient(admin)
+                .get()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .headers(withPagingAndSorting(pagingAndSorting))
+                .retrieve()
+                .toEntity(responseType)
+                .block();
     }
 
-    protected <T> ResponseEntity<T> getWithPagingAndSorting(final URI uri, final PagingAndSortingDto pagingAndSorting,
-                                                            final ParameterizedTypeReference<T> responseType, final boolean admin) {
-        return getRestTemplate(admin).exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                withPagingAndSorting(pagingAndSorting),
-                responseType);
+    <T> ResponseEntity<T> getEntityWithPaging(final String path,
+                                              final MultiValueMap<String, String> queryParams,
+                                              final Map<String, String> uriVariables,
+                                              final PagingAndSortingDto pagingAndSorting,
+                                              final ParameterizedTypeReference<T> responseType) {
+        return getWebClient(false)
+                .get()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .headers(withPaging(pagingAndSorting))
+                .retrieve()
+                .toEntity(responseType)
+                .block();
     }
 
-    protected <T> ResponseEntity<T> getWithPaging(final URI uri, final PagingAndSortingDto pagingAndSorting,
-                                                  final ParameterizedTypeReference<T> responseType) {
-        return restTemplate.exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                withPaging(pagingAndSorting),
-                responseType);
-    }
-
-    protected <T> List<T> getAllWithSorting(final URI uri, final String sortFields, final SortOrder sortOrder,
-                                            final ParameterizedTypeReference<List<T>> responseType, final boolean admin) {
+    <T> List<T> getObjectListWithSorting(final String path,
+                                         final MultiValueMap<String, String> queryParams,
+                                         final Map<String, String> uriVariables,
+                                         final String sortFields,
+                                         final SortOrder sortOrder,
+                                         final ParameterizedTypeReference<List<T>> responseType,
+                                         final boolean admin) {
         final long initialPageSize = Integer.MAX_VALUE;
 
         final var pagingAndSorting = PagingAndSortingDto.builder()
@@ -104,54 +144,56 @@ public class RestCallHelper {
                 .pageLimit(initialPageSize)
                 .build();
 
-        final var response = getWithPagingAndSorting(uri, pagingAndSorting, responseType, admin);
+        final var response = getEntityWithPagingAndSorting(path, queryParams, uriVariables, pagingAndSorting, responseType, admin);
 
         return response.getBody() != null ? new ArrayList<>(response.getBody()) : new ArrayList<>();
     }
 
-    <T> T put(final URI uri, final Class<T> responseType, final boolean admin) {
-        final var exchange = getRestTemplate(admin).exchange(uri.toString(), HttpMethod.PUT, new HttpEntity<>(null, CONTENT_TYPE_APPLICATION_JSON), responseType);
-        return exchange.getBody();
+    public void delete(final String path,
+                       final MultiValueMap<String, String> queryParams,
+                       final Map<String, String> uriVariables,
+                       final boolean admin) {
+        getWebClient(admin)
+                .delete()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .exchange()
+                .block();
     }
 
-    protected <T> ResponseEntity<T> getForList(final URI uri, final ParameterizedTypeReference<T> responseType, final boolean admin) {
-        return getRestTemplate(admin).exchange(
-                uri.toString(),
-                HttpMethod.GET,
-                null,
-                responseType);
+    public <T> T put(final String path,
+                     final MultiValueMap<String, String> queryParams,
+                     final Map<String, String> uriVariables,
+                     final Class<T> responseType,
+                     final boolean admin) {
+        return getWebClient(admin)
+                .put()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .retrieve()
+                .bodyToMono(responseType)
+                .block();
     }
 
-    private HttpEntity<?> withPagingAndSorting(final PagingAndSortingDto pagingAndSorting) {
-        final var headers = new HttpHeaders();
+    private Consumer<HttpHeaders> withPagingAndSorting(PagingAndSortingDto pagingAndSorting) {
+        return headers -> {
+            headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
+            headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
 
-        headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
-        headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
-
-        if (StringUtils.isNotBlank(pagingAndSorting.getSortFields())) {
-            headers.add(HEADER_SORT_FIELDS, pagingAndSorting.getSortFields());
-            headers.add(HEADER_SORT_ORDER, pagingAndSorting.getSortOrder().name());
-        }
-
-        return new HttpEntity<>(null, headers);
+            if (StringUtils.isNotBlank(pagingAndSorting.getSortFields())) {
+                headers.add(HEADER_SORT_FIELDS, pagingAndSorting.getSortFields());
+                headers.add(HEADER_SORT_ORDER, pagingAndSorting.getSortOrder().name());
+            }
+        };
     }
 
-    private HttpEntity<?> withPaging(final PagingAndSortingDto pagingAndSorting) {
-        final var headers = new HttpHeaders();
-
-        headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
-        headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
-
-        return new HttpEntity<>(null, headers);
+    private Consumer<HttpHeaders> withPaging(PagingAndSortingDto pagingAndSorting) {
+        return headers -> {
+            headers.add(HEADER_PAGE_OFFSET, pagingAndSorting.getPageOffset().toString());
+            headers.add(HEADER_PAGE_LIMIT, pagingAndSorting.getPageLimit().toString());
+        };
     }
 
-    private static HttpHeaders httpContentTypeHeaders(final MediaType contentType) {
-        final var httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(contentType);
-        return httpHeaders;
-    }
-
-    private RestTemplate getRestTemplate(final boolean admin) {
-        return admin ? elite2SystemRestTemplate : restTemplate;
+    private WebClient getWebClient(final boolean admin) {
+        return admin ? oauth2WebClient : webClient;
     }
 }

@@ -7,15 +7,16 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.http.HttpEntity
+import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.web.reactive.server.WebTestClient
 import spock.lang.Specification
 import uk.gov.justice.digital.hmpps.keyworker.integration.mockApis.Elite2Api
+
+import java.util.function.Consumer
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 
@@ -35,51 +36,97 @@ abstract class TestSpecification extends Specification {
     TestWatcher t = new TestWatcher() {
         @Override
         protected void starting(Description description) {
-            log.info ("Starting test '{}'", description.getDisplayName())
+            log.info("Starting test '{}'", description.getDisplayName())
         }
+
         @Override
         protected void finished(Description description) {
-            log.info ("Finished test '{}'", description.getDisplayName())
+            log.info("Finished test '{}'", description.getDisplayName())
         }
     }
 
     @Autowired
-    TestRestTemplate restTemplate
+    WebTestClient webTestClient
 
     @Autowired
     ObjectMapper objectMapper
 
-    def migrated(prisonId){
+    @LocalServerPort
+    int localServerPort
+
+    def migrated(prisonId) {
         elite2api.stubAllocationHistory(prisonId)
         elite2api.stubAccessCodeListForKeyRole(prisonId)
         elite2api.stubAccessCodeListForKeyAdminRole(prisonId)
 
-        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true",
-                HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
+        def response = postForEntity("/key-worker/enable/${prisonId}/auto-allocate?migrate=true", createHeaderEntityForAdminUser(), "headers")
+
         response.toString()
     }
 
-    def migratedForAutoAllocation(prisonId){
+    def migratedForAutoAllocation(prisonId) {
         elite2api.stubAllocationHistoryForAutoAllocation(prisonId)
         elite2api.stubAccessCodeListForKeyRole(prisonId)
         elite2api.stubAccessCodeListForKeyAdminRole(prisonId)
 
-        def response = restTemplate.exchange("/key-worker/enable/${prisonId}/auto-allocate?migrate=true&capacity=6,9&frequency=2",
-                HttpMethod.POST, createHeaderEntityForAdminUser("headers"), String.class)
+        def response = postForEntity("/key-worker/enable/${prisonId}/auto-allocate?migrate=true&capacity=6,9&frequency=2", createHeaderEntityForAdminUser(), "headers")
+
         response.toString()
     }
 
-    HttpEntity createHeaderEntityForAdminUser(Object entity) {
-        HttpHeaders headers = new HttpHeaders()
-        headers.setBearerAuth(adminToken)
-        headers.setContentType(MediaType.APPLICATION_JSON)
-        new HttpEntity<>(entity, headers)
+    def getForEntity(String url, Consumer<HttpHeaders> headers) {
+        return webTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:$localServerPort")
+                .build()
+                .get()
+                .uri(url)
+                .headers(headers)
+                .exchange()
     }
 
-    HttpEntity createHeaderEntity(Object entity) {
-        HttpHeaders headers = new HttpHeaders()
-        headers.setBearerAuth(token)
-        headers.setContentType(MediaType.APPLICATION_JSON)
-        new HttpEntity<>(entity, headers)
+    def postForEntity(String url, Consumer<HttpHeaders> headers, Object body) {
+        return webTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:$localServerPort")
+                .build()
+                .post()
+                .uri(url)
+                .headers(headers)
+                .bodyValue(body)
+                .exchange()
+    }
+
+    def putForEntity(String url, Consumer<HttpHeaders> headers, Object body) {
+        return webTestClient
+                .bindToServer()
+                .baseUrl("http://localhost:$localServerPort")
+                .build()
+                .put()
+                .uri(url)
+                .headers(headers)
+                .bodyValue(body)
+                .exchange()
+    }
+
+    Consumer<HttpHeaders> createHeaderEntityForAdminUser() {
+        return { headers ->
+            headers.setBearerAuth(adminToken)
+            headers.setContentType(MediaType.APPLICATION_JSON)
+        }
+    }
+
+    Consumer<HttpHeaders> createHeaderEntity() {
+        return { headers ->
+            headers.setBearerAuth(token)
+            headers.setContentType(MediaType.APPLICATION_JSON)
+        }
+    }
+
+    Consumer<HttpHeaders> createHeaderEntity(final String token) {
+        return { headers ->
+            headers.setBearerAuth(token)
+            headers.setContentType(MediaType.APPLICATION_JSON)
+        }
     }
 }

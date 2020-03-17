@@ -2,21 +2,27 @@ package uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.RoleService;
 import uk.gov.justice.digital.hmpps.keyworker.services.AbstractServiceTest;
+import uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelper;
 
+import java.util.Random;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 class RemoteRoleServiceTest extends AbstractServiceTest {
 
+    private static final int TEST_PORT = new Random().nextInt(100) + 8700;
     private static final String USERNAME_1 = "UN1";
     private static final String USERNAME_2 = "UN2";
     private static final String USERNAME_3 = "UN3";
@@ -25,51 +31,55 @@ class RemoteRoleServiceTest extends AbstractServiceTest {
 
     private RoleService service;
 
-    private MockRestServiceServer server;
+    @Rule
+    public WireMockRule server = new WireMockRule(TEST_PORT);
 
     @BeforeEach
-    void initialiseMockRestServiceServer() {
-        final var restTemplate = new RestTemplate();
-        server = MockRestServiceServer.bindTo(restTemplate).build();
-        service = new RemoteRoleService(restTemplate);
+    void setUp() {
+        final var webClient = WebClient.builder().baseUrl(format("http://localhost:%s", TEST_PORT)).build();
+        server.start();
+        service = new RemoteRoleService(new RestCallHelper(webClient, webClient));
+    }
+
+    @AfterEach
+    void tearDown() {
+        server.stop();
     }
 
    @Test
    void givenRoleService_whenAssignRoleToApiCaseloadInvoked_thenExpectedHttpExchangeOccurs() {
-        server
-                .expect(requestTo("/users/UN1/access-role/RC"))
-                .andExpect(method(HttpMethod.PUT))
-                .andExpect(content().bytes(new byte[0]))
-                .andRespond(withSuccess());
+        server.stubFor(
+                put(urlEqualTo("/users/UN1/access-role/RC"))
+                        .willReturn(aResponse().withStatus(200))
+        );
 
         service.assignRoleToApiCaseload(USERNAME_1, "RC");
 
-        server.verify();
+        server.verify(putRequestedFor(urlEqualTo("/users/UN1/access-role/RC")));
     }
 
     @Test
     void givenRoleService_whenRemoveRoleInvoked_thenExpectedHttpExchangeOccurs() {
-        server
-                .expect(requestTo("/users/UN1/caseload/CL/access-role/RC"))
-                .andExpect(method(HttpMethod.DELETE))
-                .andRespond(withSuccess());
+        server.stubFor(
+                delete(urlEqualTo("/users/UN1/caseload/CL/access-role/RC"))
+                .willReturn(aResponse().withStatus(200))
+        );
 
         service.removeRole(USERNAME_1, "CL", "RC");
 
-        server.verify();
+        server.verify(deleteRequestedFor(urlEqualTo("/users/UN1/caseload/CL/access-role/RC")));
     }
 
     @Test
     void givenRoleService_whenFindStaffMatchingCaseloadAndRoleInvoked_thenExpectedHttpExchangeOccursAndResultsAreCorrect() throws JsonProcessingException {
-        server
-                .expect(requestTo("/users/access-roles/caseload/CL/access-role/RC"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(usernames(), MediaType.APPLICATION_JSON));
+        server.stubFor(
+                get(urlEqualTo("/users/access-roles/caseload/CL/access-role/RC"))
+                .willReturn(aResponse().withStatus(200).withBody(usernames()).withHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE))
+        );
 
         final var usernames = service.findUsersForPrisonHavingRole("CL", "RC");
 
-        server.verify();
-
+        server.verify(getRequestedFor(urlEqualTo("/users/access-roles/caseload/CL/access-role/RC")));
         assertThat(usernames).containsExactlyInAnyOrder(USERNAME_1, USERNAME_2, USERNAME_3);
     }
 

@@ -1,18 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
-import groovy.json.JsonSlurper
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-
 class OffenderKeyworkerHistorySpecification extends TestSpecification {
-
-    def jsonSlurper = new JsonSlurper()
 
     def 'History of inactive offender'() {
 
         given:
         migrated("LEI")
-        elite2api.stubOffenderAllocationHistory("A6676RS");
+        elite2api.stubOffenderAllocationHistory("A6676RS")
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-5)
         elite2api.stubStaffUserDetails("omicadmin")
         elite2api.stubPrisonerLookup("A6676RS")
@@ -21,34 +15,33 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
 
         when:
         //get allocation history
-        def response = restTemplate.exchange("/key-worker/allocation-history/A6676RS", HttpMethod.GET,
-                createHeaderEntity(), String.class)
+        getForEntity("/key-worker/allocation-history/A6676RS", createHeaderEntity())
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath('$.allocationHistory.length()').isEqualTo(2)
+                .jsonPath('$.allocationHistory[0].staffId').isEqualTo(-5)
+                .jsonPath('$.allocationHistory[0].active').isEqualTo(false)
+                .jsonPath('$.allocationHistory[0].allocationReason').isEqualTo('Manual')
+                .jsonPath('$.allocationHistory[0].userId.staffId').isEqualTo(-2)
+                .jsonPath('$.allocationHistory[0].lastModifiedByUser.username').isEqualTo('omicadmin')
+                .jsonPath('$.allocationHistory[1].staffId').isEqualTo(-5)
+                .jsonPath('$.allocationHistory[1].userId.staffId').isEqualTo(-2)
+                .jsonPath('$.allocationHistory[1].active').isEqualTo(false)
+                .jsonPath('$.allocationHistory[1].allocationReason').isEqualTo('Manual')
+                .jsonPath('$.allocationHistory[1].lastModifiedByUser.username').isEqualTo('omicadmin')
 
         then:
-        response.statusCode == HttpStatus.OK
-        def keyWorkerHistory = jsonSlurper.parseText(response.body)
-        keyWorkerHistory.offender.offenderNo == 'A6676RS'
-        keyWorkerHistory.allocationHistory.size() == 2
-        keyWorkerHistory.allocationHistory[0].staffId == -5
-        keyWorkerHistory.allocationHistory[0].active == false
-        keyWorkerHistory.allocationHistory[0].allocationReason == 'Manual'
-        keyWorkerHistory.allocationHistory[0].userId.staffId == -2
-        keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'omicadmin'
-        keyWorkerHistory.allocationHistory[1].staffId == -5
-        keyWorkerHistory.allocationHistory[1].userId.staffId == -2
-        keyWorkerHistory.allocationHistory[1].active == false
-        keyWorkerHistory.allocationHistory[1].allocationReason == 'Manual'
-        keyWorkerHistory.allocationHistory[1].lastModifiedByUser.username == 'omicadmin'
+        noExceptionThrown()
     }
 
     def 'Allocation and Deallocation'() {
 
         given:
         migrated("LEI")
-        elite2api.stubOffenderAllocationHistory("A1234XX");
-        elite2api.stubOffenderAllocationHistory("A1234XZ");
+        elite2api.stubOffenderAllocationHistory("A1234XX")
+        elite2api.stubOffenderAllocationHistory("A1234XZ")
 
-        elite2api.stubKeyworkerDetails("LEI", -2, )
+        elite2api.stubKeyworkerDetails("LEI", -2,)
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-4)
         elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
         elite2api.stubStaffUserDetails("omicadmin")
@@ -60,40 +53,41 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
         elite2api.stubStaffUserDetails("ELITE2_API_USER")
 
         when: 'Allocating'
-        restTemplate.exchange("/key-worker/allocate", HttpMethod.POST, createHeaderEntity("{\"allocationReason\": \"MANUAL\"," +
+        postForEntity("/key-worker/allocate", createHeaderEntity(), "{\"allocationReason\": \"MANUAL\"," +
                 "  \"allocationType\": \"M\"," +
                 "  \"offenderNo\": \"A1234XX\"," +
                 "  \"prisonId\": \"LEI\"," +
-                "  \"staffId\": -2}"), String.class)
-        def response = restTemplate.exchange("/key-worker/allocation-history/A1234XX", HttpMethod.GET,
-                createHeaderEntity(), String.class)
+                "  \"staffId\": -2}")
+
+        getForEntity("/key-worker/allocation-history/A1234XX", createHeaderEntity())
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath('$.offender.offenderNo').isEqualTo('A1234XX')
+                .jsonPath('$.allocationHistory.length()').isEqualTo(2)
+                .jsonPath('$.allocationHistory[0].staffId').isEqualTo(-2)
+                .jsonPath('$.allocationHistory[0].active').isEqualTo(true)
+                .jsonPath('$.allocationHistory[0].allocationReason').isEqualTo('Manual')
+                .jsonPath('$.allocationHistory[0].lastModifiedByUser.username').isEqualTo('ITAG_USER')
+                .jsonPath('$.allocationHistory[0].createdByUser.username').isEqualTo('ITAG_USER')
 
         then: 'the history size increases'
-        response.statusCode == HttpStatus.OK
-        def keyWorkerHistory = jsonSlurper.parseText(response.body)
-        keyWorkerHistory.offender.offenderNo == 'A1234XX'
-        keyWorkerHistory.allocationHistory.size() == 2
-        keyWorkerHistory.allocationHistory[0].staffId == -2
-        keyWorkerHistory.allocationHistory[0].active == true
-        keyWorkerHistory.allocationHistory[0].allocationReason == 'Manual'
-        keyWorkerHistory.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
-        keyWorkerHistory.allocationHistory[0].createdByUser.username == 'ITAG_USER'
+        noExceptionThrown()
 
-       // Note this test depends on the previous allocation
+        // Note this test depends on the previous allocation
         when: 'Deallocating'
-        restTemplate.exchange("/key-worker/deallocate/A1234XZ", HttpMethod.PUT, createHeaderEntity(), Void.class)
-        def response2 = restTemplate.exchange("/key-worker/allocation-history/A1234XZ", HttpMethod.GET,
-                createHeaderEntity(), String.class)
+        putForEntity("/key-worker/deallocate/A1234XZ", createHeaderEntity(), "")
+        getForEntity("/key-worker/allocation-history/A1234XZ", createHeaderEntity())
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath('$.offender.offenderNo').isEqualTo('A1234XZ')
+                .jsonPath('$.allocationHistory.length()').isEqualTo(1)
+                .jsonPath('$.allocationHistory[0].staffId').isEqualTo(-4)
+                .jsonPath('$.allocationHistory[0].active').isEqualTo(false)
+                .jsonPath('$.allocationHistory[0].lastModifiedByUser.username').isEqualTo('ITAG_USER')
+                .jsonPath('$.allocationHistory[0].createdByUser.username').isEqualTo('omicadmin')
+                .jsonPath('$.allocationHistory[0].deallocationReason').isEqualTo('Manual')
 
         then: 'The last record becomes inactive'
-        response2.statusCode == HttpStatus.OK
-        def keyWorkerHistory2 = jsonSlurper.parseText(response2.body)
-        keyWorkerHistory2.offender.offenderNo == 'A1234XZ'
-        keyWorkerHistory2.allocationHistory.size() == 1
-        keyWorkerHistory2.allocationHistory[0].staffId == -4
-        keyWorkerHistory2.allocationHistory[0].active == false
-        keyWorkerHistory2.allocationHistory[0].lastModifiedByUser.username == 'ITAG_USER'
-        keyWorkerHistory2.allocationHistory[0].createdByUser.username == 'omicadmin'
-        keyWorkerHistory2.allocationHistory[0].deallocationReason == 'Manual'
+        noExceptionThrown()
     }
 }

@@ -31,6 +31,26 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
 
+  security:
+    oauth2:
+      client:
+        registration:
+          elite2-api:
+            provider: hmpps-auth
+            client-id: ${elite2api.client.clientId}
+            client-secret: ${elite2api.client.clientSecret}
+            authorization-grant-type: client_credentials
+            scope: read
+        provider:
+          hmpps-auth:
+            token-uri: ${auth.uri.root}/oauth/token
+
+# These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
+elite2api:
+  client:
+    clientId: omicadmin
+    clientSecret: clientsecret
+
 server:
   port: 8080
   servlet:
@@ -70,16 +90,8 @@ role-migration:
 
   rolesToAssign:
 
-
-elite2api:
-  client:
-    clientId: omicadmin
-    clientSecret: clientsecret
-    accessTokenUri: ${auth.uri.root}/oauth/token
-    tokenName: elite2_token
-    authenticationScheme: header
-    clientAuthenticationScheme: header
-
 sqs:
   provider: aws
   endpoint.region: eu-west-2
+
+api.health-timeout-ms: 1000
