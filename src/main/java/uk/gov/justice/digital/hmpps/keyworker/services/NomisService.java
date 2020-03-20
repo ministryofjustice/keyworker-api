@@ -71,8 +71,6 @@ public interface NomisService {
 
     List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value);
 
-    Optional<Movement> getMovement(Long bookingId, Long movementSeq);
-
     List<BookingIdentifier> getIdentifiersByBookingId(Long bookingId);
 
     Optional<OffenderBooking> getBooking(Long bookingId);
