@@ -289,18 +289,6 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public Optional<Movement> getMovement(final Long bookingId, final Long movementSeq) {
-        final var uriVariables = uriVariablesOf("bookingId", String.valueOf(bookingId), "seq", String.valueOf(movementSeq));
-        final var movement = new AtomicReference<Optional<Movement>>();
-        try {
-            movement.set(Optional.ofNullable(restCallHelper.getObject(BOOKING_MOVEMENT, queryParamsOf(), uriVariables, Movement.class, true)));
-        } catch (final WebClientResponseException e) {
-            movement.set(Optional.empty());
-        }
-        return movement.get();
-    }
-
-    @Override
     public List<BookingIdentifier> getIdentifiersByBookingId(final Long bookingId) {
         final var uriVariables = uriVariablesOf("bookingId", String.valueOf(bookingId));
         return restCallHelper.getEntity(BOOKING_IDENTIFIERS, queryParamsOf(), uriVariables, BOOKING_IDENTIFIER_LIST, true).getBody();

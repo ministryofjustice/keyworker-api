@@ -7,6 +7,7 @@ import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
+import java.time.LocalDateTime
 
 @Service
 @ConditionalOnProperty("sqs.provider")
@@ -26,7 +27,7 @@ open class EventListener(private val reconciliationService: ReconciliationServic
     val event = gson.fromJson(message, OffenderEvent::class.java)
     when (eventType) {
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
-      "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event)
+      "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event.bookingId)
       "DATA_COMPLIANCE_DELETE-OFFENDER" -> keyworkerService.deleteKeyworkersForOffender(event.offenderIdDisplay)
     }
   }
@@ -34,5 +35,15 @@ open class EventListener(private val reconciliationService: ReconciliationServic
   private data class Message(val Message: String, val MessageAttributes: MessageAttributes)
   private data class MessageAttributes(val eventType: Attribute)
   private data class Attribute(val Value: String)
-  data class OffenderEvent(val bookingId: Long?, val movementSeq: Long?, val offenderIdDisplay: String?)
+  data class OffenderEvent(val bookingId: Long?,
+                           val movementSeq: Long?,
+                           val offenderIdDisplay: String?,
+                           val movementDateTime: LocalDateTime?,
+                           val movementType: String?,
+                           val movementReasonCode: String?,
+                           val directionCode: String?,
+                           val escortCode: String?,
+                           val fromAgencyLocationId: String,
+                           val toAgencyLocationId: String
+  )
 }

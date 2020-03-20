@@ -8,7 +8,10 @@ import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
+import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
@@ -136,45 +139,44 @@ public class ReconciliationService {
         telemetryClient.trackException(exchange.getException(), logMap, null);
     }
 
-    public void checkForMergeAndDeallocate(final OffenderEvent offenderEvent) {
-        log.debug("Check for merged booking for ID {}", offenderEvent.getBookingId());
-        nomisService.getIdentifiersByBookingId(offenderEvent.getBookingId()).stream()
+    public void checkForMergeAndDeallocate(final Long bookingId) {
+        log.debug("Check for merged booking for ID {}", bookingId);
+        nomisService.getIdentifiersByBookingId(bookingId).stream()
                 .filter(id -> "MERGED".equals(id.getType()))
-                .forEach(id -> nomisService.getBooking(offenderEvent.getBookingId())
+                .forEach(id -> nomisService.getBooking(bookingId)
                         .ifPresent(booking -> offenderKeyworkerRepository.findByOffenderNo(id.getValue())
                                 .forEach(offenderKeyWorker -> mergeOffenders(id.getValue(), booking.getOffenderNo(), offenderKeyWorker, new ReconMetrics(offenderKeyWorker.getPrisonId(), 0, 0)
                                 ))));
     }
 
-    public void checkMovementAndDeallocate(final OffenderEvent offenderEvent) {
-        log.debug("Check for Transfer/Release and Deallocate for booking {} seq {}", offenderEvent.getBookingId(), offenderEvent.getMovementSeq());
-        nomisService.getMovement(offenderEvent.getBookingId(), offenderEvent.getMovementSeq())
-                .ifPresent(movement -> {
-                    // check if movement out
-                    if (("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType())))
-                      || ("IN".equals(movement.getDirectionCode()) && "ADM".equals(movement.getMovementType())) ) {
-                        // check if prisoner is in this system if so, deallocate
-                        offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderNo())
-                                .forEach(offenderKeyWorker -> checkValidTransferOrRelease(movement, offenderKeyWorker));
-                    }
-                });
+    public void checkMovementAndDeallocate(final OffenderEvent movement) {
+        log.debug("Check for Transfer/Release and Deallocate for booking {} seq {}", movement.getBookingId(), movement.getMovementSeq());
+
+        // check if movement out and rel or trn or in and adm
+        if (("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType())))
+          || ("IN".equals(movement.getDirectionCode()) && "ADM".equals(movement.getMovementType())) ) {
+            // check if prisoner is in this system if so, deallocate
+            offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderIdDisplay())
+                    .forEach(offenderKeyWorker -> checkValidTransferOrRelease(movement, offenderKeyWorker));
+        }
+
     }
 
-    private void checkValidTransferOrRelease(final Movement movement, final OffenderKeyworker offenderKeyWorker) {
-        log.debug("Offender {} moved from {} to {} (type {})", movement.getOffenderNo(), movement.getFromAgency(), movement.getToAgency(), movement.getMovementType());
+    private void checkValidTransferOrRelease(final OffenderEvent movement, final OffenderKeyworker offenderKeyWorker) {
+        log.debug("Offender {} moved from {} to {} (type {})", movement.getOffenderIdDisplay(), movement.getFromAgencyLocationId(), movement.getToAgencyLocationId(), movement.getMovementType());
 
         // check that FROM agency is from where the key-worker / prisoner relationship resides and the TO agency is not the same prison!
-        if (!offenderKeyWorker.getPrisonId().equals(movement.getToAgency())) {
+        if (!offenderKeyWorker.getPrisonId().equals(movement.getToAgencyLocationId())) {
             // check if its a transfer then its to another prison
             if ("TRN".equals(movement.getMovementType())) {
-                if (nomisService.isPrison(movement.getToAgency())) {
-                    offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.TRANSFER);
+                if (nomisService.isPrison(movement.getToAgencyLocationId())) {
+                    offenderKeyWorker.deallocate(movement.getMovementDateTime(), DeallocationReason.TRANSFER);
                 }
             } else if ("REL".equals(movement.getMovementType())) {
-                offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.RELEASED);
+                offenderKeyWorker.deallocate(movement.getMovementDateTime(), DeallocationReason.RELEASED);
 
             } else if ("ADM".equals(movement.getMovementType())) {
-                offenderKeyWorker.deallocate(movement.getCreateDateTime(), DeallocationReason.TRANSFER);
+                offenderKeyWorker.deallocate(movement.getMovementDateTime(), DeallocationReason.TRANSFER);
             }
         }
     }

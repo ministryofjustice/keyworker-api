@@ -140,16 +140,6 @@ class ReconciliationServiceTest {
     @Test
     void testCheckWhenTransferredOutDeallocationOccurs() {
         final var now = now();
-        when(nomisService.getMovement(eq(-1L), eq(1L)))
-                .thenReturn(Optional.of(Movement.builder()
-                        .directionCode("OUT")
-                        .fromAgency("LEI")
-                        .toAgency("MDI")
-                        .offenderNo(OFFENDER_NO)
-                        .movementType("TRN")
-                        .createDateTime(now)
-                        .build()));
-
         final var offenderKw = OffenderKeyworker.builder()
                 .offenderNo(OFFENDER_NO)
                 .prisonId("LEI")
@@ -168,7 +158,10 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
-        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
+        final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "TRN",
+                null, "OUT", null, "LEI", "MDI");
+
+        service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
@@ -179,15 +172,6 @@ class ReconciliationServiceTest {
     @Test
     void testCheckWhenAdmittedInDeallocationOccurs() {
         final var now = now();
-        when(nomisService.getMovement(eq(-1L), eq(1L)))
-                .thenReturn(Optional.of(Movement.builder()
-                        .directionCode("IN")
-                        .fromAgency("CRTTRN")
-                        .toAgency("MDI")
-                        .offenderNo(OFFENDER_NO)
-                        .movementType("ADM")
-                        .createDateTime(now)
-                        .build()));
 
         final var offenderKw = OffenderKeyworker.builder()
                 .offenderNo(OFFENDER_NO)
@@ -205,7 +189,8 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
-        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
+        final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "ADM", null, "IN", null, "CRTTRN", "MDI");
+        service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
@@ -214,15 +199,6 @@ class ReconciliationServiceTest {
     @Test
     void testCheckWhenAdmittedIntoSamePrisonNoDeallocationOccurs() {
         final var now = now();
-        when(nomisService.getMovement(eq(-1L), eq(1L)))
-                .thenReturn(Optional.of(Movement.builder()
-                        .directionCode("IN")
-                        .fromAgency("CRTTRN")
-                        .toAgency("LEI")
-                        .offenderNo(OFFENDER_NO)
-                        .movementType("ADM")
-                        .createDateTime(now)
-                        .build()));
 
         final var offenderKw = OffenderKeyworker.builder()
                 .offenderNo(OFFENDER_NO)
@@ -240,7 +216,9 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getDeallocationReason()).isNull();
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
-        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
+        final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "ADM",
+                null, "IN", null, "CRTTRN", "LEI");
+        service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
@@ -250,15 +228,6 @@ class ReconciliationServiceTest {
     @Test
     void testCheckWhenReleasedDeallocationOccurs() {
         final var now = now();
-        when(nomisService.getMovement(eq(-1L), eq(1L)))
-                .thenReturn(Optional.of(Movement.builder()
-                        .directionCode("OUT")
-                        .offenderNo(OFFENDER_NO)
-                        .fromAgency("LEI")
-                        .toAgency("OUT")
-                        .movementType("REL")
-                        .createDateTime(now)
-                        .build()));
 
         final var offenderKw = OffenderKeyworker.builder()
                 .offenderNo(OFFENDER_NO)
@@ -277,7 +246,9 @@ class ReconciliationServiceTest {
         assertThat(offenderKw.getExpiryDateTime()).isNull();
 
 
-        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
+        final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "REL",
+                null, "OUT", null, "LEI", "OUT");
+        service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.RELEASED);
@@ -289,15 +260,9 @@ class ReconciliationServiceTest {
     void testCheckWhenOtherMovementNoDeallocationOccurs() {
         final var now = now();
 
-        when(nomisService.getMovement(eq(-1L), eq(1L)))
-                .thenReturn(Optional.of(Movement.builder()
-                        .directionCode("OUT")
-                        .offenderNo(OFFENDER_NO)
-                        .movementType("HOS")
-                        .createDateTime(now)
-                        .build()));
-
-        service.checkMovementAndDeallocate(new OffenderEvent(-1L, 1L, null));
+        final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "HOS",
+                null, "OUT", null, "MDI", "HOS1");
+        service.checkMovementAndDeallocate(movement);
 
         verify(repository, never()).findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO));
 
@@ -344,7 +309,7 @@ class ReconciliationServiceTest {
         when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(newOffenderKw));
 
-        service.checkForMergeAndDeallocate(new OffenderEvent(-1L, null, null));
+        service.checkForMergeAndDeallocate(-1L);
 
         assertThat(oldOffenderKw.isActive()).isFalse();
         assertThat(oldOffenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.MERGED);
@@ -388,7 +353,7 @@ class ReconciliationServiceTest {
         when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of());
 
-        service.checkForMergeAndDeallocate(new OffenderEvent(-1L, null, null));
+        service.checkForMergeAndDeallocate(-1L);
 
         assertThat(oldOffenderKw.isActive()).isTrue();
         assertThat(oldOffenderKw.getDeallocationReason()).isNull();
