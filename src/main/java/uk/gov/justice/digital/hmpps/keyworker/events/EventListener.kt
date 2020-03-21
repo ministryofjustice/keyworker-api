@@ -2,7 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.events
 
 import com.google.gson.Gson
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
@@ -10,10 +11,10 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 import java.time.LocalDateTime
 
 @Service
-@ConditionalOnProperty("sqs.provider")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
 open class EventListener(private val reconciliationService: ReconciliationService,
                          private val keyworkerService: KeyworkerService,
-                         private val gson: Gson) {
+                         @Qualifier("gson") private val gson: Gson) {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

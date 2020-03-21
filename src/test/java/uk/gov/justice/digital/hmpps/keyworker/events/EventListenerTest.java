@@ -1,21 +1,18 @@
 package uk.gov.justice.digital.hmpps.keyworker.events;
 
-import com.google.gson.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig;
 import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService;
 import wiremock.org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,20 +30,7 @@ class EventListenerTest {
 
     @BeforeEach
     void setUp() {
-        eventListener = new EventListener(reconciliationService, keyworkerService, new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer()).create());
-    }
-
-    static class LocalDateTimeSerializer implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
-        @Override
-        public JsonElement serialize(LocalDateTime localDateTime, Type srcType, JsonSerializationContext context) {
-            return new JsonPrimitive(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(localDateTime));
-        }
-        @Override
-        public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            return LocalDateTime.parse(json.getAsString(),
-                    DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.ENGLISH));
-        }
+        eventListener = new EventListener(reconciliationService, keyworkerService, new JsonConfig().gson());
     }
 
     @Test

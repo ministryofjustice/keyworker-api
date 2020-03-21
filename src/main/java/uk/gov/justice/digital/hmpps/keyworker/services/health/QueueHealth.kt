@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.Health.Builder
 import org.springframework.boot.actuate.health.HealthIndicator
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.*
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.*
@@ -30,7 +30,7 @@ enum class QueueAttributes(val awsName: String, val healthName: String) {
 }
 
 @Component
-@ConditionalOnProperty("sqs.provider")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
 open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
                   @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
                   @Value("\${sqs.queue.name}") private val queueName: String,
