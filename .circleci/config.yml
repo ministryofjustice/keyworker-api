@@ -11,6 +11,7 @@ parameters:
 orbs:
   dps: ministryofjustice/dps@1.1.0
   owasp: entur/owasp@0.0.6
+  helm: circleci/helm@0.2.3
 
 executors:
   builder:
