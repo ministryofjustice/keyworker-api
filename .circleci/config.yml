@@ -11,7 +11,6 @@ parameters:
 orbs:
   dps: ministryofjustice/dps@1.1.0
   owasp: entur/owasp@0.0.6
-  helm: circleci/helm@0.2.3
 
 executors:
   builder:
@@ -35,12 +34,6 @@ jobs:
     executor: builder
     steps:
       - checkout
-      - helm/install-helm-client:
-          version: v2.13.1
-      - run:
-          name: Run helm lint
-          command: helm lint keyworker-api --values=values-dev.yaml --values=secrets-example.yaml
-          working_directory: helm_deploy
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle" }}
