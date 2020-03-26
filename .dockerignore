@@ -1,0 +1,16 @@
+.circleci
+.dockerignore
+.gitignore
+.gradle
+.idea
+build
+database_backups
+database_refresh
+dependency-check-suppress-spring.xml
+docker-compose.yml
+docker-compose-all.yml
+helm_deploy
+out
+setup-queue.bash
+src/test
+README.md
