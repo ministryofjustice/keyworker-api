@@ -78,6 +78,7 @@ workflows:
               only:
                 - master
           requires:
+            - build
             - build_docker
       - request-preprod-approval:
           type: approval
