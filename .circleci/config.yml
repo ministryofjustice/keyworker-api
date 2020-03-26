@@ -17,12 +17,13 @@ executors:
     docker:
       - image: circleci/openjdk:11-jdk-browsers
       - image: localstack/localstack:0.10.5
-          SERVICES: sqs
-          DATA_DIR: /tmp/localstack/data
-          DOCKER_HOST: unix:///var/run/docker.sock
-          AWS_EXECUTION_ENV: True
-          DEFAULT_REGION: eu-west-2
-          TMPDIR: /private
+          environment:
+            SERVICES: sqs
+            DATA_DIR: /tmp/localstack/data
+            DOCKER_HOST: unix:///var/run/docker.sock
+            AWS_EXECUTION_ENV: True
+            DEFAULT_REGION: eu-west-2
+            TMPDIR: /private
     environment:
       _JAVA_OPTIONS: -Xmx256m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-XX:+UseContainerSupport
     working_directory: ~/app
