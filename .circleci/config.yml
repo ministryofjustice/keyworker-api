@@ -20,10 +20,8 @@ executors:
     environment:
       _JAVA_OPTIONS: -Xmx256m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false
       SERVICES: sqs
-      DEBUG: ${DEBUG- }
       DATA_DIR: /tmp/localstack/data
       DOCKER_HOST: unix:///var/run/docker.sock
-      LAMBDA_EXECUTOR: ${LAMBDA_EXECUTOR- }
       AWS_EXECUTION_ENV: True
       DEFAULT_REGION: eu-west-2
       TMPDIR: /private
