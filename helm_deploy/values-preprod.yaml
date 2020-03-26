@@ -4,7 +4,7 @@
 replicaCount: 4
 
 image:
-  repository: docker.io/mojdigitalstudio/keyworker-api
+  repository: quay.io/hmpps/keyworker-api
   tag: latest
   pullPolicy: Always
   port: 8080
