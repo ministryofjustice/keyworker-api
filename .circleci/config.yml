@@ -65,7 +65,10 @@ workflows:
       - dps/build_docker:
           name: build_docker
           image_name: << pipeline.parameters.image_name >>
-          publish: false
+          filters:
+            branches:
+              only:
+                - master
       - dps/deploy_env:
           name: deploy_dev
           env: "dev"
