@@ -205,5 +205,4 @@ assemble.dependsOn copyAgent
 
 test {
     useJUnitPlatform()
-    setMaxHeapSize("256m")
 }
