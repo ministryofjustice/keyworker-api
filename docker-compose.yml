@@ -29,7 +29,7 @@ services:
       - SPRING_PROFILES_ACTIVE=nomis-hsqldb
 
   keyworker-api:
-    image: mojdigitalstudio/keyworker-api:latest
+    image: quay.io/hmpps/keyworker-api:latest
     networks:
       - hmpps
     depends_on:
