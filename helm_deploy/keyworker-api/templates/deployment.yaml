@@ -47,7 +47,7 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /health
+              path: /health/ping
               port: {{ .Values.image.port }}
             periodSeconds: 30
             initialDelaySeconds: 90
@@ -55,7 +55,7 @@ spec:
             failureThreshold: 10
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ping
               port: {{ .Values.image.port }}
             periodSeconds: 20
             initialDelaySeconds: 60

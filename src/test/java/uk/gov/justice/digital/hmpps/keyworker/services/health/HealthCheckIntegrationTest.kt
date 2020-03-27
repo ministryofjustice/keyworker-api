@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.test.util.ReflectionTestUtils
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.*
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
 
 class HealthCheckIntegrationTest : IntegrationTest() {
 
@@ -52,7 +54,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
   fun `Health ping page is accessible`() {
     subPing(200)
 
-    getForEntity("health/ping")
+    getForEntity("/health/ping")
         .expectStatus().is2xxSuccessful
         .expectBody()
         .jsonPath("$.status").isEqualTo("UP")
@@ -173,9 +175,9 @@ class HealthCheckIntegrationTest : IntegrationTest() {
   }
 
   private fun subPing(status: Int) {
-    eliteMockServer.stubFor(get("/ping").willReturn(aResponse()
+    eliteMockServer.stubFor(get("/health/ping").willReturn(aResponse()
         .withHeader("Content-Type", "application/json")
-        .withBody(if (status == 200) "pong" else "some error")
+        .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
         .withStatus(status)))
   }
 
