@@ -22,16 +22,19 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 @ExtendWith(SpringExtension.class)
-@Import({JwtAuthenticationHelper.class, ClientTrackingTelemetryModule.class, PublicKeyClient.class})
+@Import({JwtAuthenticationHelper.class, ClientTrackingTelemetryModule.class})
 @ContextConfiguration(initializers = {ConfigFileApplicationContextInitializer.class})
 @ActiveProfiles("test")
 class ClientTrackingTelemetryModuleTest {
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private ClientTrackingTelemetryModule clientTrackingTelemetryModule;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private JwtAuthenticationHelper jwtAuthenticationHelper;
 
@@ -58,10 +61,7 @@ class ClientTrackingTelemetryModuleTest {
 
         final var insightTelemetry = ThreadContext.getRequestTelemetryContext().getHttpRequestTelemetry().getProperties();
 
-        assertThat(insightTelemetry).hasSize(2);
-        assertThat(insightTelemetry.get("username")).isEqualTo("bob");
-        assertThat(insightTelemetry.get("clientId")).isEqualTo("keyworkerApiClient");
-
+        assertThat(insightTelemetry).containsOnly(entry("username", "bob"), entry("clientId", "keyworkerApiClient"));
     }
 
     @Test
@@ -77,13 +77,11 @@ class ClientTrackingTelemetryModuleTest {
 
         final var insightTelemetry = ThreadContext.getRequestTelemetryContext().getHttpRequestTelemetry().getProperties();
 
-        assertThat(insightTelemetry).hasSize(1);
-        assertThat(insightTelemetry.get("clientId")).isEqualTo("keyworkerApiClient");
-
+        assertThat(insightTelemetry).containsOnly(entry("clientId", "keyworkerApiClient"));
     }
 
     @Test
-    void shouldNotAddClientIdAndUserNameToInsightTelemetryAsTokenExpired() {
+    void shouldAddClientIdAndUserNameToInsightTelemetryEvenIfTokenExpired() {
 
         final var token = createJwt("Fred", List.of(), -1L);
 
@@ -95,7 +93,7 @@ class ClientTrackingTelemetryModuleTest {
 
         final var insightTelemetry = ThreadContext.getRequestTelemetryContext().getHttpRequestTelemetry().getProperties();
 
-        assertThat(insightTelemetry).isEmpty();
+        assertThat(insightTelemetry).containsOnly(entry("username", "Fred"), entry("clientId", "keyworkerApiClient"));
     }
 
     private String createJwt(final String user, final List<String> roles, final Long duration) {
