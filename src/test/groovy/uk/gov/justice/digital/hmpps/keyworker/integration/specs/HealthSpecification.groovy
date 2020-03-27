@@ -15,9 +15,9 @@ class HealthSpecification extends TestSpecification {
         elite2api.stubHealthOKResponse()
 
         when:
-        getForEntity("/ping", createHeaderEntity())
-                .expectStatus().is2xxSuccessful()
-                .expectBody().is('pong')
+        getForEntity("/health/ping", createHeaderEntity())
+            .expectStatus().is2xxSuccessful()
+            .expectBody().is('{"status":"UP"}')
 
         then:
         noExceptionThrown()

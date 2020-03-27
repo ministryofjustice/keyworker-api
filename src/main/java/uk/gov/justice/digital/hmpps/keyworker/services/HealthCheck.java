@@ -20,7 +20,7 @@ public abstract class HealthCheck implements HealthIndicator {
         try {
             final var responseEntity =
                     webClient.get()
-                            .uri("/ping")
+                            .uri("/health/ping")
                             .retrieve()
                             .toEntity(String.class)
                             .block(timeout);
