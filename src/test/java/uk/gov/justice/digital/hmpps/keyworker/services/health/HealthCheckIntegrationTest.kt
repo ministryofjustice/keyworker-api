@@ -54,7 +54,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
   fun `Health ping page is accessible`() {
     subPing(200)
 
-    getForEntity("health/ping")
+    getForEntity("/health/ping")
         .expectStatus().is2xxSuccessful
         .expectBody()
         .jsonPath("$.status").isEqualTo("UP")
@@ -175,7 +175,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
   }
 
   private fun subPing(status: Int) {
-    eliteMockServer.stubFor(get("/healthping").willReturn(aResponse()
+    eliteMockServer.stubFor(get("/health/ping").willReturn(aResponse()
         .withHeader("Content-Type", "application/json")
         .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
         .withStatus(status)))
