@@ -13,7 +13,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext;
 
@@ -44,13 +43,8 @@ public class WebClientConfiguration {
     WebClient oauth2WebClient(final OAuth2AuthorizedClientManager authorizedClientManager, final WebClient.Builder builder) {
         final var oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
         oauth2Client.setDefaultClientRegistrationId("elite2-api");
-        final var exchangeStrategies =
-                ExchangeStrategies.builder()
-                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1))
-                .build();
         return builder.baseUrl(elite2ApiRootUri)
                 .apply(oauth2Client.oauth2Configuration())
-                .exchangeStrategies(exchangeStrategies)
                 .build();
     }
 
