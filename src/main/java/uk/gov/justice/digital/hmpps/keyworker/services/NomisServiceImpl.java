@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.queryParamsOf;
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.uriVariablesOf;
 
@@ -68,7 +69,7 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public Optional<OffenderLocationDto> getOffenderForPrison(final String prisonId, final String offenderNo) {
         log.info("Getting offender in prison {} offender No {}", prisonId, offenderNo);
-        final var queryParams = queryParamsOf("agencyId", prisonId, "offenderNo", offenderNo, "iepLevel", "true");
+        final var queryParams = queryParamsOf("query", format("agencyId:eq:'%s'", prisonId), "offenderNo", offenderNo, "iepLevel", "true");
         final var offenders = restCallHelper.getEntity(URI_ACTIVE_OFFENDERS_BY_AGENCY, queryParams, uriVariablesOf(), OFFENDER_LOCATION_DTO_LIST, false).getBody();
         return Optional.ofNullable(offenders.size() > 0 ? offenders.get(0) : null);
     }
@@ -136,7 +137,7 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public List<OffenderLocationDto> getOffendersAtLocation(final String prisonId, final String sortFields, final SortOrder sortOrder, final boolean admin) {
         log.info("Getting offenders in prison {}", prisonId);
-        final var queryParams = queryParamsOf("agencyId", prisonId);
+        final var queryParams = queryParamsOf("query", format("agencyId:eq:'%s'", prisonId));
         return restCallHelper.getObjectListWithSorting(
                 URI_ACTIVE_OFFENDERS_BY_AGENCY, queryParams, uriVariablesOf(), sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderLocationDto>>() {
                 }, admin);

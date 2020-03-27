@@ -59,7 +59,7 @@ class Elite2Api extends WireMockRule {
     }
 
     def stubOffendersAtLocationForAutoAllocation = { String prisonId ->
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_ACTIVE_OFFENDERS_BY_AGENCY + "?agencyId={prisonId}").expand(prisonId).toString()))
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_ACTIVE_OFFENDERS_BY_AGENCY + "?query=agencyId:eq:'{prisonId}'").expand(prisonId).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(OffenderLocationDtoListStub.getResponseForAutoAllocation(prisonId))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
@@ -158,7 +158,7 @@ class Elite2Api extends WireMockRule {
     }
 
     void stubOffenderLookup(String prisonId, String offenderNo) {
-        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_ACTIVE_OFFENDERS_BY_AGENCY + "?agencyId={prisonId}&offenderNo={offenderNo}&iepLevel=true").expand(prisonId, offenderNo).toString()))
+        stubFor(get(urlEqualTo(new UriTemplate(NOMIS_API_PREFIX + URI_ACTIVE_OFFENDERS_BY_AGENCY + "?query=agencyId:eq:'{prisonId}'&offenderNo={offenderNo}&iepLevel=true").expand(prisonId, offenderNo).toString()))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
                 .withBody(OffenderLocationDtoListStub.getResponseOffender(prisonId, offenderNo))
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)))
