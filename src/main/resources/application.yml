@@ -45,6 +45,9 @@ spring:
           hmpps-auth:
             token-uri: ${auth.uri.root}/oauth/token
 
+  codec:
+    max-in-memory-size: 10MB
+
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
 elite2api:
   client:
