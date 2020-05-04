@@ -31,7 +31,7 @@ dependencies {
   implementation("org.springframework:spring-jms")
   implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
 
-  implementation("org.hibernate:hibernate-java8")
+  implementation("org.hibernate:hibernate-core")
 
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
