@@ -27,7 +27,6 @@ dependencies {
 
     implementation 'org.apache.camel:camel-spring-boot:2.25.1'
     implementation 'org.apache.camel:camel-quartz2:2.25.1'
-    implementation 'com.nimbusds:nimbus-jose-jwt:8.16'
 
     implementation 'org.springframework:spring-jms'
     implementation 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8'
