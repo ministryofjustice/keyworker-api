@@ -2,8 +2,6 @@ plugins {
     id "uk.gov.justice.hmpps.gradle-spring-boot" version "0.1.0"
 }
 
-group = 'uk.gov.justice.digital.hmpps'
-
 configurations {
     compile.exclude  module: "tomcat-jdbc"
 }
