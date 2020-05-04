@@ -35,7 +35,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - gradle-{{ checksum "build.gradle" }}
+            - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
           environment:
@@ -44,7 +44,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: gradle-{{ checksum "build.gradle" }}
+          key: gradle-{{ checksum "build.gradle.kts" }}
       - store_test_results:
           path: build/test-results
       - store_artifacts:
@@ -53,7 +53,7 @@ jobs:
           root: .
           paths:
             - build/libs
-            - build.gradle
+            - build.gradle.kts
 
 workflows:
   version: 2
