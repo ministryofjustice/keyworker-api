@@ -1,17 +1,15 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.3.0"
 }
 
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
 }
 
-extra["spring-security.version"] = "5.3.1.RELEASE" // Updated since spring-boot-starter-oauth2-resource-server-2.2.5.RELEASE only pulls in 5.2.2.RELEASE (still affected by CVE-2018-1258 though)
+extra["spring-security.version"] = "5.3.2.RELEASE" // Updated since spring-boot-starter-oauth2-resource-server-2.2.5.RELEASE only pulls in 5.2.2.RELEASE (still affected by CVE-2018-1258 though)
 
 dependencies {
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok:1.18.12")
-
   testAnnotationProcessor("org.projectlombok:lombok:1.18.12")
 
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -30,8 +28,6 @@ dependencies {
 
   implementation("org.springframework:spring-jms")
   implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
-
-  implementation("org.hibernate:hibernate-core")
 
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
@@ -52,7 +48,7 @@ dependencies {
   compileOnly("org.projectlombok:lombok:1.18.12")
 
   runtimeOnly("org.hsqldb:hsqldb:2.5.0")
-  runtimeOnly("org.flywaydb:flyway-core:6.4.1")
+  runtimeOnly("org.flywaydb:flyway-core:6.4.2")
   runtimeOnly("org.postgresql:postgresql:42.2.12")
 
   testImplementation("org.codehaus.groovy:groovy-all:3.0.3")
