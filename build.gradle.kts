@@ -52,7 +52,7 @@ dependencies {
   runtimeOnly("org.flywaydb:flyway-core:6.4.2")
   runtimeOnly("org.postgresql:postgresql:42.2.12")
 
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.3")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.4")
   testImplementation("org.spockframework:spock-spring:2.0-M2-groovy-3.0")
   testCompile("org.spockframework:spock-core:2.0-M2-groovy-3.0") {
     exclude("org.codehaus.groovy")
