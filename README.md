@@ -1,4 +1,17 @@
-# Running locally
+# keyworker-api
+
+[![CircleCI](https://circleci.com/gh/ministryofjustice/keyworker-api/tree/master.svg?style=svg)](https://circleci.com/gh/ministryofjustice/keyworker-api)
+[![Docker Repository on Quay](https://quay.io/repository/hmpps/keyworker-api/status)](https://quay.io/repository/hmpps/keyworker-api)
+
+A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Prison Services.  Backend services for https://github.com/ministryofjustice/omic-ui/.
+
+### To build:
+
+```bash
+./gradlew build
+```
+
+### Running locally
 
 When running locally there will be no Auth server to supply the JWT public key, and you won't need localstack.
 
@@ -6,9 +19,31 @@ Use spring profiles `local` to pick up the public key defined in src/main/resour
 
 Use Spring profile `noqueue` to ignore the localstack config.
 
-# Deployment Notes
+### Health
 
-## Prerequisites
+- `/health/ping`: will respond `{"status":"UP"}` to all requests.  This should be used by dependent systems to check connectivity to keyworker,
+rather than calling the `/health` endpoint.
+- `/health`: provides information about the application health and its dependencies.  This should only be used
+by keyworker health monitoring (e.g. pager duty) and not other systems who wish to find out the state of keyworker.
+- `/info`: provides information about the version of deployed application.
+
+### Pre Release Testing
+
+Keyworker api is best tested by the DPS front end.  To manually smoke test / regression test keyworker api prior to release:
+
+1. Navigate to [DPS](https://digital-preprod.prison.service.justice.gov.uk/) and search for a prisoner
+1. In the quick look section ensure that they have a key worker set - most prisoners should have one
+1. Check [My key worker allocations](https://digital-preprod.prison.service.justice.gov.uk/key-worker-allocations)
+1. Navigate to [Manage key workers](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers)
+1. Search for [Your key workers](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/key-worker-search)
+   1. Check search results show key workers
+   1. Navigate to individual key worker and check stats are displayed and current allocations
+1. [Manually allocate key workers](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/offender-search) and view key worker history for an offender
+1. Select [Prison statistics](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/key-worker-statistics) and ensure statistics are displayed
+
+### Deployment Notes
+
+#### Prerequisites
 
 - Ensure you have helm v3 client installed.
 
