@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.1"
 }
 
 configurations {
@@ -7,6 +7,7 @@ configurations {
 }
 
 extra["spring-security.version"] = "5.3.2.RELEASE" // Updated since spring-boot-starter-oauth2-resource-server-2.2.5.RELEASE only pulls in 5.2.2.RELEASE (still affected by CVE-2018-1258 though)
+extra["camel.version"] = "3.3.0"
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -24,7 +25,7 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
 
-  implementation("org.apache.camel:camel-spring-boot:2.25.1")
+  implementation("org.apache.camel:camel-spring-boot:3.0.1")
   implementation("org.apache.camel:camel-quartz2:2.25.1")
 
   implementation("org.springframework:spring-jms")
@@ -49,8 +50,8 @@ dependencies {
   compileOnly("org.projectlombok:lombok:1.18.12")
 
   runtimeOnly("org.hsqldb:hsqldb:2.5.0")
-  runtimeOnly("org.flywaydb:flyway-core:6.4.2")
-  runtimeOnly("org.postgresql:postgresql:42.2.12")
+  runtimeOnly("org.flywaydb:flyway-core:6.4.4")
+  runtimeOnly("org.postgresql:postgresql:42.2.14")
 
   testImplementation("org.codehaus.groovy:groovy-all:3.0.4")
   testImplementation("org.spockframework:spock-spring:2.0-M2-groovy-3.0")
@@ -68,9 +69,9 @@ dependencies {
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.26.3")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:2.25.0")
+  testImplementation("org.apache.camel:camel-test-spring:3.3.0")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
-  testImplementation("org.testcontainers:localstack:1.13.0")
+  testImplementation("org.testcontainers:localstack:1.14.3")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.17.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
 }
