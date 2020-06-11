@@ -25,7 +25,7 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
 
-  implementation("org.apache.camel:camel-spring-boot:3.0.1")
+  implementation("org.apache.camel:camel-spring-boot:2.25.1")
   implementation("org.apache.camel:camel-quartz2:2.25.1")
 
   implementation("org.springframework:spring-jms")
@@ -69,7 +69,7 @@ dependencies {
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.26.3")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:3.3.0")
+  testImplementation("org.apache.camel:camel-test-spring:2.25.0")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
   testImplementation("org.testcontainers:localstack:1.14.3")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.17.0")
