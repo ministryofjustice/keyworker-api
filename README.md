@@ -1,6 +1,6 @@
 # keyworker-api
 
-[![CircleCI](https://circleci.com/gh/ministryofjustice/keyworker-api/tree/master.svg?style=svg)](https://circleci.com/gh/ministryofjustice/keyworker-api)
+[![CircleCI](https://circleci.com/gh/ministryofjustice/keyworker-api/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/keyworker-api)
 [![Docker Repository on Quay](https://quay.io/repository/hmpps/keyworker-api/status)](https://quay.io/repository/hmpps/keyworker-api)
 
 A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Prison Services.  Backend services for https://github.com/ministryofjustice/omic-ui/.
