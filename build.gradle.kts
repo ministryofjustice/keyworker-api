@@ -76,4 +76,5 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.14.3")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.17.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
+  testImplementation("org.springframework.security:spring-security-test")
 }

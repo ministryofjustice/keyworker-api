@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
@@ -22,16 +22,16 @@ import javax.persistence.EntityNotFoundException;
 @Slf4j
 public class ControllerAdvice {
 
-    @ExceptionHandler(RestClientResponseException.class)
-    public ResponseEntity<byte[]> handleException(final RestClientResponseException e) {
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<byte[]> handleException(final WebClientResponseException e) {
         log.error("Unexpected exception", e);
         return ResponseEntity
                 .status(e.getRawStatusCode())
                 .body(e.getResponseBodyAsByteArray());
     }
 
-    @ExceptionHandler(RestClientException.class)
-    public ResponseEntity<ErrorResponse> handleException(final RestClientException e) {
+    @ExceptionHandler(WebClientException.class)
+    public ResponseEntity<ErrorResponse> handleException(final WebClientException e) {
         log.error("Unexpected exception", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
