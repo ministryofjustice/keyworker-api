@@ -15,8 +15,6 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedExcept
 
 import javax.persistence.EntityNotFoundException;
 
-import static java.lang.String.format;
-
 
 @org.springframework.web.bind.annotation.RestControllerAdvice(
         basePackageClasses = KeyworkerServiceController.class
@@ -26,11 +24,7 @@ public class ControllerAdvice {
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<byte[]> handleException(final WebClientResponseException e) {
-        if (e.getRawStatusCode() == 404) {
-            log.info(format("Not found for %s caused by %s", e.getClass().getName(), e.getMessage()));
-        } else {
-            log.error("Unexpected exception", e);
-        }
+        log.error("Unexpected exception", e);
         return ResponseEntity
                 .status(e.getRawStatusCode())
                 .body(e.getResponseBodyAsByteArray());
@@ -82,7 +76,7 @@ public class ControllerAdvice {
                         .build());
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({EntityNotFoundException.class, WebClientResponseException.NotFound.class})
     public ResponseEntity<ErrorResponse> handleNotFoundException(final Exception e) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
