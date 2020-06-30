@@ -76,7 +76,7 @@ public class ControllerAdvice {
                         .build());
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
+    @ExceptionHandler({EntityNotFoundException.class, WebClientResponseException.NotFound.class})
     public ResponseEntity<ErrorResponse> handleNotFoundException(final Exception e) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
