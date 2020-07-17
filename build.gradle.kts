@@ -78,3 +78,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
+
+dependencyCheck {
+  suppressionFiles.add("suppressions.xml")
+}
