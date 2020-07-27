@@ -17,10 +17,10 @@ ingress:
   path: /
 
 env:
-  ELITE2_URI_ROOT: "https://gateway.nomis-api.service.justice.gov.uk/elite2api"
-  AUTH_URI_ROOT: "https://gateway.nomis-api.service.justice.gov.uk/auth"
+  ELITE2_URI_ROOT: "https://api.prison.service.justice.gov.uk"
+  AUTH_URI_ROOT: "https://sign-in.hmpps.service.justice.gov.uk/auth"
   JAVA_OPTS: "-Xmx512m"
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://gateway.nomis-api.service.justice.gov.uk/auth/.well-known/jwks.json"
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
 
 whitelist:
   office: "217.33.148.210/32"
