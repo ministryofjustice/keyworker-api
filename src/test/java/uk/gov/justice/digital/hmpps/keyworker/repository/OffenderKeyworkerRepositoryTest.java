@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.within;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @ActiveProfiles("test")
 @Transactional
+@WithMockUser
 class OffenderKeyworkerRepositoryTest {
 
     private static final LocalDateTime ASSIGNED_DATE_TIME = LocalDateTime.of(2016, 1, 2, 3, 4, 5);
@@ -35,11 +37,6 @@ class OffenderKeyworkerRepositoryTest {
 
     @Autowired
     private OffenderKeyworkerRepository repository;
-
-    @BeforeAll
-    static void beforeClass() {
-        SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken("user", "pw"));
-    }
 
     @Test
     void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {

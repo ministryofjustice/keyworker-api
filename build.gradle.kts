@@ -1,5 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.6"
+  kotlin("plugin.spring") version "1.3.72"
+  kotlin("plugin.jpa") version "1.3.72"
 }
 
 configurations {
@@ -74,4 +76,9 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.14.3")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.17.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
+  testImplementation("org.springframework.security:spring-security-test")
+}
+
+dependencyCheck {
+  suppressionFiles.add("suppressions.xml")
 }
