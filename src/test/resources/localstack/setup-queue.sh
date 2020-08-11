@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo -e
 aws --endpoint-url=http://localhost:4575 sns create-topic --name offender_events
 aws --endpoint-url=http://localhost:4576 sqs create-queue --queue-name keyworker_api_queue
 aws --endpoint-url=http://localhost:4575 sns subscribe \

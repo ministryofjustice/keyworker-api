@@ -29,10 +29,7 @@ jobs:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
-      - run:
-          environment:
-            SQS_PROVIDER: 'localstack'
-          command: ./gradlew test
+      - run: ./gradlew test
       - save_cache:
           paths:
             - ~/.gradle

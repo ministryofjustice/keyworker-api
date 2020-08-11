@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.7"
   kotlin("plugin.spring") version "1.3.72"
   kotlin("plugin.jpa") version "1.3.72"
 }
@@ -40,12 +40,12 @@ dependencies {
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
 
-  implementation("io.springfox:springfox-swagger2:2.9.2")
-  implementation("io.springfox:springfox-swagger-ui:2.9.2")
+  implementation("io.springfox:springfox-swagger2:3.0.0")
+  implementation("io.springfox:springfox-swagger-ui:3.0.0")
 
   implementation("net.sf.ehcache:ehcache:2.10.6")
-  implementation("org.apache.commons:commons-text:1.8")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.0")
+  implementation("org.apache.commons:commons-text:1.9")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2")
 
   implementation("com.google.code.gson:gson:2.8.6")
 
@@ -55,9 +55,9 @@ dependencies {
   runtimeOnly("org.flywaydb:flyway-core:6.4.4")
   runtimeOnly("org.postgresql:postgresql:42.2.14")
 
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.4")
-  testImplementation("org.spockframework:spock-spring:2.0-M2-groovy-3.0")
-  testCompile("org.spockframework:spock-core:2.0-M2-groovy-3.0") {
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.5")
+  testImplementation("org.spockframework:spock-spring:2.0-M3-groovy-3.0")
+  testCompile("org.spockframework:spock-core:2.0-M3-groovy-3.0") {
     exclude("org.codehaus.groovy")
   }
 
@@ -69,12 +69,12 @@ dependencies {
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:3.141.59")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
 
-  testImplementation("com.github.tomakehurst:wiremock-standalone:2.26.3")
+  testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:2.25.0")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
   testImplementation("org.testcontainers:localstack:1.14.3")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.17.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.18.1")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
