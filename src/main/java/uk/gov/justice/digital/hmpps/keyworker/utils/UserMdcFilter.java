@@ -7,7 +7,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.justice.digital.hmpps.keyworker.security.UserSecurityUtils;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import java.io.IOException;
 
 import static uk.gov.justice.digital.hmpps.keyworker.utils.MdcUtility.USER_ID_HEADER;

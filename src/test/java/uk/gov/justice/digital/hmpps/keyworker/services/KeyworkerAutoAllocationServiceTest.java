@@ -20,17 +20,38 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.*;
-import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_2;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.FULLY_ALLOCATED;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.getKeyworker;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.getNextOffenderNo;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.getPreviousKeyworkerAutoAllocation;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.verifyAutoAllocation;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.verifyException;
 
 /**
  * Unit test for Key worker auto-allocation service.

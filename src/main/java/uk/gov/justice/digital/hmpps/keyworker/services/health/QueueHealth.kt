@@ -39,7 +39,7 @@ enum class QueueAttributes(val awsName: String, val healthName: String) {
 }
 
 @Component
-@ConditionalOnExpression("{'aws', 'localstack', 'embedded-localstack'}.contains('\${sqs.provider}')")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
 open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
                   @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
                   @Value("\${sqs.queue.name}") private val queueName: String,
