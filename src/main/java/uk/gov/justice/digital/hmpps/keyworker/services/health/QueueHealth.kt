@@ -1,13 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services.health
 
 import com.amazonaws.services.sqs.AmazonSQS
-import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
-import com.amazonaws.services.sqs.model.GetQueueAttributesResult
-import com.amazonaws.services.sqs.model.GetQueueUrlResult
-import com.amazonaws.services.sqs.model.QueueAttributeName
+import com.amazonaws.services.sqs.model.*
 import com.amazonaws.services.sqs.model.QueueAttributeName.ApproximateNumberOfMessages
 import com.amazonaws.services.sqs.model.QueueAttributeName.ApproximateNumberOfMessagesNotVisible
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -17,13 +13,8 @@ import org.springframework.boot.actuate.health.Health.Builder
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.NOT_ATTACHED
-import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.NOT_AVAILABLE
-import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.NOT_FOUND
-import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.UP
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
+import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus.*
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.*
 
 enum class DlqStatus(val description: String) {
   UP("UP"),
@@ -39,7 +30,7 @@ enum class QueueAttributes(val awsName: String, val healthName: String) {
 }
 
 @Component
-@ConditionalOnExpression("{'aws', 'localstack', 'embedded-localstack'}.contains('\${sqs.provider}')")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
 open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
                   @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
                   @Value("\${sqs.queue.name}") private val queueName: String,
