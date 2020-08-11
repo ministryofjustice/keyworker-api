@@ -18,8 +18,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId;
-import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_PAGE_LIMIT;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_PAGE_OFFSET;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_SORT_FIELDS;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_SORT_ORDER;
 
 /**
  * Helper class that takes care of setting up rest template with base API url and request headers.

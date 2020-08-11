@@ -7,7 +7,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderBooking;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
+import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
@@ -21,7 +26,9 @@ import java.util.Optional;
 import static java.time.LocalDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)

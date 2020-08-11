@@ -17,12 +17,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.*;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_1;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.CAPACITY_TIER_2;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.FULLY_ALLOCATED;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.getKeyworker;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.getKeyworkers;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.getPreviousKeyworkerAutoAllocation;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.initKeyworkerPool;
+import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelper.mockPrisonerAllocationHistory;
 
 /**
  * Unit test for Key worker pool.

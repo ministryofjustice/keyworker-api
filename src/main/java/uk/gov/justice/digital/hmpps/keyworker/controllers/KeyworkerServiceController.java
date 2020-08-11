@@ -1,6 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.data.repository.query.Param;
@@ -8,9 +13,29 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyWorkerHistory;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
+import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService;
@@ -26,7 +51,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.*;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_PAGE_LIMIT;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_PAGE_OFFSET;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_SORT_FIELDS;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_SORT_ORDER;
 
 @Api(tags = {"key-worker"})
 

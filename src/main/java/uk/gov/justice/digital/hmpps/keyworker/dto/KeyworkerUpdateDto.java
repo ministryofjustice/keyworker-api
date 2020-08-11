@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.Optional;
 
 @ApiModel(description = "Key worker details")
 @Data

@@ -2,7 +2,11 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.*;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDateTime;
