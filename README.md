@@ -110,3 +110,25 @@ cloud-platform-environments/namespaces/live-1.cloud-platform.service.justice.gov
 Ensure the certificate is created and ready for use.
 
 The name of the kubernetes secret where the certificate is stored is used as a value to the helm chart - this is used to configured the ingress.
+
+
+### Running against localstack
+
+Localstack has been introduced for some integration tests and it is also possible to run the application against localstack.
+
+* In the root of the localstack project, run command
+```
+sudo rm -rf /tmp/localstack && docker-compose -f docker-compose-localstack.yaml down && docker-compose -f docker-compose-localstack.yaml up
+```
+to clear down and then bring up localstack
+* Start the Spring Boot app with profile='localstack'
+* You can now use the aws CLI to send messages to the queue
+* The queue's health status should appear at the local healthcheck: http://localhost:8081/health
+* Note that you will also need local copies of Oauth server, Case notes API and Delius API running to do anything useful
+
+### Running the tests
+
+With localstack now up and running (see previous section), run
+```bash
+./gradlew test
+```

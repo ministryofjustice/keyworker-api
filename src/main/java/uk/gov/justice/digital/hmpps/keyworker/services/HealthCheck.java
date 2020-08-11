@@ -11,7 +11,7 @@ import java.time.Duration;
 import static lombok.AccessLevel.PROTECTED;
 
 @AllArgsConstructor(access = PROTECTED)
-public abstract class HealthCheck implements HealthIndicator {
+abstract class HealthCheck implements HealthIndicator {
     private final WebClient webClient;
     private final Duration timeout;
 

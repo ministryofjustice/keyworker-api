@@ -1,0 +1,21 @@
+version: "3"
+services:
+  localstack:
+    image: localstack/localstack:0.10.5
+    networks:
+      - hmpps
+    container_name: localstack
+    ports:
+      - "4566-4597:4566-4597"
+    environment:
+      - SERVICES=sqs,sns
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEFAULT_REGION=eu-west-2
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./src/test/resources/localstack:/docker-entrypoint-initaws.d
+
+networks:
+  hmpps:
