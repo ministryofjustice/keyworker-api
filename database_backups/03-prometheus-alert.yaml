@@ -4,6 +4,7 @@ kind: PrometheusRule
 metadata:
   labels:
     app: dps-db-snapshot-job
+    prometheus: cloud-platform
   name: dps-prometheus-rules-db-snapshot
 spec:
   groups:
