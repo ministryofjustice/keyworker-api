@@ -66,9 +66,9 @@ class OffenderKeyworkerRepositoryTest {
         assertThat(retrievedEntity.getDeallocationReason()).isEqualTo(transientEntity.getDeallocationReason());
         assertThat(retrievedEntity.getCreateUserId()).isEqualTo("user");
         assertThat(retrievedEntity.getCreationDateTime()).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.HOURS));
-        assertThat(retrievedEntity.getCreationDateTime()).isEqualTo(persistedEntity.getCreationDateTime());
-        assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(persistedEntity.getCreationDateTime());
-        assertThat(retrievedEntity.getModifyDateTime()).isEqualTo(persistedEntity.getModifyDateTime());
+        assertThat(retrievedEntity.getCreationDateTime()).isCloseTo(persistedEntity.getCreationDateTime(), within(1, ChronoUnit.MINUTES));
+        assertThat(retrievedEntity.getModifyDateTime()).isCloseTo(persistedEntity.getCreationDateTime(), within(1, ChronoUnit.MINUTES));
+        assertThat(retrievedEntity.getModifyDateTime()).isCloseTo(persistedEntity.getModifyDateTime(), within(1, ChronoUnit.MINUTES));
         assertThat(retrievedEntity.getModifyUserId()).isEqualTo("user");
     }
 

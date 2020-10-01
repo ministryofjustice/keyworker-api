@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -45,7 +47,7 @@ class PrisonSupportedTest {
 
         assertThat(retrievedEntity.isMigrated()).isEqualTo(transientEntity.isMigrated());
         assertThat(retrievedEntity.isAutoAllocate()).isEqualTo(transientEntity.isAutoAllocate());
-        assertThat(retrievedEntity.getMigratedDateTime()).isEqualTo(transientEntity.getMigratedDateTime());
+        assertThat(retrievedEntity.getMigratedDateTime()).isCloseTo(transientEntity.getMigratedDateTime(), within(1,ChronoUnit.MINUTES));
         assertThat(retrievedEntity.getCapacityTier1()).isEqualTo(transientEntity.getCapacityTier1());
         assertThat(retrievedEntity.getCapacityTier2()).isEqualTo(transientEntity.getCapacityTier2());
     }

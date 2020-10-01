@@ -174,20 +174,6 @@ class HealthCheckIntegrationTest : IntegrationTest() {
         .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
   }
 
-  @Test
-  fun `Health liveness page is accessible`() {
-    getForEntity("/health/liveness")
-        .expectStatus().isEqualTo(200)
-        .expectBody().jsonPath("$.stats", "UP")
-  }
-
-  @Test
-  fun `Health readiness page is accessible`() {
-    getForEntity("/health/readiness")
-        .expectStatus().isEqualTo(200)
-        .expectBody().jsonPath("$.stats", "UP")
-  }
-
   private fun subPing(status: Int) {
     eliteMockServer.stubFor(get("/health/ping").willReturn(aResponse()
         .withHeader("Content-Type", "application/json")
