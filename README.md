@@ -3,6 +3,8 @@
 [![CircleCI](https://circleci.com/gh/ministryofjustice/keyworker-api/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/keyworker-api)
 [![Docker Repository on Quay](https://quay.io/repository/hmpps/keyworker-api/status)](https://quay.io/repository/hmpps/keyworker-api)
 
+[![API docs](https://img.shields.io/badge/API_docs-view-85EA2D.svg?logo=swagger)](https://keyworker-api-dev.prison.service.justice.gov.uk/swagger-ui/index.html)
+
 A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Prison Services.  Backend services for https://github.com/ministryofjustice/omic-ui/.
 
 ### To build:

@@ -1,15 +1,12 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "0.4.8"
-  kotlin("plugin.spring") version "1.3.72"
-  kotlin("plugin.jpa") version "1.3.72"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "1.0.6"
+  kotlin("plugin.spring") version "1.4.10"
+  kotlin("plugin.jpa") version "1.4.10"
 }
 
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
 }
-
-extra["spring-security.version"] = "5.3.2.RELEASE" // Updated since spring-boot-starter-oauth2-resource-server-2.2.5.RELEASE only pulls in 5.2.2.RELEASE (still affected by CVE-2018-1258 though)
-
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -51,11 +48,11 @@ dependencies {
 
   compileOnly("org.projectlombok:lombok:1.18.12")
 
-  runtimeOnly("org.hsqldb:hsqldb:2.5.0")
-  runtimeOnly("org.flywaydb:flyway-core:6.4.4")
-  runtimeOnly("org.postgresql:postgresql:42.2.14")
+  runtimeOnly("org.hsqldb:hsqldb:2.5.1")
+  runtimeOnly("org.flywaydb:flyway-core:6.5.6")
+  runtimeOnly("org.postgresql:postgresql:42.2.16")
 
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.5")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.6")
   testImplementation("org.spockframework:spock-spring:2.0-M3-groovy-3.0")
   testCompile("org.spockframework:spock-core:2.0-M3-groovy-3.0") {
     exclude("org.codehaus.groovy")
@@ -69,12 +66,12 @@ dependencies {
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:3.141.59")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
 
-  testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
+  testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:2.25.0")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
   testImplementation("org.testcontainers:localstack:1.14.3")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.18.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.19.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
