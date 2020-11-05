@@ -14,13 +14,17 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+
+import uk.gov.justice.digital.hmpps.keyworker.TestSupport.body
+import uk.gov.justice.digital.hmpps.keyworker.TestSupport.charset
+import uk.gov.justice.digital.hmpps.keyworker.TestSupport.httpRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
-import java.util.*
+import java.util.Optional
 
 @WebFluxTest(KeyworkerServiceController::class)
 @ActiveProfiles("test")
@@ -59,12 +63,14 @@ class KeyworkerServiceControllerTest() {
     verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
   }
 
+
+
   @ParameterizedTest
   @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
   fun `offender keyworker not found should return not found`(pathPrefix: String) {
 
     whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
-        .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, null, null, null))
+        .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, body, charset, httpRequest))
 
     webTestClient.get()
         .uri("$pathPrefix/offender/A1234AA")

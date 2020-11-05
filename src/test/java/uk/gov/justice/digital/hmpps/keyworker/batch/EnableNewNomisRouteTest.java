@@ -82,11 +82,11 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
         final var prisons = List.of(MDI, LEI, LPI);
 
         when(nomisService.getAllPrisons()).thenReturn(prisons);
-        final var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
+        final var MDIResponse = new CaseloadUpdate(MDI.getPrisonId(),2);
         when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId()))).thenReturn(MDIResponse);
-        final var LEIResponse = CaseloadUpdate.builder().caseload(LEI.getPrisonId()).numUsersEnabled(0).build();
+        final var LEIResponse = new CaseloadUpdate(LEI.getPrisonId(), 0);
         when(nomisService.enableNewNomisForCaseload(eq(LEI.getPrisonId()))).thenReturn(LEIResponse);
-        final var LPIResponse = CaseloadUpdate.builder().caseload(LPI.getPrisonId()).numUsersEnabled(14).build();
+        final var LPIResponse = new CaseloadUpdate(LPI.getPrisonId(), 14);
         when(nomisService.enableNewNomisForCaseload(eq(LPI.getPrisonId()))).thenReturn(LPIResponse);
 
 
