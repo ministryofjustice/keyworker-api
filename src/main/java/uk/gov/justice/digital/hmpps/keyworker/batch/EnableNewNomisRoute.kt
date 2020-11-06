@@ -18,9 +18,13 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class EnableNewNomisRoute @Autowired constructor(private val nomisService: NomisService, private val telemetryClient: TelemetryClient) : RouteBuilder() {
-    @Value("\${enable-new-nomis.job.cron}")
-    private val cronExpression: String? = null
+class EnableNewNomisRoute(
+        @Autowired private val nomisService: NomisService,
+        @Autowired private val telemetryClient: TelemetryClient,
+        @Value("\${enable-new-nomis.job.cron}")
+        private val cronExpression: String = ""
+) : RouteBuilder() {
+
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_ENABLE_NEW_NOMIS_URI + cronExpression)

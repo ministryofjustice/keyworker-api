@@ -13,9 +13,9 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableCaching
-class CacheConfig : CachingConfigurer {
-    @Value("\${cache.timeout.seconds.staff:86400}")
-    private val staffInformationTimeoutSeconds = 0
+class CacheConfig(@Value("\${cache.timeout.seconds.staff:86400}")
+                  private val staffInformationTimeoutSeconds: Int = 0) : CachingConfigurer {
+
     @Bean(destroyMethod = "shutdown")
     fun ehCacheManager(): CacheManager {
         val config = net.sf.ehcache.config.Configuration()

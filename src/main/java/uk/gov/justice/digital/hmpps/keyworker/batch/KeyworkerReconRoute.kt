@@ -15,9 +15,12 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class KeyworkerReconRoute @Autowired constructor(private val reconciliationService: ReconciliationService, private val prisonSupportedService: PrisonSupportedService) : RouteBuilder() {
-    @Value("\${key.worker.recon.job.cron}")
-    private val cronExpression: String? = null
+class KeyworkerReconRoute(
+        @Autowired private val reconciliationService: ReconciliationService,
+        @Autowired private val prisonSupportedService: PrisonSupportedService,
+        @Value("\${key.worker.recon.job.cron}")
+        private val cronExpression: String = ""): RouteBuilder() {
+
     override fun configure() {
         context.isStreamCaching = true
         if (StringUtils.isNotBlank(cronExpression)) {

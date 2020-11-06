@@ -14,48 +14,50 @@ import java.util.*
 /* requires postgres db - does not work with in memory database */
 @Configuration
 @ConditionalOnProperty(name = ["quartz.enabled"])
-internal class CamelQuartzConfigurationFactory {
-    @Autowired
-    private val camelContext: CamelContext? = null
+internal class CamelQuartzConfigurationFactory(
+        @Autowired
+        private val camelContext: CamelContext,
 
-    @Value("\${org.quartz.jobStore.class}")
-    private val quartzJobstoreClass: String? = null
+        @Value("\${org.quartz.jobStore.class}")
+        private val quartzJobstoreClass: String,
 
-    @Value("\${org.quartz.threadPool.threadCount}")
-    private val threadCount: String? = null
+        @Value("\${org.quartz.threadPool.threadCount}")
+        private val threadCount: String,
 
-    @Value("\${app.db.url}")
-    private val url: String? = null
+        @Value("\${app.db.url}")
+        private val url: String,
 
-    @Value("\${spring.datasource.username}")
-    private val username: String? = null
+        @Value("\${spring.datasource.username}")
+        private val username: String,
 
-    @Value("\${spring.datasource.password}")
-    private val password: String? = null
+        @Value("\${spring.datasource.password}")
+        private val password: String,
 
-    @Value("\${org.quartz.jobStore.driverDelegateClass}")
-    private val quartzDelegateClass: String? = null
+        @Value("\${org.quartz.jobStore.driverDelegateClass}")
+        private val quartzDelegateClass: String,
 
-    @Value("\${database.driver.class}")
-    private val databaseDriverClass: String? = null
+        @Value("\${database.driver.class}")
+        private val databaseDriverClass: String,
 
-    @Value("\${org.quartz.jobStore.misfireThreshold}")
-    private val misfireThreshold: String? = null
+        @Value("\${org.quartz.jobStore.misfireThreshold}")
+        private val misfireThreshold: String,
 
-    @Value("\${org.quartz.jobStore.tablePrefix}")
-    private val tablePrefix: String? = null
+        @Value("\${org.quartz.jobStore.tablePrefix}")
+        private val tablePrefix: String,
 
-    @Value("\${org.quartz.jobStore.clusterCheckinInterval}")
-    private val clusterCheckinInterval: String? = null
+        @Value("\${org.quartz.jobStore.clusterCheckinInterval}")
+        private val clusterCheckinInterval: String,
 
-    @Value("\${org.quartz.jobStore.isClustered}")
-    private val isClustered: String? = null
+        @Value("\${org.quartz.jobStore.isClustered}")
+        private val isClustered: String,
 
-    @Value("\${org.quartz.scheduler.instanceName}")
-    private val instanceName: String? = null
+        @Value("\${org.quartz.scheduler.instanceName}")
+        private val instanceName: String,
 
-    @Value("\${org.quartz.scheduler.instanceId}")
-    private val instanceId: String? = null
+        @Value("\${org.quartz.scheduler.instanceId}")
+        private val instanceId: String
+) {
+
     @Bean
     fun contextConfiguration(): CamelContextConfiguration {
         return object : CamelContextConfiguration {

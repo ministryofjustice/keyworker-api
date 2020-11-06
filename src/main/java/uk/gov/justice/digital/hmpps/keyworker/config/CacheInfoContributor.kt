@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-class CacheInfoContributor @Autowired constructor(private val cacheManager: CacheManager) : InfoContributor {
+class CacheInfoContributor(@Autowired private val cacheManager: CacheManager) : InfoContributor {
+
     override fun contribute(builder: Info.Builder) {
         val results: MutableMap<String, String> = HashMap()
         var memory: Long = 0

@@ -14,9 +14,11 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class UpdateStatusRoute @Autowired constructor(private val service: KeyworkerBatchService) : RouteBuilder() {
-    @Value("\${updateStatus.job.cron}")
-    private val cronExpression: String? = null
+class UpdateStatusRoute(
+        @Autowired private val service: KeyworkerBatchService,
+        @Value("\${updateStatus.job.cron}")
+        private val cronExpression: String = "") : RouteBuilder() {
+
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_UPDATE_STATUS_URI + cronExpression)

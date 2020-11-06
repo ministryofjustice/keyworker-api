@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class DeallocationRoute : RouteBuilder() {
-    @Value("\${deallocation.job.cron}")
-    private val cronExpression: String? = null
+class DeallocationRoute(
+        @Value("\${deallocation.job.cron}")
+        private val cronExpression: String
+) : RouteBuilder() {
+
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_UPDATE_STATUS_URI + cronExpression)

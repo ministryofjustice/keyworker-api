@@ -15,9 +15,12 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class PrisonStatsRoute @Autowired constructor(private val keyworkerStatsService: KeyworkerStatsService, private val prisonSupportedService: PrisonSupportedService) : RouteBuilder() {
-    @Value("\${prisonStats.job.cron}")
-    private val cronExpression: String? = null
+class PrisonStatsRoute(
+        @Autowired private val keyworkerStatsService: KeyworkerStatsService,
+        @Autowired private val prisonSupportedService: PrisonSupportedService,
+        @Value("\${prisonStats.job.cron}")
+        private val cronExpression: String = ""): RouteBuilder() {
+
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_PRISON_STATS_URI + cronExpression)

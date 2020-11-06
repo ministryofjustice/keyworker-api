@@ -10,7 +10,6 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.CreateQueueRequest
 import com.amazonaws.services.sqs.model.QueueAttributeName
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -20,15 +19,14 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.jms.annotation.EnableJms
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory
 import org.springframework.jms.support.destination.DynamicDestinationResolver
+import uk.gov.justice.digital.hmpps.keyworker.Logging
+import uk.gov.justice.digital.hmpps.keyworker.logger
 import javax.jms.Session
 
 @Configuration
 @ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
 @EnableJms
 open class JmsConfig {
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
 
   @Bean
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -93,5 +91,9 @@ open class JmsConfig {
             """{"deadLetterTargetArn":"${dlqArn.attributes["QueueArn"]}","maxReceiveCount":"5"}""")
     ))
     return awsSqsClient.getQueueUrl(queueName).queueUrl
+  }
+
+  companion object: Logging {
+    val log = logger()
   }
 }
