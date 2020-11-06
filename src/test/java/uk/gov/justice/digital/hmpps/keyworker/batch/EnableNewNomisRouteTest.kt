@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch
 
 import com.microsoft.applicationinsights.TelemetryClient
-import groovy.util.logging.Slf4j
 import org.apache.camel.Exchange
 import org.apache.camel.builder.AdviceWithRouteBuilder
 import org.apache.camel.builder.RouteBuilder
@@ -23,7 +22,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 
-@Slf4j
 @RunWith(MockitoJUnitRunner::class)
 class EnableNewNomisRouteTest : CamelTestSupport() {
     @Mock

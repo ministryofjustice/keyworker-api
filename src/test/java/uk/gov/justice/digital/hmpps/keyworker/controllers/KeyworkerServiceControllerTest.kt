@@ -15,9 +15,9 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 
-import uk.gov.justice.digital.hmpps.keyworker.TestSupport.body
-import uk.gov.justice.digital.hmpps.keyworker.TestSupport.charset
-import uk.gov.justice.digital.hmpps.keyworker.TestSupport.httpRequest
+import uk.gov.justice.digital.hmpps.keyworker.TestSupport.emptyBody
+import uk.gov.justice.digital.hmpps.keyworker.TestSupport.nullCharset
+import uk.gov.justice.digital.hmpps.keyworker.TestSupport.nullHttpRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
@@ -70,7 +70,7 @@ class KeyworkerServiceControllerTest() {
   fun `offender keyworker not found should return not found`(pathPrefix: String) {
 
     whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
-        .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, body, charset, httpRequest))
+        .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, emptyBody, nullCharset, nullHttpRequest))
 
     webTestClient.get()
         .uri("$pathPrefix/offender/A1234AA")

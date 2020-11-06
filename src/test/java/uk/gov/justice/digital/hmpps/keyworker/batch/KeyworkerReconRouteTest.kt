@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch
 
-import groovy.util.logging.Slf4j
 import org.apache.camel.Exchange
 import org.apache.camel.builder.AdviceWithRouteBuilder
 import org.apache.camel.builder.RouteBuilder
@@ -19,7 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService.ReconMetrics
 
-@Slf4j
 @RunWith(MockitoJUnitRunner::class)
 class KeyworkerReconRouteTest : CamelTestSupport() {
     @Mock

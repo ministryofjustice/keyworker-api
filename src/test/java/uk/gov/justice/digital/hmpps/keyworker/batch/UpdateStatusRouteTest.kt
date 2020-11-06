@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch
 
-import groovy.util.logging.Slf4j
 import org.apache.camel.Exchange
 import org.apache.camel.builder.AdviceWithRouteBuilder
 import org.apache.camel.builder.RouteBuilder
@@ -16,7 +15,6 @@ import org.mockito.junit.MockitoJUnitRunner
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService
 import java.util.List
 
-@Slf4j
 @RunWith(MockitoJUnitRunner::class)
 class UpdateStatusRouteTest : CamelTestSupport() {
     @Mock

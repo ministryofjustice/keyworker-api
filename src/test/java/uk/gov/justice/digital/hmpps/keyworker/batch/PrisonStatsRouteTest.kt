@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 import java.time.LocalDate
 
-@Slf4j
 @RunWith(MockitoJUnitRunner::class)
 class PrisonStatsRouteTest : CamelTestSupport() {
     @Mock
