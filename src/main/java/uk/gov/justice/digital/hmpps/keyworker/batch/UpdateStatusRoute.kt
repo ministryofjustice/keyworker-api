@@ -15,18 +15,19 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
 class UpdateStatusRoute(
-        @Autowired private val service: KeyworkerBatchService,
-        @Value("\${updateStatus.job.cron}")
-        private val cronExpression: String = "") : RouteBuilder() {
+    @Autowired private val service: KeyworkerBatchService,
+    @Value("\${updateStatus.job.cron}")
+    private val cronExpression: String = ""
+) : RouteBuilder() {
 
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_UPDATE_STATUS_URI + cronExpression)
-                    .to(DIRECT_UPDATE_STATUS)
+                .to(DIRECT_UPDATE_STATUS)
         }
         from(DIRECT_UPDATE_STATUS)
-                .bean(service, "executeUpdateStatus")
-                .log("Keyworkers updated to active status: \${body.size}")
+            .bean(service, "executeUpdateStatus")
+            .log("Keyworkers updated to active status: \${body.size}")
     }
 
     companion object {

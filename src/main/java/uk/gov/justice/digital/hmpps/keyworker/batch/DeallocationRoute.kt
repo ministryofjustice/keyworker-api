@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
 class DeallocationRoute(
-        @Value("\${deallocation.job.cron}")
-        private val cronExpression: String
+    @Value("\${deallocation.job.cron}")
+    private val cronExpression: String
 ) : RouteBuilder() {
 
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_UPDATE_STATUS_URI + cronExpression)
-                    .log("*** DEPRECATED: removed de-allocation process")
+                .log("*** DEPRECATED: removed de-allocation process")
         }
     }
 

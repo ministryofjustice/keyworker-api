@@ -16,33 +16,34 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
 class PrisonStatsRoute(
-        @Autowired private val keyworkerStatsService: KeyworkerStatsService,
-        @Autowired private val prisonSupportedService: PrisonSupportedService,
-        @Value("\${prisonStats.job.cron}")
-        private val cronExpression: String = ""): RouteBuilder() {
+    @Autowired private val keyworkerStatsService: KeyworkerStatsService,
+    @Autowired private val prisonSupportedService: PrisonSupportedService,
+    @Value("\${prisonStats.job.cron}")
+    private val cronExpression: String = ""
+) : RouteBuilder() {
 
     override fun configure() {
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_PRISON_STATS_URI + cronExpression)
-                    .to(DIRECT_PRISON_STATS)
+                .to(DIRECT_PRISON_STATS)
         }
         from(DIRECT_PRISON_STATS)
-                .log("Starting: Daily Prison Statistics")
-                .bean(prisonSupportedService, "getMigratedPrisons")
-                .log("There are \${body.size} migrated prisons")
-                .split(body())
-                .to(DIRECT_GENERATE_STATS)
-                .end()
-                .log("Complete: Daily Prison Statistics")
+            .log("Starting: Daily Prison Statistics")
+            .bean(prisonSupportedService, "getMigratedPrisons")
+            .log("There are \${body.size} migrated prisons")
+            .split(body())
+            .to(DIRECT_GENERATE_STATS)
+            .end()
+            .log("Complete: Daily Prison Statistics")
         from(DIRECT_GENERATE_STATS)
-                .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
-                .log("Gathering stats for \${body.prisonId}")
-                .bean(keyworkerStatsService, "generatePrisonStats(\${body.prisonId})")
-                .log("Stats completed for \${body.prisonId}")
+            .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
+            .log("Gathering stats for \${body.prisonId}")
+            .bean(keyworkerStatsService, "generatePrisonStats(\${body.prisonId})")
+            .log("Stats completed for \${body.prisonId}")
         from(DIRECT_LOG_ERROR)
-                .log(LoggingLevel.ERROR, "Error occurred processing \${body.prisonId}")
-                .to("log:stats-error?level=ERROR&showCaughtException=true&showStackTrace=true&showAll=true")
-                .bean(keyworkerStatsService, "raiseStatsProcessingError(\${body.prisonId})")
+            .log(LoggingLevel.ERROR, "Error occurred processing \${body.prisonId}")
+            .to("log:stats-error?level=ERROR&showCaughtException=true&showStackTrace=true&showAll=true")
+            .bean(keyworkerStatsService, "raiseStatsProcessingError(\${body.prisonId})")
     }
 
     companion object {

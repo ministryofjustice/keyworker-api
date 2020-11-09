@@ -13,8 +13,10 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableCaching
-class CacheConfig(@Value("\${cache.timeout.seconds.staff:86400}")
-                  private val staffInformationTimeoutSeconds: Int = 0) : CachingConfigurer {
+class CacheConfig(
+    @Value("\${cache.timeout.seconds.staff:86400}")
+    private val staffInformationTimeoutSeconds: Int = 0
+) : CachingConfigurer {
 
     @Bean(destroyMethod = "shutdown")
     fun ehCacheManager(): CacheManager {
@@ -47,12 +49,12 @@ class CacheConfig(@Value("\${cache.timeout.seconds.staff:86400}")
     companion object {
         fun config(name: String?, maxElements: Int, timeoutSeconds: Int, policy: MemoryStoreEvictionPolicy?): CacheConfiguration {
             return CacheConfiguration().name(name)
-                    .memoryStoreEvictionPolicy(policy)
-                    .eternal(false)
-                    .overflowToOffHeap(false)
-                    .maxEntriesLocalHeap(maxElements)
-                    .timeToLiveSeconds(timeoutSeconds.toLong())
-                    .timeToIdleSeconds(timeoutSeconds.toLong())
+                .memoryStoreEvictionPolicy(policy)
+                .eternal(false)
+                .overflowToOffHeap(false)
+                .maxEntriesLocalHeap(maxElements)
+                .timeToLiveSeconds(timeoutSeconds.toLong())
+                .timeToIdleSeconds(timeoutSeconds.toLong())
         }
     }
 }

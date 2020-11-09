@@ -16,34 +16,35 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
 class KeyworkerReconRoute(
-        @Autowired private val reconciliationService: ReconciliationService,
-        @Autowired private val prisonSupportedService: PrisonSupportedService,
-        @Value("\${key.worker.recon.job.cron}")
-        private val cronExpression: String = ""): RouteBuilder() {
+    @Autowired private val reconciliationService: ReconciliationService,
+    @Autowired private val prisonSupportedService: PrisonSupportedService,
+    @Value("\${key.worker.recon.job.cron}")
+    private val cronExpression: String = ""
+) : RouteBuilder() {
 
     override fun configure() {
         context.isStreamCaching = true
         if (StringUtils.isNotBlank(cronExpression)) {
             from(QUARTZ_KEY_WORKER_RECON_URI + cronExpression)
-                    .to(DIRECT_KEY_WORKER_RECON)
+                .to(DIRECT_KEY_WORKER_RECON)
         }
         from(DIRECT_KEY_WORKER_RECON)
-                .log("Starting: Key Worker Reconciliation")
-                .bean(prisonSupportedService, "getMigratedPrisons")
-                .log("There are \${body.size} prisons")
-                .split(body())
-                .to(DIRECT_RECON)
-                .end()
-                .log("Complete: Key Worker Reconciliation")
+            .log("Starting: Key Worker Reconciliation")
+            .bean(prisonSupportedService, "getMigratedPrisons")
+            .log("There are \${body.size} prisons")
+            .split(body())
+            .to(DIRECT_RECON)
+            .end()
+            .log("Complete: Key Worker Reconciliation")
         from(DIRECT_RECON)
-                .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
-                .log("Key Worker Reconciliation for \${body.prisonId}")
-                .bean(reconciliationService, "reconcileKeyWorkerAllocations(\${body.prisonId})")
-                .log("Key Worker Reconciliation completed for \${body.prisonId}")
+            .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
+            .log("Key Worker Reconciliation for \${body.prisonId}")
+            .bean(reconciliationService, "reconcileKeyWorkerAllocations(\${body.prisonId})")
+            .log("Key Worker Reconciliation completed for \${body.prisonId}")
         from(DIRECT_LOG_ERROR)
-                .log(LoggingLevel.ERROR, "Error occurred processing \${body.prisonId}")
-                .to("log:recon-error?level=ERROR&showCaughtException=true&showStackTrace=true&showAll=true")
-                .bean(reconciliationService, "raiseProcessingError(\${body.prisonId})")
+            .log(LoggingLevel.ERROR, "Error occurred processing \${body.prisonId}")
+            .to("log:recon-error?level=ERROR&showCaughtException=true&showStackTrace=true&showAll=true")
+            .bean(reconciliationService, "raiseProcessingError(\${body.prisonId})")
     }
 
     companion object {

@@ -18,12 +18,14 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext
 
 @Configuration
 class WebClientConfiguration(
-        @Value("\${elite2.api.uri.root}") private val elite2ApiRootUri: String,
-        @Value("\${elite2.uri.root}") private val healthRootUri: String
+    @Value("\${elite2.api.uri.root}") private val elite2ApiRootUri: String,
+    @Value("\${elite2.uri.root}") private val healthRootUri: String
 ) {
     @Bean
-    fun authorizedClientManager(clientRegistrationRepository: ClientRegistrationRepository?,
-                                oAuth2AuthorizedClientService: OAuth2AuthorizedClientService?): OAuth2AuthorizedClientManager {
+    fun authorizedClientManager(
+        clientRegistrationRepository: ClientRegistrationRepository?,
+        oAuth2AuthorizedClientService: OAuth2AuthorizedClientService?
+    ): OAuth2AuthorizedClientManager {
         val authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build()
         val authorizedClientManager = AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrationRepository, oAuth2AuthorizedClientService)
         authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
@@ -35,31 +37,31 @@ class WebClientConfiguration(
         val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
         oauth2Client.setDefaultClientRegistrationId("elite2-api")
         return builder.baseUrl(elite2ApiRootUri)
-                .apply(oauth2Client.oauth2Configuration())
-                .build()
+            .apply(oauth2Client.oauth2Configuration())
+            .build()
     }
 
     @Bean
     fun webClient(builder: WebClient.Builder): WebClient {
         return builder
-                .baseUrl(elite2ApiRootUri)
-                .filter(addAuthHeaderFilterFunction())
-                .build()
+            .baseUrl(elite2ApiRootUri)
+            .filter(addAuthHeaderFilterFunction())
+            .build()
     }
 
     @Bean
     fun healthWebClient(builder: WebClient.Builder): WebClient {
         return builder
-                .baseUrl(healthRootUri)
-                .filter(addAuthHeaderFilterFunction())
-                .build()
+            .baseUrl(healthRootUri)
+            .filter(addAuthHeaderFilterFunction())
+            .build()
     }
 
     private fun addAuthHeaderFilterFunction(): ExchangeFilterFunction {
-        return ExchangeFilterFunction { request: ClientRequest?, next: ExchangeFunction ->
+        return ExchangeFilterFunction { request: ClientRequest, next: ExchangeFunction ->
             val filtered = ClientRequest.from(request)
-                    .header(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken())
-                    .build()
+                .header(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken())
+                .build()
             next.exchange(filtered)
         }
     }

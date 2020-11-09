@@ -16,12 +16,13 @@ class CacheInfoContributor(@Autowired private val cacheManager: CacheManager) : 
         for (name in cacheManager.cacheNames) {
             val cache = cacheManager.getCache(name)
             val statistics = cache.statistics
-            results[name] = String.format("%d / %d hits:%d misses:%d bytes:%d",
-                    cache.keysNoDuplicateCheck.size,
-                    cache.cacheConfiguration.maxEntriesLocalHeap,
-                    statistics.cacheHitCount(),
-                    statistics.cacheMissCount(),
-                    statistics.localHeapSizeInBytes
+            results[name] = String.format(
+                "%d / %d hits:%d misses:%d bytes:%d",
+                cache.keysNoDuplicateCheck.size,
+                cache.cacheConfiguration.maxEntriesLocalHeap,
+                statistics.cacheHitCount(),
+                statistics.cacheMissCount(),
+                statistics.localHeapSizeInBytes
             )
             memory += statistics.localHeapSizeInBytes
         }

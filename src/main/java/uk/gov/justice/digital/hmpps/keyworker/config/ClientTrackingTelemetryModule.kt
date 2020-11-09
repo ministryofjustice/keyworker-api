@@ -7,10 +7,9 @@ import com.microsoft.applicationinsights.web.internal.ThreadContext
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
-import uk.gov.justice.digital.hmpps.keyworker.Logging
-import uk.gov.justice.digital.hmpps.keyworker.logger
 import java.text.ParseException
 import java.util.Optional
 import javax.servlet.ServletRequest
@@ -32,7 +31,7 @@ class ClientTrackingTelemetryModule : WebTelemetryModule, TelemetryModule {
                 user.map { obj: Any -> obj.toString() }.ifPresent { u: String -> properties["username"] = u }
                 properties["clientId"] = jwtBody.getClaim("client_id").toString()
             } catch (e: ParseException) {
-                //log.warn("problem decoding jwt public key for application insights", e)
+                log.warn("problem decoding jwt public key for application insights", e)
             }
         }
     }
@@ -46,7 +45,7 @@ class ClientTrackingTelemetryModule : WebTelemetryModule, TelemetryModule {
     override fun onEndRequest(req: ServletRequest, res: ServletResponse) {}
     override fun initialize(configuration: TelemetryConfiguration) {}
 
-    companion object: Logging {
-        val log = logger()
+    companion object {
+        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

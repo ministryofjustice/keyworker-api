@@ -15,47 +15,47 @@ import java.util.*
 @Configuration
 @ConditionalOnProperty(name = ["quartz.enabled"])
 internal class CamelQuartzConfigurationFactory(
-        @Autowired
-        private val camelContext: CamelContext,
+    @Autowired
+    private val camelContext: CamelContext,
 
-        @Value("\${org.quartz.jobStore.class}")
-        private val quartzJobstoreClass: String,
+    @Value("\${org.quartz.jobStore.class}")
+    private val quartzJobstoreClass: String,
 
-        @Value("\${org.quartz.threadPool.threadCount}")
-        private val threadCount: String,
+    @Value("\${org.quartz.threadPool.threadCount}")
+    private val threadCount: String,
 
-        @Value("\${app.db.url}")
-        private val url: String,
+    @Value("\${app.db.url}")
+    private val url: String,
 
-        @Value("\${spring.datasource.username}")
-        private val username: String,
+    @Value("\${spring.datasource.username}")
+    private val username: String,
 
-        @Value("\${spring.datasource.password}")
-        private val password: String,
+    @Value("\${spring.datasource.password}")
+    private val password: String,
 
-        @Value("\${org.quartz.jobStore.driverDelegateClass}")
-        private val quartzDelegateClass: String,
+    @Value("\${org.quartz.jobStore.driverDelegateClass}")
+    private val quartzDelegateClass: String,
 
-        @Value("\${database.driver.class}")
-        private val databaseDriverClass: String,
+    @Value("\${database.driver.class}")
+    private val databaseDriverClass: String,
 
-        @Value("\${org.quartz.jobStore.misfireThreshold}")
-        private val misfireThreshold: String,
+    @Value("\${org.quartz.jobStore.misfireThreshold}")
+    private val misfireThreshold: String,
 
-        @Value("\${org.quartz.jobStore.tablePrefix}")
-        private val tablePrefix: String,
+    @Value("\${org.quartz.jobStore.tablePrefix}")
+    private val tablePrefix: String,
 
-        @Value("\${org.quartz.jobStore.clusterCheckinInterval}")
-        private val clusterCheckinInterval: String,
+    @Value("\${org.quartz.jobStore.clusterCheckinInterval}")
+    private val clusterCheckinInterval: String,
 
-        @Value("\${org.quartz.jobStore.isClustered}")
-        private val isClustered: String,
+    @Value("\${org.quartz.jobStore.isClustered}")
+    private val isClustered: String,
 
-        @Value("\${org.quartz.scheduler.instanceName}")
-        private val instanceName: String,
+    @Value("\${org.quartz.scheduler.instanceName}")
+    private val instanceName: String,
 
-        @Value("\${org.quartz.scheduler.instanceId}")
-        private val instanceId: String
+    @Value("\${org.quartz.scheduler.instanceId}")
+    private val instanceId: String
 ) {
 
     @Bean
@@ -74,7 +74,7 @@ internal class CamelQuartzConfigurationFactory(
 
     @Bean
     fun producerTemplate(): ProducerTemplate {
-        return camelContext!!.createProducerTemplate()
+        return camelContext.createProducerTemplate()
     }
 
     @Bean

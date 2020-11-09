@@ -23,11 +23,11 @@ open class JsonConfig() {
 
     @Bean
     @Primary
-    open fun gson() : Gson {
+    open fun gson(): Gson {
         return GsonBuilder().setPrettyPrinting()
-                .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
-                .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
-                .create();
+            .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
+            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+            .create()
     }
 
     internal class LocalDateAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate> {
@@ -36,7 +36,7 @@ open class JsonConfig() {
         }
 
         override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDate {
-            return LocalDate.parse(json?.asJsonPrimitive?.asString);
+            return LocalDate.parse(json?.asJsonPrimitive?.asString)
         }
     }
 
@@ -47,8 +47,10 @@ open class JsonConfig() {
 
         @Throws(JsonParseException::class)
         override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): LocalDateTime {
-            return LocalDateTime.parse(json.asString,
-                    DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.ENGLISH))
+            return LocalDateTime.parse(
+                json.asString,
+                DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.ENGLISH)
+            )
         }
     }
 }
