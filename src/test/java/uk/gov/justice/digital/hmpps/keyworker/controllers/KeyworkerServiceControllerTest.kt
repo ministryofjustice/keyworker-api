@@ -41,12 +41,16 @@ class KeyworkerServiceControllerTest() {
 
     @MockBean
     private lateinit var keyworkerService: KeyworkerService
+
     @MockBean
     private lateinit var keyworkerMigrationService: KeyworkerMigrationService
+
     @MockBean
     private lateinit var roleMigrationService: UserRolesMigrationService
+
     @MockBean
     private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
+
     @MockBean
     private lateinit var prisonSupportedService: PrisonSupportedService
 
