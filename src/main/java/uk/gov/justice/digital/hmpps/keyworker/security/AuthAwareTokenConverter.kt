@@ -1,48 +1,39 @@
-package uk.gov.justice.digital.hmpps.keyworker.security;
+package uk.gov.justice.digital.hmpps.keyworker.security
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.core.convert.converter.Converter
+import org.springframework.security.authentication.AbstractAuthenticationToken
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-public class AuthAwareTokenConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 
-    private final Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> = JwtGrantedAuthoritiesConverter()
 
-    public AbstractAuthenticationToken convert(final Jwt jwt) {
-        final var claims = jwt.getClaims();
-
-        final var principal = findPrincipal(claims);
-        final var authorities = extractAuthorities(jwt);
-        return new AuthAwareAuthenticationToken(jwt, principal, authorities);
+    override fun convert(jwt: Jwt): AbstractAuthenticationToken {
+        val claims = jwt.claims
+        val principal = findPrincipal(claims)
+        val authorities = extractAuthorities(jwt)
+        return AuthAwareAuthenticationToken(jwt, principal, authorities)
     }
 
-    private Object findPrincipal(final Map<String, Object> claims) {
-        if (claims.containsKey("user_name")) {
-            return claims.get("user_name");
+    private fun findPrincipal(claims: Map<String, Any>): Any? {
+        return if (claims.containsKey("user_name")) {
+            claims["user_name"]
         } else {
-            return claims.get("client_id");
+            claims["client_id"]
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private Collection<GrantedAuthority> extractAuthorities(final Jwt jwt) {
-        final var authorities = new HashSet<>(this.jwtGrantedAuthoritiesConverter.convert(jwt));
-        if (jwt.getClaims().containsKey("authorities")) {
+    private fun extractAuthorities(jwt: Jwt): Collection<GrantedAuthority> {
+        val authorities = HashSet(jwtGrantedAuthoritiesConverter.convert(jwt))
+        if (jwt.claims.containsKey("authorities")) {
             authorities.addAll(
-                    ((Collection<String>) jwt.getClaims().get("authorities"))
-                            .stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toSet()));
+                    (jwt.claims["authorities"] as Collection<String>)
+                            .map { role: String? -> SimpleGrantedAuthority(role) }  )
         }
-        return Set.copyOf(authorities);
+        return authorities.toSet()
     }
 }
