@@ -75,7 +75,7 @@ class KeyworkerServiceControllerTest() {
     fun `offender keyworker not found should return not found`(pathPrefix: String) {
 
         whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
-            .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, null, null, null))
+            .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, byteArrayOf(), null, null))
 
         webTestClient.get()
             .uri("$pathPrefix/offender/A1234AA")
