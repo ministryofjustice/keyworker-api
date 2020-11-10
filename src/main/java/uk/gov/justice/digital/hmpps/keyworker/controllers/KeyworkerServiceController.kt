@@ -59,6 +59,10 @@ class KeyworkerServiceController(
     private val prisonSupportedService: PrisonSupportedService
 ) {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(this::class.java)
+    }
+
     @ApiOperation(value = "Key workers available for allocation at specified prison.", notes = "Key workers available for allocation at specified prison.", nickname = "getAvailableKeyworkers")
     @ApiResponses(value = [ApiResponse(code = 200, message = "OK", response = KeyworkerDto::class, responseContainer = "List"), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class, responseContainer = "List"), ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class, responseContainer = "List"), ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse::class, responseContainer = "List")])
     @GetMapping(path = ["/{prisonId}/available"])
@@ -118,7 +122,6 @@ class KeyworkerServiceController(
         return keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos)
     }
 
-    // todo check default 200 response if needed
     @ApiOperation(value = "All unallocated offenders in specified prison.", notes = "All unallocated offenders in specified prison.", nickname = "getUnallocatedOffenders")
     @ApiResponses(
         value = [
@@ -256,7 +259,7 @@ class KeyworkerServiceController(
         @ApiParam("migrate") @Param("migrate") migrate: Boolean?,
         @ApiParam(name = "capacity", value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9") @Param("capacity") capacity: Array<Int>?,
         @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @Param("capacity") frequency: Int?
-    ): Prison = updateAndMigrate(prisonId, migrate ?: false, false, capacity, frequency ?: 1) // todo check default
+    ): Prison = updateAndMigrate(prisonId, migrate, false, capacity, frequency)
 
     @ApiOperation(value = "Enable Auto Allocation for specified prison and Migrate", notes = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB")
     @ApiResponses(value = [ApiResponse(code = 200, message = "OK", response = Prison::class), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse::class)])
@@ -267,24 +270,20 @@ class KeyworkerServiceController(
         @ApiParam(name = "capacity", value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9") @Param("capacity") capacity: Array<Int>?,
         @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @Param("capacity") frequency: Int?
     ): Prison {
-        return updateAndMigrate(prisonId, migrate ?: false, true, capacity, frequency ?: 1)
+        return updateAndMigrate(prisonId, migrate, true, capacity, frequency)
     }
 
-    private fun updateAndMigrate(prisonId: String?, migrate: Boolean, autoAllocate: Boolean, capacity: Array<Int>?, kwSessionFrequencyInWeeks: Int): Prison {
+    private fun updateAndMigrate(prisonId: String?, migrate: Boolean? = false, autoAllocate: Boolean, capacity: Array<Int>?, kwSessionFrequencyInWeeks: Int? = 1): Prison {
         if (capacity != null) {
             Validate.isTrue(capacity.size == 2, "Two capacity values must be specified.")
             prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate, capacity[0], capacity[1], kwSessionFrequencyInWeeks)
         } else {
             prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate)
         }
-        if (migrate) {
+        if (migrate!!) {
             keyworkerMigrationService.migrateKeyworkerByPrison(prisonId)
             roleMigrationService.migrate(prisonId)
         }
         return prisonSupportedService.getPrisonDetail(prisonId)
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }
