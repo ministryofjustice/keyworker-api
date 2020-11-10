@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 
-
 class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 
     private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> = JwtGrantedAuthoritiesConverter()
@@ -31,8 +30,9 @@ class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
         val authorities = HashSet(jwtGrantedAuthoritiesConverter.convert(jwt))
         if (jwt.claims.containsKey("authorities")) {
             authorities.addAll(
-                    (jwt.claims["authorities"] as Collection<String>)
-                            .map { role: String? -> SimpleGrantedAuthority(role) }  )
+                (jwt.claims["authorities"] as Collection<String>)
+                    .map { role: String? -> SimpleGrantedAuthority(role) }
+            )
         }
         return authorities.toSet()
     }
