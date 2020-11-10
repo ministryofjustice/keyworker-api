@@ -280,9 +280,11 @@ class KeyworkerServiceController(
         } else {
             prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate)
         }
-        if (migrate!!) {
-            keyworkerMigrationService.migrateKeyworkerByPrison(prisonId)
-            roleMigrationService.migrate(prisonId)
+        migrate?.let { migrateBool ->
+            if(migrateBool) {
+                keyworkerMigrationService.migrateKeyworkerByPrison(prisonId)
+                roleMigrationService.migrate(prisonId)
+            }
         }
         return prisonSupportedService.getPrisonDetail(prisonId)
     }
