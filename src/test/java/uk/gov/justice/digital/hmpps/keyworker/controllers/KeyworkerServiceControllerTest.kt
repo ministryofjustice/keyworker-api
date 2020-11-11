@@ -36,93 +36,93 @@ import java.util.Optional
 @WithMockUser
 class KeyworkerServiceControllerTest() {
 
-    @Autowired
-    private lateinit var webTestClient: WebTestClient
+  @Autowired
+  private lateinit var webTestClient: WebTestClient
 
-    @MockBean
-    private lateinit var keyworkerService: KeyworkerService
+  @MockBean
+  private lateinit var keyworkerService: KeyworkerService
 
-    @MockBean
-    private lateinit var keyworkerMigrationService: KeyworkerMigrationService
+  @MockBean
+  private lateinit var keyworkerMigrationService: KeyworkerMigrationService
 
-    @MockBean
-    private lateinit var roleMigrationService: UserRolesMigrationService
+  @MockBean
+  private lateinit var roleMigrationService: UserRolesMigrationService
 
-    @MockBean
-    private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
+  @MockBean
+  private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
 
-    @MockBean
-    private lateinit var prisonSupportedService: PrisonSupportedService
+  @MockBean
+  private lateinit var prisonSupportedService: PrisonSupportedService
 
-    @ParameterizedTest
-    @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
-    fun `offender keyworker found should return ok`(pathPrefix: String) {
+  @ParameterizedTest
+  @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
+  fun `offender keyworker found should return ok`(pathPrefix: String) {
 
-        whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
-            .thenReturn(Optional.of(BasicKeyworkerDto.builder().build()))
+    whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
+      .thenReturn(Optional.of(BasicKeyworkerDto.builder().build()))
 
-        webTestClient.get()
-            .uri("$pathPrefix/offender/A1234AA")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus().isOk
+    webTestClient.get()
+      .uri("$pathPrefix/offender/A1234AA")
+      .accept(MediaType.APPLICATION_JSON)
+      .exchange()
+      .expectStatus().isOk
 
-        verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
-    }
+    verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
+  }
 
-    @ParameterizedTest
-    @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
-    fun `offender keyworker not found should return not found`(pathPrefix: String) {
+  @ParameterizedTest
+  @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
+  fun `offender keyworker not found should return not found`(pathPrefix: String) {
 
-        whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
-            .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, byteArrayOf(), null, null))
+    whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
+      .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, null, null, null))
 
-        webTestClient.get()
-            .uri("$pathPrefix/offender/A1234AA")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus().isNotFound
+    webTestClient.get()
+      .uri("$pathPrefix/offender/A1234AA")
+      .accept(MediaType.APPLICATION_JSON)
+      .exchange()
+      .expectStatus().isNotFound
 
-        verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
-    }
+    verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
+  }
 
-    @Test
-    fun `correct default values are passed to getAllocations`() {
-        val prisonId = "123"
+  @Test
+  fun `correct default values are passed to getAllocations`() {
+    val prisonId = "123"
 
-        val page = Page<KeyworkerAllocationDetailsDto>(emptyList(), defaultHttpHeaders())
-        whenever(keyworkerService.getAllocations(any(), any())).thenReturn(page)
+    val page = Page<KeyworkerAllocationDetailsDto>(emptyList(), defaultHttpHeaders())
+    whenever(keyworkerService.getAllocations(any(), any())).thenReturn(page)
 
-        webTestClient.get()
-            .uri("/key-worker/$prisonId/allocations")
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus().isOk
+    webTestClient.get()
+      .uri("/key-worker/$prisonId/allocations")
+      .accept(MediaType.APPLICATION_JSON)
+      .exchange()
+      .expectStatus().isOk
 
-        val expectedFilterDto = AllocationsFilterDto
-            .builder()
-            .prisonId(prisonId)
-            .fromDate(Optional.empty())
-            .toDate(LocalDate.now())
-            .allocationType(Optional.empty())
-            .build()
+    val expectedFilterDto = AllocationsFilterDto
+      .builder()
+      .prisonId(prisonId)
+      .fromDate(Optional.empty())
+      .toDate(LocalDate.now())
+      .allocationType(Optional.empty())
+      .build()
 
-        val expectedPagingDto = PagingAndSortingDto
-            .builder()
-            .pageOffset(0)
-            .pageLimit(10)
-            .sortOrder(SortOrder.ASC)
-            .sortFields("")
-            .build()
+    val expectedPagingDto = PagingAndSortingDto
+      .builder()
+      .pageOffset(0)
+      .pageLimit(10)
+      .sortOrder(SortOrder.ASC)
+      .sortFields("")
+      .build()
 
-        verify(keyworkerService).getAllocations(expectedFilterDto, expectedPagingDto)
-    }
+    verify(keyworkerService).getAllocations(expectedFilterDto, expectedPagingDto)
+  }
 
-    private fun defaultHttpHeaders(): HttpHeaders {
-        val httpHeaders = HttpHeaders()
-        httpHeaders.set(Page.HEADER_TOTAL_RECORDS, "0")
-        httpHeaders.set(Page.HEADER_PAGE_OFFSET, "0")
-        httpHeaders.set(Page.HEADER_PAGE_LIMIT, "0")
-        return httpHeaders
-    }
+  private fun defaultHttpHeaders(): HttpHeaders {
+    val httpHeaders = HttpHeaders()
+    httpHeaders.set(Page.HEADER_TOTAL_RECORDS, "0")
+    httpHeaders.set(Page.HEADER_PAGE_OFFSET, "0")
+    httpHeaders.set(Page.HEADER_PAGE_LIMIT, "0")
+    return httpHeaders
+  }
 }
