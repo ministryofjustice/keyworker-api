@@ -81,10 +81,10 @@ class KeyworkerServiceController(
     @ApiParam(value = "Optional filter by type of allocation. A for auto allocations, M for manual allocations.") @RequestParam(value = "allocationType", required = false) allocationType: String?,
     @ApiParam(value = "Returned allocations must have been assigned on or after this date (in YYYY-MM-DD format).") @RequestParam(value = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
     @ApiParam(value = "Returned allocations must have been assigned on or before this date (in YYYY-MM-DD format).", defaultValue = "today's date") @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?,
-    @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue = "0") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long?,
-    @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_LIMIT, defaultValue = "10") pageLimit: Long?,
+    @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue = "0") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long,
+    @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_LIMIT, defaultValue = "10") pageLimit: Long,
     @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "") sortFields: String?,
-    @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder?
+    @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): ResponseEntity<List<KeyworkerAllocationDetailsDto>> {
     val page = keyworkerService.getAllocations(
       AllocationsFilterDto
@@ -134,8 +134,8 @@ class KeyworkerServiceController(
   @GetMapping(path = ["/{prisonId}/offenders/unallocated"])
   fun getUnallocatedOffenders(
     @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "") sortFields: String?,
-    @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder?
+    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "") sortFields: String,
+    @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): List<OffenderLocationDto> = keyworkerService.getUnallocatedOffenders(prisonId, sortFields, sortOrder)
 
   @ApiOperation(value = "Key worker details.", notes = "Key worker details.", nickname = "getKeyworkerDetails")
@@ -209,10 +209,10 @@ class KeyworkerServiceController(
     @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
     @ApiParam(value = "Filter results by first name and/or last name of key worker. Supplied filter term is matched to start of key worker's first and last name.") @RequestParam(value = "nameFilter") nameFilter: Optional<String>?,
     @ApiParam(value = "Filter results by status of key worker.") @RequestParam(value = "statusFilter") statusFilter: Optional<KeyworkerStatus>?,
-    @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue = "0") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long?,
-    @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_LIMIT, defaultValue = "1000") pageLimit: Long?,
-    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "lastName,firstName") sortFields: String?,
-    @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder?
+    @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue = "0") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long,
+    @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_LIMIT, defaultValue = "1000") pageLimit: Long,
+    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "lastName,firstName") sortFields: String,
+    @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): ResponseEntity<*> {
     val pageDto = PagingAndSortingDto
       .builder()
@@ -273,7 +273,7 @@ class KeyworkerServiceController(
     return updateAndMigrate(prisonId, migrate, true, capacity, frequency)
   }
 
-  private fun updateAndMigrate(prisonId: String?, migrate: Boolean? = false, autoAllocate: Boolean, capacity: Array<Int>?, kwSessionFrequencyInWeeks: Int? = 1): Prison {
+  private fun updateAndMigrate(prisonId: String, migrate: Boolean? = false, autoAllocate: Boolean, capacity: Array<Int>?, kwSessionFrequencyInWeeks: Int? = 1): Prison {
     if (capacity != null) {
       Validate.isTrue(capacity.size == 2, "Two capacity values must be specified.")
       prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate, capacity[0], capacity[1], kwSessionFrequencyInWeeks)
