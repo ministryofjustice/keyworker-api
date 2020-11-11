@@ -8,7 +8,6 @@ import io.swagger.annotations.ApiResponses
 import io.swagger.annotations.Authorization
 import org.apache.commons.lang3.Validate
 import org.slf4j.LoggerFactory
-import org.springframework.data.repository.query.Param
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -83,7 +82,7 @@ class KeyworkerServiceController(
     @ApiParam(value = "Returned allocations must have been assigned on or before this date (in YYYY-MM-DD format).", defaultValue = "today's date") @RequestParam(value = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?,
     @ApiParam(value = "Requested offset of first record in returned collection of allocation records.", defaultValue = "0") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long,
     @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_LIMIT, defaultValue = "10") pageLimit: Long,
-    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "") sortFields: String?,
+    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_FIELDS, defaultValue = "") sortFields: String,
     @ApiParam(value = "Sort order (ASC or DESC) - defaults to ASC.", defaultValue = "ASC") @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): ResponseEntity<List<KeyworkerAllocationDetailsDto>> {
     val page = keyworkerService.getAllocations(
@@ -256,9 +255,9 @@ class KeyworkerServiceController(
   @PostMapping(path = ["/enable/{prisonId}/manual"])
   fun addSupportedPrisonForManualAllocation(
     @ApiParam("prisonId") @PathVariable("prisonId") prisonId: String,
-    @ApiParam("migrate") @Param("migrate") migrate: Boolean?,
-    @ApiParam(name = "capacity", value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9") @Param("capacity") capacity: Array<Int>?,
-    @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @Param("capacity") frequency: Int?
+    @ApiParam("migrate") @RequestParam("migrate", defaultValue = "false") migrate: Boolean,
+    @ApiParam(name = "capacity", value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9") @RequestParam("capacity") capacity: Array<Int>?,
+    @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @RequestParam("capacity", defaultValue = "1") frequency: Int
   ): Prison = updateAndMigrate(prisonId, migrate, false, capacity, frequency)
 
   @ApiOperation(value = "Enable Auto Allocation for specified prison and Migrate", notes = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB")
@@ -266,25 +265,23 @@ class KeyworkerServiceController(
   @PostMapping(path = ["/enable/{prisonId}/auto-allocate"])
   fun addSupportedPrisonForAutoAllocation(
     @ApiParam("prisonId") @PathVariable("prisonId") prisonId: String,
-    @ApiParam("migrate") @Param("migrate") migrate: Boolean?,
-    @ApiParam(name = "capacity", value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9") @Param("capacity") capacity: Array<Int>?,
-    @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @Param("capacity") frequency: Int?
+    @ApiParam("migrate") @RequestParam("migrate", defaultValue = "false") migrate: Boolean,
+    @ApiParam(name = "capacity", value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9") @RequestParam("capacity") capacity: Array<Int>?,
+    @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @RequestParam("capacity", defaultValue = "1") frequency: Int
   ): Prison {
     return updateAndMigrate(prisonId, migrate, true, capacity, frequency)
   }
 
-  private fun updateAndMigrate(prisonId: String, migrate: Boolean? = false, autoAllocate: Boolean, capacity: Array<Int>?, kwSessionFrequencyInWeeks: Int? = 1): Prison {
+  private fun updateAndMigrate(prisonId: String, migrate: Boolean, autoAllocate: Boolean, capacity: Array<Int>?, kwSessionFrequencyInWeeks: Int): Prison {
     if (capacity != null) {
       Validate.isTrue(capacity.size == 2, "Two capacity values must be specified.")
       prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate, capacity[0], capacity[1], kwSessionFrequencyInWeeks)
     } else {
       prisonSupportedService.updateSupportedPrison(prisonId, autoAllocate)
     }
-    migrate?.let { migrateBool ->
-      if (migrateBool) {
-        keyworkerMigrationService.migrateKeyworkerByPrison(prisonId)
-        roleMigrationService.migrate(prisonId)
-      }
+    if (migrate) {
+      keyworkerMigrationService.migrateKeyworkerByPrison(prisonId)
+      roleMigrationService.migrate(prisonId)
     }
     return prisonSupportedService.getPrisonDetail(prisonId)
   }
