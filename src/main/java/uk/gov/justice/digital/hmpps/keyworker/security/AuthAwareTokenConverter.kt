@@ -9,31 +9,31 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 
 class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 
-    private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> = JwtGrantedAuthoritiesConverter()
+  private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> = JwtGrantedAuthoritiesConverter()
 
-    override fun convert(jwt: Jwt): AbstractAuthenticationToken {
-        val claims = jwt.claims
-        val principal = findPrincipal(claims)
-        val authorities = extractAuthorities(jwt)
-        return AuthAwareAuthenticationToken(jwt, principal, authorities)
-    }
+  override fun convert(jwt: Jwt): AbstractAuthenticationToken {
+    val claims = jwt.claims
+    val principal = findPrincipal(claims)
+    val authorities = extractAuthorities(jwt)
+    return AuthAwareAuthenticationToken(jwt, principal, authorities)
+  }
 
-    private fun findPrincipal(claims: Map<String, Any>): Any? {
-        return if (claims.containsKey("user_name")) {
-            claims["user_name"]
-        } else {
-            claims["client_id"]
-        }
+  private fun findPrincipal(claims: Map<String, Any>): Any? {
+    return if (claims.containsKey("user_name")) {
+      claims["user_name"]
+    } else {
+      claims["client_id"]
     }
+  }
 
-    private fun extractAuthorities(jwt: Jwt): Collection<GrantedAuthority> {
-        val authorities = HashSet(jwtGrantedAuthoritiesConverter.convert(jwt))
-        if (jwt.claims.containsKey("authorities")) {
-            authorities.addAll(
-                (jwt.claims["authorities"] as Collection<String>)
-                    .map { role: String? -> SimpleGrantedAuthority(role) }
-            )
-        }
-        return authorities.toSet()
+  private fun extractAuthorities(jwt: Jwt): Collection<GrantedAuthority> {
+    val authorities = HashSet(jwtGrantedAuthoritiesConverter.convert(jwt))
+    if (jwt.claims.containsKey("authorities")) {
+      authorities.addAll(
+        (jwt.claims["authorities"] as Collection<String>)
+          .map { role: String? -> SimpleGrantedAuthority(role) }
+      )
     }
+    return authorities.toSet()
+  }
 }

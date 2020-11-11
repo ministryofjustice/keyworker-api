@@ -6,13 +6,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 
 internal class AuthAwareAuthenticationToken(jwt: Jwt, private val principal: Any?, authorities: Collection<GrantedAuthority>) : JwtAuthenticationToken(jwt, authorities) {
 
-    private val name: String = principal?.toString() ?: ""
+  private val name: String = principal?.toString() ?: ""
 
-    override fun getPrincipal(): Any? {
-        return this.principal
-    }
+  override fun getPrincipal(): Any? {
+    return this.principal
+  }
 
-    override fun getName(): String {
-        return this.name
-    }
+  override fun getName(): String {
+    return this.name
+  }
 }
