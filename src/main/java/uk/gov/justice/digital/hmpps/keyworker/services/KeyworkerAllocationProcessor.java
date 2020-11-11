@@ -67,7 +67,7 @@ public class KeyworkerAllocationProcessor {
     public List<KeyworkerAllocationDetailsDto> decorateAllocated(final List<OffenderKeyworker> allocations, final List<OffenderLocationDto> allOffenders) {
         final var allOffendersMap = allOffenders.stream().collect(Collectors.toMap(OffenderLocationDto::getOffenderNo, Function.identity()));
         return allocations.stream().map(t -> {
-            final var keyworkerAllocationDetailsDto = ConversionHelper.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(t);
+            final var keyworkerAllocationDetailsDto = ConversionHelper.INSTANCE.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(t);
             final var offenderLocationDto = allOffendersMap.get(t.getOffenderNo());
                     if (offenderLocationDto != null) {
                         keyworkerAllocationDetailsDto.setFirstName(offenderLocationDto.getFirstName());

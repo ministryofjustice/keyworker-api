@@ -19,7 +19,7 @@ class ConversionHelperTest {
     void convertOffenderKeyworkerDto2ModelItem1() {
         final var testDto = getActiveOffenderKeyworkerDto();
 
-        final var okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
+        final var okw = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(testDto);
 
         verifyConversion(testDto, okw);
     }
@@ -28,7 +28,7 @@ class ConversionHelperTest {
     void convertOffenderKeyworkerDto2ModelItem2() {
         final var testDto = getExpiredOffenderKeyworkerDto();
 
-        final var okw = ConversionHelper.convertOffenderKeyworkerDto2Model(testDto);
+        final var okw = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(testDto);
 
         verifyConversion(testDto, okw);
     }
@@ -40,7 +40,7 @@ class ConversionHelperTest {
 
         final var testDtos = List.of(testActiveDto, testExpiredDto);
 
-        final var okws = ConversionHelper.convertOffenderKeyworkerDto2Model(testDtos);
+        final var okws = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(testDtos);
 
         assertThat(okws.size()).isEqualTo(testDtos.size());
 
