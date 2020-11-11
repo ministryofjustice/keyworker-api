@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
-import lombok.extern.slf4j.Slf4j
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.annotation.Order
-import org.springframework.lang.NonNull
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.io.IOException
@@ -33,7 +31,7 @@ class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.re
     }
     try {
       val start = LocalDateTime.now()
-      if (log.isTraceEnabled() && MdcUtility.isLoggingAllowed) {
+      if (log.isTraceEnabled && MdcUtility.isLoggingAllowed) {
         log.trace("Request: {} {}", request.method, request.requestURI)
       }
       filterChain.doFilter(request, response)
@@ -41,7 +39,7 @@ class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.re
       MDC.put(MdcUtility.REQUEST_DURATION, duration.toString())
       val status = response.status
       MDC.put(MdcUtility.RESPONSE_STATUS, status.toString())
-      if (log.isTraceEnabled() && MdcUtility.isLoggingAllowed) {
+      if (log.isTraceEnabled && MdcUtility.isLoggingAllowed) {
         log.trace("Response: {} {} - Status {} - Start {}, Duration {} ms", request.method, request.requestURI, status, start.format(formatter), duration)
       }
     } finally {
