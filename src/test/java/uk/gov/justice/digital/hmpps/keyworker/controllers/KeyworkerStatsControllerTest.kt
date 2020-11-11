@@ -43,7 +43,7 @@ class KeyworkerStatsControllerTest {
     ).thenReturn(KeyworkerStatsDto())
 
     webTestClient.get()
-      .uri("/key-worker-stats/$staffId/prison/$prisonId") // ?fromDate=$fromDate&toDate=$toDate
+      .uri("/key-worker-stats/$staffId/prison/$prisonId")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isOk

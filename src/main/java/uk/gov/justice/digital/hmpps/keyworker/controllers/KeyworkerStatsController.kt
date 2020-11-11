@@ -43,7 +43,6 @@ class KeyworkerStatsController(private val keyworkerStatsService: KeyworkerStats
     @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).") @RequestParam(value = "toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?
   ): KeyworkerStatsDto = keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate)
 
-  /* --------------------------------------------------------------------------------*/
   @ApiOperation(value = "Get Key Worker stats for any prison.", nickname = "getAllPrisonStats")
   @ApiResponses(
     value =
