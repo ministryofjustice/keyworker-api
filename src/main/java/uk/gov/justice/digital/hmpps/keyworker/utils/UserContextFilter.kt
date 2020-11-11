@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 import java.io.IOException
 import javax.servlet.Filter
 import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
 import javax.servlet.ServletException
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
@@ -23,7 +22,4 @@ class UserContextFilter : Filter {
     UserContext.setAuthToken(authToken)
     filterChain.doFilter(httpServletRequest, servletResponse)
   }
-
-  override fun init(filterConfig: FilterConfig) {}
-  override fun destroy() {}
 }
