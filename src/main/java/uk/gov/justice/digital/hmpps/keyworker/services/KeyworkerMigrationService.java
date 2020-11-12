@@ -57,7 +57,7 @@ public class KeyworkerMigrationService {
     private Set<OffenderKeyworker> translate(final List<OffenderKeyworkerDto> dtos) {
         Validate.notNull(dtos);
 
-        final var okwList = ConversionHelper.convertOffenderKeyworkerDto2Model(dtos);
+        final var okwList = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(dtos);
 
         okwList.forEach(item -> {
             item.setAllocationType(AllocationType.MANUAL);

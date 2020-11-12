@@ -147,10 +147,10 @@ public class KeyworkerService {
         } else {
             if (offenderNos.size() > 0) {
                 final var allocations = nomisService.getCurrentAllocationsByOffenderNos(new ArrayList<>(offenderNos), prisonId);
-                results = allocations.stream().map(ConversionHelper::getOffenderKeyworker).collect(Collectors.toList());
+                results = allocations.stream().map(ConversionHelper.INSTANCE::getOffenderKeyworker).collect(Collectors.toList());
             }
         }
-        return ConversionHelper.convertOffenderKeyworkerModel2Dto(results);
+        return ConversionHelper.INSTANCE.convertOffenderKeyworkerModel2Dto(results);
     }
 
     public Optional<BasicKeyworkerDto> getCurrentKeyworkerForPrisoner(final String offenderNo) {
@@ -190,7 +190,7 @@ public class KeyworkerService {
     public KeyworkerDto getKeyworkerDetails(final String prisonId, final Long staffId) {
         final var staffKeyWorker = nomisService.getStaffKeyWorkerForPrison(prisonId, staffId).orElseGet(() -> nomisService.getBasicKeyworkerDtoForStaffId(staffId));
         final var prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
-        final var keyworkerDto = ConversionHelper.getKeyworkerDto(staffKeyWorker);
+        final var keyworkerDto = ConversionHelper.INSTANCE.getKeyworkerDto(staffKeyWorker);
         if (prisonSupportedService.isMigrated(prisonId)) {
             decorateWithKeyworkerData(keyworkerDto, prisonCapacityDefault);
             decorateWithAllocationsCount(keyworkerDto);
@@ -234,7 +234,7 @@ public class KeyworkerService {
             e.setDeallocationReason(newAllocation.getDeallocationReason());
         });
 
-        final var allocation = ConversionHelper.getOffenderKeyworker(newAllocation, authenticationFacade.getCurrentUsername());
+        final var allocation = ConversionHelper.INSTANCE.getOffenderKeyworker(newAllocation, authenticationFacade.getCurrentUsername());
 
         allocate(allocation);
     }
@@ -431,14 +431,14 @@ public class KeyworkerService {
         final var prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
         if (prisonDetail.isMigrated()) {
             convertedKeyworkerDtoList.addAll(Objects.requireNonNull(response.getBody()).stream().distinct()
-                    .map(ConversionHelper::getKeyworkerDto)
+                    .map(ConversionHelper.INSTANCE::getKeyworkerDto)
                     .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
                     .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
                     .peek(this::decorateWithAllocationsCount)
                     .collect(Collectors.toList()));
         } else {
             convertedKeyworkerDtoList.addAll(Objects.requireNonNull(response.getBody()).stream().distinct()
-                    .map(ConversionHelper::getKeyworkerDto)
+                    .map(ConversionHelper.INSTANCE::getKeyworkerDto)
                     .peek(this::decorateWithNomisKeyworkerData)
                     .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
                     .collect(Collectors.toList()));
