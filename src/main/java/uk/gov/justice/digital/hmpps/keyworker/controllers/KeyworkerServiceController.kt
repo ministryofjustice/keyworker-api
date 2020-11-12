@@ -230,7 +230,7 @@ class KeyworkerServiceController(
   fun getAllocationsForKeyworkerWithOffenderDetails(
     @ApiParam(value = "staffId", required = true) @PathVariable("staffId") staffId: Long,
     @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "skipOffenderDetails", defaultValue = "false") @RequestParam(value = "skipOffenderDetails") skipOffenderDetails: Boolean
+    @ApiParam(value = "skipOffenderDetails", defaultValue = "false") @RequestParam(value = "skipOffenderDetails", defaultValue = "false") skipOffenderDetails: Boolean
   ): List<KeyworkerAllocationDetailsDto> = keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(prisonId, staffId, skipOffenderDetails)
 
   @ApiOperation(value = "Add or update a key worker record", notes = "Staff members available capacity", authorizations = [Authorization("OMIC_ADMIN")], nickname = "addOrUpdateKeyworker")
