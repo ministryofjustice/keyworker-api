@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse
 
 @Component
 @Order(3)
-class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.regex}") excludeUris: String?) : OncePerRequestFilter() {
+class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.regex}") excludeUris: String) : OncePerRequestFilter() {
 
   private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")
   private val excludeUriRegex: Pattern = Pattern.compile(excludeUris)

@@ -52,8 +52,8 @@ object ConversionHelper {
       .build()
   }
 
-  fun getOffenderKeyworker(newAllocation: KeyworkerAllocationDto, userId: String?): OffenderKeyworker {
-    return OffenderKeyworker.builder()
+  fun getOffenderKeyworker(newAllocation: KeyworkerAllocationDto, userId: String?): OffenderKeyworker =
+    OffenderKeyworker.builder()
       .offenderNo(newAllocation.offenderNo)
       .staffId(newAllocation.staffId)
       .prisonId(newAllocation.prisonId)
@@ -63,35 +63,32 @@ object ConversionHelper {
       .allocationType(newAllocation.allocationType)
       .userId(userId)
       .build()
-  }
 
   fun convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(model: OffenderKeyworker): KeyworkerAllocationDetailsDto {
     Validate.notNull(model)
     return KeyworkerAllocationDetailsDto.builder()
       .offenderNo(model.offenderNo)
       .staffId(model.staffId)
-      .agencyId(model.prisonId) //TODO: remove
+      .agencyId(model.prisonId) // TODO: remove
       .prisonId(model.prisonId)
       .assigned(model.assignedDateTime)
       .allocationType(model.allocationType)
       .build()
   }
 
-  fun getKeyworkerDto(dto: StaffLocationRoleDto?): KeyworkerDto? {
-    return if (dto != null) {
-      KeyworkerDto.builder()
-        .firstName(dto.firstName)
-        .lastName(dto.lastName)
-        .email(dto.email)
-        .staffId(dto.staffId)
-        .thumbnailId(dto.thumbnailId)
-        .scheduleType(dto.scheduleTypeDescription)
-        .agencyDescription(dto.agencyDescription)
-        .agencyId(dto.agencyId)
-        .capacity(if (dto.hoursPerWeek != null) dto.hoursPerWeek.toInt() else null)
-        .build()
-    } else null
-  }
+  fun getKeyworkerDto(dto: StaffLocationRoleDto?): KeyworkerDto? = if (dto != null) {
+    KeyworkerDto.builder()
+      .firstName(dto.firstName)
+      .lastName(dto.lastName)
+      .email(dto.email)
+      .staffId(dto.staffId)
+      .thumbnailId(dto.thumbnailId)
+      .scheduleType(dto.scheduleTypeDescription)
+      .agencyDescription(dto.agencyDescription)
+      .agencyId(dto.agencyId)
+      .capacity(if (dto.hoursPerWeek != null) dto.hoursPerWeek.toInt() else null)
+      .build()
+  } else null
 
   fun getOffenderKeyworker(model: KeyworkerAllocationDetailsDto): OffenderKeyworker {
     Validate.notNull(model)
