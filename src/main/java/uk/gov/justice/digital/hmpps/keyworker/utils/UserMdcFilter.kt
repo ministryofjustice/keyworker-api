@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
 import org.slf4j.MDC
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.keyworker.security.UserSecurityUtils
@@ -15,7 +14,7 @@ import kotlin.Throws
 
 @Component
 @Order(1)
-class UserMdcFilter @Autowired constructor(private val userSecurityUtils: UserSecurityUtils) : Filter {
+class UserMdcFilter(private val userSecurityUtils: UserSecurityUtils) : Filter {
 
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
