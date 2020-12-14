@@ -40,10 +40,12 @@ enum class QueueAttributes(val awsName: String, val healthName: String) {
 
 @Component
 @ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
-open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
-                  @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
-                  @Value("\${sqs.queue.name}") private val queueName: String,
-                  @Value("\${sqs.dlq.name}") private val dlqName: String) : HealthIndicator {
+open class QueueHealth(
+  @Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
+  @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
+  @Value("\${sqs.queue.name}") private val queueName: String,
+  @Value("\${sqs.dlq.name}") private val dlqName: String
+) : HealthIndicator {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -58,8 +60,8 @@ open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsC
       return Builder().down().withException(e).build()
     }
     val details = mutableMapOf<String, Any?>(
-        MESSAGES_ON_QUEUE.healthName to queueAttributes.attributes[MESSAGES_ON_QUEUE.awsName]?.toInt(),
-        MESSAGES_IN_FLIGHT.healthName to queueAttributes.attributes[MESSAGES_IN_FLIGHT.awsName]?.toInt()
+      MESSAGES_ON_QUEUE.healthName to queueAttributes.attributes[MESSAGES_ON_QUEUE.awsName]?.toInt(),
+      MESSAGES_IN_FLIGHT.healthName to queueAttributes.attributes[MESSAGES_IN_FLIGHT.awsName]?.toInt()
     )
 
     return Builder().up().withDetails(details).addDlqHealth(queueAttributes).build()
@@ -67,7 +69,10 @@ open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsC
 
   private fun Builder.addDlqHealth(mainQueueAttributes: GetQueueAttributesResult): Builder {
     if (!mainQueueAttributes.attributes.containsKey("RedrivePolicy")) {
-      log.error("Queue '{}' is missing a RedrivePolicy attribute indicating it does not have a dead letter queue", queueName)
+      log.error(
+        "Queue '{}' is missing a RedrivePolicy attribute indicating it does not have a dead letter queue",
+        queueName
+      )
       return down().withDetail("dlqStatus", NOT_ATTACHED.description)
     }
 
@@ -83,10 +88,9 @@ open class QueueHealth(@Autowired @Qualifier("awsSqsClient") private val awsSqsC
     }
 
     return withDetail("dlqStatus", UP.description)
-        .withDetail(MESSAGES_ON_DLQ.healthName, dlqAttributes.attributes[MESSAGES_ON_DLQ.awsName]?.toInt())
+      .withDetail(MESSAGES_ON_DLQ.healthName, dlqAttributes.attributes[MESSAGES_ON_DLQ.awsName]?.toInt())
   }
 
   private fun getQueueAttributesRequest(url: GetQueueUrlResult) =
-      GetQueueAttributesRequest(url.queueUrl).withAttributeNames(QueueAttributeName.All)
-
+    GetQueueAttributesRequest(url.queueUrl).withAttributeNames(QueueAttributeName.All)
 }

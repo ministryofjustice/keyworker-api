@@ -15,7 +15,10 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class KeyworkerReconRoute @Autowired constructor(private val reconciliationService: ReconciliationService, private val prisonSupportedService: PrisonSupportedService) : RouteBuilder() {
+class KeyworkerReconRoute @Autowired constructor(
+  private val reconciliationService: ReconciliationService,
+  private val prisonSupportedService: PrisonSupportedService
+) : RouteBuilder() {
 
   @Value("\${key.worker.recon.job.cron}")
   private val cronExpression: String? = null
@@ -35,7 +38,9 @@ class KeyworkerReconRoute @Autowired constructor(private val reconciliationServi
       .end()
       .log("Complete: Key Worker Reconciliation")
     from(DIRECT_RECON)
-      .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
+      .errorHandler(
+        deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2)
+      )
       .log("Key Worker Reconciliation for \${body.prisonId}")
       .bean(reconciliationService, "reconcileKeyWorkerAllocations(\${body.prisonId})")
       .log("Key Worker Reconciliation completed for \${body.prisonId}")

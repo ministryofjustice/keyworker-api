@@ -53,11 +53,9 @@ abstract class IntegrationTest {
     eliteMockServer.resetAll()
   }
 
-
   fun getForEntity(url: String): WebTestClient.ResponseSpec {
     return webTestClient.get()
-        .uri(url)
-        .exchange()
+      .uri(url)
+      .exchange()
   }
-
 }

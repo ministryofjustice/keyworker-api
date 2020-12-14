@@ -18,7 +18,10 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class EnableNewNomisRoute @Autowired constructor(private val nomisService: NomisService, private val telemetryClient: TelemetryClient) : RouteBuilder() {
+class EnableNewNomisRoute @Autowired constructor(
+  private val nomisService: NomisService,
+  private val telemetryClient: TelemetryClient
+) : RouteBuilder() {
 
   @Value("\${enable-new-nomis.job.cron}")
   private val cronExpression: String? = null
@@ -39,7 +42,10 @@ class EnableNewNomisRoute @Autowired constructor(private val nomisService: Nomis
       .end()
       .log("Complete: Checking for new Users and Enabling User access to API")
     from(ADD_NWEB_CASELOAD)
-      .errorHandler(deadLetterChannel(DLQ).logRetryAttempted(true).redeliveryDelay(5000).backOffMultiplier(0.29).maximumRedeliveries(2))
+      .errorHandler(
+        deadLetterChannel(DLQ).logRetryAttempted(true).redeliveryDelay(5000).backOffMultiplier(0.29)
+          .maximumRedeliveries(2)
+      )
       .setProperty("prisonId", simple("\${body.prisonId}"))
       .log("Starting: Enabling API access for all active users in prison \${property.prisonId}")
       .bean(nomisService, "enableNewNomisForCaseload(\${property.prisonId})")
@@ -48,8 +54,10 @@ class EnableNewNomisRoute @Autowired constructor(private val nomisService: Nomis
       .process { p: Exchange ->
         val caseloadRes = p.getIn().getBody(CaseloadUpdate::class.java)
         val infoMap = ImmutableMap.of(
-          "prisonId", caseloadRes.caseload,
-          "numUsersEnabled", caseloadRes.numUsersEnabled.toString()
+          "prisonId",
+          caseloadRes.caseload,
+          "numUsersEnabled",
+          caseloadRes.numUsersEnabled.toString()
         )
         telemetryClient.trackEvent("ApiUsersEnabled", infoMap, null) // -
       }

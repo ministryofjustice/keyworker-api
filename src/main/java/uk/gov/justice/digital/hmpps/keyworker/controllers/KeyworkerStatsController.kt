@@ -25,22 +25,37 @@ import java.util.stream.Collectors
 @Api(tags = ["key-worker-stats"])
 @RestController
 @RequestMapping(value = ["key-worker-stats"], produces = [MediaType.APPLICATION_JSON_VALUE])
-class KeyworkerStatsController(private val keyworkerStatsService: KeyworkerStatsService, private val prisonSupportedService: PrisonSupportedService) {
-  @ApiOperation(value = "Return staff members stats", notes = "Statistic for key workers and the prisoners that they support", nickname = "getStatsForStaff")
+class KeyworkerStatsController(
+  private val keyworkerStatsService: KeyworkerStatsService,
+  private val prisonSupportedService: PrisonSupportedService
+) {
+  @ApiOperation(
+    value = "Return staff members stats",
+    notes = "Statistic for key workers and the prisoners that they support",
+    nickname = "getStatsForStaff"
+  )
   @ApiResponses(
     value =
       [
         ApiResponse(code = 200, message = "OK", response = KeyworkerStatsDto::class),
         ApiResponse(code = 400, message = "Invalid request", response = ErrorResponse::class),
-        ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse::class)
+        ApiResponse(
+          code = 500,
+          message = "Unrecoverable error occurred whilst processing request.",
+          response = ErrorResponse::class
+        )
       ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun getStatsForStaff(
     @ApiParam("staffId") @PathVariable("staffId") staffId: Long,
     @ApiParam("prisonId") @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).") @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
-    @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).") @RequestParam(value = "toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?
+    @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).") @RequestParam(value = "fromDate") @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) fromDate: LocalDate?,
+    @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).") @RequestParam(value = "toDate") @DateTimeFormat(
+      iso = DateTimeFormat.ISO.DATE
+    ) toDate: LocalDate?
   ): KeyworkerStatsDto = keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate)
 
   @ApiOperation(value = "Get Key Worker stats for any prison.", nickname = "getAllPrisonStats")
@@ -50,14 +65,24 @@ class KeyworkerStatsController(private val keyworkerStatsService: KeyworkerStats
         ApiResponse(code = 200, message = "OK", responseContainer = "Map", response = KeyworkerStatSummary::class),
         ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class),
         ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class),
-        ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse::class)
+        ApiResponse(
+          code = 500,
+          message = "Unrecoverable error occurred whilst processing request.",
+          response = ErrorResponse::class
+        )
       ]
   )
   @GetMapping
   fun getPrisonStats(
-    @ApiParam(value = "List of prisonIds", allowMultiple = true, example = "prisonId=MDI&prisonId=LEI") @RequestParam(value = "prisonId") prisonIdList: List<String>?,
-    @ApiParam(value = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)") @RequestParam(value = "fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
-    @ApiParam(value = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)") @RequestParam(value = "toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?
+    @ApiParam(value = "List of prisonIds", allowMultiple = true, example = "prisonId=MDI&prisonId=LEI") @RequestParam(
+      value = "prisonId"
+    ) prisonIdList: List<String>?,
+    @ApiParam(value = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)") @RequestParam(
+      value = "fromDate"
+    ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
+    @ApiParam(value = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)") @RequestParam(
+      value = "toDate"
+    ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?
   ): KeyworkerStatSummary {
     val prisonIds: MutableList<String> = ArrayList()
     if (prisonIdList == null || prisonIdList.isEmpty()) {

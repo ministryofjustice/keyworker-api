@@ -88,7 +88,9 @@ class QueueHealthTest {
   @Test
   fun `health - DLQ down - main queue health also DOWN`() {
     whenever(amazonSqs.getQueueUrl(someQueueName)).thenReturn(someGetQueueUrlResult())
-    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(someGetQueueAttributesResultWithoutDLQ())
+    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(
+      someGetQueueAttributesResultWithoutDLQ()
+    )
 
     val health = queueHealth.health()
 
@@ -99,7 +101,9 @@ class QueueHealthTest {
   @Test
   fun `health - no RedrivePolicy attribute on main queue - DLQ NOT ATTACHED`() {
     whenever(amazonSqs.getQueueUrl(someQueueName)).thenReturn(someGetQueueUrlResult())
-    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(someGetQueueAttributesResultWithoutDLQ())
+    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(
+      someGetQueueAttributesResultWithoutDLQ()
+    )
 
     val health = queueHealth.health()
 
@@ -109,7 +113,9 @@ class QueueHealthTest {
   @Test
   fun `health - DLQ not found - DLQ NOT FOUND`() {
     whenever(amazonSqs.getQueueUrl(someQueueName)).thenReturn(someGetQueueUrlResult())
-    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(someGetQueueAttributesResultWithDLQ())
+    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(
+      someGetQueueAttributesResultWithDLQ()
+    )
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenThrow(QueueDoesNotExistException::class.java)
 
     val health = queueHealth.health()
@@ -120,7 +126,9 @@ class QueueHealthTest {
   @Test
   fun `health - DLQ failed to get attributes - DLQ NOT AVAILABLE`() {
     whenever(amazonSqs.getQueueUrl(someQueueName)).thenReturn(someGetQueueUrlResult())
-    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(someGetQueueAttributesResultWithDLQ())
+    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(
+      someGetQueueAttributesResultWithDLQ()
+    )
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenReturn(someGetQueueUrlResultForDLQ())
     whenever(amazonSqsDLQ.getQueueAttributes(someGetQueueAttributesRequestForDLQ())).thenThrow(RuntimeException::class.java)
 
@@ -131,26 +139,39 @@ class QueueHealthTest {
 
   private fun mockHealthyQueue() {
     whenever(amazonSqs.getQueueUrl(someQueueName)).thenReturn(someGetQueueUrlResult())
-    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(someGetQueueAttributesResultWithDLQ())
+    whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenReturn(
+      someGetQueueAttributesResultWithDLQ()
+    )
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenReturn(someGetQueueUrlResultForDLQ())
-    whenever(amazonSqsDLQ.getQueueAttributes(someGetQueueAttributesRequestForDLQ())).thenReturn(someGetQueueAttributesResultForDLQ())
+    whenever(amazonSqsDLQ.getQueueAttributes(someGetQueueAttributesRequestForDLQ())).thenReturn(
+      someGetQueueAttributesResultForDLQ()
+    )
   }
 
-  private fun someGetQueueAttributesRequest() = GetQueueAttributesRequest(someQueueUrl).withAttributeNames(listOf(QueueAttributeName.All.toString()))
+  private fun someGetQueueAttributesRequest() =
+    GetQueueAttributesRequest(someQueueUrl).withAttributeNames(listOf(QueueAttributeName.All.toString()))
+
   private fun someGetQueueUrlResult(): GetQueueUrlResult = GetQueueUrlResult().withQueueUrl(someQueueUrl)
   private fun someGetQueueAttributesResultWithoutDLQ() = GetQueueAttributesResult().withAttributes(
-      mapOf(MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
-          MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString()))
+    mapOf(
+      MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
+      MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString()
+    )
+  )
 
   private fun someGetQueueAttributesResultWithDLQ() = GetQueueAttributesResult().withAttributes(
-      mapOf(MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
-          MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString(),
-          QueueAttributeName.RedrivePolicy.toString() to "any redrive policy"))
+    mapOf(
+      MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
+      MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString(),
+      QueueAttributeName.RedrivePolicy.toString() to "any redrive policy"
+    )
+  )
 
-  private fun someGetQueueAttributesRequestForDLQ() = GetQueueAttributesRequest(someDLQUrl).withAttributeNames(listOf(QueueAttributeName.All.toString()))
+  private fun someGetQueueAttributesRequestForDLQ() =
+    GetQueueAttributesRequest(someDLQUrl).withAttributeNames(listOf(QueueAttributeName.All.toString()))
+
   private fun someGetQueueUrlResultForDLQ(): GetQueueUrlResult = GetQueueUrlResult().withQueueUrl(someDLQUrl)
   private fun someGetQueueAttributesResultForDLQ() = GetQueueAttributesResult().withAttributes(
-      mapOf(MESSAGES_ON_QUEUE.awsName to someMessagesOnDLQCount.toString()))
-
+    mapOf(MESSAGES_ON_QUEUE.awsName to someMessagesOnDLQCount.toString())
+  )
 }
-
