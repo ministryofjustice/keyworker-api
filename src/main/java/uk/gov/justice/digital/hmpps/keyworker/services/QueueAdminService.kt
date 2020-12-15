@@ -4,7 +4,6 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.DeleteMessageRequest
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest
-import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -46,5 +45,4 @@ class QueueAdminService(
     awsSqsDlqClient.getQueueAttributes(dlqUrl, listOf("ApproximateNumberOfMessages"))
       .attributes["ApproximateNumberOfMessages"]
       ?.toInt() ?: 0
-
 }

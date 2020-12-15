@@ -30,6 +30,7 @@ class KeyworkerStatsControllerTest {
 
   @MockBean
   lateinit var keyworkerStatsService: KeyworkerStatsService
+
   @MockBean
   lateinit var prisonSupportedService: PrisonSupportedService
 
@@ -100,7 +101,13 @@ class KeyworkerStatsControllerTest {
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()
-      .uri("/key-worker-stats?prisonId=MDI&fromDate=${fromDate.format(DateTimeFormatter.ISO_DATE)}&toDate=${toDate.format(DateTimeFormatter.ISO_DATE)}")
+      .uri(
+        "/key-worker-stats?prisonId=MDI&fromDate=${fromDate.format(DateTimeFormatter.ISO_DATE)}&toDate=${
+        toDate.format(
+          DateTimeFormatter.ISO_DATE
+        )
+        }"
+      )
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isOk

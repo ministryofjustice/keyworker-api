@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-
 internal class QueueAdminServiceTest {
 
   private val awsSqsClient = mock<AmazonSQS>()
@@ -36,7 +35,6 @@ internal class QueueAdminServiceTest {
     )
   }
 
-
   @Nested
   inner class ClearAllDlqMessagesForEvent {
     @Test
@@ -44,9 +42,11 @@ internal class QueueAdminServiceTest {
       whenever(awsSqsDlqClient.getQueueUrl("event-dlq")).thenReturn(GetQueueUrlResult().withQueueUrl("arn:eu-west-1:event-dlq"))
 
       queueAdminService.clearAllDlqMessages()
-      verify(awsSqsDlqClient).purgeQueue(check {
-        assertThat(it.queueUrl).isEqualTo("arn:eu-west-1:event-dlq")
-      })
+      verify(awsSqsDlqClient).purgeQueue(
+        check {
+          assertThat(it.queueUrl).isEqualTo("arn:eu-west-1:event-dlq")
+        }
+      )
     }
   }
 
@@ -64,9 +64,11 @@ internal class QueueAdminServiceTest {
 
       queueAdminService.transferMessages()
 
-      verify(awsSqsDlqClient).receiveMessage(check<ReceiveMessageRequest> {
-        assertThat(it.queueUrl).isEqualTo(eventDlqUrl)
-      })
+      verify(awsSqsDlqClient).receiveMessage(
+        check<ReceiveMessageRequest> {
+          assertThat(it.queueUrl).isEqualTo(eventDlqUrl)
+        }
+      )
     }
 
     @Test
@@ -79,9 +81,11 @@ internal class QueueAdminServiceTest {
 
       queueAdminService.transferMessages()
 
-      verify(awsSqsDlqClient, times(3)).receiveMessage(check<ReceiveMessageRequest> {
-        assertThat(it.queueUrl).isEqualTo(eventDlqUrl)
-      })
+      verify(awsSqsDlqClient, times(3)).receiveMessage(
+        check<ReceiveMessageRequest> {
+          assertThat(it.queueUrl).isEqualTo(eventDlqUrl)
+        }
+      )
     }
 
     @Test
@@ -114,10 +118,10 @@ internal class QueueAdminServiceTest {
       whenever(awsSqsDlqClient.getQueueAttributes(eventDlqUrl, listOf("ApproximateNumberOfMessages")))
         .thenReturn(GetQueueAttributesResult().withAttributes(mutableMapOf("ApproximateNumberOfMessages" to count.toString())))
   }
-
 }
 
-fun dataComplianceDeleteOffenderMessage(offenderNumber: String) = """
+fun dataComplianceDeleteOffenderMessage(offenderNumber: String) =
+  """
     {
   "Type": "Notification",
   "MessageId": "20e13002-d1be-56e7-be8c-66cdd7e23341",

@@ -19,7 +19,8 @@ import javax.servlet.http.HttpServletResponse
 
 @Component
 @Order(3)
-class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.regex}") excludeUris: String) : OncePerRequestFilter() {
+class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.regex}") excludeUris: String) :
+  OncePerRequestFilter() {
 
   private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")
   private val excludeUriRegex: Pattern = Pattern.compile(excludeUris)
@@ -40,7 +41,14 @@ class RequestLogFilter @Autowired constructor(@Value("\${logging.uris.exclude.re
       val status = response.status
       MDC.put(MdcUtility.RESPONSE_STATUS, status.toString())
       if (log.isTraceEnabled && MdcUtility.isLoggingAllowed) {
-        log.trace("Response: {} {} - Status {} - Start {}, Duration {} ms", request.method, request.requestURI, status, start.format(formatter), duration)
+        log.trace(
+          "Response: {} {} - Status {} - Start {}, Duration {} ms",
+          request.method,
+          request.requestURI,
+          status,
+          start.format(formatter),
+          duration
+        )
       }
     } finally {
       MDC.remove(MdcUtility.REQUEST_DURATION)

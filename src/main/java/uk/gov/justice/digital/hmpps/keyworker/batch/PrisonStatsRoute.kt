@@ -15,7 +15,10 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
  */
 @Component
 @ConditionalOnProperty(name = ["quartz.enabled"])
-class PrisonStatsRoute @Autowired constructor(private val keyworkerStatsService: KeyworkerStatsService, private val prisonSupportedService: PrisonSupportedService) : RouteBuilder() {
+class PrisonStatsRoute @Autowired constructor(
+  private val keyworkerStatsService: KeyworkerStatsService,
+  private val prisonSupportedService: PrisonSupportedService
+) : RouteBuilder() {
 
   @Value("\${prisonStats.job.cron}")
   private val cronExpression: String? = null
@@ -37,7 +40,9 @@ class PrisonStatsRoute @Autowired constructor(private val keyworkerStatsService:
       .log("Complete: Daily Prison Statistics")
 
     from(DIRECT_GENERATE_STATS)
-      .errorHandler(deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2))
+      .errorHandler(
+        deadLetterChannel(DIRECT_LOG_ERROR).redeliveryDelay(3000).backOffMultiplier(1.37).maximumRedeliveries(2)
+      )
       .log("Gathering stats for \${body.prisonId}")
       .bean(keyworkerStatsService, "generatePrisonStats(\${body.prisonId})")
       .log("Stats completed for \${body.prisonId}")

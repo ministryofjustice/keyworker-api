@@ -16,30 +16,35 @@ import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService
 @Validated
 @ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
 @RequestMapping("/queue-admin", produces = [MediaType.APPLICATION_JSON_VALUE])
-class QueueAdminResource(private val queueAdminService: QueueAdminService
+class QueueAdminResource(
+  private val queueAdminService: QueueAdminService
 ) {
 
   @PutMapping("/purge-dlq")
   @PreAuthorize("hasRole('QUEUE_ADMIN')")
   @Operation(
     summary = "Purges the dead letter queue",
-    description = "Requires QUEUE_ADMIN role")
-  @ApiResponses(value = [
-    ApiResponse(responseCode = "401", description = "Unauthorised, requires a valid Oauth2 token"),
-    ApiResponse(responseCode = "403", description = "Forbidden, requires an authorisation with role QUEUE_ADMIN")
-  ])
+    description = "Requires QUEUE_ADMIN role"
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(responseCode = "401", description = "Unauthorised, requires a valid Oauth2 token"),
+      ApiResponse(responseCode = "403", description = "Forbidden, requires an authorisation with role QUEUE_ADMIN")
+    ]
+  )
   fun purgeEventDlq(): Unit = queueAdminService.clearAllDlqMessages()
-
 
   @PutMapping("/transfer-dlq")
   @PreAuthorize("hasRole('QUEUE_ADMIN')")
   @Operation(
     summary = "Transfers all DLQ messages to the main queue",
-    description = "Requires QUEUE_ADMIN role")
-  @ApiResponses(value = [
-    ApiResponse(responseCode = "401", description = "Unauthorised, requires a valid Oauth2 token"),
-    ApiResponse(responseCode = "403", description = "Forbidden, requires an authorisation with role QUEUE_ADMIN")
-  ])
+    description = "Requires QUEUE_ADMIN role"
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(responseCode = "401", description = "Unauthorised, requires a valid Oauth2 token"),
+      ApiResponse(responseCode = "403", description = "Forbidden, requires an authorisation with role QUEUE_ADMIN")
+    ]
+  )
   fun transferEventDlq(): Unit = queueAdminService.transferMessages()
-
 }

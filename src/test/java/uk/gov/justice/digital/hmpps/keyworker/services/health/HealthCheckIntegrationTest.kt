@@ -43,11 +43,10 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health")
-        .expectStatus().is2xxSuccessful
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("UP")
-        .jsonPath("$.components.elite2ApiHealth.details.HttpStatus").isEqualTo("OK")
-
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("UP")
+      .jsonPath("$.components.elite2ApiHealth.details.HttpStatus").isEqualTo("OK")
   }
 
   @Test
@@ -55,9 +54,9 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health/ping")
-        .expectStatus().is2xxSuccessful
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("UP")
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("UP")
   }
 
   @Test
@@ -65,11 +64,13 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(404)
 
     getForEntity("/health")
-        .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("DOWN")
-        .jsonPath("$.components.elite2ApiHealth.details.error").value<String> { error -> assertThat(error).contains("404") }
-        .jsonPath("$.components.elite2ApiHealth.details.body").value<String> { body -> assertThat(body).contains("some error") }
+      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("DOWN")
+      .jsonPath("$.components.elite2ApiHealth.details.error")
+      .value<String> { error -> assertThat(error).contains("404") }
+      .jsonPath("$.components.elite2ApiHealth.details.body")
+      .value<String> { body -> assertThat(body).contains("some error") }
   }
 
   @Test
@@ -77,11 +78,13 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(418)
 
     getForEntity("/health")
-        .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("DOWN")
-        .jsonPath("$.components.elite2ApiHealth.details.error").value<String> { error -> assertThat(error).contains("418") }
-        .jsonPath("$.components.elite2ApiHealth.details.body").value<String> { body -> assertThat(body).contains("some error") }
+      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("DOWN")
+      .jsonPath("$.components.elite2ApiHealth.details.error")
+      .value<String> { error -> assertThat(error).contains("418") }
+      .jsonPath("$.components.elite2ApiHealth.details.body")
+      .value<String> { body -> assertThat(body).contains("some error") }
   }
 
   @Test
@@ -89,10 +92,10 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health")
-        .expectStatus().is2xxSuccessful
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("UP")
-        .jsonPath("$.components.queueHealth.status").isEqualTo("UP")
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("UP")
+      .jsonPath("$.components.queueHealth.status").isEqualTo("UP")
   }
 
   @Test
@@ -100,9 +103,9 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health")
-        .expectBody()
-        .jsonPath("$.components.queueHealth.details.${MESSAGES_ON_QUEUE.healthName}").isEqualTo(0)
-        .jsonPath("$.components.queueHealth.details.${MESSAGES_IN_FLIGHT.healthName}").isEqualTo(0)
+      .expectBody()
+      .jsonPath("$.components.queueHealth.details.${MESSAGES_ON_QUEUE.healthName}").isEqualTo(0)
+      .jsonPath("$.components.queueHealth.details.${MESSAGES_IN_FLIGHT.healthName}").isEqualTo(0)
   }
 
   @Test
@@ -111,10 +114,10 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health")
-        .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("DOWN")
-        .jsonPath("$.components.queueHealth.status").isEqualTo("DOWN")
+      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("DOWN")
+      .jsonPath("$.components.queueHealth.status").isEqualTo("DOWN")
   }
 
   @Test
@@ -122,11 +125,11 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health")
-        .expectStatus().is2xxSuccessful
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("UP")
-        .jsonPath("$.components.queueHealth.status").isEqualTo("UP")
-        .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.UP.description)
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("UP")
+      .jsonPath("$.components.queueHealth.status").isEqualTo("UP")
+      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.UP.description)
   }
 
   @Test
@@ -134,8 +137,8 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     subPing(200)
 
     getForEntity("/health")
-        .expectBody()
-        .jsonPath("components.queueHealth.details.${MESSAGES_ON_DLQ.healthName}").isEqualTo(0)
+      .expectBody()
+      .jsonPath("components.queueHealth.details.${MESSAGES_ON_DLQ.healthName}").isEqualTo(0)
   }
 
   @Test
@@ -144,11 +147,11 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     mockQueueWithoutRedrivePolicyAttributes()
 
     getForEntity("/health")
-        .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("DOWN")
-        .jsonPath("$.components.queueHealth.status").isEqualTo("DOWN")
-        .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("DOWN")
+      .jsonPath("$.components.queueHealth.status").isEqualTo("DOWN")
+      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -157,10 +160,10 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     mockQueueWithoutRedrivePolicyAttributes()
 
     getForEntity("/health")
-        .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-        .expectBody()
-        .jsonPath("$.status").isEqualTo("DOWN")
-        .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("DOWN")
+      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -169,37 +172,48 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     ReflectionTestUtils.setField(queueHealth, "dlqName", "missing_queue")
 
     getForEntity("/health")
-        .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
-        .expectBody()
-        .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
+      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectBody()
+      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
   }
 
   @Test
   fun `Health liveness page is accessible`() {
     getForEntity("/health/liveness")
-        .expectStatus().isEqualTo(200)
-        .expectBody().jsonPath("$.stats", "UP")
+      .expectStatus().isEqualTo(200)
+      .expectBody().jsonPath("$.stats", "UP")
   }
 
   @Test
   fun `Health readiness page is accessible`() {
     getForEntity("/health/readiness")
-        .expectStatus().isEqualTo(200)
-        .expectBody().jsonPath("$.stats", "UP")
+      .expectStatus().isEqualTo(200)
+      .expectBody().jsonPath("$.stats", "UP")
   }
 
   private fun subPing(status: Int) {
-    eliteMockServer.stubFor(get("/health/ping").willReturn(aResponse()
-        .withHeader("Content-Type", "application/json")
-        .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
-        .withStatus(status)))
+    eliteMockServer.stubFor(
+      get("/health/ping").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
+          .withStatus(status)
+      )
+    )
   }
 
   private fun mockQueueWithoutRedrivePolicyAttributes() {
     val queueName = ReflectionTestUtils.getField(queueHealth, "queueName") as String
     val queueUrl = awsSqsClient.getQueueUrl(queueName)
-    whenever(awsSqsClient.getQueueAttributes(GetQueueAttributesRequest(queueUrl.queueUrl).withAttributeNames(listOf(QueueAttributeName.All.toString()))))
-        .thenReturn(GetQueueAttributesResult())
+    whenever(
+      awsSqsClient.getQueueAttributes(
+        GetQueueAttributesRequest(queueUrl.queueUrl).withAttributeNames(
+          listOf(
+            QueueAttributeName.All.toString()
+          )
+        )
+      )
+    )
+      .thenReturn(GetQueueAttributesResult())
   }
-
 }

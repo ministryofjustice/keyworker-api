@@ -20,8 +20,8 @@ open class LocalStackConfig {
   open fun localStackContainer(): LocalStackContainer {
     log.info("Starting embedded localstack...")
     val localStackContainer: LocalStackContainer = LocalStackContainer()
-        .withServices(LocalStackContainer.Service.SQS)
-        .withEnv("HOSTNAME_EXTERNAL", "localhost")
+      .withServices(LocalStackContainer.Service.SQS)
+      .withEnv("HOSTNAME_EXTERNAL", "localhost")
 
     localStackContainer.start()
     log.info("Started embedded localstack.")
@@ -30,8 +30,10 @@ open class LocalStackConfig {
 
   @Bean
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-  open fun queueUrl(@Autowired awsSqsClient: AmazonSQS,
-                    @Value("\${sqs.queue.name}") queueName: String,
-                    @Value("\${sqs.dlq.name}") dlqName: String): String =
-      JmsConfig().queueUrl(awsSqsClient, queueName, dlqName)
+  open fun queueUrl(
+    @Autowired awsSqsClient: AmazonSQS,
+    @Value("\${sqs.queue.name}") queueName: String,
+    @Value("\${sqs.dlq.name}") dlqName: String
+  ): String =
+    JmsConfig().queueUrl(awsSqsClient, queueName, dlqName)
 }
