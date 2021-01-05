@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "2.1.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "2.1.2"
   kotlin("plugin.spring") version "1.4.21"
   kotlin("plugin.jpa") version "1.4.21"
 }
@@ -25,8 +25,8 @@ dependencies {
   implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
-  implementation("com.sun.xml.bind:jaxb-impl:2.3.3")
-  implementation("com.sun.xml.bind:jaxb-core:2.3.0.1")
+  implementation("com.sun.xml.bind:jaxb-impl:3.0.0")
+  implementation("com.sun.xml.bind:jaxb-core:3.0.0")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
   implementation("io.springfox:springfox-boot-starter:3.0.0")
@@ -36,7 +36,7 @@ dependencies {
   implementation("com.google.code.gson:gson:2.8.6")
   compileOnly("org.projectlombok:lombok:1.18.16")
   runtimeOnly("org.hsqldb:hsqldb:2.5.1")
-  runtimeOnly("org.flywaydb:flyway-core:7.3.1")
+  runtimeOnly("org.flywaydb:flyway-core:7.4.0")
   runtimeOnly("org.postgresql:postgresql:42.2.18")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
   testImplementation("org.spockframework:spock-spring:2.0-M4-groovy-3.0")
@@ -44,8 +44,8 @@ dependencies {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.16")
-  testImplementation("org.gebish:geb-core:3.4.1")
-  testImplementation("org.gebish:geb-spock:3.4.1")
+  testImplementation("org.gebish:geb-core:4.0")
+  testImplementation("org.gebish:geb-spock:4.0")
   testImplementation("org.seleniumhq.selenium:selenium-support:3.141.59")
   testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:3.141.59")
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:3.141.59")
@@ -54,7 +54,7 @@ dependencies {
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:2.25.0")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
-  testImplementation("org.testcontainers:localstack:1.14.3")
+  testImplementation("org.testcontainers:localstack:1.15.1")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.22.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
