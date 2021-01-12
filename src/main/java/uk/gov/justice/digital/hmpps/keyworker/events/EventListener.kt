@@ -32,6 +32,7 @@ open class EventListener(
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
       "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event.bookingId)
       "DATA_COMPLIANCE_DELETE-OFFENDER" -> keyworkerService.deleteKeyworkersForOffender(event.offenderIdDisplay)
+      "COMPLEX_OFFENDER" -> keyworkerService.deallocate(event.offenderIdDisplay)
     }
   }
 

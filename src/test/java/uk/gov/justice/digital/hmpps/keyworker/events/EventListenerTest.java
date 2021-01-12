@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -73,6 +74,13 @@ class EventListenerTest {
 
         verify(keyworkerService).deleteKeyworkersForOffender("");
         verifyNoInteractions(reconciliationService);
+    }
+
+    @Test
+    void testDeallocateOffender() throws IOException {
+        eventListener.eventListener(getJson("complex-offender-identified.json"));
+        
+        verify(keyworkerService).deallocate("A1234AA");
     }
 
     private String getJson(final String filename) throws IOException {
