@@ -59,6 +59,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 @ExtendWith(MockitoExtension.class)
 class KeyworkerAutoAllocationServiceTest {
     private static final String TEST_AGENCY_ID = "LEI";
+    private static final String TEST_COMPLEX_OFFENDERS = "G6415GD,G8930UW";
 
     private KeyworkerAutoAllocationService keyworkerAutoAllocationService;
 
@@ -77,21 +78,25 @@ class KeyworkerAutoAllocationServiceTest {
     @Mock
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
 
+    private MoicService moicService;
+
     private long allocCount;
 
     @BeforeEach
     void setUp() {
 
+        moicService = new MoicService(TEST_COMPLEX_OFFENDERS, TEST_AGENCY_ID);
+
         // Construct service under test (using mock collaborators)
         final var aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
 
         final var prisonDetail = Prison.builder()
-                .prisonId(TEST_AGENCY_ID).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
-                .build();
+            .prisonId(TEST_AGENCY_ID).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
+            .build();
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
 
         keyworkerAutoAllocationService =
-                new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService);
+            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService, moicService);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -136,7 +141,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
@@ -163,7 +168,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
@@ -200,7 +205,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -233,16 +238,16 @@ class KeyworkerAutoAllocationServiceTest {
         final var previousKeyworker = getKeyworker(allocStaffId, highAllocCount, CAPACITY_TIER_1);
 
         final var someKeyworkers = mockKeyworkers(
-                getKeyworker(1, lowAllocCount, CAPACITY_TIER_1),
-                previousKeyworker,
-                getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
+            getKeyworker(1, lowAllocCount, CAPACITY_TIER_1),
+            previousKeyworker,
+            getKeyworker(3, lowAllocCount, CAPACITY_TIER_1));
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
 
         // A previous allocation between the unallocated offender and Key worker with staffId = 2
         final var previousAllocation =
-                getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocStaffId);
+            getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocStaffId);
 
         mockPrisonerAllocationHistory(allocOffenderNo, previousAllocation);
 
@@ -251,7 +256,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -291,10 +296,10 @@ class KeyworkerAutoAllocationServiceTest {
         final var laterKeyworker = getKeyworker(allocLaterStaffId, highAllocCount, CAPACITY_TIER_1);
 
         final var someKeyworkers = mockKeyworkers(
-                getKeyworker(1, lowAllocCount + 1, CAPACITY_TIER_1),
-                laterKeyworker,
-                getKeyworker(3, lowAllocCount + 2, CAPACITY_TIER_1),
-                earlierKeyworker);
+            getKeyworker(1, lowAllocCount + 1, CAPACITY_TIER_1),
+            laterKeyworker,
+            getKeyworker(3, lowAllocCount + 2, CAPACITY_TIER_1),
+            earlierKeyworker);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -304,10 +309,10 @@ class KeyworkerAutoAllocationServiceTest {
         final var assignedLater = assignedEarlier.plusMonths(3);
 
         final var prevEarlierAllocation =
-                getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocEarlierStaffId, assignedEarlier);
+            getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocEarlierStaffId, assignedEarlier);
 
         final var prevLaterAllocation =
-                getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocLaterStaffId, assignedLater);
+            getPreviousKeyworkerAutoAllocation(TEST_AGENCY_ID, allocOffenderNo, allocLaterStaffId, assignedLater);
 
         mockPrisonerAllocationHistory(allocOffenderNo, prevEarlierAllocation, prevLaterAllocation);
 
@@ -316,7 +321,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -354,9 +359,9 @@ class KeyworkerAutoAllocationServiceTest {
         final var leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
 
         final var someKeyworkers = mockKeyworkers(
-                getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
-                getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
-                leastAllocKeyworker);
+            getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
+            getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
+            leastAllocKeyworker);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -368,7 +373,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
 
@@ -410,10 +415,10 @@ class KeyworkerAutoAllocationServiceTest {
         final var olderLeastAllocKeyworker = getKeyworker(olderLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
 
         final var someKeyworkers = mockKeyworkers(
-                getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
-                getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
-                recentLeastAllocKeyworker,
-                olderLeastAllocKeyworker);
+            getKeyworker(1, highAllocCount, CAPACITY_TIER_1),
+            getKeyworker(2, highAllocCount, CAPACITY_TIER_1),
+            recentLeastAllocKeyworker,
+            olderLeastAllocKeyworker);
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -425,10 +430,10 @@ class KeyworkerAutoAllocationServiceTest {
         final var refDateTime = LocalDateTime.now();
 
         final var recentAllocation = getPreviousKeyworkerAutoAllocation(
-                TEST_AGENCY_ID, "A5555AA", recentLeastAllocStaffId, refDateTime.minusDays(2));
+            TEST_AGENCY_ID, "A5555AA", recentLeastAllocStaffId, refDateTime.minusDays(2));
 
         final var olderAllocation = getPreviousKeyworkerAutoAllocation(
-                TEST_AGENCY_ID, "A7777AA", olderLeastAllocStaffId, refDateTime.minusDays(7));
+            TEST_AGENCY_ID, "A7777AA", olderLeastAllocStaffId, refDateTime.minusDays(7));
 
         mockKeyworkerAllocationHistory(recentLeastAllocStaffId, recentAllocation);
         mockKeyworkerAllocationHistory(olderLeastAllocStaffId, olderAllocation);
@@ -438,7 +443,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, atLeastOnce())
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -485,7 +490,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -528,7 +533,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Determine available capacity
         final var totalCapacity = (totalKeyworkers * FULLY_ALLOCATED) -
-                someKeyworkers.stream().mapToInt(KeyworkerDto::getNumberAllocated).sum();
+            someKeyworkers.stream().mapToInt(KeyworkerDto::getNumberAllocated).sum();
 
         // A Key worker pool initialised with known capacity tier.
         mockKeyworkerPool(someKeyworkers);
@@ -543,7 +548,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         // Verify collaborator interactions and log output
         verify(keyworkerService, times(1))
-                .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
+            .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
@@ -561,6 +566,36 @@ class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
+    }
+
+    @Test
+    void testComplexOffendersAreSkipped() {
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Set.of("A12345", "G6415GD", "G8930UW"));
+        mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2));
+        mockPrisonerAllocationHistory(null);
+
+        keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
+
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        verify(keyworkerService, times(1)).allocate(kwaArg.capture());
+    }
+
+    @Test
+    void testThatComplexOffenderFilterIsDisabledForMoorland() {
+        final var prisonDetail = Prison.builder()
+            .prisonId("MDI").capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
+            .build();
+
+        lenient().when(prisonSupportedService.getPrisonDetail("MDI")).thenReturn(prisonDetail);
+
+        mockUnallocatedOffenders("MDI", Set.of("A12345", "G6415GD", "G8930UW"));
+        mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2), "MDI");
+        mockPrisonerAllocationHistory(null);
+
+        keyworkerAutoAllocationService.autoAllocate("MDI");
+
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        verify(keyworkerService, times(3)).allocate(kwaArg.capture());
     }
 
     private void mockUnallocatedOffenders(final String prisonId, final Set<String> offenderNos) {
@@ -619,15 +654,19 @@ class KeyworkerAutoAllocationServiceTest {
     }
 
     private void mockKeyworkerPool(final List<KeyworkerDto> keyworkers) {
-        final var keyworkerPool = KeyworkerTestHelper.initKeyworkerPool(keyworkerService, prisonSupportedService,
-                keyworkers, TEST_AGENCY_ID);
+        mockKeyworkerPool(keyworkers, TEST_AGENCY_ID);
+    }
 
-        when(keyworkerPoolFactory.getKeyworkerPool(TEST_AGENCY_ID, keyworkers)).thenReturn(keyworkerPool);
+    private void mockKeyworkerPool(final List<KeyworkerDto> keyworkers, final String prisonId) {
+        final var keyworkerPool =
+            KeyworkerTestHelper.initKeyworkerPool(keyworkerService, prisonSupportedService, keyworkers, prisonId);
+
+        when(keyworkerPoolFactory.getKeyworkerPool(prisonId, keyworkers)).thenReturn(keyworkerPool);
     }
 
     private void mockPrisonerAllocationHistory(final String offenderNo, final OffenderKeyworker... allocations) {
         final List<OffenderKeyworker> allocationHistory =
-                (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
+            (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         if (StringUtils.isBlank(offenderNo)) {
             when(keyworkerService.getAllocationHistoryForPrisoner(anyString())).thenReturn(allocationHistory);
@@ -638,7 +677,7 @@ class KeyworkerAutoAllocationServiceTest {
 
     private void mockKeyworkerAllocationHistory(final Long staffId, final OffenderKeyworker... allocations) {
         final List<OffenderKeyworker> allocationHistory =
-                (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
+            (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId))).thenReturn(allocationHistory);
     }

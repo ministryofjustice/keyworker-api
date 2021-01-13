@@ -25,6 +25,12 @@ env:
   - name: SERVER_CONNECTION_TIMEOUT 
     value: "180000"
 
+  - name: WOMENS_ESTATE
+    value: "{{ .Values.env.WOMENS_ESTATE }}"
+
+  - name: WOMENS_ESTATE_COMPLEX_OFFENDERS
+    value: "{{ .Values.env.WOMENS_ESTATE_COMPLEX_OFFENDERS }}"
+
   - name: APPLICATION_INSIGHTS_IKEY 
     valueFrom:
       secretKeyRef:
