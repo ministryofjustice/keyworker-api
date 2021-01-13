@@ -21,3 +21,5 @@ env:
   AUTH_URI_ROOT: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
   JAVA_OPTS: "-Xmx512m"
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
+  WOMENS_ESTATE: "MDI,LEI"
+  WOMENS_ESTATE_COMPLEX_OFFENDERS: "G6415GD,G8930UW"

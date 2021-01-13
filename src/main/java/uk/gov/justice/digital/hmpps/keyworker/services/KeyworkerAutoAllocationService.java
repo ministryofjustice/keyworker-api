@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation of Key worker auto-allocation. On initiation the auto-allocation process will attempt to
@@ -38,21 +39,25 @@ public class KeyworkerAutoAllocationService {
     private final KeyworkerPoolFactory keyworkerPoolFactory;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
+    private final MoicService moicService;
 
     /**
      * Constructor.
      *
-     * @param keyworkerService key worker allocation service.
+     * @param keyworkerService     key worker allocation service.
      * @param keyworkerPoolFactory factory that facilitates creation of Key worker pools.
+     * @param moicService
      */
     public KeyworkerAutoAllocationService(final KeyworkerService keyworkerService,
                                           final KeyworkerPoolFactory keyworkerPoolFactory,
                                           final OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                          final PrisonSupportedService prisonSupportedService) {
+                                          final PrisonSupportedService prisonSupportedService,
+                                          final MoicService moicService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
+        this.moicService = moicService;
     }
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
@@ -75,7 +80,7 @@ public class KeyworkerAutoAllocationService {
         final var startAllocCount = counter.count();
 
         // Get all unallocated offenders for agency
-        final var unallocatedOffenders = getUnallocatedOffenders(prisonId);
+        final var unallocatedOffenders = stripComplexOffenders(prisonId, getUnallocatedOffenders(prisonId));
 
         // Are there any unallocated offenders? If not, log and exit, otherwise proceed.
         if (unallocatedOffenders.isEmpty()) {
@@ -90,7 +95,7 @@ public class KeyworkerAutoAllocationService {
             }
 
             log.info("Proceeding with auto-allocation for {} unallocated offenders and {} available Key workers at agency [{}].",
-                    unallocatedOffenders.size(), availableKeyworkers.size(), prisonId);
+                unallocatedOffenders.size(), availableKeyworkers.size(), prisonId);
 
             // At this point, we have some unallocated offenders and some available Key workers. Let's put the Key
             // workers into a pool then start processing allocations.
@@ -110,13 +115,26 @@ public class KeyworkerAutoAllocationService {
             }
         }
 
-        return (long)calcAndLogAllocationsProcessed(prisonId, startAllocCount, counter);
+        return (long) calcAndLogAllocationsProcessed(prisonId, startAllocCount, counter);
     }
+
+    private List<OffenderLocationDto> stripComplexOffenders(final String prisonId, final List<OffenderLocationDto> unAllocated) {
+        final var unAllocatedOffenderNos = unAllocated.stream()
+            .map(OffenderLocationDto::getOffenderNo)
+            .collect(Collectors.toList());
+
+        final var complexOffenders = moicService.getComplexOffenders(prisonId, unAllocatedOffenderNos);
+
+        return unAllocated.stream()
+            .filter(offenderLocation -> !complexOffenders.contains(offenderLocation.getOffenderNo()))
+            .collect(Collectors.toList());
+    }
+
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public Long confirmAllocations(final String prisonId) {
         prisonSupportedService.verifyPrisonMigrated(prisonId);
-        return (long)offenderKeyworkerRepository.confirmProvisionals(prisonId);
+        return (long) offenderKeyworkerRepository.confirmProvisionals(prisonId);
     }
 
     private int clearExistingProvisionals(final String prisonId) {
@@ -141,7 +159,7 @@ public class KeyworkerAutoAllocationService {
     }
 
     private List<OffenderLocationDto> getUnallocatedOffenders(final String prisonId) {
-        return keyworkerService.getUnallocatedOffenders(prisonId, null,null);
+        return keyworkerService.getUnallocatedOffenders(prisonId, null, null);
     }
 
     private void storeAllocation(final OffenderLocationDto offender, final KeyworkerDto keyworker, final Counter counter) {
@@ -156,14 +174,14 @@ public class KeyworkerAutoAllocationService {
 
     private OffenderKeyworker buildKeyWorkerAllocation(final OffenderLocationDto offender, final KeyworkerDto keyworker) {
         return OffenderKeyworker.builder()
-                .offenderNo(offender.getOffenderNo())
-                .staffId(keyworker.getStaffId())
-                .prisonId(offender.getAgencyId())
-                .allocationReason(AllocationReason.AUTO)
-                .active(true)
-                .assignedDateTime(LocalDateTime.now())
-                .allocationType(AllocationType.PROVISIONAL)
-                .build();
+            .offenderNo(offender.getOffenderNo())
+            .staffId(keyworker.getStaffId())
+            .prisonId(offender.getAgencyId())
+            .allocationReason(AllocationReason.AUTO)
+            .active(true)
+            .assignedDateTime(LocalDateTime.now())
+            .allocationType(AllocationType.PROVISIONAL)
+            .build();
     }
 
     private double calcAndLogAllocationsProcessed(final String prisonId, final double startAllocCount, final Counter counter) {
@@ -177,9 +195,9 @@ public class KeyworkerAutoAllocationService {
 
     private Counter initialiseCounter() {
         return Counter
-                .builder(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS)
-                .description("indicates number of allocations suggested")
-                .tags("keyworker", "allocation")
-                .register(new SimpleMeterRegistry());
+            .builder(COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS)
+            .description("indicates number of allocations suggested")
+            .tags("keyworker", "allocation")
+            .register(new SimpleMeterRegistry());
     }
 }
