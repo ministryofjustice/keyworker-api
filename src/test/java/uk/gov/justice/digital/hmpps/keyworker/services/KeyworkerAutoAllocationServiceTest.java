@@ -59,7 +59,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 @ExtendWith(MockitoExtension.class)
 class KeyworkerAutoAllocationServiceTest {
     private static final String TEST_AGENCY_ID = "LEI";
-    private static final String TEST_COMPLEX_OFFENDERS = "G6415GD,G8930UW";
+    private static final Set<String> TEST_COMPLEX_OFFENDERS = Set.of("G6415GD","G8930UW");
 
     private KeyworkerAutoAllocationService keyworkerAutoAllocationService;
 
@@ -85,7 +85,7 @@ class KeyworkerAutoAllocationServiceTest {
     @BeforeEach
     void setUp() {
 
-        moicService = new MoicService(TEST_COMPLEX_OFFENDERS, TEST_AGENCY_ID);
+        moicService = new MoicService(TEST_COMPLEX_OFFENDERS, Set.of(TEST_AGENCY_ID));
 
         // Construct service under test (using mock collaborators)
         final var aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
