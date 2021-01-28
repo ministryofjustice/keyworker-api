@@ -31,11 +31,14 @@ env:
   - name: WOMENS_ESTATE_COMPLEX_OFFENDERS
     value: "{{ .Values.env.WOMENS_ESTATE_COMPLEX_OFFENDERS }}"
 
-  - name: APPLICATION_INSIGHTS_IKEY 
+  - name: APPINSIGHTS_INSTRUMENTATIONKEY
     valueFrom:
       secretKeyRef:
         name: {{ template "app.name" . }}
         key: APPINSIGHTS_INSTRUMENTATIONKEY
+
+  - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+    value: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
 
   - name: ELITE2API_CLIENT_CLIENTID
     valueFrom:

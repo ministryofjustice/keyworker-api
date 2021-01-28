@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "2.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.0.0"
   kotlin("plugin.spring") version "1.4.21"
   kotlin("plugin.jpa") version "1.4.21"
 }
@@ -32,11 +32,11 @@ dependencies {
   implementation("io.springfox:springfox-boot-starter:3.0.0")
   implementation("net.sf.ehcache:ehcache:2.10.6")
   implementation("org.apache.commons:commons-text:1.9")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.0")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.1")
   implementation("com.google.code.gson:gson:2.8.6")
   compileOnly("org.projectlombok:lombok:1.18.16")
   runtimeOnly("org.hsqldb:hsqldb:2.5.1")
-  runtimeOnly("org.flywaydb:flyway-core:7.4.0")
+  runtimeOnly("org.flywaydb:flyway-core:7.5.2")
   runtimeOnly("org.postgresql:postgresql:42.2.18")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
   testImplementation("org.spockframework:spock-spring:2.0-M4-groovy-3.0")
@@ -55,7 +55,7 @@ dependencies {
   testImplementation("org.apache.camel:camel-test-spring:2.25.0")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
   testImplementation("org.testcontainers:localstack:1.15.1")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.22.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.23.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
