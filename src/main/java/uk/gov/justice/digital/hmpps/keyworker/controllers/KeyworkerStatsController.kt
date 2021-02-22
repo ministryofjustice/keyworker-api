@@ -36,15 +36,15 @@ class KeyworkerStatsController(
   )
   @ApiResponses(
     value =
-      [
-        ApiResponse(code = 200, message = "OK", response = KeyworkerStatsDto::class),
-        ApiResponse(code = 400, message = "Invalid request", response = ErrorResponse::class),
-        ApiResponse(
-          code = 500,
-          message = "Unrecoverable error occurred whilst processing request.",
-          response = ErrorResponse::class
-        )
-      ]
+    [
+      ApiResponse(code = 200, message = "OK", response = KeyworkerStatsDto::class),
+      ApiResponse(code = 400, message = "Invalid request", response = ErrorResponse::class),
+      ApiResponse(
+        code = 500,
+        message = "Unrecoverable error occurred whilst processing request.",
+        response = ErrorResponse::class
+      )
+    ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun getStatsForStaff(
@@ -61,16 +61,16 @@ class KeyworkerStatsController(
   @ApiOperation(value = "Get Key Worker stats for any prison.", nickname = "getAllPrisonStats")
   @ApiResponses(
     value =
-      [
-        ApiResponse(code = 200, message = "OK", responseContainer = "Map", response = KeyworkerStatSummary::class),
-        ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class),
-        ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class),
-        ApiResponse(
-          code = 500,
-          message = "Unrecoverable error occurred whilst processing request.",
-          response = ErrorResponse::class
-        )
-      ]
+    [
+      ApiResponse(code = 200, message = "OK", responseContainer = "Map", response = KeyworkerStatSummary::class),
+      ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class),
+      ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class),
+      ApiResponse(
+        code = 500,
+        message = "Unrecoverable error occurred whilst processing request.",
+        response = ErrorResponse::class
+      )
+    ]
   )
   @GetMapping
   fun getPrisonStats(
