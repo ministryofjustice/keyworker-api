@@ -23,9 +23,9 @@ import org.springframework.jms.support.destination.DynamicDestinationResolver
 import javax.jms.Session
 
 @Configuration
-@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
 @EnableJms
-open class JmsConfig {
+class JmsConfig {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -43,11 +43,11 @@ open class JmsConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "aws")
-  open fun awsSqsClient(
-    @Value("\${sqs.aws.access.key.id}") accessKey: String,
-    @Value("\${sqs.aws.secret.access.key}") secretKey: String,
-    @Value("\${sqs.endpoint.region}") region: String
+  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "aws")
+  fun awsSqsClient(
+    @Value("\${offender-events-sqs.aws.access.key.id}") accessKey: String,
+    @Value("\${offender-events-sqs.aws.secret.access.key}") secretKey: String,
+    @Value("\${offender-events-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
@@ -55,11 +55,11 @@ open class JmsConfig {
       .build()
 
   @Bean
-  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "aws")
-  open fun awsSqsDlqClient(
-    @Value("\${sqs.aws.dlq.access.key.id}") accessKey: String,
-    @Value("\${sqs.aws.dlq.secret.access.key}") secretKey: String,
-    @Value("\${sqs.endpoint.region}") region: String
+  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "aws")
+  fun awsSqsDlqClient(
+    @Value("\${offender-events-sqs.aws.dlq.access.key.id}") accessKey: String,
+    @Value("\${offender-events-sqs.aws.dlq.secret.access.key}") secretKey: String,
+    @Value("\${offender-events-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
@@ -67,10 +67,10 @@ open class JmsConfig {
       .build()
 
   @Bean("awsSqsClient")
-  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "localstack")
-  open fun awsSqsClientLocalstack(
-    @Value("\${sqs.endpoint.url}") serviceEndpoint: String,
-    @Value("\${sqs.endpoint.region}") region: String
+  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "localstack")
+  fun awsSqsClientLocalstack(
+    @Value("\${offender-events-sqs.endpoint.url}") serviceEndpoint: String,
+    @Value("\${offender-events-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
@@ -78,10 +78,10 @@ open class JmsConfig {
       .build()
 
   @Bean("awsSqsDlqClient")
-  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "localstack")
-  open fun awsSqsDlqClientLocalstack(
-    @Value("\${sqs.endpoint.url}") serviceEndpoint: String,
-    @Value("\${sqs.endpoint.region}") region: String
+  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "localstack")
+  fun awsSqsDlqClientLocalstack(
+    @Value("\${offender-events-sqs.endpoint.url}") serviceEndpoint: String,
+    @Value("\${offender-events-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
@@ -89,12 +89,12 @@ open class JmsConfig {
       .build()
 
   @Bean
-  @ConditionalOnProperty(name = ["sqs.provider"], havingValue = "localstack")
+  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "localstack")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-  open fun queueUrl(
+  fun queueUrl(
     @Autowired awsSqsClient: AmazonSQS,
-    @Value("\${sqs.queue.name}") queueName: String,
-    @Value("\${sqs.dlq.name}") dlqName: String
+    @Value("\${offender-events-sqs.queue.name}") queueName: String,
+    @Value("\${offender-events-sqs.dlq.name}") dlqName: String
   ): String {
     val result = awsSqsClient.createQueue(CreateQueueRequest(dlqName))
     val dlqArn = awsSqsClient.getQueueAttributes(result.queueUrl, listOf(QueueAttributeName.QueueArn.toString()))

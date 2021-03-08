@@ -1,4 +1,4 @@
-sqs:
+offender-events-sqs:
   provider: localstack
   queue.name: keyworker_api_queue
   dlq.name: keyworker_api_dlq

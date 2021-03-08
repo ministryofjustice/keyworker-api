@@ -11,7 +11,9 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-sqs:
+
+
+offender-events-sqs:
   provider: localstack
   endpoint.url: http://localhost:4576
   queue.name: keyworker_api_queue

@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 import java.time.LocalDateTime
 
 @Service
-@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
-open class EventListener(
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
+class EventListener(
   private val reconciliationService: ReconciliationService,
   private val keyworkerService: KeyworkerService,
   @Qualifier("gson") private val gson: Gson
@@ -22,8 +22,8 @@ open class EventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @JmsListener(destination = "\${sqs.queue.name}")
-  open fun eventListener(requestJson: String) {
+  @JmsListener(destination = "\${offender-events-sqs.queue.name}")
+  fun eventListener(requestJson: String) {
     val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
     val eventType = messageAttributes.eventType.Value
     log.info("Processing message of type {}", eventType)
@@ -32,7 +32,6 @@ open class EventListener(
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
       "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event.bookingId)
       "DATA_COMPLIANCE_DELETE-OFFENDER" -> keyworkerService.deleteKeyworkersForOffender(event.offenderIdDisplay)
-      "COMPLEX_OFFENDER" -> keyworkerService.deallocate(event.offenderIdDisplay)
     }
   }
 
