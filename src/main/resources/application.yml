@@ -97,7 +97,7 @@ role-migration:
 
   rolesToAssign:
 
-sqs:
+offender-events-sqs:
   provider: aws
   endpoint.region: eu-west-2
 

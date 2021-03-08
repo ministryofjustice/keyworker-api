@@ -1,2 +1,2 @@
-sqs:
+offender-events-sqs:
   provider: false

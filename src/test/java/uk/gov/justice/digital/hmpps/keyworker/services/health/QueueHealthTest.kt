@@ -27,13 +27,13 @@ class QueueHealthTest {
   private val someMessagesOnDLQCount = 789
   private val amazonSqs: AmazonSQS = mock()
   private val amazonSqsDLQ: AmazonSQS = mock()
-  private val queueHealth: QueueHealth = QueueHealth(amazonSqs, amazonSqsDLQ, someQueueName, someDLQName)
+  private val offenderEventsQueueHealth: offenderEventsQueueHealth = offenderEventsQueueHealth(amazonSqs, amazonSqsDLQ, someQueueName, someDLQName)
 
   @Test
   fun `health - queue found - UP`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.status).isEqualTo(Status.UP)
   }
@@ -42,7 +42,7 @@ class QueueHealthTest {
   fun `health - attributes returned - included in health status`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.details[MESSAGES_ON_QUEUE.healthName]).isEqualTo(someMessagesOnQueueCount)
     assertThat(health.details[MESSAGES_IN_FLIGHT.healthName]).isEqualTo(someMessagesInFlightCount)
@@ -52,7 +52,7 @@ class QueueHealthTest {
   fun `health - queue not found - DOWN`() {
     whenever(amazonSqs.getQueueUrl(anyString())).thenThrow(QueueDoesNotExistException::class.java)
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.status).isEqualTo(Status.DOWN)
   }
@@ -62,7 +62,7 @@ class QueueHealthTest {
     whenever(amazonSqs.getQueueUrl(anyString())).thenReturn(someGetQueueUrlResult())
     whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenThrow(RuntimeException::class.java)
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.status).isEqualTo(Status.DOWN)
   }
@@ -71,7 +71,7 @@ class QueueHealthTest {
   fun `health - DLQ UP - reports DLQ UP`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.UP.description)
   }
@@ -80,7 +80,7 @@ class QueueHealthTest {
   fun `health - DLQ attributes returned - included in health status`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.details[MESSAGES_ON_DLQ.healthName]).isEqualTo(someMessagesOnDLQCount)
   }
@@ -92,7 +92,7 @@ class QueueHealthTest {
       someGetQueueAttributesResultWithoutDLQ()
     )
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.status).isEqualTo(Status.DOWN)
     assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
@@ -105,7 +105,7 @@ class QueueHealthTest {
       someGetQueueAttributesResultWithoutDLQ()
     )
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
@@ -118,7 +118,7 @@ class QueueHealthTest {
     )
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenThrow(QueueDoesNotExistException::class.java)
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_FOUND.description)
   }
@@ -132,7 +132,7 @@ class QueueHealthTest {
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenReturn(someGetQueueUrlResultForDLQ())
     whenever(amazonSqsDLQ.getQueueAttributes(someGetQueueAttributesRequestForDLQ())).thenThrow(RuntimeException::class.java)
 
-    val health = queueHealth.health()
+    val health = offenderEventsQueueHealth.health()
 
     assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_AVAILABLE.description)
   }
