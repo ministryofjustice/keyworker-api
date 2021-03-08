@@ -76,13 +76,6 @@ class EventListenerTest {
         verifyNoInteractions(reconciliationService);
     }
 
-    @Test
-    void testDeallocateOffender() throws IOException {
-        eventListener.eventListener(getJson("complex-offender-identified.json"));
-        
-        verify(keyworkerService).deallocate("A1234AA");
-    }
-
     private String getJson(final String filename) throws IOException {
         return IOUtils.toString(getClass().getResourceAsStream(filename), UTF_8.toString());
     }

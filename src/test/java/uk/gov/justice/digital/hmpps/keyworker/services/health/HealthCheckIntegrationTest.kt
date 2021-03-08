@@ -23,12 +23,12 @@ class HealthCheckIntegrationTest : IntegrationTest() {
   private lateinit var queueHealth: QueueHealth
 
   @Autowired
-  @Value("\${sqs.queue.name}")
+  @Value("\${offender-events-sqs.queue.name}")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   private lateinit var queueName: String
 
   @Autowired
-  @Value("\${sqs.dlq.name}")
+  @Value("\${offender-events-sqs.dlq.name}")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   private lateinit var dlqName: String
 

@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService
 
 @RestController
 @Validated
-@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${sqs.provider}')")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
 @RequestMapping("/queue-admin", produces = [MediaType.APPLICATION_JSON_VALUE])
 class QueueAdminResource(
   private val queueAdminService: QueueAdminService
