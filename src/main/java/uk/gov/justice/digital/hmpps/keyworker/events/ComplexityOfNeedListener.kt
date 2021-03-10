@@ -21,7 +21,7 @@ class ComplexityOfNeedListener(
   }
 
   @JmsListener(
-    destination = "\${offender-events-sqs.queue.name}",
+    destination = "\${complexity-of-need-sqs.queue.name}",
     containerFactory = "jmsListenerContainerFactoryForComplexityOfNeed"
   )
   fun eventListener(requestJson: String) {
@@ -31,7 +31,7 @@ class ComplexityOfNeedListener(
     val event = gson.fromJson(message, ComplexityOfNeedChange::class.java)
 
     when (eventType) {
-      "new-complexity-of-need-level" -> complexityOfNeedService.onComplexityChange(
+      "complexity-of-need.level.changed" -> complexityOfNeedService.onComplexityChange(
         event.offenderNo,
         ComplexityOfNeedLevel.valueOf(
           event.level.toUpperCase()

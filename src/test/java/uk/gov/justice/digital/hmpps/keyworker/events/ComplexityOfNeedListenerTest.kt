@@ -16,6 +16,10 @@ class ComplexityOfNeedListenerTest {
 
   lateinit var complexityOfNeedListener: ComplexityOfNeedListener
 
+  companion object {
+    const val OFFENDER_NO = "A12345"
+  }
+
   @BeforeEach
   fun setUp() {
     complexityOfNeedListener = ComplexityOfNeedListener(complexityOfNeedService, JsonConfig().gson())
@@ -28,6 +32,6 @@ class ComplexityOfNeedListenerTest {
 
     complexityOfNeedListener.eventListener(fileContent)
 
-    verify(complexityOfNeedService).onComplexityChange("A12345", ComplexityOfNeedLevel.HIGH)
+    verify(complexityOfNeedService).onComplexityChange(OFFENDER_NO, ComplexityOfNeedLevel.HIGH)
   }
 }
