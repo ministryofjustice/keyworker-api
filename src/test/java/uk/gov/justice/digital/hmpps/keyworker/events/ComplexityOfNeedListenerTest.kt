@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
@@ -15,6 +17,10 @@ class ComplexityOfNeedListenerTest {
   lateinit var complexityOfNeedService: ComplexityOfNeedService
 
   lateinit var complexityOfNeedListener: ComplexityOfNeedListener
+
+  companion object {
+    const val OFFENDER_NO = "A12345"
+  }
 
   @BeforeEach
   fun setUp() {
@@ -28,6 +34,6 @@ class ComplexityOfNeedListenerTest {
 
     complexityOfNeedListener.eventListener(fileContent)
 
-    verify(complexityOfNeedService).onComplexityChange("A12345", ComplexityOfNeedLevel.HIGH)
+    verify(complexityOfNeedService).onComplexityChange(OFFENDER_NO, ComplexityOfNeedLevel.HIGH)
   }
 }
