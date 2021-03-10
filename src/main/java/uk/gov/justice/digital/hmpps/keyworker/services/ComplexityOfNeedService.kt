@@ -16,10 +16,12 @@ class ComplexityOfNeedService(
 
   fun onComplexityChange(offenderNo: String, level: ComplexityOfNeedLevel) {
     telemetryClient.trackEvent(
-      "Complexity-of-need-change", mapOf(
+      "Complexity-of-need-change",
+      mapOf(
         "offenderNo" to offenderNo,
         "level-changed-to" to level.toString()
-      ), null
+      ),
+      null
     )
 
     if (level != ComplexityOfNeedLevel.HIGH) return
