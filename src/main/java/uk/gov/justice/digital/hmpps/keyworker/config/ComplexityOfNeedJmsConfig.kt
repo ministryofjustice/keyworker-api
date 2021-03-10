@@ -23,18 +23,18 @@ import org.springframework.jms.support.destination.DynamicDestinationResolver
 import javax.jms.Session
 
 @Configuration
-@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${complexity-of-need-sqs.provider}')")
 @EnableJms
-class JmsConfig {
+class ComplexityOfNeedJmsConfig {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @Bean
+  @Bean("jmsListenerContainerFactoryForComplexityOfNeed")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-  open fun jmsListenerContainerFactory(awsSqsClient: AmazonSQS): DefaultJmsListenerContainerFactory {
+  fun jmsListenerContainerFactory(awsSqsClientForComplexityOfNeed: AmazonSQS): DefaultJmsListenerContainerFactory {
     val factory = DefaultJmsListenerContainerFactory()
-    factory.setConnectionFactory(SQSConnectionFactory(ProviderConfiguration(), awsSqsClient))
+    factory.setConnectionFactory(SQSConnectionFactory(ProviderConfiguration(), awsSqsClientForComplexityOfNeed))
     factory.setDestinationResolver(DynamicDestinationResolver())
     factory.setConcurrency("1")
     factory.setSessionAcknowledgeMode(Session.CLIENT_ACKNOWLEDGE)
@@ -43,11 +43,11 @@ class JmsConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "aws")
-  fun awsSqsClient(
-    @Value("\${offender-events-sqs.aws.access.key.id}") accessKey: String,
-    @Value("\${offender-events-sqs.aws.secret.access.key}") secretKey: String,
-    @Value("\${offender-events-sqs.endpoint.region}") region: String
+  @ConditionalOnProperty(name = ["complexity-of-need-sqs.provider"], havingValue = "aws")
+  fun awsSqsClientForComplexityOfNeed(
+    @Value("\${complexity-of-need-sqs.aws.access.key.id}") accessKey: String,
+    @Value("\${complexity-of-need-sqs.aws.secret.access.key}") secretKey: String,
+    @Value("\${complexity-of-need-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
@@ -55,50 +55,50 @@ class JmsConfig {
       .build()
 
   @Bean
-  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "aws")
-  fun awsSqsDlqClient(
-    @Value("\${offender-events-sqs.aws.dlq.access.key.id}") accessKey: String,
-    @Value("\${offender-events-sqs.aws.dlq.secret.access.key}") secretKey: String,
-    @Value("\${offender-events-sqs.endpoint.region}") region: String
+  @ConditionalOnProperty(name = ["complexity-of-need-sqs.provider"], havingValue = "aws")
+  fun awsSqsDlqClientForComplexityOfNeed(
+    @Value("\${complexity-of-need-sqs.aws.dlq.access.key.id}") accessKey: String,
+    @Value("\${complexity-of-need-sqs.aws.dlq.secret.access.key}") secretKey: String,
+    @Value("\${complexity-of-need-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withCredentials(AWSStaticCredentialsProvider(BasicAWSCredentials(accessKey, secretKey)))
       .withRegion(region)
       .build()
 
-  @Bean("awsSqsClient")
-  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "localstack")
-  fun awsSqsClientLocalstack(
-    @Value("\${offender-events-sqs.endpoint.url}") serviceEndpoint: String,
-    @Value("\${offender-events-sqs.endpoint.region}") region: String
+  @Bean("awsSqsClientForComplexityOfNeed")
+  @ConditionalOnProperty(name = ["complexity-of-need-sqs.provider"], havingValue = "localstack")
+  fun awsSqsClientForOffenderEventsLocalstack(
+    @Value("\${complexity-of-need-sqs.endpoint.url}") serviceEndpoint: String,
+    @Value("\${complexity-of-need-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
       .withCredentials(AWSStaticCredentialsProvider(AnonymousAWSCredentials()))
       .build()
 
-  @Bean("awsSqsDlqClient")
-  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "localstack")
-  fun awsSqsDlqClientLocalstack(
-    @Value("\${offender-events-sqs.endpoint.url}") serviceEndpoint: String,
-    @Value("\${offender-events-sqs.endpoint.region}") region: String
+  @Bean("awsSqsDlqClientForComplexityOfNeed")
+  @ConditionalOnProperty(name = ["complexity-of-need-sqs.provider"], havingValue = "localstack")
+  fun awsSqsDlqClientForOffenderEventsLocalstack(
+    @Value("\${complexity-of-need-sqs.endpoint.url}") serviceEndpoint: String,
+    @Value("\${complexity-of-need-sqs.endpoint.region}") region: String
   ): AmazonSQS =
     AmazonSQSClientBuilder.standard()
       .withEndpointConfiguration(AwsClientBuilder.EndpointConfiguration(serviceEndpoint, region))
       .withCredentials(AWSStaticCredentialsProvider(AnonymousAWSCredentials()))
       .build()
 
-  @Bean
-  @ConditionalOnProperty(name = ["offender-events-sqs.provider"], havingValue = "localstack")
+  @Bean("queueUrlForComplexityOfNeed")
+  @ConditionalOnProperty(name = ["complexity-of-need-sqs.provider"], havingValue = "localstack")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   fun queueUrl(
-    @Autowired awsSqsClient: AmazonSQS,
-    @Value("\${offender-events-sqs.queue.name}") queueName: String,
-    @Value("\${offender-events-sqs.dlq.name}") dlqName: String
+    @Autowired awsSqsClientForComplexityOfNeed: AmazonSQS,
+    @Value("\${complexity-of-need-sqs.queue.name}") queueName: String,
+    @Value("\${complexity-of-need-sqs.dlq.name}") dlqName: String
   ): String {
-    val result = awsSqsClient.createQueue(CreateQueueRequest(dlqName))
-    val dlqArn = awsSqsClient.getQueueAttributes(result.queueUrl, listOf(QueueAttributeName.QueueArn.toString()))
-    awsSqsClient.createQueue(
+    val result = awsSqsClientForComplexityOfNeed.createQueue(CreateQueueRequest(dlqName))
+    val dlqArn = awsSqsClientForComplexityOfNeed.getQueueAttributes(result.queueUrl, listOf(QueueAttributeName.QueueArn.toString()))
+    awsSqsClientForComplexityOfNeed.createQueue(
       CreateQueueRequest(queueName).withAttributes(
         mapOf(
           QueueAttributeName.RedrivePolicy.toString() to
@@ -106,6 +106,6 @@ class JmsConfig {
         )
       )
     )
-    return awsSqsClient.getQueueUrl(queueName).queueUrl
+    return awsSqsClientForComplexityOfNeed.getQueueUrl(queueName).queueUrl
   }
 }

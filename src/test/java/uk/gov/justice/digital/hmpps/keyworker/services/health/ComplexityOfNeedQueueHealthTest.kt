@@ -8,15 +8,12 @@ import com.amazonaws.services.sqs.model.QueueAttributeName
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers
 import org.springframework.boot.actuate.health.Status
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
 
-class QueueHealthTest {
+class ComplexityOfNeedQueueHealthTest {
 
   private val someQueueName = "some queue name"
   private val someQueueUrl = "some queue url"
@@ -27,7 +24,7 @@ class QueueHealthTest {
   private val someMessagesOnDLQCount = 789
   private val amazonSqs: AmazonSQS = mock()
   private val amazonSqsDLQ: AmazonSQS = mock()
-  private val queueHealth: QueueHealth = QueueHealth(amazonSqs, amazonSqsDLQ, someQueueName, someDLQName)
+  private val queueHealth = ComplexityOfNeedQueueHealth(amazonSqs, amazonSqsDLQ, someQueueName, someDLQName)
 
   @Test
   fun `health - queue found - UP`() {
@@ -35,7 +32,7 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.status).isEqualTo(Status.UP)
+    Assertions.assertThat(health.status).isEqualTo(Status.UP)
   }
 
   @Test
@@ -44,27 +41,27 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.details[MESSAGES_ON_QUEUE.healthName]).isEqualTo(someMessagesOnQueueCount)
-    assertThat(health.details[MESSAGES_IN_FLIGHT.healthName]).isEqualTo(someMessagesInFlightCount)
+    Assertions.assertThat(health.details[QueueAttributes.MESSAGES_ON_QUEUE.healthName]).isEqualTo(someMessagesOnQueueCount)
+    Assertions.assertThat(health.details[QueueAttributes.MESSAGES_IN_FLIGHT.healthName]).isEqualTo(someMessagesInFlightCount)
   }
 
   @Test
   fun `health - queue not found - DOWN`() {
-    whenever(amazonSqs.getQueueUrl(anyString())).thenThrow(QueueDoesNotExistException::class.java)
+    whenever(amazonSqs.getQueueUrl(ArgumentMatchers.anyString())).thenThrow(QueueDoesNotExistException::class.java)
 
     val health = queueHealth.health()
 
-    assertThat(health.status).isEqualTo(Status.DOWN)
+    Assertions.assertThat(health.status).isEqualTo(Status.DOWN)
   }
 
   @Test
   fun `health - failed to get main queue attributes - DOWN`() {
-    whenever(amazonSqs.getQueueUrl(anyString())).thenReturn(someGetQueueUrlResult())
+    whenever(amazonSqs.getQueueUrl(ArgumentMatchers.anyString())).thenReturn(someGetQueueUrlResult())
     whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenThrow(RuntimeException::class.java)
 
     val health = queueHealth.health()
 
-    assertThat(health.status).isEqualTo(Status.DOWN)
+    Assertions.assertThat(health.status).isEqualTo(Status.DOWN)
   }
 
   @Test
@@ -73,7 +70,7 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.UP.description)
+    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.UP.description)
   }
 
   @Test
@@ -82,7 +79,7 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.details[MESSAGES_ON_DLQ.healthName]).isEqualTo(someMessagesOnDLQCount)
+    Assertions.assertThat(health.details[QueueAttributes.MESSAGES_ON_DLQ.healthName]).isEqualTo(someMessagesOnDLQCount)
   }
 
   @Test
@@ -94,8 +91,8 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.status).isEqualTo(Status.DOWN)
-    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
+    Assertions.assertThat(health.status).isEqualTo(Status.DOWN)
+    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -107,7 +104,7 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
+    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -120,7 +117,7 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_FOUND.description)
+    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_FOUND.description)
   }
 
   @Test
@@ -134,7 +131,7 @@ class QueueHealthTest {
 
     val health = queueHealth.health()
 
-    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_AVAILABLE.description)
+    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_AVAILABLE.description)
   }
 
   private fun mockHealthyQueue() {
@@ -154,15 +151,15 @@ class QueueHealthTest {
   private fun someGetQueueUrlResult(): GetQueueUrlResult = GetQueueUrlResult().withQueueUrl(someQueueUrl)
   private fun someGetQueueAttributesResultWithoutDLQ() = GetQueueAttributesResult().withAttributes(
     mapOf(
-      MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
-      MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString()
+      QueueAttributes.MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
+      QueueAttributes.MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString()
     )
   )
 
   private fun someGetQueueAttributesResultWithDLQ() = GetQueueAttributesResult().withAttributes(
     mapOf(
-      MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
-      MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString(),
+      QueueAttributes.MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
+      QueueAttributes.MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString(),
       QueueAttributeName.RedrivePolicy.toString() to "any redrive policy"
     )
   )
@@ -172,6 +169,6 @@ class QueueHealthTest {
 
   private fun someGetQueueUrlResultForDLQ(): GetQueueUrlResult = GetQueueUrlResult().withQueueUrl(someDLQUrl)
   private fun someGetQueueAttributesResultForDLQ() = GetQueueAttributesResult().withAttributes(
-    mapOf(MESSAGES_ON_QUEUE.awsName to someMessagesOnDLQCount.toString())
+    mapOf(QueueAttributes.MESSAGES_ON_QUEUE.awsName to someMessagesOnDLQCount.toString())
   )
 }

@@ -59,7 +59,6 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerTestHelpe
 @ExtendWith(MockitoExtension.class)
 class KeyworkerAutoAllocationServiceTest {
     private static final String TEST_AGENCY_ID = "LEI";
-    private static final Set<String> TEST_COMPLEX_OFFENDERS = Set.of("G6415GD","G8930UW");
 
     private KeyworkerAutoAllocationService keyworkerAutoAllocationService;
 
@@ -78,15 +77,10 @@ class KeyworkerAutoAllocationServiceTest {
     @Mock
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
 
-    private MoicService moicService;
-
     private long allocCount;
 
     @BeforeEach
     void setUp() {
-
-        moicService = new MoicService(TEST_COMPLEX_OFFENDERS, Set.of(TEST_AGENCY_ID));
-
         // Construct service under test (using mock collaborators)
         final var aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
 
@@ -96,7 +90,7 @@ class KeyworkerAutoAllocationServiceTest {
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
 
         keyworkerAutoAllocationService =
-            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService, moicService);
+            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -566,18 +560,6 @@ class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
         });
-    }
-
-    @Test
-    void testComplexOffendersAreSkipped() {
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Set.of("A12345", "G6415GD", "G8930UW"));
-        mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2));
-        mockPrisonerAllocationHistory(null);
-
-        keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
-
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
-        verify(keyworkerService, times(1)).allocate(kwaArg.capture());
     }
 
     @Test

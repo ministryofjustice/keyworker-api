@@ -114,4 +114,42 @@ env:
       secretKeyRef:
         name: kw-sqs-dl-instance-output
         key: sqs_kw_name
+
+  - name: COMPLEXITY_OF_NEED_SQS_AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: kw-sqs-complexity-of-need-instance-output
+        key: access_key_id
+
+  - name: COMPLEXITY_OF_NEED_SQS_AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: kw-sqs-complexity-of-need-instance-output
+        key: secret_access_key
+
+  - name: COMPLEXITY_OF_NEED_SQS_QUEUE_NAME
+    valueFrom:
+      secretKeyRef:
+        name: kw-sqs-complexity-of-need-instance-output
+        key: sqs_kw_name
+
+  - name: COMPLEXITY_OF_NEED_SQS_AWS_DLQ_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: kw-sqs-complexity-of-need-dl-instance-output
+        key: access_key_id
+
+  - name: COMPLEXITY_OF_NEED_SQS_AWS_DLQ_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: kw-sqs-complexity-of-need-dl-instance-output
+        key: secret_access_key
+
+  - name: COMPLEXITY_OF_NEED_SQS_DLQ_NAME
+    valueFrom:
+      secretKeyRef:
+        name: kw-sqs-complexity-of-need-dl-instance-output
+        key: sqs_kw_name	
+
+
 {{- end -}}

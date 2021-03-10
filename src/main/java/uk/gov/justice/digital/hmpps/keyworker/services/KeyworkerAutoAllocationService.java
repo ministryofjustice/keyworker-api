@@ -39,25 +39,20 @@ public class KeyworkerAutoAllocationService {
     private final KeyworkerPoolFactory keyworkerPoolFactory;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
-    private final MoicService moicService;
-
     /**
      * Constructor.
      *
      * @param keyworkerService     key worker allocation service.
      * @param keyworkerPoolFactory factory that facilitates creation of Key worker pools.
-     * @param moicService
      */
     public KeyworkerAutoAllocationService(final KeyworkerService keyworkerService,
                                           final KeyworkerPoolFactory keyworkerPoolFactory,
                                           final OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                          final PrisonSupportedService prisonSupportedService,
-                                          final MoicService moicService) {
+                                          final PrisonSupportedService prisonSupportedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
-        this.moicService = moicService;
     }
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
@@ -80,7 +75,7 @@ public class KeyworkerAutoAllocationService {
         final var startAllocCount = counter.count();
 
         // Get all unallocated offenders for agency
-        final var unallocatedOffenders = stripComplexOffenders(prisonId, getUnallocatedOffenders(prisonId));
+        final var unallocatedOffenders = getUnallocatedOffenders(prisonId);
 
         // Are there any unallocated offenders? If not, log and exit, otherwise proceed.
         if (unallocatedOffenders.isEmpty()) {
@@ -117,19 +112,6 @@ public class KeyworkerAutoAllocationService {
 
         return (long) calcAndLogAllocationsProcessed(prisonId, startAllocCount, counter);
     }
-
-    private List<OffenderLocationDto> stripComplexOffenders(final String prisonId, final List<OffenderLocationDto> unAllocated) {
-        final var unAllocatedOffenderNos = unAllocated.stream()
-            .map(OffenderLocationDto::getOffenderNo)
-            .collect(Collectors.toList());
-
-        final var complexOffenders = moicService.getComplexOffenders(prisonId, unAllocatedOffenderNos);
-
-        return unAllocated.stream()
-            .filter(offenderLocation -> !complexOffenders.contains(offenderLocation.getOffenderNo()))
-            .collect(Collectors.toList());
-    }
-
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public Long confirmAllocations(final String prisonId) {

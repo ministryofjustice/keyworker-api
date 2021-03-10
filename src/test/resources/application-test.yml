@@ -11,13 +11,18 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-
-
 offender-events-sqs:
   provider: localstack
   endpoint.url: http://localhost:4576
   queue.name: keyworker_api_queue
   dlq.name: keyworker_api_dlq
+
+
+complexity-of-need-sqs:
+  provider: localstack
+  endpoint.url: http://localhost:4576
+  queue.name: complexity_of_need_sqs
+  dlq.name: complexity_of_need_sqs_dlq
 
 elite2.uri.root: http://localhost:9999
 auth.uri.root: http://localhost:8090

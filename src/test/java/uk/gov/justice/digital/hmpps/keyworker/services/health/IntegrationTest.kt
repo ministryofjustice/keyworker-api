@@ -22,8 +22,12 @@ abstract class IntegrationTest {
   lateinit var webTestClient: WebTestClient
 
   @SpyBean
-  @Qualifier("awsSqsClient")
-  internal lateinit var awsSqsClient: AmazonSQS
+  @Qualifier("awsSqsClientForOffenderEvents")
+  internal lateinit var awsSqsClientForOffenderEvents: AmazonSQS
+
+  @SpyBean
+  @Qualifier("awsSqsClientForComplexityOfNeed")
+  internal lateinit var awsSqsClientForComplexityOfNeed: AmazonSQS
 
   companion object {
     @JvmField

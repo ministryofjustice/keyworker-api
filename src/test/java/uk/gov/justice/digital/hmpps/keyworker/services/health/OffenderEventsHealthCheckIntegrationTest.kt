@@ -17,10 +17,10 @@ import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.ME
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
 
-class HealthCheckIntegrationTest : IntegrationTest() {
+class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
   @Autowired
-  private lateinit var queueHealth: QueueHealth
+  private lateinit var queueHealth: OffenderEventsQueueHealth
 
   @Autowired
   @Value("\${offender-events-sqs.queue.name}")
@@ -95,7 +95,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.queueHealth.status").isEqualTo("UP")
+      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("UP")
   }
 
   @Test
@@ -104,20 +104,21 @@ class HealthCheckIntegrationTest : IntegrationTest() {
 
     getForEntity("/health")
       .expectBody()
-      .jsonPath("$.components.queueHealth.details.${MESSAGES_ON_QUEUE.healthName}").isEqualTo(0)
-      .jsonPath("$.components.queueHealth.details.${MESSAGES_IN_FLIGHT.healthName}").isEqualTo(0)
+      .jsonPath("$.components.offenderEventsQueueHealth.details.${MESSAGES_ON_QUEUE.healthName}").isEqualTo(0)
+      .jsonPath("$.components.offenderEventsQueueHealth.details.${MESSAGES_IN_FLIGHT.healthName}").isEqualTo(0)
   }
 
   @Test
   fun `Queue does not exist reports down`() {
     ReflectionTestUtils.setField(queueHealth, "queueName", "missing_queue")
+
     subPing(200)
 
     getForEntity("/health")
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.queueHealth.status").isEqualTo("DOWN")
+      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("DOWN")
   }
 
   @Test
@@ -128,8 +129,8 @@ class HealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.queueHealth.status").isEqualTo("UP")
-      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.UP.description)
+      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("UP")
+      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.UP.description)
   }
 
   @Test
@@ -138,7 +139,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
 
     getForEntity("/health")
       .expectBody()
-      .jsonPath("components.queueHealth.details.${MESSAGES_ON_DLQ.healthName}").isEqualTo(0)
+      .jsonPath("components.offenderEventsQueueHealth.details.${MESSAGES_ON_DLQ.healthName}").isEqualTo(0)
   }
 
   @Test
@@ -150,8 +151,8 @@ class HealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.queueHealth.status").isEqualTo("DOWN")
-      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("DOWN")
+      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -163,7 +164,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -174,7 +175,7 @@ class HealthCheckIntegrationTest : IntegrationTest() {
     getForEntity("/health")
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
-      .jsonPath("$.components.queueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
+      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
   }
 
   @Test
@@ -204,9 +205,9 @@ class HealthCheckIntegrationTest : IntegrationTest() {
 
   private fun mockQueueWithoutRedrivePolicyAttributes() {
     val queueName = ReflectionTestUtils.getField(queueHealth, "queueName") as String
-    val queueUrl = awsSqsClient.getQueueUrl(queueName)
+    val queueUrl = awsSqsClientForOffenderEvents.getQueueUrl(queueName)
     whenever(
-      awsSqsClient.getQueueAttributes(
+      awsSqsClientForOffenderEvents.getQueueAttributes(
         GetQueueAttributesRequest(queueUrl.queueUrl).withAttributeNames(
           listOf(
             QueueAttributeName.All.toString()

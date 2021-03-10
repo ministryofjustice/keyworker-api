@@ -3,3 +3,9 @@ offender-events-sqs:
   queue.name: keyworker_api_queue
   dlq.name: keyworker_api_dlq
   endpoint.url: http://localhost:4576
+
+complexity-of-need-sqs:
+  provider: localstack
+  queue.name: complexity_of_need_sqs
+  dlq.name: complexity_of_need_sqs_dlq
+  endpoint.url: http://localhost:4576

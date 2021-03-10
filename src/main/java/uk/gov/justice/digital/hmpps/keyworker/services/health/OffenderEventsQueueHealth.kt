@@ -5,8 +5,6 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult
 import com.amazonaws.services.sqs.model.GetQueueUrlResult
 import com.amazonaws.services.sqs.model.QueueAttributeName
-import com.amazonaws.services.sqs.model.QueueAttributeName.ApproximateNumberOfMessages
-import com.amazonaws.services.sqs.model.QueueAttributeName.ApproximateNumberOfMessagesNotVisible
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,24 +23,11 @@ import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.ME
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
 
-enum class DlqStatus(val description: String) {
-  UP("UP"),
-  NOT_ATTACHED("The queue does not have a dead letter queue attached"),
-  NOT_FOUND("The queue does not exist"),
-  NOT_AVAILABLE("The queue cannot be interrogated")
-}
-
-enum class QueueAttributes(val awsName: String, val healthName: String) {
-  MESSAGES_ON_QUEUE(ApproximateNumberOfMessages.toString(), "MessagesOnQueue"),
-  MESSAGES_IN_FLIGHT(ApproximateNumberOfMessagesNotVisible.toString(), "MessagesInFlight"),
-  MESSAGES_ON_DLQ(ApproximateNumberOfMessages.toString(), "MessagesOnDLQ")
-}
-
 @Component
 @ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
-open class QueueHealth(
-  @Autowired @Qualifier("awsSqsClient") private val awsSqsClient: AmazonSQS,
-  @Autowired @Qualifier("awsSqsDlqClient") private val awsSqsDlqClient: AmazonSQS,
+open class OffenderEventsQueueHealth(
+  @Autowired @Qualifier("awsSqsClientForOffenderEvents") private val awsSqsClient: AmazonSQS,
+  @Autowired @Qualifier("awsSqsDlqClientForOffenderEvents") private val awsSqsDlqClient: AmazonSQS,
   @Value("\${offender-events-sqs.queue.name}") private val queueName: String,
   @Value("\${offender-events-sqs.dlq.name}") private val dlqName: String
 ) : HealthIndicator {
