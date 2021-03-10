@@ -25,6 +25,10 @@ abstract class IntegrationTest {
   @Qualifier("awsSqsClientForOffenderEvents")
   internal lateinit var awsSqsClientForOffenderEvents: AmazonSQS
 
+  @SpyBean
+  @Qualifier("awsSqsClientForComplexityOfNeed")
+  internal lateinit var awsSqsClientForComplexityOfNeed: AmazonSQS
+
   companion object {
     @JvmField
     internal val eliteMockServer = EliteMockServer()

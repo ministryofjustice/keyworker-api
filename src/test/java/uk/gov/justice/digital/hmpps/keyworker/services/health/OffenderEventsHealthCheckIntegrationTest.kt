@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.ME
 class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
   @Autowired
-  private lateinit var queueHealth: offenderEventsQueueHealth
+  private lateinit var queueHealth: OffenderEventsQueueHealth
 
   @Autowired
   @Value("\${offender-events-sqs.queue.name}")

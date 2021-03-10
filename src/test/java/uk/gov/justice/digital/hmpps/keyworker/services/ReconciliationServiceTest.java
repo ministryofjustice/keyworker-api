@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
-import uk.gov.justice.digital.hmpps.keyworker.events.EventListener.OffenderEvent;
+import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;

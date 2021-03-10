@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 
 @Service
 @ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
-class EventListener(
+class OffenderEventListener(
   private val reconciliationService: ReconciliationService,
   private val keyworkerService: KeyworkerService,
   @Qualifier("gson") private val gson: Gson
@@ -22,7 +22,7 @@ class EventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @JmsListener(destination = "\${offender-events-sqs.queue.name}")
+  @JmsListener(destination = "\${offender-events-sqs.queue.name}", containerFactory = "jmsListenerContainerFactoryForOffenderEvents")
   fun eventListener(requestJson: String) {
     val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
     val eventType = messageAttributes.eventType.Value
@@ -35,9 +35,6 @@ class EventListener(
     }
   }
 
-  private data class Message(val Message: String, val MessageAttributes: MessageAttributes)
-  private data class MessageAttributes(val eventType: Attribute)
-  private data class Attribute(val Value: String)
   data class OffenderEvent(
     val bookingId: Long?,
     val movementSeq: Long?,
