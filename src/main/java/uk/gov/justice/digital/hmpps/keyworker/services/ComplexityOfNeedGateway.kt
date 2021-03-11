@@ -17,7 +17,7 @@ data class ComplexOffender(
 )
 
 @Service
-class ComplexityOfNeedAPI(private val complexityOfNeedWebClient: WebClient) {
+class ComplexityOfNeedGateway(private val complexityOfNeedWebClient: WebClient) {
   fun getOffendersWithMeasuredComplexityOfNeed(offenders: Set<String>): List<ComplexOffender> {
     val responseType: ParameterizedTypeReference<List<ComplexOffender>> =
       object : ParameterizedTypeReference<List<ComplexOffender>>() {}

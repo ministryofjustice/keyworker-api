@@ -9,18 +9,18 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 @Service
 class ComplexityOfNeedService(
   val keyworkerService: KeyworkerService,
-  val complexityOfNeedAPI: ComplexityOfNeedAPI,
-  @Value("\${womens.estate}") val enabledPrisons: Set<String>,
+  val complexityOfNeedGateway: ComplexityOfNeedGateway,
+  @Value("\${womens.estate}") val prisonsWithOffenderComplexityNeeds: Set<String>,
   val telemetryClient: TelemetryClient
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getComplexOffenders(prisonId: String, offenders: Set<String>): Set<String> {
-    if (!enabledPrisons.contains(prisonId)) return offenders
+  fun removeOffendersWithHighComplexityOfNeed(prisonId: String, offenders: Set<String>): Set<String> {
+    if (!prisonsWithOffenderComplexityNeeds.contains(prisonId)) return offenders
 
-    val complexOffenders = complexityOfNeedAPI
+    val complexOffenders = complexityOfNeedGateway
       .getOffendersWithMeasuredComplexityOfNeed(offenders)
       .filter {
         it.level.equals(ComplexityOfNeedLevel.HIGH)

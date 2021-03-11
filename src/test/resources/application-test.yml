@@ -37,4 +37,4 @@ spring:
 api.health-timeout-ms: 400
 
 womens:
-  estate: LEI
+  estate: LEI,MDI

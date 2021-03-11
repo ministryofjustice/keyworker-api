@@ -35,14 +35,14 @@ class ComplexityOfNeedServiceTest {
   lateinit var telemetryClient: TelemetryClient
 
   @Mock
-  lateinit var complexityOfNeedAPI: ComplexityOfNeedAPI
+  lateinit var complexityOfNeedGateway: ComplexityOfNeedGateway
 
   lateinit var complexityOfNeedService: ComplexityOfNeedService
 
   @BeforeEach
   fun setUp() {
     complexityOfNeedService =
-      ComplexityOfNeedService(keyworkerService, complexityOfNeedAPI, ENABLED_PRISONS, telemetryClient)
+      ComplexityOfNeedService(keyworkerService, complexityOfNeedGateway, ENABLED_PRISONS, telemetryClient)
   }
 
   @Test
@@ -61,26 +61,26 @@ class ComplexityOfNeedServiceTest {
 
   @Test
   fun `should not filter out complex offenders for none enabled prisons`() {
-    val complexOffenders = complexityOfNeedService.getComplexOffenders("LEI", setOf(OFFENDER_NO_1))
+    val complexOffenders = complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("LEI", setOf(OFFENDER_NO_1))
 
     assertThat(complexOffenders).isEqualTo(setOf(OFFENDER_NO_1))
   }
 
   @Test
   fun `should make a complexity of need reuqest for enabled prisons`() {
-    whenever(complexityOfNeedAPI.getOffendersWithMeasuredComplexityOfNeed(any())).thenReturn(
+    whenever(complexityOfNeedGateway.getOffendersWithMeasuredComplexityOfNeed(any())).thenReturn(
       listOf(
         ComplexOffender(OFFENDER_NO_1, ComplexityOfNeedLevel.LOW)
       )
     )
-    complexityOfNeedService.getComplexOffenders("MDI", setOf(OFFENDER_NO_1))
+    complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1))
 
-    verify(complexityOfNeedAPI, times(1)).getOffendersWithMeasuredComplexityOfNeed(setOf(OFFENDER_NO_1))
+    verify(complexityOfNeedGateway, times(1)).getOffendersWithMeasuredComplexityOfNeed(setOf(OFFENDER_NO_1))
   }
 
   @Test
   fun `should remove all offenders that have a high complexity of need`() {
-    whenever(complexityOfNeedAPI.getOffendersWithMeasuredComplexityOfNeed(any())).thenReturn(
+    whenever(complexityOfNeedGateway.getOffendersWithMeasuredComplexityOfNeed(any())).thenReturn(
       listOf(
         ComplexOffender(OFFENDER_NO_1, ComplexityOfNeedLevel.HIGH),
         ComplexOffender(OFFENDER_NO_2, ComplexityOfNeedLevel.LOW)
@@ -88,9 +88,9 @@ class ComplexityOfNeedServiceTest {
     )
 
     val complexOffenders =
-      complexityOfNeedService.getComplexOffenders("MDI", setOf(OFFENDER_NO_1, OFFENDER_NO_3))
+      complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1, OFFENDER_NO_2, OFFENDER_NO_3))
 
-    assertThat(complexOffenders).isEqualTo(setOf(OFFENDER_NO_3))
+    assertThat(complexOffenders).isEqualTo(setOf(OFFENDER_NO_3, OFFENDER_NO_2))
   }
 
   @Test

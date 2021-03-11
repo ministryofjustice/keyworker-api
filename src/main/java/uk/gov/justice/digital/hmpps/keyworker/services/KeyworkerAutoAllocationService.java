@@ -78,7 +78,7 @@ public class KeyworkerAutoAllocationService {
         final var startAllocCount = counter.count();
 
         // Get all unallocated offenders for agency
-        final var unallocatedOffenders = removeComplexOffenders(prisonId, getUnallocatedOffenders(prisonId));
+        final var unallocatedOffenders = removeOffendersWithHighComplexityOfNeed(prisonId, getUnallocatedOffenders(prisonId));
 
         // Are there any unallocated offenders? If not, log and exit, otherwise proceed.
         if (unallocatedOffenders.isEmpty()) {
@@ -116,15 +116,15 @@ public class KeyworkerAutoAllocationService {
         return (long) calcAndLogAllocationsProcessed(prisonId, startAllocCount, counter);
     }
 
-    private List<OffenderLocationDto> removeComplexOffenders(final String prisonId, final List<OffenderLocationDto> unAllocated) {
+    private List<OffenderLocationDto> removeOffendersWithHighComplexityOfNeed(final String prisonId, final List<OffenderLocationDto> unAllocated) {
         final var unAllocatedOffenderNos = unAllocated.stream()
             .map(OffenderLocationDto::getOffenderNo)
             .collect(Collectors.toSet());
 
-        final var complexOffenders = complexityOfNeedService.getComplexOffenders(prisonId, unAllocatedOffenderNos);
+        final var nonHighComplexOffenders = complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(prisonId, unAllocatedOffenderNos);
 
         return unAllocated.stream()
-            .filter(offenderLocation -> !complexOffenders.contains(offenderLocation.getOffenderNo()))
+            .filter(offenderLocation -> nonHighComplexOffenders.contains(offenderLocation.getOffenderNo()))
             .collect(Collectors.toList());
     }
 
