@@ -77,6 +77,9 @@ class KeyworkerAutoAllocationServiceTest {
     @Mock
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
 
+    @Mock
+    private ComplexityOfNeedService complexityOfNeedService;
+
     private long allocCount;
 
     @BeforeEach
@@ -90,7 +93,7 @@ class KeyworkerAutoAllocationServiceTest {
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
 
         keyworkerAutoAllocationService =
-            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService);
+            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService, complexityOfNeedService);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -578,6 +581,19 @@ class KeyworkerAutoAllocationServiceTest {
 
         final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
         verify(keyworkerService, times(3)).allocate(kwaArg.capture());
+    }
+
+    @Test
+    void testComplexOffendersAreSkipped() {
+        when(complexityOfNeedService.getComplexOffenders(any(), any())).thenReturn(Set.of("G6415GD", "G8930UW"));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Set.of("A12345", "G6415GD", "G8930UW"));
+        mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2));
+        mockPrisonerAllocationHistory(null);
+
+        keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
+
+        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        verify(keyworkerService, times(1)).allocate(kwaArg.capture());
     }
 
     private void mockUnallocatedOffenders(final String prisonId, final Set<String> offenderNos) {
