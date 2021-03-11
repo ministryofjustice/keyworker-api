@@ -62,7 +62,7 @@ class WebClientConfiguration(
   @Bean
   fun complexityOfNeedWebClient(builder: WebClient.Builder): WebClient {
     return builder
-      .baseUrl(complexityOfNeedUri)
+      .baseUrl("$complexityOfNeedUri/v1")
       .filter(addAuthHeaderFilterFunction())
       .build()
   }
