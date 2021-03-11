@@ -1,5 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 enum class ComplexityOfNeedLevel {
-  HIGH, LOW, MEDIUM
+  @JsonProperty("high")
+  HIGH,
+  @JsonProperty("low")
+  LOW,
+  @JsonProperty("medium")
+  MEDIUM
 }
