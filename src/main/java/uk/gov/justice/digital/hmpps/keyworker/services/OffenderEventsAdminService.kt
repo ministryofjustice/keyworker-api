@@ -20,6 +20,15 @@ class OffenderEventsAdminService(
   @Value("\${offender-events-sqs.dlq.name}") private val dlqName: String
 ) : QueueAdminService(awsSqsClient, awsSqsDlqClient, queueName, dlqName)
 
+@Service
+@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${complexity-of-need-sqs.provider}')")
+class ComplexityOfNeedAdminService(
+  @Qualifier("awsSqsClientForComplexityOfNeed") private val awsSqsClient: AmazonSQS,
+  @Qualifier("awsSqsDlqClientForComplexityOfNeed") private val awsSqsDlqClient: AmazonSQS,
+  @Value("\${complexity-of-need-sqs.queue.name}") private val queueName: String,
+  @Value("\${complexity-of-need-sqs.dlq.name}") private val dlqName: String
+) : QueueAdminService(awsSqsClient, awsSqsDlqClient, queueName, dlqName)
+
 open class QueueAdminService(
   private val awsSqsClient: AmazonSQS,
   private val awsSqsDlqClient: AmazonSQS,
