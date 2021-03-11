@@ -28,8 +28,8 @@ env:
   - name: WOMENS_ESTATE
     value: "{{ .Values.env.WOMENS_ESTATE }}"
 
-  - name: WOMENS_ESTATE_COMPLEX_OFFENDERS
-    value: "{{ .Values.env.WOMENS_ESTATE_COMPLEX_OFFENDERS }}"
+  - name: COMPLEXITY_OF_NEED_URI
+    value: "{{ .Values.env.COMPLEXITY_OF_NEED_URI }}"
 
   - name: APPINSIGHTS_INSTRUMENTATIONKEY
     valueFrom:
