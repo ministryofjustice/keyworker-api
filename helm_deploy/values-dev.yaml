@@ -22,4 +22,4 @@ env:
   JAVA_OPTS: "-Xmx512m"
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
   WOMENS_ESTATE: "MDI,LEI"
-  COMPLEXITY_OF_NEED_API_URI: "https://hmpps-complexity-of-need-staging.apps.live-1.cloud-platform.service.justice.gov.uk"
+  COMPLEXITY_OF_NEED_API_URI: "https://hmpps-complexity-of-need-staging.apps.live-1.cloud-platform.service.justice.gov.uk/v1"
