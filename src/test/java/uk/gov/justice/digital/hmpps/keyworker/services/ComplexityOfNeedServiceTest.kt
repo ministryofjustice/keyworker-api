@@ -61,9 +61,9 @@ class ComplexityOfNeedServiceTest {
 
   @Test
   fun `should not filter out complex offenders for none enabled prisons`() {
-    val noneComplexOffenders = complexityOfNeedService.getComplexOffenders("LEI", setOf(OFFENDER_NO_1))
+    val complexOffenders = complexityOfNeedService.getComplexOffenders("LEI", setOf(OFFENDER_NO_1))
 
-    assertThat(noneComplexOffenders).isEqualTo(setOf(OFFENDER_NO_1))
+    assertThat(complexOffenders).isEqualTo(setOf(OFFENDER_NO_1))
   }
 
   @Test
@@ -87,10 +87,10 @@ class ComplexityOfNeedServiceTest {
       )
     )
 
-    val noneHighComplexOffenders =
+    val complexOffenders =
       complexityOfNeedService.getComplexOffenders("MDI", setOf(OFFENDER_NO_1, OFFENDER_NO_3))
 
-    assertThat(noneHighComplexOffenders).isEqualTo(setOf(OFFENDER_NO_3))
+    assertThat(complexOffenders).isEqualTo(setOf(OFFENDER_NO_3))
   }
 
   @Test
