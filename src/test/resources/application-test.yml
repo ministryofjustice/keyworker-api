@@ -35,3 +35,6 @@ spring:
           public-key-location: classpath:local-public-key.pub
 
 api.health-timeout-ms: 400
+
+womens:
+  estate: LEI,MDI

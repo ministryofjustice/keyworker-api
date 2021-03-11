@@ -77,6 +77,12 @@ class KeyworkerAutoAllocationServiceTest {
     @Mock
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
 
+    @Mock
+    private ComplexityOfNeedService complexityOfNeedService;
+
+    @Mock
+    private ComplexityOfNeedGateway complexityOfNeedGateway;
+
     private long allocCount;
 
     @BeforeEach
@@ -90,7 +96,7 @@ class KeyworkerAutoAllocationServiceTest {
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
 
         keyworkerAutoAllocationService =
-            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService);
+            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService, complexityOfNeedService);
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -151,8 +157,12 @@ class KeyworkerAutoAllocationServiceTest {
     // If this test fails, offenders may be allocated to Key workers that are not available for allocation.
     @Test
     void testServiceErrorsWhenNoKeyWorkersAvailableForAutoAllocation() {
+        final var offenders = getNextOffenderNo(3);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
+
         // Some unallocated offenders
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
+        mockUnallocatedOffenders(TEST_AGENCY_ID,offenders);
 
         // No available Key workers
         mockKeyworkers(0, 0, 0, CAPACITY_TIER_1);
@@ -182,8 +192,12 @@ class KeyworkerAutoAllocationServiceTest {
     // If this test fails, Key workers may be allocated too many offenders.
     @Test
     void testServiceErrorsWhenNoKeyWorkersWithSpareAllocationCapacity() {
+        final var offenders = getNextOffenderNo(3);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
+
         // Some unallocated offenders
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(3));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, offenders);
 
         // Some available Key workers (at full capacity)
         final var someKeyworkers = mockKeyworkers(3, FULLY_ALLOCATED, FULLY_ALLOCATED, CAPACITY_TIER_1);
@@ -224,9 +238,12 @@ class KeyworkerAutoAllocationServiceTest {
         final var highAllocCount = FULLY_ALLOCATED - 1;
         final var allocOffenderNo = getNextOffenderNo();
         final long allocStaffId = 2;
+        final var offenders = Collections.singleton(allocOffenderNo);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID,  offenders)).thenReturn(offenders);
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, offenders);
 
         // Some available Key workers (with known capacities)
         final var previousKeyworker = getKeyworker(allocStaffId, highAllocCount, CAPACITY_TIER_1);
@@ -281,9 +298,12 @@ class KeyworkerAutoAllocationServiceTest {
         final var allocOffenderNo = getNextOffenderNo();
         final long allocEarlierStaffId = 2;
         final long allocLaterStaffId = 4;
+        final var offenders =  Collections.singleton(allocOffenderNo);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID,  offenders)).thenReturn(offenders);
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
+        mockUnallocatedOffenders(TEST_AGENCY_ID,offenders);
 
         // Some available Key workers (with known capacities)
         final var earlierKeyworker = getKeyworker(allocEarlierStaffId, lowAllocCount, CAPACITY_TIER_1);
@@ -345,9 +365,12 @@ class KeyworkerAutoAllocationServiceTest {
         final var highAllocCount = FULLY_ALLOCATED - 1;
         final long leastAllocStaffId = 3;
         final var allocOffenderNo = getNextOffenderNo();
+        final var offenders = Collections.singleton(allocOffenderNo);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, offenders);
 
         // Some available Key workers (with known capacities)
         final var leastAllocKeyworker = getKeyworker(leastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
@@ -400,9 +423,12 @@ class KeyworkerAutoAllocationServiceTest {
         final var allocOffenderNo = getNextOffenderNo();
         final long recentLeastAllocStaffId = 3;
         final long olderLeastAllocStaffId = 4;
+        final var offenders = Collections.singleton(allocOffenderNo);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
 
         // An unallocated offender
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.singleton(allocOffenderNo));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, offenders);
 
         // Some available Key workers (with known capacities)
         final var recentLeastAllocKeyworker = getKeyworker(recentLeastAllocStaffId, lowAllocCount, CAPACITY_TIER_1);
@@ -465,8 +491,11 @@ class KeyworkerAutoAllocationServiceTest {
     void testAllOffendersAllocated() {
         final var totalOffenders = 25;
         final var totalKeyworkers = 5L;
+        final var offenders = getNextOffenderNo(totalOffenders);
 
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
+
+        mockUnallocatedOffenders(TEST_AGENCY_ID, offenders);
 
         // Enough available Key workers (with enough total capacity to allocate all offenders)
         final var someKeyworkers = mockKeyworkers(totalKeyworkers, 0, 0, CAPACITY_TIER_1);
@@ -519,8 +548,11 @@ class KeyworkerAutoAllocationServiceTest {
     void testSomeOffendersAllocatedBeforeErrorDueToNoCapacity() {
         final var totalOffenders = 25;
         final var totalKeyworkers = 5;
+        final var offenders = getNextOffenderNo(totalOffenders);
 
-        mockUnallocatedOffenders(TEST_AGENCY_ID, getNextOffenderNo(totalOffenders));
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
+
+        mockUnallocatedOffenders(TEST_AGENCY_ID, offenders);
 
         // Some available Key workers with some capacity but not enough total capacity to allocate all offenders
         final var someKeyworkers = mockKeyworkers(totalKeyworkers, FULLY_ALLOCATED - 2, FULLY_ALLOCATED, CAPACITY_TIER_1);
@@ -563,21 +595,16 @@ class KeyworkerAutoAllocationServiceTest {
     }
 
     @Test
-    void testThatComplexOffenderFilterIsDisabledForMoorland() {
-        final var prisonDetail = Prison.builder()
-            .prisonId("MDI").capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
-            .build();
-
-        lenient().when(prisonSupportedService.getPrisonDetail("MDI")).thenReturn(prisonDetail);
-
-        mockUnallocatedOffenders("MDI", Set.of("A12345", "G6415GD", "G8930UW"));
-        mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2), "MDI");
+    void testComplexOffendersAreSkipped() {
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(any(), any())).thenReturn(Set.of("G6415GD"));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, Set.of("A12345", "G6415GD", "G8930UW"));
+        mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2));
         mockPrisonerAllocationHistory(null);
 
-        keyworkerAutoAllocationService.autoAllocate("MDI");
+        keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
         final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
-        verify(keyworkerService, times(3)).allocate(kwaArg.capture());
+        verify(keyworkerService, times(1)).allocate(kwaArg.capture());
     }
 
     private void mockUnallocatedOffenders(final String prisonId, final Set<String> offenderNos) {
