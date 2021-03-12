@@ -14,4 +14,3 @@ class OffenderEventsAdminService(
   @Value("\${offender-events-sqs.queue.name}") private val queueName: String,
   @Value("\${offender-events-sqs.dlq.name}") private val dlqName: String
 ) : QueueAdminService(awsSqsClient, awsSqsDlqClient, queueName, dlqName)
-
