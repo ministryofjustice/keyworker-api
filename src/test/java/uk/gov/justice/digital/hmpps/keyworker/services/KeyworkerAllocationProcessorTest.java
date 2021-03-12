@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerReposi
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
@@ -149,5 +150,24 @@ class KeyworkerAllocationProcessorTest {
         assertThat(results).extracting(OffenderLocationDto::getOffenderNo).hasSameElementsAs(unallocatedOffNos);
 
         verify(repository).findByActiveAndOffenderNoIn(true, Sets.union(allocatedOffNos, unallocatedOffNos));
+    }
+
+    @Test
+    void testDecorateAllocatedCanHandleDuplicates() {
+        final var OFFENDER_NO = "A12345";
+
+        final var offenderKeyworkers = java.util.List.of(
+            OffenderKeyworker.builder().offenderNo(OFFENDER_NO).build()
+        );
+
+        final var offenderLocations = java.util.List.of(
+            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).build(),
+            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).build()
+        );
+
+        final var keyworkerAllocations = processor.decorateAllocated(offenderKeyworkers, offenderLocations);
+
+        assertThat(keyworkerAllocations.size()).isEqualTo(1);
+        assertThat(keyworkerAllocations).extracting("offenderNo").contains(OFFENDER_NO);
     }
 }
