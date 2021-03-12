@@ -72,7 +72,7 @@ public class KeyworkerAllocationProcessor {
 
         duplicates.keySet().forEach(key -> {
             final var count = duplicates.get(key);
-            if(count > 1) log.error("Duplicate offender at location: {} count: {}",key, count);
+            if(count > 1) log.error("Duplicate offender at location, offenderNo: {} count: {}",key, count);
         });
 
         final var distinctOffenderNumbers = allOffenders.stream()
