@@ -65,7 +65,24 @@ public class KeyworkerAllocationProcessor {
     }
 
     public List<KeyworkerAllocationDetailsDto> decorateAllocated(final List<OffenderKeyworker> allocations, final List<OffenderLocationDto> allOffenders) {
-        final var allOffendersMap = allOffenders.stream().collect(Collectors.toMap(OffenderLocationDto::getOffenderNo, Function.identity()));
+
+        final var duplicates = allOffenders.stream()
+            .map(OffenderLocationDto::getOffenderNo)
+            .collect(Collectors.groupingBy(string -> string, Collectors.counting()));
+
+        duplicates.keySet().forEach(key -> {
+            if(duplicates.get(key) > 1) log.error("Duplicate offender at location: {}",key);
+        });
+
+        final var distinctOffenderNumbers = allOffenders.stream()
+            .map(OffenderLocationDto::getOffenderNo)
+            .distinct()
+            .collect(Collectors.toSet());
+
+        final var allOffendersMap = allOffenders.stream()
+            .filter(offender -> !distinctOffenderNumbers.contains(offender.getOffenderNo()))
+            .collect(Collectors.toMap(OffenderLocationDto::getOffenderNo, Function.identity()));
+
         return allocations.stream().map(t -> {
             final var keyworkerAllocationDetailsDto = ConversionHelper.INSTANCE.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(t);
             final var offenderLocationDto = allOffendersMap.get(t.getOffenderNo());

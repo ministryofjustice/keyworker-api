@@ -13,7 +13,7 @@ spring:
           lob:
             non_contextual_creation: true
   flyway:
-    enabled: true
+    enabled: false
 
   datasource:
     url: ${app.db.url}

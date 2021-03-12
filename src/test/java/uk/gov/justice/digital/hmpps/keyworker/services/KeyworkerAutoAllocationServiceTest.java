@@ -597,7 +597,7 @@ class KeyworkerAutoAllocationServiceTest {
     @Test
     void testComplexOffendersAreSkipped() {
         when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(any(), any())).thenReturn(Set.of("G6415GD"));
-        mockUnallocatedOffenders(TEST_AGENCY_ID, Set.of("A12345", "G6415GD", "G8930UW"));
+        mockUnallocatedOffenders(TEST_AGENCY_ID, List.of("A12345", "G6415GD", "G8930UW", "G8930UW", "G8930UW"));
         mockKeyworkerPool(mockKeyworkers(1, 0, FULLY_ALLOCATED, CAPACITY_TIER_2));
         mockPrisonerAllocationHistory(null);
 
@@ -608,6 +608,18 @@ class KeyworkerAutoAllocationServiceTest {
     }
 
     private void mockUnallocatedOffenders(final String prisonId, final Set<String> offenderNos) {
+        final var offNos = offenderNos.toArray(new String[0]);
+
+        final List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
+
+        for (var i = 0; i < offNos.length; i++) {
+            unallocatedOffenders.add(KeyworkerTestHelper.getOffender(i + 1, prisonId, offNos[i]));
+        }
+
+        when(keyworkerService.getUnallocatedOffenders(eq(prisonId), isNull(), isNull())).thenReturn(unallocatedOffenders);
+    }
+
+    private void mockUnallocatedOffenders(final String prisonId, final List<String> offenderNos) {
         final var offNos = offenderNos.toArray(new String[0]);
 
         final List<OffenderLocationDto> unallocatedOffenders = new ArrayList<>();
