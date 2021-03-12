@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexityOfNeedService
+import uk.gov.justice.digital.hmpps.keyworker.services.ComplexityOfNeed
 import java.time.LocalDateTime
 
 @Service
 @ConditionalOnExpression("{'aws', 'localstack'}.contains('\${complexity-of-need-sqs.provider}')")
 class ComplexityOfNeedListener(
-  private val complexityOfNeedService: ComplexityOfNeedService,
+  private val complexityOfNeedService: ComplexityOfNeed,
   @Qualifier("gson") private val gson: Gson
 ) {
 

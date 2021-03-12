@@ -39,7 +39,7 @@ public class KeyworkerAutoAllocationService {
     private final KeyworkerPoolFactory keyworkerPoolFactory;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
-    private final ComplexityOfNeedService complexityOfNeedService;
+    private final ComplexityOfNeed complexityOfNeedService;
     /**
      * Constructor.
      *
@@ -50,7 +50,7 @@ public class KeyworkerAutoAllocationService {
                                           final KeyworkerPoolFactory keyworkerPoolFactory,
                                           final OffenderKeyworkerRepository offenderKeyworkerRepository,
                                           final PrisonSupportedService prisonSupportedService,
-                                          final ComplexityOfNeedService complexityOfNeedService) {
+                                          final ComplexityOfNeed complexityOfNeedService) {
         this.keyworkerService = keyworkerService;
         this.keyworkerPoolFactory = keyworkerPoolFactory;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
