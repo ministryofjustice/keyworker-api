@@ -36,5 +36,4 @@ spring:
 
 api.health-timeout-ms: 400
 
-womens:
-  estate: LEI,MDI
+prisons.with.offenders.that.have.complex.needs: LEI,MDI
