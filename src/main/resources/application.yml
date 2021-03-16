@@ -41,6 +41,12 @@ spring:
             client-secret: ${elite2api.client.clientSecret}
             authorization-grant-type: client_credentials
             scope: read
+          complexity-api:
+            provider: hmpps-auth
+            client-id: ${complexityapi.client.clientId}
+            client-secret: ${complexityapi.client.clientSecret}
+            authorization-grant-type: client_credentials
+            scope: write
         provider:
           hmpps-auth:
             token-uri: ${auth.uri.root}/oauth/token
@@ -50,6 +56,11 @@ spring:
 
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
 elite2api:
+  client:
+    clientId: omicadmin
+    clientSecret: clientsecret
+
+complexity-api:
   client:
     clientId: omicadmin
     clientSecret: clientsecret

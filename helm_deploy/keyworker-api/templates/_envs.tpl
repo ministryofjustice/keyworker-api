@@ -52,6 +52,18 @@ env:
         name: {{ template "app.name" . }}
         key: ELITE2API_CLIENT_CLIENTSECRET
 
+  - name: COMPLEXITYAPI_CLIENT_CLIENTID
+    valueFrom:
+      secretKeyRef:
+        name: {{ template "app.name" . }}
+        key: COMPLEXITYAPI_CLIENT_CLIENTID
+
+  - name: COMPLEXITYAPI_CLIENT_CLIENTSECRET
+    valueFrom:
+      secretKeyRef:
+        name: {{ template "app.name" . }}
+        key: COMPLEXITYAPI_CLIENT_CLIENTSECRET
+
   - name: SPRING_DATASOURCE_USERNAME
     valueFrom:
       secretKeyRef:

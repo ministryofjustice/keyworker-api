@@ -60,10 +60,12 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun complexityOfNeedWebClient(builder: WebClient.Builder): WebClient {
-    return builder
-      .baseUrl("$complexityOfNeedUri/v1")
-      .filter(addAuthHeaderFilterFunction())
+  fun complexityOfNeedWebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient {
+    val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
+    oauth2Client.setDefaultClientRegistrationId("complexity-api")
+
+    return builder.baseUrl("$complexityOfNeedUri/v1")
+      .apply(oauth2Client.oauth2Configuration())
       .build()
   }
 
