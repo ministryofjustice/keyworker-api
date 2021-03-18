@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import com.amazonaws.services.sqs.AmazonSQS
+import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -21,8 +22,10 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-// @ContextConfiguration
 abstract class IntegrationTest {
+
+  @Autowired
+  lateinit var flyway: Flyway
 
   @Autowired
   lateinit var webTestClient: WebTestClient
@@ -72,6 +75,9 @@ abstract class IntegrationTest {
 
   @BeforeEach
   fun resetStubs() {
+    flyway.clean()
+    flyway.migrate()
+
     oAuthMockServer.resetAll()
     eliteMockServer.resetAll()
     complexityOfNeedMockServer.resetAll()

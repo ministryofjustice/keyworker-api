@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.health
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult
 import com.amazonaws.services.sqs.model.QueueAttributeName
+import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions
@@ -104,8 +105,10 @@ class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
 
     getForEntity("/health")
       .expectBody()
-      .jsonPath("$.components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_ON_QUEUE.healthName}").isEqualTo(0)
-      .jsonPath("$.components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_IN_FLIGHT.healthName}").isEqualTo(0)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_ON_QUEUE.healthName}")
+      .isEqualTo(0)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_IN_FLIGHT.healthName}")
+      .isEqualTo(0)
   }
 
   @Test
@@ -139,7 +142,8 @@ class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
 
     getForEntity("/health")
       .expectBody()
-      .jsonPath("components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_ON_DLQ.healthName}").isEqualTo(0)
+      .jsonPath("components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_ON_DLQ.healthName}")
+      .isEqualTo(0)
   }
 
   @Test
@@ -152,7 +156,8 @@ class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
       .jsonPath("$.components.complexityOfNeedQueueHealth.status").isEqualTo("DOWN")
-      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus")
+      .isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -164,7 +169,8 @@ class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus")
+      .isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -193,8 +199,14 @@ class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
   }
 
   private fun subPing(status: Int) {
-    eliteMockServer.stubFor(
-      WireMock.get("/health/ping").willReturn(
+    addConditionalPingStub(eliteMockServer, status)
+    addConditionalPingStub(oAuthMockServer, status)
+    addConditionalPingStub(complexityOfNeedMockServer, status, "/health")
+  }
+
+  private fun addConditionalPingStub(mock: WireMockServer, status: Int, url: String? = "/health/ping") {
+    mock.stubFor(
+      WireMock.get(url).willReturn(
         WireMock.aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
