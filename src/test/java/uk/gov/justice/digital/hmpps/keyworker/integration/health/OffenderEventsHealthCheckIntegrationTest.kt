@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.health
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult
 import com.amazonaws.services.sqs.model.QueueAttributeName
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -16,9 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.health.OffenderEventsQueueHealth
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.*
 
 class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
@@ -196,9 +194,15 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
   }
 
   private fun subPing(status: Int) {
-    eliteMockServer.stubFor(
-      get("/health/ping").willReturn(
-        aResponse()
+    addConditionalPingStub(eliteMockServer, status)
+    addConditionalPingStub(oAuthMockServer, status)
+    addConditionalPingStub(complexityOfNeedMockServer, status, "/health")
+  }
+
+  private fun addConditionalPingStub(mock: WireMockServer, status: Int, url: String? = "/health/ping") {
+    mock.stubFor(
+      WireMock.get(url).willReturn(
+        WireMock.aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
           .withStatus(status)
