@@ -1,0 +1,4 @@
+[
+  {"offenderNo": "ALLOCED1", "staffId": 1001, "agencyId": "LEI", "assigned": "2017-06-01T12:14:00",                                  "userId": "ITAG_USER", "active": "Y"},
+  {"offenderNo": "EXPIRED1", "staffId": 1002, "agencyId": "LEI", "assigned": "2017-06-01T12:14:00", "expired":"2018-04-01T12:14:00", "userId": "ITAG_USER", "active": "N"}
+]

@@ -36,7 +36,7 @@ dependencies {
   implementation("com.google.code.gson:gson:2.8.6")
   compileOnly("org.projectlombok:lombok:1.18.18")
   runtimeOnly("org.hsqldb:hsqldb:2.5.1")
-  runtimeOnly("org.flywaydb:flyway-core:7.5.3")
+  implementation("org.flywaydb:flyway-core:7.5.3")
   runtimeOnly("org.postgresql:postgresql:42.2.19")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
   testImplementation("org.spockframework:spock-spring:2.0-M4-groovy-3.0")

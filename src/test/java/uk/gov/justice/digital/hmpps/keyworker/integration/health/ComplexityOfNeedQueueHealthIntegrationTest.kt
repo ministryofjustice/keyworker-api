@@ -1,34 +1,35 @@
-package uk.gov.justice.digital.hmpps.keyworker.services.health
+package uk.gov.justice.digital.hmpps.keyworker.integration.health
 
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult
 import com.amazonaws.services.sqs.model.QueueAttributeName
-import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.nhaarman.mockito_kotlin.whenever
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.test.util.ReflectionTestUtils
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
+import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
+import uk.gov.justice.digital.hmpps.keyworker.services.health.ComplexityOfNeedQueueHealth
+import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes
 
-class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
-
-  @Autowired
-  private lateinit var queueHealth: OffenderEventsQueueHealth
+class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
 
   @Autowired
-  @Value("\${offender-events-sqs.queue.name}")
+  private lateinit var queueHealth: ComplexityOfNeedQueueHealth
+
+  @Autowired
+  @Value("\${complexity-of-need-sqs.queue.name}")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   private lateinit var queueName: String
 
   @Autowired
-  @Value("\${offender-events-sqs.dlq.name}")
+  @Value("\${complexity-of-need-sqs.dlq.name}")
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   private lateinit var dlqName: String
 
@@ -68,9 +69,9 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
       .jsonPath("$.components.elite2ApiHealth.details.error")
-      .value<String> { error -> assertThat(error).contains("404") }
+      .value<String> { error -> Assertions.assertThat(error).contains("404") }
       .jsonPath("$.components.elite2ApiHealth.details.body")
-      .value<String> { body -> assertThat(body).contains("some error") }
+      .value<String> { body -> Assertions.assertThat(body).contains("some error") }
   }
 
   @Test
@@ -82,9 +83,9 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
       .jsonPath("$.components.elite2ApiHealth.details.error")
-      .value<String> { error -> assertThat(error).contains("418") }
+      .value<String> { error -> Assertions.assertThat(error).contains("418") }
       .jsonPath("$.components.elite2ApiHealth.details.body")
-      .value<String> { body -> assertThat(body).contains("some error") }
+      .value<String> { body -> Assertions.assertThat(body).contains("some error") }
   }
 
   @Test
@@ -95,7 +96,7 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("UP")
+      .jsonPath("$.components.complexityOfNeedQueueHealth.status").isEqualTo("UP")
   }
 
   @Test
@@ -104,8 +105,10 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
     getForEntity("/health")
       .expectBody()
-      .jsonPath("$.components.offenderEventsQueueHealth.details.${MESSAGES_ON_QUEUE.healthName}").isEqualTo(0)
-      .jsonPath("$.components.offenderEventsQueueHealth.details.${MESSAGES_IN_FLIGHT.healthName}").isEqualTo(0)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_ON_QUEUE.healthName}")
+      .isEqualTo(0)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_IN_FLIGHT.healthName}")
+      .isEqualTo(0)
   }
 
   @Test
@@ -118,7 +121,7 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("DOWN")
+      .jsonPath("$.components.complexityOfNeedQueueHealth.status").isEqualTo("DOWN")
   }
 
   @Test
@@ -129,8 +132,8 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("UP")
-      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.UP.description)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.status").isEqualTo("UP")
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.UP.description)
   }
 
   @Test
@@ -139,7 +142,8 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
     getForEntity("/health")
       .expectBody()
-      .jsonPath("components.offenderEventsQueueHealth.details.${MESSAGES_ON_DLQ.healthName}").isEqualTo(0)
+      .jsonPath("components.complexityOfNeedQueueHealth.details.${QueueAttributes.MESSAGES_ON_DLQ.healthName}")
+      .isEqualTo(0)
   }
 
   @Test
@@ -151,8 +155,9 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.offenderEventsQueueHealth.status").isEqualTo("DOWN")
-      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.status").isEqualTo("DOWN")
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus")
+      .isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -164,7 +169,8 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_ATTACHED.description)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus")
+      .isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -175,7 +181,7 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
     getForEntity("/health")
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
-      .jsonPath("$.components.offenderEventsQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
+      .jsonPath("$.components.complexityOfNeedQueueHealth.details.dlqStatus").isEqualTo(DlqStatus.NOT_FOUND.description)
   }
 
   @Test
@@ -193,9 +199,15 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
   }
 
   private fun subPing(status: Int) {
-    eliteMockServer.stubFor(
-      get("/health/ping").willReturn(
-        aResponse()
+    addConditionalPingStub(eliteMockServer, status)
+    addConditionalPingStub(oAuthMockServer, status)
+    addConditionalPingStub(complexityOfNeedMockServer, status, "/health")
+  }
+
+  private fun addConditionalPingStub(mock: WireMockServer, status: Int, url: String? = "/health/ping") {
+    mock.stubFor(
+      WireMock.get(url).willReturn(
+        WireMock.aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
           .withStatus(status)
@@ -205,9 +217,9 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
   private fun mockQueueWithoutRedrivePolicyAttributes() {
     val queueName = ReflectionTestUtils.getField(queueHealth, "queueName") as String
-    val queueUrl = awsSqsClientForOffenderEvents.getQueueUrl(queueName)
+    val queueUrl = awsSqsClientForComplexityOfNeed.getQueueUrl(queueName)
     whenever(
-      awsSqsClientForOffenderEvents.getQueueAttributes(
+      awsSqsClientForComplexityOfNeed.getQueueAttributes(
         GetQueueAttributesRequest(queueUrl.queueUrl).withAttributeNames(
           listOf(
             QueueAttributeName.All.toString()

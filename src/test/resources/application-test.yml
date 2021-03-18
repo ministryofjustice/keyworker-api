@@ -26,6 +26,7 @@ complexity-of-need-sqs:
 
 elite2.uri.root: http://localhost:9999
 auth.uri.root: http://localhost:8090
+complexity_of_need_uri: http://localhost:10000
 
 spring:
   security:
