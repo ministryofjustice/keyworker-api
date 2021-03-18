@@ -25,7 +25,9 @@ complexity-of-need-sqs:
   dlq.name: complexity_of_need_sqs_dlq
 
 elite2.uri.root: http://localhost:9999
+elite2.api.uri.root: ${elite2.uri.root}/api
 auth.uri.root: http://localhost:8090
+complexity_of_need_uri: http://localhost:10000
 
 spring:
   security:

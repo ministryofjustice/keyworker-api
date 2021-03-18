@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services.health
+package uk.gov.justice.digital.hmpps.keyworker.integration.health
 
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult
@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.test.util.ReflectionTestUtils
+import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
+import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus
+import uk.gov.justice.digital.hmpps.keyworker.services.health.OffenderEventsQueueHealth
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
 import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE

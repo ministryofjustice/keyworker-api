@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services.health
+package uk.gov.justice.digital.hmpps.keyworker.integration.health
 
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest
@@ -8,12 +8,17 @@ import com.amazonaws.services.sqs.model.QueueAttributeName
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.anyString
 import org.springframework.boot.actuate.health.Status
+import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus
+import uk.gov.justice.digital.hmpps.keyworker.services.health.OffenderEventsQueueHealth
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
 
-class ComplexityOfNeedQueueHealthTest {
+class OffenderEventQueueHealthTest {
 
   private val someQueueName = "some queue name"
   private val someQueueUrl = "some queue url"
@@ -24,62 +29,62 @@ class ComplexityOfNeedQueueHealthTest {
   private val someMessagesOnDLQCount = 789
   private val amazonSqs: AmazonSQS = mock()
   private val amazonSqsDLQ: AmazonSQS = mock()
-  private val queueHealth = ComplexityOfNeedQueueHealth(amazonSqs, amazonSqsDLQ, someQueueName, someDLQName)
+  private val OffenderEventsQueueHealth: OffenderEventsQueueHealth = OffenderEventsQueueHealth(amazonSqs, amazonSqsDLQ, someQueueName, someDLQName)
 
   @Test
   fun `health - queue found - UP`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.status).isEqualTo(Status.UP)
+    assertThat(health.status).isEqualTo(Status.UP)
   }
 
   @Test
   fun `health - attributes returned - included in health status`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.details[QueueAttributes.MESSAGES_ON_QUEUE.healthName]).isEqualTo(someMessagesOnQueueCount)
-    Assertions.assertThat(health.details[QueueAttributes.MESSAGES_IN_FLIGHT.healthName]).isEqualTo(someMessagesInFlightCount)
+    assertThat(health.details[MESSAGES_ON_QUEUE.healthName]).isEqualTo(someMessagesOnQueueCount)
+    assertThat(health.details[MESSAGES_IN_FLIGHT.healthName]).isEqualTo(someMessagesInFlightCount)
   }
 
   @Test
   fun `health - queue not found - DOWN`() {
-    whenever(amazonSqs.getQueueUrl(ArgumentMatchers.anyString())).thenThrow(QueueDoesNotExistException::class.java)
+    whenever(amazonSqs.getQueueUrl(anyString())).thenThrow(QueueDoesNotExistException::class.java)
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.status).isEqualTo(Status.DOWN)
+    assertThat(health.status).isEqualTo(Status.DOWN)
   }
 
   @Test
   fun `health - failed to get main queue attributes - DOWN`() {
-    whenever(amazonSqs.getQueueUrl(ArgumentMatchers.anyString())).thenReturn(someGetQueueUrlResult())
+    whenever(amazonSqs.getQueueUrl(anyString())).thenReturn(someGetQueueUrlResult())
     whenever(amazonSqs.getQueueAttributes(someGetQueueAttributesRequest())).thenThrow(RuntimeException::class.java)
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.status).isEqualTo(Status.DOWN)
+    assertThat(health.status).isEqualTo(Status.DOWN)
   }
 
   @Test
   fun `health - DLQ UP - reports DLQ UP`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.UP.description)
+    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.UP.description)
   }
 
   @Test
   fun `health - DLQ attributes returned - included in health status`() {
     mockHealthyQueue()
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.details[QueueAttributes.MESSAGES_ON_DLQ.healthName]).isEqualTo(someMessagesOnDLQCount)
+    assertThat(health.details[MESSAGES_ON_DLQ.healthName]).isEqualTo(someMessagesOnDLQCount)
   }
 
   @Test
@@ -89,10 +94,10 @@ class ComplexityOfNeedQueueHealthTest {
       someGetQueueAttributesResultWithoutDLQ()
     )
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.status).isEqualTo(Status.DOWN)
-    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
+    assertThat(health.status).isEqualTo(Status.DOWN)
+    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -102,9 +107,9 @@ class ComplexityOfNeedQueueHealthTest {
       someGetQueueAttributesResultWithoutDLQ()
     )
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
+    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_ATTACHED.description)
   }
 
   @Test
@@ -115,9 +120,9 @@ class ComplexityOfNeedQueueHealthTest {
     )
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenThrow(QueueDoesNotExistException::class.java)
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_FOUND.description)
+    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_FOUND.description)
   }
 
   @Test
@@ -129,9 +134,9 @@ class ComplexityOfNeedQueueHealthTest {
     whenever(amazonSqsDLQ.getQueueUrl(someDLQName)).thenReturn(someGetQueueUrlResultForDLQ())
     whenever(amazonSqsDLQ.getQueueAttributes(someGetQueueAttributesRequestForDLQ())).thenThrow(RuntimeException::class.java)
 
-    val health = queueHealth.health()
+    val health = OffenderEventsQueueHealth.health()
 
-    Assertions.assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_AVAILABLE.description)
+    assertThat(health.details["dlqStatus"]).isEqualTo(DlqStatus.NOT_AVAILABLE.description)
   }
 
   private fun mockHealthyQueue() {
@@ -151,15 +156,15 @@ class ComplexityOfNeedQueueHealthTest {
   private fun someGetQueueUrlResult(): GetQueueUrlResult = GetQueueUrlResult().withQueueUrl(someQueueUrl)
   private fun someGetQueueAttributesResultWithoutDLQ() = GetQueueAttributesResult().withAttributes(
     mapOf(
-      QueueAttributes.MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
-      QueueAttributes.MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString()
+      MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
+      MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString()
     )
   )
 
   private fun someGetQueueAttributesResultWithDLQ() = GetQueueAttributesResult().withAttributes(
     mapOf(
-      QueueAttributes.MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
-      QueueAttributes.MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString(),
+      MESSAGES_ON_QUEUE.awsName to someMessagesOnQueueCount.toString(),
+      MESSAGES_IN_FLIGHT.awsName to someMessagesInFlightCount.toString(),
       QueueAttributeName.RedrivePolicy.toString() to "any redrive policy"
     )
   )
@@ -169,6 +174,6 @@ class ComplexityOfNeedQueueHealthTest {
 
   private fun someGetQueueUrlResultForDLQ(): GetQueueUrlResult = GetQueueUrlResult().withQueueUrl(someDLQUrl)
   private fun someGetQueueAttributesResultForDLQ() = GetQueueAttributesResult().withAttributes(
-    mapOf(QueueAttributes.MESSAGES_ON_QUEUE.awsName to someMessagesOnDLQCount.toString())
+    mapOf(MESSAGES_ON_QUEUE.awsName to someMessagesOnDLQCount.toString())
   )
 }
