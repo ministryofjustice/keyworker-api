@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import jodd.net.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
 
 class ComplexityOfNeedMockServer : WireMockServer(10000) {
   fun stubComplexOffenders(json: String) {

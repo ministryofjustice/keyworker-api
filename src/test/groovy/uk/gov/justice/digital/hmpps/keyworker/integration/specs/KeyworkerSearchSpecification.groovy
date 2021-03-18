@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.specs
 
 class KeyworkerSearchSpecification extends TestSpecification {
+
     def 'keyworker search - decorated with defaults after migration'() {
 
         given:

@@ -4,9 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.matching
 import jodd.net.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
-
 
 class EliteMockServer : WireMockServer(9999) {
   fun stubAllocationHistory(prisonId: String, json: String) {
@@ -117,7 +115,7 @@ class EliteMockServer : WireMockServer(9999) {
     )
   }
 
-  fun stubKeyworkerSearch(prisonId: String, username: String, json: String, totalRecords: Int? = 1, status: String? ="ACTIVE") {
+  fun stubKeyworkerSearch(prisonId: String, username: String, json: String, totalRecords: Int? = 1, status: String? = "ACTIVE") {
     stubFor(
       WireMock.get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonId/role/KW"))
         .withQueryParam("nameFilter", matching(username))

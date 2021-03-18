@@ -13,7 +13,6 @@ import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.EliteMockServer
@@ -22,7 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-//@ContextConfiguration
+// @ContextConfiguration
 abstract class IntegrationTest {
 
   @Autowired
@@ -44,7 +43,6 @@ abstract class IntegrationTest {
     // Resolves an issue where Wiremock keeps previous sockets open from other tests causing connection resets
     System.setProperty("http.keepAlive", "false")
   }
-
 
   companion object {
     @JvmField
@@ -70,7 +68,6 @@ abstract class IntegrationTest {
       eliteMockServer.stop()
       complexityOfNeedMockServer.stop()
     }
-
   }
 
   @BeforeEach
@@ -115,7 +112,7 @@ abstract class IntegrationTest {
     eliteMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
 
     webTestClient.post()
-      .uri("/key-worker/enable/${prisonId}/auto-allocate?migrate=true")
+      .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
       .expectStatus().is2xxSuccessful
