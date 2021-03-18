@@ -16,7 +16,9 @@ import org.springframework.test.util.ReflectionTestUtils
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.health.OffenderEventsQueueHealth
-import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.*
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_IN_FLIGHT
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_DLQ
+import uk.gov.justice.digital.hmpps.keyworker.services.health.QueueAttributes.MESSAGES_ON_QUEUE
 
 class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
 
