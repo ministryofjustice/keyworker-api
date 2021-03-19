@@ -74,7 +74,9 @@ public class KeyworkerService {
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
+    private final ComplexityOfNeed complexityOfNeedService;
     private final TelemetryClient telemetryClient;
+
 
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {
 
@@ -86,23 +88,23 @@ public class KeyworkerService {
             final var prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
 
             availableKeyworkerList = returnedList.stream()
-                    .peek(k -> k.setAgencyId(prisonId))
-                    .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                    .filter(k -> !activeOnly || k.getStatus() == ACTIVE)
-                    .peek(this::decorateWithAllocationsCount)
-                    .collect(Collectors.toList());
+                .peek(k -> k.setAgencyId(prisonId))
+                .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
+                .filter(k -> !activeOnly || k.getStatus() == ACTIVE)
+                .peek(this::decorateWithAllocationsCount)
+                .collect(Collectors.toList());
         } else {
             availableKeyworkerList = returnedList.stream()
-                    .peek(k -> k.setAgencyId(prisonId))
-                    .peek(this::decorateWithNomisKeyworkerData)
-                    .collect(Collectors.toList());
+                .peek(k -> k.setAgencyId(prisonId))
+                .peek(this::decorateWithNomisKeyworkerData)
+                .collect(Collectors.toList());
             populateWithAllocations(availableKeyworkerList, prisonId);
         }
 
         return availableKeyworkerList.stream()
-                .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
-                        .thenComparing(KeyworkerService::getKeyWorkerFullName))
-                .collect(Collectors.toList());
+            .sorted(Comparator.comparing(KeyworkerDto::getNumberAllocated)
+                .thenComparing(KeyworkerService::getKeyWorkerFullName))
+            .collect(Collectors.toList());
     }
 
     private static String getKeyWorkerFullName(final KeyworkerDto keyworkerDto) {
@@ -118,10 +120,10 @@ public class KeyworkerService {
 
         final var prisonId = allocationFilter.getPrisonId();
         final var allocations =
-                allocationFilter.getAllocationType().isPresent() ?
-                        repository.findByActiveAndPrisonIdAndAllocationType(true, prisonId, allocationFilter.getAllocationType().get())
-                        :
-                        repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL);
+            allocationFilter.getAllocationType().isPresent() ?
+                repository.findByActiveAndPrisonIdAndAllocationType(true, prisonId, allocationFilter.getAllocationType().get())
+                :
+                repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL);
         final var allOffenders = nomisService.getOffendersAtLocation(prisonId, pagingAndSorting.getSortFields(), pagingAndSorting.getSortOrder(), false);
 
         final var results = processor.decorateAllocated(allocations, allOffenders);
@@ -131,10 +133,26 @@ public class KeyworkerService {
 
 
     public List<OffenderLocationDto> getUnallocatedOffenders(final String prisonId, final String sortFields, final SortOrder sortOrder) {
-
         prisonSupportedService.verifyPrisonMigrated(prisonId);
-        final var allOffenders = nomisService.getOffendersAtLocation(prisonId, sortFields, sortOrder, false);
-        return processor.filterByUnallocated(allOffenders);
+
+        final var offenders = removeOffendersWithHighComplexityOfNeed(
+            prisonId,
+            nomisService.getOffendersAtLocation(prisonId, sortFields, sortOrder, false)
+        );
+
+        return  processor.filterByUnallocated(offenders);
+    }
+
+    private List<OffenderLocationDto> removeOffendersWithHighComplexityOfNeed(final String prisonId, final List<OffenderLocationDto> unAllocated) {
+        final var unAllocatedOffenderNos = unAllocated.stream()
+            .map(OffenderLocationDto::getOffenderNo)
+            .collect(Collectors.toSet());
+
+        final var nonHighComplexOffenders = complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(prisonId, unAllocatedOffenderNos);
+
+        return unAllocated.stream()
+            .filter(offenderLocation -> nonHighComplexOffenders.contains(offenderLocation.getOffenderNo()))
+            .collect(Collectors.toList());
     }
 
 
@@ -142,8 +160,8 @@ public class KeyworkerService {
         List<OffenderKeyworker> results = new ArrayList<>();
         if (prisonSupportedService.isMigrated(prisonId)) {
             results = CollectionUtils.isEmpty(offenderNos)
-                    ? repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL)
-                    : repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
+                ? repository.findByActiveAndPrisonIdAndAllocationTypeIsNot(true, prisonId, AllocationType.PROVISIONAL)
+                : repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
         } else {
             if (offenderNos.size() > 0) {
                 final var allocations = nomisService.getCurrentAllocationsByOffenderNos(new ArrayList<>(offenderNos), prisonId);
@@ -163,17 +181,17 @@ public class KeyworkerService {
             if (activeOffenderKeyworkers.size() > 1) {
                 // de-allocate dups
                 activeOffenderKeyworkers.stream()
-                        .filter(kw -> !latestKw.getOffenderKeyworkerId().equals(kw.getOffenderKeyworkerId()))
-                        .forEach(kw -> kw.deallocate(LocalDateTime.now(), DeallocationReason.DUP));
+                    .filter(kw -> !latestKw.getOffenderKeyworkerId().equals(kw.getOffenderKeyworkerId()))
+                    .forEach(kw -> kw.deallocate(LocalDateTime.now(), DeallocationReason.DUP));
             }
             final var staffDetail = nomisService.getBasicKeyworkerDtoForStaffId(latestKw.getStaffId());
             if (staffDetail != null) {
                 return Optional.of(BasicKeyworkerDto.builder()
-                        .firstName(staffDetail.getFirstName())
-                        .lastName(staffDetail.getLastName())
-                        .staffId(staffDetail.getStaffId())
-                        .email(staffDetail.getEmail())
-                        .build());
+                    .firstName(staffDetail.getFirstName())
+                    .lastName(staffDetail.getLastName())
+                    .staffId(staffDetail.getStaffId())
+                    .email(staffDetail.getEmail())
+                    .build());
 
             }
             return Optional.empty();
@@ -215,18 +233,18 @@ public class KeyworkerService {
         final var offender = nomisService.getOffenderForPrison(keyworkerAllocation.getPrisonId(), keyworkerAllocation.getOffenderNo());
 
         Validate.isTrue(offender.isPresent(), format("Prisoner %s not found at agencyId %s",
-                keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getPrisonId()));
+            keyworkerAllocation.getOffenderNo(), keyworkerAllocation.getPrisonId()));
 
         final var keyworkerDetails = getKeyworkerDetails(keyworkerAllocation.getPrisonId(), keyworkerAllocation.getStaffId());
         Validate.notNull(keyworkerDetails, format("Keyworker %d not found at agencyId %s.",
-                keyworkerAllocation.getStaffId(), keyworkerAllocation.getPrisonId()));
+            keyworkerAllocation.getStaffId(), keyworkerAllocation.getPrisonId()));
     }
 
     private void doAllocate(final KeyworkerAllocationDto newAllocation) {
 
         // Remove current allocation if any
         final var entities = repository.findByActiveAndOffenderNo(
-                true, newAllocation.getOffenderNo());
+            true, newAllocation.getOffenderNo());
         final var now = LocalDateTime.now();
         entities.forEach(e -> {
             e.setActive(false);
@@ -276,74 +294,74 @@ public class KeyworkerService {
 
         // get the allocations that are in nomis for other prisons
         final var allocations =
-                nomisService.getAllocationHistoryByOffenderNos(Collections.singletonList(offenderNo))
-                        .stream()
-                        .filter(a -> !prisonsMigrated.contains(a.getAgencyId()))
-                        .map(kw -> {
-                                    var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
+            nomisService.getAllocationHistoryByOffenderNos(Collections.singletonList(offenderNo))
+                .stream()
+                .filter(a -> !prisonsMigrated.contains(a.getAgencyId()))
+                .map(kw -> {
+                        var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
 
-                                    return KeyWorkerAllocation.builder()
-                                            .firstName(staffKw.getFirstName())
-                                            .lastName(staffKw.getLastName())
-                                            .staffId(kw.getStaffId())
-                                            .active(kw.getActive().equals("Y"))
-                                            .allocationType(AllocationType.MANUAL)
-                                            .allocationReason(WordUtils.capitalizeFully(AllocationReason.MANUAL.getReasonCode()))
-                                            .assigned(kw.getAssigned())
-                                            .expired(kw.getExpired())
-                                            .prisonId(kw.getAgencyId())
-                                            .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
-                                            .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreatedBy()))
-                                            .creationDateTime(kw.getCreated())
-                                            .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifiedBy()))
-                                            .modifyDateTime(kw.getModified())
-                                            .build();
-                                }
-                        )
-                        .collect(Collectors.toList());
+                        return KeyWorkerAllocation.builder()
+                            .firstName(staffKw.getFirstName())
+                            .lastName(staffKw.getLastName())
+                            .staffId(kw.getStaffId())
+                            .active(kw.getActive().equals("Y"))
+                            .allocationType(AllocationType.MANUAL)
+                            .allocationReason(WordUtils.capitalizeFully(AllocationReason.MANUAL.getReasonCode()))
+                            .assigned(kw.getAssigned())
+                            .expired(kw.getExpired())
+                            .prisonId(kw.getAgencyId())
+                            .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
+                            .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreatedBy()))
+                            .creationDateTime(kw.getCreated())
+                            .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifiedBy()))
+                            .modifyDateTime(kw.getModified())
+                            .build();
+                    }
+                )
+                .collect(Collectors.toList());
 
         if (!keyworkers.isEmpty()) {
             allocations.addAll(keyworkers.stream()
-                    .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
-                    .map(
-                            kw -> {
-                                var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
+                .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
+                .map(
+                    kw -> {
+                        var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
 
-                                var deallocationReason = WordUtils.capitalizeFully(RegExUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
-                                return KeyWorkerAllocation.builder()
-                                        .offenderKeyworkerId(kw.getOffenderKeyworkerId())
-                                        .firstName(staffKw.getFirstName())
-                                        .lastName(staffKw.getLastName())
-                                        .staffId(kw.getStaffId())
-                                        .active(kw.isActive())
-                                        .allocationType(kw.getAllocationType())
-                                        .allocationReason(WordUtils.capitalizeFully(kw.getAllocationReason().getReasonCode()))
-                                        .assigned(kw.getAssignedDateTime())
-                                        .expired(kw.getExpiryDateTime())
-                                        .deallocationReason(deallocationReason)
-                                        .prisonId(kw.getPrisonId())
-                                        .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
-                                        .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
-                                        .creationDateTime(kw.getCreationDateTime())
-                                        .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifyUserId()))
-                                        .modifyDateTime(kw.getModifyDateTime())
-                                        .build();
-                            }
+                        var deallocationReason = WordUtils.capitalizeFully(RegExUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
+                        return KeyWorkerAllocation.builder()
+                            .offenderKeyworkerId(kw.getOffenderKeyworkerId())
+                            .firstName(staffKw.getFirstName())
+                            .lastName(staffKw.getLastName())
+                            .staffId(kw.getStaffId())
+                            .active(kw.isActive())
+                            .allocationType(kw.getAllocationType())
+                            .allocationReason(WordUtils.capitalizeFully(kw.getAllocationReason().getReasonCode()))
+                            .assigned(kw.getAssignedDateTime())
+                            .expired(kw.getExpiryDateTime())
+                            .deallocationReason(deallocationReason)
+                            .prisonId(kw.getPrisonId())
+                            .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
+                            .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
+                            .creationDateTime(kw.getCreationDateTime())
+                            .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getModifyUserId()))
+                            .modifyDateTime(kw.getModifyDateTime())
+                            .build();
+                    }
 
-                    ).collect(Collectors.toList()));
+                ).collect(Collectors.toList()));
         }
 
         keyWorkerAllocations = allocations.stream()
-                .sorted(Comparator
-                        .comparing(KeyWorkerAllocation::getAssigned).reversed())
-                .collect(Collectors.toList());
+            .sorted(Comparator
+                .comparing(KeyWorkerAllocation::getAssigned).reversed())
+            .collect(Collectors.toList());
         // use prison for most recent allocation
         final var prisonerDetail = nomisService.getPrisonerDetail(offenderNo, false).orElseThrow(EntityNotFoundException::new);
 
         final var offenderKeyWorkerHistory = OffenderKeyWorkerHistory.builder()
-                .offender(prisonerDetail)
-                .allocationHistory(keyWorkerAllocations)
-                .build();
+            .offender(prisonerDetail)
+            .allocationHistory(keyWorkerAllocations)
+            .build();
 
         return Optional.ofNullable(offenderKeyWorkerHistory);
     }
@@ -359,29 +377,29 @@ public class KeyworkerService {
 
             if (skipOffenderDetails) {
                 detailsDtoList = allocations.stream()
-                        .map(allocation -> KeyworkerAllocationDetailsDto.builder()
-                                .offenderNo(allocation.getOffenderNo())
-                                .staffId(allocation.getStaffId())
-                                .agencyId(allocation.getPrisonId()) //TODO: remove
-                                .prisonId(allocation.getPrisonId())
-                                .assigned(allocation.getAssignedDateTime())
-                                .allocationType(allocation.getAllocationType())
-                                .build())
-                        .collect(Collectors.toList());
+                    .map(allocation -> KeyworkerAllocationDetailsDto.builder()
+                        .offenderNo(allocation.getOffenderNo())
+                        .staffId(allocation.getStaffId())
+                        .agencyId(allocation.getPrisonId()) //TODO: remove
+                        .prisonId(allocation.getPrisonId())
+                        .assigned(allocation.getAssignedDateTime())
+                        .allocationType(allocation.getAllocationType())
+                        .build())
+                    .collect(Collectors.toList());
             } else {
 
                 final var offenderNos = allocations.stream().map(OffenderKeyworker::getOffenderNo).collect(Collectors.toList());
                 final var prisonerDetailMap = nomisService.getPrisonerDetails(offenderNos, true).stream()
-                        .collect(Collectors.toMap(PrisonerDetail::getOffenderNo, prisoner -> prisoner));
+                    .collect(Collectors.toMap(PrisonerDetail::getOffenderNo, prisoner -> prisoner));
 
                 detailsDtoList = allocations.stream()
-                        .map(allocation -> decorateWithOffenderDetails(allocation, prisonerDetailMap.get(allocation.getOffenderNo())))
-                        //remove allocations from returned list that do not have associated booking records - these are movements or merges
-                        .filter(dto -> dto.getBookingId() != null)
-                        .sorted(Comparator
-                                .comparing(KeyworkerAllocationDetailsDto::getLastName)
-                                .thenComparing(KeyworkerAllocationDetailsDto::getFirstName))
-                        .collect(Collectors.toList());
+                    .map(allocation -> decorateWithOffenderDetails(allocation, prisonerDetailMap.get(allocation.getOffenderNo())))
+                    //remove allocations from returned list that do not have associated booking records - these are movements or merges
+                    .filter(dto -> dto.getBookingId() != null)
+                    .sorted(Comparator
+                        .comparing(KeyworkerAllocationDetailsDto::getLastName)
+                        .thenComparing(KeyworkerAllocationDetailsDto::getFirstName))
+                    .collect(Collectors.toList());
             }
         } else {
             detailsDtoList = nomisService.getCurrentAllocations(Collections.singletonList(staffId), prisonId);
@@ -399,19 +417,19 @@ public class KeyworkerService {
         }
         final var samePrison = allocation.getPrisonId().equals(prisonerDetail.getLatestLocationId());
         return KeyworkerAllocationDetailsDto.builder()
-                .bookingId(prisonerDetail.getLatestBookingId())
-                .offenderNo(allocation.getOffenderNo())
-                .firstName(prisonerDetail.getFirstName())
-                .middleNames(prisonerDetail.getMiddleNames())
-                .lastName(prisonerDetail.getLastName())
-                .staffId(allocation.getStaffId())
-                .agencyId(prisonerDetail.getLatestLocationId()) //TODO: remove
-                .prisonId(prisonerDetail.getLatestLocationId())
-                .assigned(allocation.getAssignedDateTime())
-                .allocationType(allocation.getAllocationType())
-                .internalLocationDesc(samePrison ? stripAgencyId(prisonerDetail.getInternalLocation(), allocation.getPrisonId()) : prisonerDetail.getInternalLocation())
-                .deallocOnly(!samePrison)
-                .build();
+            .bookingId(prisonerDetail.getLatestBookingId())
+            .offenderNo(allocation.getOffenderNo())
+            .firstName(prisonerDetail.getFirstName())
+            .middleNames(prisonerDetail.getMiddleNames())
+            .lastName(prisonerDetail.getLastName())
+            .staffId(allocation.getStaffId())
+            .agencyId(prisonerDetail.getLatestLocationId()) //TODO: remove
+            .prisonId(prisonerDetail.getLatestLocationId())
+            .assigned(allocation.getAssignedDateTime())
+            .allocationType(allocation.getAllocationType())
+            .internalLocationDesc(samePrison ? stripAgencyId(prisonerDetail.getInternalLocation(), allocation.getPrisonId()) : prisonerDetail.getInternalLocation())
+            .deallocOnly(!samePrison)
+            .build();
     }
 
     public static String stripAgencyId(final String description, final String agencyId) {
@@ -431,29 +449,29 @@ public class KeyworkerService {
         final var prisonDetail = prisonSupportedService.getPrisonDetail(prisonId);
         if (prisonDetail.isMigrated()) {
             convertedKeyworkerDtoList.addAll(Objects.requireNonNull(response.getBody()).stream().distinct()
-                    .map(ConversionHelper.INSTANCE::getKeyworkerDto)
-                    .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
-                    .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
-                    .peek(this::decorateWithAllocationsCount)
-                    .collect(Collectors.toList()));
+                .map(ConversionHelper.INSTANCE::getKeyworkerDto)
+                .peek(k -> decorateWithKeyworkerData(k, prisonCapacityDefault))
+                .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
+                .peek(this::decorateWithAllocationsCount)
+                .collect(Collectors.toList()));
         } else {
             convertedKeyworkerDtoList.addAll(Objects.requireNonNull(response.getBody()).stream().distinct()
-                    .map(ConversionHelper.INSTANCE::getKeyworkerDto)
-                    .peek(this::decorateWithNomisKeyworkerData)
-                    .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
-                    .collect(Collectors.toList()));
+                .map(ConversionHelper.INSTANCE::getKeyworkerDto)
+                .peek(this::decorateWithNomisKeyworkerData)
+                .filter(t -> statusFilter.isEmpty() || t.getStatus() == statusFilter.get())
+                .collect(Collectors.toList()));
 
             populateWithAllocations(convertedKeyworkerDtoList, prisonId);
         }
         populateWithCaseNoteCounts(convertedKeyworkerDtoList);
 
         final var keyworkers = convertedKeyworkerDtoList.stream()
-                .sorted(Comparator
-                        .comparing(KeyworkerDto::getStatus)
-                        .thenComparing(KeyworkerDto::getNumberAllocated)
-                        .thenComparing(KeyworkerDto::getLastName)
-                        .thenComparing(KeyworkerDto::getFirstName))
-                .collect(Collectors.toList());
+            .sorted(Comparator
+                .comparing(KeyworkerDto::getStatus)
+                .thenComparing(KeyworkerDto::getNumberAllocated)
+                .thenComparing(KeyworkerDto::getLastName)
+                .thenComparing(KeyworkerDto::getFirstName))
+            .collect(Collectors.toList());
 
 
         return new Page<>(keyworkers, response.getHeaders());
@@ -473,14 +491,14 @@ public class KeyworkerService {
             final var allocations = nomisService.getCurrentAllocations(staffIds, prisonId);
 
             final var allocationMap = allocations.stream()
-                    .collect(Collectors.groupingBy(KeyworkerAllocationDetailsDto::getStaffId,
-                            Collectors.counting()));
+                .collect(Collectors.groupingBy(KeyworkerAllocationDetailsDto::getStaffId,
+                    Collectors.counting()));
 
             convertedKeyworkerDtoList
-                    .forEach(kw -> {
-                        final var numberAllocated = allocationMap.get(kw.getStaffId());
-                        kw.setNumberAllocated(numberAllocated != null ? numberAllocated.intValue() : 0);
-                    });
+                .forEach(kw -> {
+                    final var numberAllocated = allocationMap.get(kw.getStaffId());
+                    kw.setNumberAllocated(numberAllocated != null ? numberAllocated.intValue() : 0);
+                });
         }
     }
 
@@ -491,10 +509,10 @@ public class KeyworkerService {
             final var kwStats = getCaseNoteUsageByStaffId(staffIds);
 
             convertedKeyworkerDtoList
-                    .forEach(kw -> {
-                        final var numCaseNotes = kwStats.get(kw.getStaffId());
-                        kw.setNumKeyWorkerSessions(numCaseNotes != null ? numCaseNotes : 0);
-                    });
+                .forEach(kw -> {
+                    final var numCaseNotes = kwStats.get(kw.getStaffId());
+                    kw.setNumKeyWorkerSessions(numCaseNotes != null ? numCaseNotes : 0);
+                });
         }
     }
 
@@ -502,8 +520,8 @@ public class KeyworkerService {
         final var caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, null, null, 1);
 
         return caseNoteUsage.stream()
-                .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
-                        Collectors.summingInt(CaseNoteUsageDto::getNumCaseNotes)));
+            .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,
+                Collectors.summingInt(CaseNoteUsageDto::getNumCaseNotes)));
     }
 
     private int getPrisonCapacityDefault(final String prisonId) {
@@ -514,21 +532,21 @@ public class KeyworkerService {
     private void decorateWithKeyworkerData(final KeyworkerDto keyworkerDto, final int capacityDefault) {
         if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
             keyworkerRepository.findById(keyworkerDto.getStaffId())
-                    .ifPresentOrElse(
-                            keyworker -> {
-                                keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
-                                keyworkerDto.setStatus(keyworker.getStatus());
-                                keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
-                                keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocationFlag());
-                                keyworkerDto.setActiveDate(keyworker.getActiveDate());
-                            },
-                            () -> {
-                                keyworkerDto.setCapacity(capacityDefault);
-                                keyworkerDto.setStatus(KeyworkerStatus.ACTIVE);
-                                keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
-                                keyworkerDto.setAutoAllocationAllowed(true);
-                            }
-                    );
+                .ifPresentOrElse(
+                    keyworker -> {
+                        keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
+                        keyworkerDto.setStatus(keyworker.getStatus());
+                        keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
+                        keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocationFlag());
+                        keyworkerDto.setActiveDate(keyworker.getActiveDate());
+                    },
+                    () -> {
+                        keyworkerDto.setCapacity(capacityDefault);
+                        keyworkerDto.setStatus(KeyworkerStatus.ACTIVE);
+                        keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
+                        keyworkerDto.setAutoAllocationAllowed(true);
+                    }
+                );
         }
     }
 
@@ -554,20 +572,20 @@ public class KeyworkerService {
         Validate.notNull(staffId, "Missing staff id");
 
         keyworkerRepository.findById(staffId).ifPresentOrElse(keyworker -> {
-                    keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
-                    keyworker.setStatus(keyworkerUpdateDto.getStatus());
-                    keyworker.setActiveDate(keyworkerUpdateDto.getActiveDate());
-                    if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
-                        keyworker.setAutoAllocationFlag(true);
-                    }
-                },
-                () -> keyworkerRepository.save(Keyworker.builder()
-                        .staffId(staffId)
-                        .capacity(keyworkerUpdateDto.getCapacity())
-                        .status(keyworkerUpdateDto.getStatus())
-                        .autoAllocationFlag(true)
-                        .activeDate(keyworkerUpdateDto.getActiveDate())
-                        .build()));
+                keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
+                keyworker.setStatus(keyworkerUpdateDto.getStatus());
+                keyworker.setActiveDate(keyworkerUpdateDto.getActiveDate());
+                if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
+                    keyworker.setAutoAllocationFlag(true);
+                }
+            },
+            () -> keyworkerRepository.save(Keyworker.builder()
+                .staffId(staffId)
+                .capacity(keyworkerUpdateDto.getCapacity())
+                .status(keyworkerUpdateDto.getStatus())
+                .autoAllocationFlag(true)
+                .activeDate(keyworkerUpdateDto.getActiveDate())
+                .build()));
 
         final var behaviour = keyworkerUpdateDto.getBehaviour();
         if (behaviour != null) applyStatusChangeBehaviour(staffId, prisonId, behaviour);

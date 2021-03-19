@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
+import org.junit.jupiter.api.Disabled
+
 class KeyworkerSearchIntegrationTest : IntegrationTest() {
   companion object {
     const val PRISON_ID = "LEI"
@@ -9,6 +11,7 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
   val STAFF_DETAILS = getWiremockResponse(PRISON_ID, "staff-location-role-list")
   val CASE_NOTE_USAGE = getWiremockResponse("case-note-usage")
 
+  @Disabled
   fun `keyworker search - decorated with defaults after migration`() {
     migrated(PRISON_ID)
 

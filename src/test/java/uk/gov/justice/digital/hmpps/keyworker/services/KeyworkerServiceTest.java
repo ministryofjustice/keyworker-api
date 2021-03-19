@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatusBehaviour;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
@@ -50,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -105,28 +107,31 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     private NomisService nomisService;
 
     @MockBean
+    private ComplexityOfNeedService complexityOfNeedService;
+
+    @MockBean
     private TelemetryClient telemetryClient;
 
     @BeforeEach
     void setup() {
         doThrow(new PrisonNotSupportedException("Agency [MDI] is not supported by this service.")).when(prisonSupportedService).verifyPrisonMigrated(eq("MDI"));
         final var prisonDetail = Prison.builder()
-                .migrated(true)
-                .autoAllocatedSupported(true)
-                .supported(true)
-                .prisonId(TEST_AGENCY)
-                .capacityTier1(CAPACITY_TIER_1)
-                .capacityTier2(CAPACITY_TIER_2)
-                .build();
+            .migrated(true)
+            .autoAllocatedSupported(true)
+            .supported(true)
+            .prisonId(TEST_AGENCY)
+            .capacityTier1(CAPACITY_TIER_1)
+            .capacityTier2(CAPACITY_TIER_2)
+            .build();
         when(prisonSupportedService.getPrisonDetail(TEST_AGENCY)).thenReturn(prisonDetail);
         when(prisonSupportedService.isMigrated(TEST_AGENCY)).thenReturn(Boolean.TRUE);
 
         final var nonMigratedPrison = Prison.builder()
-                .migrated(false)
-                .autoAllocatedSupported(false)
-                .supported(false)
-                .prisonId(NON_MIGRATED_TEST_AGENCY)
-                .build();
+            .migrated(false)
+            .autoAllocatedSupported(false)
+            .supported(false)
+            .prisonId(NON_MIGRATED_TEST_AGENCY)
+            .build();
 
         when(prisonSupportedService.getPrisonDetail(NON_MIGRATED_TEST_AGENCY)).thenReturn(nonMigratedPrison);
         when(prisonSupportedService.isMigrated(NON_MIGRATED_TEST_AGENCY)).thenReturn(Boolean.FALSE);
@@ -137,6 +142,9 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var count = 10L;
 
         final var testDtos = KeyworkerTestHelper.getOffenders(TEST_AGENCY, count);
+
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(anyString(),any()))
+            .thenReturn(testDtos.stream().map(OffenderLocationDto::getOffenderNo).collect(java.util.stream.Collectors.toSet()));
 
         when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, null, false)).thenReturn(testDtos);
 
@@ -178,6 +186,45 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    void testComplexOffendersGetRemovedFromTheUnAllocatedList() {
+        final var OFFENDER_N0_1 = "A12345";
+        final var OFFENDER_NO_2 = "A12346";
+
+        final var offenders = List.of(
+            OffenderLocationDto.builder()
+                .bookingId(-1L)
+                .agencyId(TEST_AGENCY)
+                .offenderNo(OFFENDER_N0_1)
+                .lastName("Doe")
+                .firstName("Bob")
+                .build(),
+            OffenderLocationDto.builder()
+                .bookingId(-2L)
+                .agencyId(TEST_AGENCY)
+                .offenderNo(OFFENDER_NO_2)
+                .lastName("D")
+                .firstName("Doe")
+                .build()
+        );
+
+        when(nomisService.getOffendersAtLocation(TEST_AGENCY, null, SortOrder.ASC, false)).thenReturn(offenders);
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(anyString(), any())).thenReturn(Set.of(OFFENDER_N0_1));
+        when(processor.filterByUnallocated(any())).thenReturn(offenders);
+
+        service.getUnallocatedOffenders(TEST_AGENCY, null, SortOrder.ASC);
+
+        verify(complexityOfNeedService).removeOffendersWithHighComplexityOfNeed(TEST_AGENCY, Set.of(OFFENDER_N0_1, OFFENDER_NO_2));
+        verify(processor).filterByUnallocated(List.of(
+            OffenderLocationDto.builder()
+                .bookingId(-1L)
+                .agencyId(TEST_AGENCY)
+                .offenderNo(OFFENDER_N0_1)
+                .lastName("Doe")
+                .firstName("Bob")
+                .build()));
+    }
+
+    @Test
     void testAllocateValidationAgencyInvalid() {
         final var dto = KeyworkerAllocationDto.builder().prisonId("MDI").build();
         assertThatThrownBy(() -> service.allocate(dto)).hasMessage("Agency [MDI] is not supported by this service.");
@@ -186,9 +233,9 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testAllocateValidationOffenderMissing() {
         final var dto = KeyworkerAllocationDto.builder()
-                .prisonId(TEST_AGENCY)
-                .offenderNo(null)
-                .build();
+            .prisonId(TEST_AGENCY)
+            .offenderNo(null)
+            .build();
         assertThatThrownBy(() -> service.allocate(dto)).hasMessage("Missing prisoner number.");
     }
 
@@ -196,10 +243,10 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testAllocateValidationOffenderDoesNotExist() {
         final var offenderNo = "xxx";
         final var dto = KeyworkerAllocationDto.builder()
-                .prisonId(TEST_AGENCY)
-                .offenderNo(offenderNo)
-                .staffId(5L)
-                .build();
+            .prisonId(TEST_AGENCY)
+            .offenderNo(offenderNo)
+            .staffId(5L)
+            .build();
 
         when(nomisService.getOffenderForPrison(TEST_AGENCY, offenderNo)).thenReturn(Optional.empty());
 
@@ -210,9 +257,9 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testAllocateValidationStaffIdMissing() {
         final var offenderNo = "A1111AA";
         final var dto = KeyworkerAllocationDto.builder()
-                .prisonId(TEST_AGENCY)
-                .offenderNo(offenderNo)
-                .build();
+            .prisonId(TEST_AGENCY)
+            .offenderNo(offenderNo)
+            .build();
 
         assertThatThrownBy(() -> service.allocate(dto)).hasMessage("Missing staff id.");
     }
@@ -223,10 +270,10 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var staffId = -9999L;
 
         final var dto = KeyworkerAllocationDto.builder()
-                .prisonId(TEST_AGENCY)
-                .offenderNo(offenderNo)
-                .staffId(staffId)
-                .build();
+            .prisonId(TEST_AGENCY)
+            .offenderNo(offenderNo)
+            .staffId(staffId)
+            .build();
 
         final var offender1 = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo);
         Mockito.when(nomisService.getOffenderForPrison(TEST_AGENCY, offender1.getOffenderNo())).thenReturn(Optional.of(offender1));
@@ -243,11 +290,11 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final long staffId = 5;
 
         final var dto = KeyworkerAllocationDto.builder()
-                .prisonId(TEST_AGENCY)
-                .offenderNo(offenderNo)
-                .staffId(staffId)
-                .deallocationReason(DeallocationReason.RELEASED)
-                .build();
+            .prisonId(TEST_AGENCY)
+            .offenderNo(offenderNo)
+            .staffId(staffId)
+            .deallocationReason(DeallocationReason.RELEASED)
+            .build();
 
         final var offender = KeyworkerTestHelper.getOffender(61, TEST_AGENCY, offenderNo);
 
@@ -258,14 +305,14 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(nomisService.getBasicKeyworkerDtoForStaffId(staffId)).thenReturn(staffLocationRoleDto);
 
         final var list = List.of(
-                OffenderKeyworker.builder()
-                        .offenderNo(offenderNo)
-                        .active(true)
-                        .build(),
-                OffenderKeyworker.builder()
-                        .offenderNo(offenderNo)
-                        .active(true)
-                        .build()
+            OffenderKeyworker.builder()
+                .offenderNo(offenderNo)
+                .active(true)
+                .build(),
+            OffenderKeyworker.builder()
+                .offenderNo(offenderNo)
+                .active(true)
+                .build()
         );
 
         when(repository.findByActiveAndOffenderNo(true, offenderNo)).thenReturn(list);
@@ -305,20 +352,20 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var time1 = LocalDateTime.of(2018, Month.FEBRUARY, 26, 6, 0);
         final var time2 = LocalDateTime.of(2018, Month.FEBRUARY, 27, 6, 0);
         final var offender1 = OffenderKeyworker.builder()
-                .offenderKeyworkerId(11L)
-                .offenderNo("offender1")
-                .staffId(21L)
-                .prisonId(TEST_AGENCY)
-                .active(true)
-                .assignedDateTime(time1)
-                .expiryDateTime(time2)
-                .userId("me")
-                .build();
+            .offenderKeyworkerId(11L)
+            .offenderNo("offender1")
+            .staffId(21L)
+            .prisonId(TEST_AGENCY)
+            .active(true)
+            .assignedDateTime(time1)
+            .expiryDateTime(time2)
+            .userId("me")
+            .build();
         final var offender2 = OffenderKeyworker.builder()
-                .offenderKeyworkerId(12L)
-                .offenderNo("offender2")
-                .active(false)
-                .build();
+            .offenderKeyworkerId(12L)
+            .offenderNo("offender2")
+            .active(false)
+            .build();
         final var testOffenderNos = List.of("offender1", "offender2");
         final var results = List.of(offender1, offender2);
         when(repository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, TEST_AGENCY, testOffenderNos, PROVISIONAL)).thenReturn(results);
@@ -326,20 +373,20 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var offenders = service.getOffenderKeyworkerDetailList(TEST_AGENCY, testOffenderNos);
 
         assertThat(offenders).asList().containsExactly(OffenderKeyworkerDto.builder()
-                        .offenderKeyworkerId(11L)
-                        .offenderNo("offender1")
-                        .staffId(21L)
-                        .agencyId(TEST_AGENCY)
-                        .active("Y")
-                        .assigned(time1)
-                        .expired(time2)
-                        .userId("me")
-                        .build(),
-                OffenderKeyworkerDto.builder()
-                        .offenderKeyworkerId(12L)
-                        .offenderNo("offender2")
-                        .active("N")
-                        .build()
+                .offenderKeyworkerId(11L)
+                .offenderNo("offender1")
+                .staffId(21L)
+                .agencyId(TEST_AGENCY)
+                .active("Y")
+                .assigned(time1)
+                .expired(time2)
+                .userId("me")
+                .build(),
+            OffenderKeyworkerDto.builder()
+                .offenderKeyworkerId(12L)
+                .offenderNo("offender2")
+                .active("N")
+                .build()
         );
     }
 
@@ -352,29 +399,29 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var time2 = LocalDateTime.of(2018, Month.FEBRUARY, 27, 6, 0);
 
         final var allocatedKeyworkers = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworkerAllocations(21L, "offender1", NON_MIGRATED_TEST_AGENCY, time1),
-                KeyworkerTestHelper.getKeyworkerAllocations(22L, "offender2", NON_MIGRATED_TEST_AGENCY, time2)
+            KeyworkerTestHelper.getKeyworkerAllocations(21L, "offender1", NON_MIGRATED_TEST_AGENCY, time1),
+            KeyworkerTestHelper.getKeyworkerAllocations(22L, "offender2", NON_MIGRATED_TEST_AGENCY, time2)
         );
 
         when(nomisService.getCurrentAllocationsByOffenderNos(ImmutableList.of("offender1", "offender2"), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
         final var offenders = service.getOffenderKeyworkerDetailList(NON_MIGRATED_TEST_AGENCY, testOffenderNos);
 
         assertThat(offenders).asList().containsExactly(OffenderKeyworkerDto.builder()
-                        .offenderKeyworkerId(null)
-                        .offenderNo("offender1")
-                        .staffId(21L)
-                        .agencyId(NON_MIGRATED_TEST_AGENCY)
-                        .active("Y")
-                        .assigned(time1)
-                        .build(),
-                OffenderKeyworkerDto.builder()
-                        .offenderKeyworkerId(null)
-                        .offenderNo("offender2")
-                        .agencyId(NON_MIGRATED_TEST_AGENCY)
-                        .staffId(22L)
-                        .assigned(time2)
-                        .active("Y")
-                        .build()
+                .offenderKeyworkerId(null)
+                .offenderNo("offender1")
+                .staffId(21L)
+                .agencyId(NON_MIGRATED_TEST_AGENCY)
+                .active("Y")
+                .assigned(time1)
+                .build(),
+            OffenderKeyworkerDto.builder()
+                .offenderKeyworkerId(null)
+                .offenderNo("offender2")
+                .agencyId(NON_MIGRATED_TEST_AGENCY)
+                .staffId(22L)
+                .assigned(time2)
+                .active("Y")
+                .build()
         );
         verify(prisonSupportedService, times(1)).isMigrated(eq(NON_MIGRATED_TEST_AGENCY));
     }
@@ -397,8 +444,8 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var staffId = 5L;
         when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
         when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(List.of(OffenderKeyworker.builder()
-                .staffId(staffId)
-                .build()));
+            .staffId(staffId)
+            .build()));
         final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
         assertThat(keyworkerDetails).isEmpty();
     }
@@ -409,8 +456,8 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var staffId = 5L;
         when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
         when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(List.of(OffenderKeyworker.builder()
-                .staffId(staffId)
-                .build()));
+            .staffId(staffId)
+            .build()));
         expectBasicStaffApiCall(staffId);
 
         final var keyworkerDetails = service.getCurrentKeyworkerForPrisoner(offenderNo);
@@ -425,9 +472,9 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(prisonSupportedService.isMigrated(anyString())).thenReturn(true);
         final var now = LocalDateTime.now();
         final var keyWorkers = List.of(
-                OffenderKeyworker.builder().staffId(staffId).creationDateTime(now.minusSeconds(2)).offenderKeyworkerId(1L).build(),
-                OffenderKeyworker.builder().staffId(6L).creationDateTime(now).offenderKeyworkerId(3L).build(),
-                OffenderKeyworker.builder().staffId(staffId).creationDateTime(now.minusSeconds(1)).offenderKeyworkerId(2L).build()
+            OffenderKeyworker.builder().staffId(staffId).creationDateTime(now.minusSeconds(2)).offenderKeyworkerId(1L).build(),
+            OffenderKeyworker.builder().staffId(6L).creationDateTime(now).offenderKeyworkerId(3L).build(),
+            OffenderKeyworker.builder().staffId(staffId).creationDateTime(now.minusSeconds(1)).offenderKeyworkerId(2L).build()
         );
         when(repository.findByOffenderNoAndActiveAndAllocationTypeIsNot(offenderNo, true, PROVISIONAL)).thenReturn(keyWorkers);
         expectBasicStaffApiCall(6L);
@@ -482,12 +529,12 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         expectStaffRoleApiCall(staffId);
 
         when(keyworkerRepository.findById(staffId)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(staffId)
-                .capacity(CAPACITY)
-                .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
-                .autoAllocationFlag(true)
-                .activeDate(activeDate)
-                .build())
+            .staffId(staffId)
+            .capacity(CAPACITY)
+            .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
+            .autoAllocationFlag(true)
+            .activeDate(activeDate)
+            .build())
         );
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, PROVISIONAL)).thenReturn(ALLOCATIONS);
     }
@@ -552,20 +599,20 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testGetKeyworkerDetails_NotMigratedAgency() {
         final var staffId = 5L;
         final var staffLocationRoleDto = StaffLocationRoleDto.builder()
-                .firstName("firstName")
-                .lastName("lastName")
-                .agencyId(NON_MIGRATED_TEST_AGENCY)
-                .hoursPerWeek(new BigDecimal("6"))
-                .staffId(staffId)
-                .scheduleType("FT")
-                .build();
+            .firstName("firstName")
+            .lastName("lastName")
+            .agencyId(NON_MIGRATED_TEST_AGENCY)
+            .hoursPerWeek(new BigDecimal("6"))
+            .staffId(staffId)
+            .scheduleType("FT")
+            .build();
         when(nomisService.getStaffKeyWorkerForPrison(NON_MIGRATED_TEST_AGENCY, staffId)).thenReturn(Optional.ofNullable(staffLocationRoleDto));
 
         final var allocatedKeyworkers = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
+            KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
         );
 
         when(nomisService.getCurrentAllocations(ImmutableList.of(staffId), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
@@ -659,49 +706,49 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var statusFilter = Optional.of(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
         final var pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final var nomisList = List.of(
-                StaffLocationRoleDto.builder()
-                        .staffId(-5L)
-                        .firstName("First")
-                        .lastName("CUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(11))
-                        .build(),
-                StaffLocationRoleDto.builder()
-                        .staffId(-6L)
-                        .firstName("Second")
-                        .lastName("DUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(12))
-                        .build()
+            StaffLocationRoleDto.builder()
+                .staffId(-5L)
+                .firstName("First")
+                .lastName("CUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(11))
+                .build(),
+            StaffLocationRoleDto.builder()
+                .staffId(-6L)
+                .firstName("Second")
+                .lastName("DUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(12))
+                .build()
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting, false))
-                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+            .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
         when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-5L)
-                .status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE)
-                .capacity(5)
-                .autoAllocationFlag(true)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
-                .build())
+            .staffId(-5L)
+            .status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE)
+            .capacity(5)
+            .autoAllocationFlag(true)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
+            .build())
         );
         when(keyworkerRepository.findById(-6L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-6L)
-                .status(KeyworkerStatus.ACTIVE)
-                .capacity(3)
-                .autoAllocationFlag(true)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
-                .build())
+            .staffId(-6L)
+            .status(KeyworkerStatus.ACTIVE)
+            .capacity(3)
+            .autoAllocationFlag(true)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+            .build())
         );
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenReturn(2);
+            .thenReturn(2);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenThrow(new RuntimeException("Should not be needed"));
+            .thenThrow(new RuntimeException("Should not be needed"));
 
         final var keyworkerList = service.getKeyworkers(TEST_AGENCY, nameFilter, statusFilter, pagingAndSorting);
 
@@ -722,33 +769,33 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var statusFilter = Optional.of(KeyworkerStatus.ACTIVE);
         final var pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final var nomisList = List.of(
-                StaffLocationRoleDto.builder()
-                        .staffId(-5L)
-                        .firstName("First")
-                        .lastName("CUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(5))
-                        .build(),
-                StaffLocationRoleDto.builder()
-                        .staffId(-6L)
-                        .firstName("Second")
-                        .lastName("DUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(3))
-                        .build()
+            StaffLocationRoleDto.builder()
+                .staffId(-5L)
+                .firstName("First")
+                .lastName("CUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(5))
+                .build(),
+            StaffLocationRoleDto.builder()
+                .staffId(-6L)
+                .firstName("Second")
+                .lastName("DUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(3))
+                .build()
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(NON_MIGRATED_TEST_AGENCY, nameFilter, pagingAndSorting, false))
-                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+            .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
 
         final var allocatedKeyworkers = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
+            KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
         );
 
         when(nomisService.getCurrentAllocations(anyList(), eq(NON_MIGRATED_TEST_AGENCY))).thenReturn(allocatedKeyworkers);
@@ -781,87 +828,87 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var nameFilter = Optional.of("CUser");
         final var pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final var nomisList = List.of(
-                StaffLocationRoleDto.builder()
-                        .staffId(-5L)
-                        .firstName("First")
-                        .lastName("CUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(11))
-                        .build(),
-                StaffLocationRoleDto.builder()
-                        .staffId(-6L)
-                        .firstName("Second")
-                        .lastName("DUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(12))
-                        .build(),
-                StaffLocationRoleDto.builder()
-                        .staffId(-7L)
-                        .firstName("Third")
-                        .lastName("DUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(12))
-                        .build()
+            StaffLocationRoleDto.builder()
+                .staffId(-5L)
+                .firstName("First")
+                .lastName("CUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(11))
+                .build(),
+            StaffLocationRoleDto.builder()
+                .staffId(-6L)
+                .firstName("Second")
+                .lastName("DUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(12))
+                .build(),
+            StaffLocationRoleDto.builder()
+                .staffId(-7L)
+                .firstName("Third")
+                .lastName("DUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(12))
+                .build()
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting, false))
-                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(3, 0, 10), HttpStatus.OK));
+            .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(3, 0, 10), HttpStatus.OK));
         when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-5L)
-                .status(KeyworkerStatus.ACTIVE)
-                .capacity(5)
-                .autoAllocationFlag(true)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
-                .build())
+            .staffId(-5L)
+            .status(KeyworkerStatus.ACTIVE)
+            .capacity(5)
+            .autoAllocationFlag(true)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
+            .build())
         );
         when(keyworkerRepository.findById(-6L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-6L)
-                .status(KeyworkerStatus.ACTIVE)
-                .capacity(3)
-                .autoAllocationFlag(true)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
-                .build())
+            .staffId(-6L)
+            .status(KeyworkerStatus.ACTIVE)
+            .capacity(3)
+            .autoAllocationFlag(true)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+            .build())
         );
         when(keyworkerRepository.findById(-7L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-7L)
-                .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
-                .capacity(2)
-                .autoAllocationFlag(false)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
-                .build())
+            .staffId(-7L)
+            .status(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE)
+            .capacity(2)
+            .autoAllocationFlag(false)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+            .build())
         );
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenReturn(2);
+            .thenReturn(2);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenReturn(1);
+            .thenReturn(1);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenReturn(3);
+            .thenReturn(3);
 
         when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L, -7L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), isNull(), isNull(), eq(1)))
-                .thenReturn(List.of(
-                        CaseNoteUsageDto.builder()
-                                .staffId(-5L)
-                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
-                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
-                                .latestCaseNote(LocalDate.now().minusWeeks(1))
-                                .numCaseNotes(3)
-                                .build(),
-                        CaseNoteUsageDto.builder()
-                                .staffId(-6L)
-                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
-                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
-                                .latestCaseNote(LocalDate.now().minusWeeks(1))
-                                .numCaseNotes(4)
-                                .build()
-                ));
+            .thenReturn(List.of(
+                CaseNoteUsageDto.builder()
+                    .staffId(-5L)
+                    .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                    .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
+                    .latestCaseNote(LocalDate.now().minusWeeks(1))
+                    .numCaseNotes(3)
+                    .build(),
+                CaseNoteUsageDto.builder()
+                    .staffId(-6L)
+                    .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                    .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
+                    .latestCaseNote(LocalDate.now().minusWeeks(1))
+                    .numCaseNotes(4)
+                    .build()
+            ));
 
         final var keyworkerList = service.getKeyworkers(TEST_AGENCY, nameFilter, Optional.empty(), pagingAndSorting);
 
@@ -890,69 +937,69 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testCountPreviousKeyworkerSessions_WhenStatusIsNotActive() {
         final var pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final var nomisList = List.of(
-                StaffLocationRoleDto.builder()
-                        .staffId(-5L)
-                        .firstName("First")
-                        .lastName("CUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(11))
-                        .build(),
-                StaffLocationRoleDto.builder()
-                        .staffId(-6L)
-                        .firstName("Second")
-                        .lastName("DUser")
-                        .agencyId("LEI")
-                        .position("AO")
-                        .role("KW")
-                        .scheduleType("FT")
-                        .hoursPerWeek(BigDecimal.valueOf(12))
-                        .build()
+            StaffLocationRoleDto.builder()
+                .staffId(-5L)
+                .firstName("First")
+                .lastName("CUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(11))
+                .build(),
+            StaffLocationRoleDto.builder()
+                .staffId(-6L)
+                .firstName("Second")
+                .lastName("DUser")
+                .agencyId("LEI")
+                .position("AO")
+                .role("KW")
+                .scheduleType("FT")
+                .hoursPerWeek(BigDecimal.valueOf(12))
+                .build()
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, Optional.empty(), pagingAndSorting, false))
-                .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
+            .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
 
         when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-5L)
-                .status(KeyworkerStatus.INACTIVE)
-                .capacity(5)
-                .autoAllocationFlag(true)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
-                .build())
+            .staffId(-5L)
+            .status(KeyworkerStatus.INACTIVE)
+            .capacity(5)
+            .autoAllocationFlag(true)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 12))
+            .build())
         );
         when(keyworkerRepository.findById(-6L)).thenReturn(Optional.of(Keyworker.builder()
-                .staffId(-6L)
-                .status(KeyworkerStatus.INACTIVE)
-                .capacity(3)
-                .autoAllocationFlag(true)
-                .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
-                .build())
+            .staffId(-6L)
+            .status(KeyworkerStatus.INACTIVE)
+            .capacity(3)
+            .autoAllocationFlag(true)
+            .activeDate(LocalDate.of(2018, Month.AUGUST, 14))
+            .build())
         );
 
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-5L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenReturn(2);
+            .thenReturn(2);
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
-                .thenReturn(1);
+            .thenReturn(1);
 
         when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), isNull(), isNull(), eq(1)))
-                .thenReturn(Arrays.asList(
-                        CaseNoteUsageDto.builder()
-                                .staffId(-5L)
-                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
-                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
-                                .latestCaseNote(LocalDate.now().minusWeeks(1))
-                                .numCaseNotes(3)
-                                .build(),
-                        CaseNoteUsageDto.builder()
-                                .staffId(-6L)
-                                .caseNoteType(KEYWORKER_CASENOTE_TYPE)
-                                .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
-                                .latestCaseNote(LocalDate.now().minusWeeks(1))
-                                .numCaseNotes(4)
-                                .build()
-                ));
+            .thenReturn(Arrays.asList(
+                CaseNoteUsageDto.builder()
+                    .staffId(-5L)
+                    .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                    .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
+                    .latestCaseNote(LocalDate.now().minusWeeks(1))
+                    .numCaseNotes(3)
+                    .build(),
+                CaseNoteUsageDto.builder()
+                    .staffId(-6L)
+                    .caseNoteType(KEYWORKER_CASENOTE_TYPE)
+                    .caseNoteSubType(KEYWORKER_SESSION_SUB_TYPE)
+                    .latestCaseNote(LocalDate.now().minusWeeks(1))
+                    .numCaseNotes(4)
+                    .build()
+            ));
 
         final var keyworkerList = service.getKeyworkers(TEST_AGENCY, Optional.empty(), Optional.empty(), pagingAndSorting);
 
@@ -974,104 +1021,104 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         final var now = LocalDateTime.now();
         final var migratedHistory = List.of(OffenderKeyworker.builder()
-                .prisonId(TEST_AGENCY)
-                .expiryDateTime(now.minusMonths(1))
-                .assignedDateTime(now.minusMonths(2))
-                .active(false)
-                .allocationReason(AllocationReason.MANUAL)
-                .allocationType(AllocationType.MANUAL)
-                .deallocationReason(DeallocationReason.TRANSFER)
-                .createUserId("staff2")
-                .creationDateTime(now.minusMonths(2))
-                .modifyDateTime(now.minusMonths(1))
-                .modifyUserId("staff2")
-                .offenderKeyworkerId(1L)
-                .offenderNo(offenderNo)
-                .staffId(12L)
-                .userId("staff2")
-                .build());
+            .prisonId(TEST_AGENCY)
+            .expiryDateTime(now.minusMonths(1))
+            .assignedDateTime(now.minusMonths(2))
+            .active(false)
+            .allocationReason(AllocationReason.MANUAL)
+            .allocationType(AllocationType.MANUAL)
+            .deallocationReason(DeallocationReason.TRANSFER)
+            .createUserId("staff2")
+            .creationDateTime(now.minusMonths(2))
+            .modifyDateTime(now.minusMonths(1))
+            .modifyUserId("staff2")
+            .offenderKeyworkerId(1L)
+            .offenderNo(offenderNo)
+            .staffId(12L)
+            .userId("staff2")
+            .build());
 
         when(repository.findByOffenderNo(offenderNo)).thenReturn(migratedHistory);
 
         final var prisonerDetail = Optional.of(PrisonerDetail.builder()
-                .currentlyInPrison("Y")
-                .latestLocationId("HLI")
-                .internalLocation("HLI-A-1-1")
-                .latestLocation("HMP Hull")
-                .latestBookingId(10000L)
-                .dateOfBirth(LocalDate.now().minusYears(30))
-                .firstName("offender1")
-                .lastName("offenderLast1")
-                .gender("M")
-                .offenderNo(offenderNo)
-                .build());
+            .currentlyInPrison("Y")
+            .latestLocationId("HLI")
+            .internalLocation("HLI-A-1-1")
+            .latestLocation("HMP Hull")
+            .latestBookingId(10000L)
+            .dateOfBirth(LocalDate.now().minusYears(30))
+            .firstName("offender1")
+            .lastName("offenderLast1")
+            .gender("M")
+            .offenderNo(offenderNo)
+            .build());
         when(nomisService.getPrisonerDetail(offenderNo, false)).thenReturn(prisonerDetail);
 
 
         final var nonMigratedHistory = List.of(
-                AllocationHistoryDto.builder()
-                        .agencyId("LPI")
-                        .active("N")
-                        .assigned(now.minusMonths(3))
-                        .expired(now.minusMonths(2))
-                        .created(now.minusMonths(3))
-                        .createdBy("staff1")
-                        .modified(now.minusMonths(2))
-                        .modifiedBy("staff1")
-                        .offenderNo(offenderNo)
-                        .staffId(11L)
-                        .userId("staff1")
-                        .build(),
-                AllocationHistoryDto.builder()
-                        .agencyId("LEI")
-                        .active("N")
-                        .assigned(now.minusMonths(2))
-                        .expired(now.minusMonths(1))
-                        .created(now.minusMonths(2))
-                        .createdBy("staff2")
-                        .modified(now.minusMonths(1))
-                        .modifiedBy("staff2")
-                        .offenderNo(offenderNo)
-                        .staffId(12L)
-                        .userId("staff2")
-                        .build(),
-                AllocationHistoryDto.builder()
-                        .agencyId("HLI")
-                        .active("Y")
-                        .assigned(now.minusMonths(1))
-                        .created(now.minusMonths(1))
-                        .createdBy("staff3")
-                        .modified(now.minusMonths(2))
-                        .modifiedBy("staff3")
-                        .offenderNo(offenderNo)
-                        .staffId(13L)
-                        .userId("staff3")
-                        .build()
+            AllocationHistoryDto.builder()
+                .agencyId("LPI")
+                .active("N")
+                .assigned(now.minusMonths(3))
+                .expired(now.minusMonths(2))
+                .created(now.minusMonths(3))
+                .createdBy("staff1")
+                .modified(now.minusMonths(2))
+                .modifiedBy("staff1")
+                .offenderNo(offenderNo)
+                .staffId(11L)
+                .userId("staff1")
+                .build(),
+            AllocationHistoryDto.builder()
+                .agencyId("LEI")
+                .active("N")
+                .assigned(now.minusMonths(2))
+                .expired(now.minusMonths(1))
+                .created(now.minusMonths(2))
+                .createdBy("staff2")
+                .modified(now.minusMonths(1))
+                .modifiedBy("staff2")
+                .offenderNo(offenderNo)
+                .staffId(12L)
+                .userId("staff2")
+                .build(),
+            AllocationHistoryDto.builder()
+                .agencyId("HLI")
+                .active("Y")
+                .assigned(now.minusMonths(1))
+                .created(now.minusMonths(1))
+                .createdBy("staff3")
+                .modified(now.minusMonths(2))
+                .modifiedBy("staff3")
+                .offenderNo(offenderNo)
+                .staffId(13L)
+                .userId("staff3")
+                .build()
         );
 
         when(nomisService.getAllocationHistoryByOffenderNos(Collections.singletonList(offenderNo))).thenReturn(nonMigratedHistory);
 
         when(nomisService.getBasicKeyworkerDtoForStaffId(11L)).thenReturn(StaffLocationRoleDto.builder()
-                .staffId(11L)
-                .firstName("kwstaff1")
-                .lastName("lastname-kw1")
-                .agencyId("LPI")
-                .agencyDescription("HMP Liverpool")
-                .build());
+            .staffId(11L)
+            .firstName("kwstaff1")
+            .lastName("lastname-kw1")
+            .agencyId("LPI")
+            .agencyDescription("HMP Liverpool")
+            .build());
         when(nomisService.getBasicKeyworkerDtoForStaffId(12L)).thenReturn(StaffLocationRoleDto.builder()
-                .staffId(12L)
-                .firstName("kwstaff2")
-                .lastName("lastname-kw2")
-                .agencyId("LEI")
-                .agencyDescription("HMP Leeds")
-                .build());
+            .staffId(12L)
+            .firstName("kwstaff2")
+            .lastName("lastname-kw2")
+            .agencyId("LEI")
+            .agencyDescription("HMP Leeds")
+            .build());
         when(nomisService.getBasicKeyworkerDtoForStaffId(13L)).thenReturn(StaffLocationRoleDto.builder()
-                .staffId(13L)
-                .firstName("kwstaff3")
-                .lastName("lastname-kw3")
-                .agencyId("HLI")
-                .agencyDescription("HMP Hull")
-                .build());
+            .staffId(13L)
+            .firstName("kwstaff3")
+            .lastName("lastname-kw3")
+            .agencyId("HLI")
+            .agencyDescription("HMP Hull")
+            .build());
         when(nomisService.getStaffDetailByUserId("staff1")).thenReturn(StaffUser.builder().staffId(1L).username("staff1").firstName("staff1").lastName("lastname1").build());
         when(nomisService.getStaffDetailByUserId("staff2")).thenReturn(StaffUser.builder().staffId(2L).username("staff2").firstName("staff2").lastName("lastname2").build());
         when(nomisService.getStaffDetailByUserId("staff3")).thenReturn(StaffUser.builder().staffId(3L).username("staff3").firstName("staff3").lastName("lastname3").build());
@@ -1097,13 +1144,13 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testGetAvailableKeyworkers() {
         final var keyworkers = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworker(1, 0, 0),
-                KeyworkerTestHelper.getKeyworker(2, 0, 0),
-                KeyworkerTestHelper.getKeyworker(3, 0, 0),
-                KeyworkerTestHelper.getKeyworker(4, 0, 0),
-                KeyworkerTestHelper.getKeyworker(5, 0, 0),
-                KeyworkerTestHelper.getKeyworker(6, 0, 0),
-                KeyworkerTestHelper.getKeyworker(7, 0, 0)
+            KeyworkerTestHelper.getKeyworker(1, 0, 0),
+            KeyworkerTestHelper.getKeyworker(2, 0, 0),
+            KeyworkerTestHelper.getKeyworker(3, 0, 0),
+            KeyworkerTestHelper.getKeyworker(4, 0, 0),
+            KeyworkerTestHelper.getKeyworker(5, 0, 0),
+            KeyworkerTestHelper.getKeyworker(6, 0, 0),
+            KeyworkerTestHelper.getKeyworker(7, 0, 0)
         );
 
         when(keyworkerRepository.findById(1L)).thenReturn(Optional.of(Keyworker.builder().staffId(1L).autoAllocationFlag(true).status(KeyworkerStatus.INACTIVE).build()));
@@ -1130,19 +1177,19 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testGetAvailableKeyworkersNotMigrated() {
         final var keyworkers = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworker(11, 0, 0),
-                KeyworkerTestHelper.getKeyworker(12, 0, 0),
-                KeyworkerTestHelper.getKeyworker(13, 0, 0),
-                KeyworkerTestHelper.getKeyworker(14, 0, 0)
+            KeyworkerTestHelper.getKeyworker(11, 0, 0),
+            KeyworkerTestHelper.getKeyworker(12, 0, 0),
+            KeyworkerTestHelper.getKeyworker(13, 0, 0),
+            KeyworkerTestHelper.getKeyworker(14, 0, 0)
         );
 
         when(nomisService.getAvailableKeyworkers(NON_MIGRATED_TEST_AGENCY)).thenReturn(keyworkers);
 
         final var allocatedKeyworkers = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworkerAllocations(12, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(13, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
-                KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AE", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
+            KeyworkerTestHelper.getKeyworkerAllocations(12, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(13, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
+            KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AE", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
         );
 
         when(nomisService.getCurrentAllocations(ImmutableList.of(11L, 12L, 13L, 14L), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
@@ -1160,10 +1207,10 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testGetKeyworkersAvailableforAutoAllocation() {
 
         final var allocations = ImmutableList.of(
-                KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1),
-                KeyworkerTestHelper.getKeyworker(4, 0, CAPACITY_TIER_1));
+            KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
+            KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
+            KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1),
+            KeyworkerTestHelper.getKeyworker(4, 0, CAPACITY_TIER_1));
 
 
         when(keyworkerRepository.findById(1L)).thenReturn(Optional.of(Keyworker.builder().staffId(1L).autoAllocationFlag(true).build()));
@@ -1222,7 +1269,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(keyworkerRepository.findById(staffId)).thenReturn(Optional.empty());
 
         service.addOrUpdate(staffId,
-                prisonId, KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
+            prisonId, KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
 
         verify(keyworkerRepository, times(1)).save(argCap.capture());
 
@@ -1236,15 +1283,15 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var status = KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE;
 
         final var existingKeyWorker = Keyworker.builder()
-                .staffId(TEST_STAFF_ID)
-                .capacity(TEST_CAPACITY)
-                .status(KeyworkerStatus.ACTIVE)
-                .build();
+            .staffId(TEST_STAFF_ID)
+            .capacity(TEST_CAPACITY)
+            .status(KeyworkerStatus.ACTIVE)
+            .build();
 
         when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(status).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(status).build());
 
         assertThat(existingKeyWorker.getStaffId()).isEqualTo(TEST_STAFF_ID);
         assertThat(existingKeyWorker.getCapacity()).isEqualTo(TEST_CAPACITY);
@@ -1255,16 +1302,16 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testThatKeyworkerRecordIsUpdated_activeStatusAutoAllocation() {
 
         final var existingKeyWorker = Keyworker.builder()
-                .staffId(TEST_STAFF_ID)
-                .capacity(TEST_CAPACITY)
-                .status(KeyworkerStatus.ACTIVE)
-                .autoAllocationFlag(false)
-                .build();
+            .staffId(TEST_STAFF_ID)
+            .capacity(TEST_CAPACITY)
+            .status(KeyworkerStatus.ACTIVE)
+            .autoAllocationFlag(false)
+            .build();
 
         when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.ACTIVE).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.ACTIVE).build());
 
         assertThat(existingKeyWorker.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
         //auto allocation flag is updated to true for active status
@@ -1274,16 +1321,16 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testThatKeyworkerRecordIsUpdated_inactiveStatusAutoAllocation() {
         final var existingKeyWorker = Keyworker.builder()
-                .staffId(TEST_STAFF_ID)
-                .capacity(TEST_CAPACITY)
-                .status(KeyworkerStatus.INACTIVE)
-                .autoAllocationFlag(false)
-                .build();
+            .staffId(TEST_STAFF_ID)
+            .capacity(TEST_CAPACITY)
+            .status(KeyworkerStatus.INACTIVE)
+            .autoAllocationFlag(false)
+            .build();
 
         when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.INACTIVE).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.INACTIVE).build());
 
         assertThat(existingKeyWorker.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
         //auto allocation flag remains false for inactive status
@@ -1293,8 +1340,8 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testkeyworkerStatusChangeBehaviour_removeAllocations() {
         final var existingKeyWorker = Keyworker.builder()
-                .staffId(TEST_STAFF_ID)
-                .build();
+            .staffId(TEST_STAFF_ID)
+            .build();
 
         when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
@@ -1302,7 +1349,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.findByStaffIdAndPrisonIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
 
         verify(repository, times(1)).findByStaffIdAndPrisonIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true);
     }
@@ -1310,13 +1357,13 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testkeyworkerStatusChangeBehaviour_keepAllocations() {
         final var existingKeyWorker = Keyworker.builder()
-                .staffId(TEST_STAFF_ID)
-                .build();
+            .staffId(TEST_STAFF_ID)
+            .build();
 
         when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-                TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
 
         verify(repository, never()).findByStaffIdAndPrisonIdAndActive(any(), any(), anyBoolean());
     }
@@ -1341,11 +1388,11 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
     private OffenderKeyworker getTestOffenderKeyworker(final String offenderNo, final long staffId) {
         return OffenderKeyworker.builder()
-                .prisonId(TEST_AGENCY)
-                .offenderNo(offenderNo)
-                .staffId(staffId)
-                .allocationType(AllocationType.AUTO)
-                .allocationReason(AllocationReason.AUTO)
-                .build();
+            .prisonId(TEST_AGENCY)
+            .offenderNo(offenderNo)
+            .staffId(staffId)
+            .allocationType(AllocationType.AUTO)
+            .allocationReason(AllocationReason.AUTO)
+            .build();
     }
 }

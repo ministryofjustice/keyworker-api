@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -15,15 +16,20 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
 
   val OFFENDERS_AT_LOCATION: String = getWiremockResponse(PRISON_ID, "offenders-at-location")
   val KEYWORKER_LIST = getWiremockResponse(PRISON_ID, "keyworker-list")
-  val COMPLEX_OFFENDERS = getWiremockResponse("complex-offenders")
+  val COMPLEX_OFFENDER_UNALLOC10 = getWiremockResponse("UNALLOC10-complexity-high")
+  val COMPLEX_OFFENDER_UNALLOC1 = getWiremockResponse("UNALLOC1-complexity-high")
+
+  @BeforeEach
+  @Test
+  fun beforeEach() {
+    migratedFoAutoAllocation(PRISON_ID)
+    eliteMockServer.stubOffendersAtLocationForAutoAllocation(PRISON_ID, OFFENDERS_AT_LOCATION)
+    eliteMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
+  }
 
   @Test
   fun `Allocation service reports ok`() {
-    migratedFoAutoAllocation(PRISON_ID)
-
-    eliteMockServer.stubOffendersAtLocationForAutoAllocation(PRISON_ID, OFFENDERS_AT_LOCATION)
-    eliteMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
-    complexityOfNeedMockServer.stubComplexOffenders(COMPLEX_OFFENDERS)
+    complexityOfNeedMockServer.stubComplexOffenders(COMPLEX_OFFENDER_UNALLOC10)
 
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_2, 1)
@@ -94,6 +100,34 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
         val dateTime = LocalDateTime.parse(it)
         assertThat(dateTime).isCloseTo(dateTime, within(1, ChronoUnit.HOURS))
       }
+  }
+
+  @Test
+  fun `should return a list of unallocated offenders`() {
+    complexityOfNeedMockServer.stubComplexOffenders("[]")
+
+    webTestClient
+      .get()
+      .uri("/key-worker/$PRISON_ID/offenders/unallocated")
+      .headers(setHeaders())
+      .exchange()
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .json(getResourceAsText("keyworker-service-controller-unallocated.json"))
+  }
+
+  @Test
+  fun `should return a list of unallocated offenders ignoring offenders with high complexity of need`() {
+    complexityOfNeedMockServer.stubComplexOffenders(COMPLEX_OFFENDER_UNALLOC1)
+
+    webTestClient
+      .get()
+      .uri("/key-worker/$PRISON_ID/offenders/unallocated")
+      .headers(setHeaders())
+      .exchange()
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .jsonPath("\$[?(@.offenderNo == 'UNALLOC1')]").doesNotExist()
   }
 
   fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {

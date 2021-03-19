@@ -125,9 +125,9 @@ abstract class IntegrationTest {
   }
 
   final fun getWiremockResponse(prisonId: String, fileName: String) =
-    getResourceAsText("/wiremock-responses/$prisonId/$fileName.json")
+    getResourceAsText("/wiremock-stub-responses/$prisonId/$fileName.json")
 
-  final fun getWiremockResponse(fileName: String) = getResourceAsText("/wiremock-responses/$fileName.json")
+  final fun getWiremockResponse(fileName: String) = getResourceAsText("/wiremock-stub-responses/$fileName.json")
 
   fun getResourceAsText(path: String): String = this::class.java.getResource(path).readText()
 }

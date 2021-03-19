@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import com.microsoft.applicationinsights.TelemetryClient
 import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.never
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
@@ -11,10 +10,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedListenerTest
 
 @ExtendWith(MockitoExtension::class)
 class ComplexityOfNeedServiceTest {
@@ -42,21 +39,7 @@ class ComplexityOfNeedServiceTest {
   @BeforeEach
   fun setUp() {
     complexityOfNeedService =
-      ComplexityOfNeedService(keyworkerService, complexityOfNeedGateway, ENABLED_PRISONS, telemetryClient)
-  }
-
-  @Test
-  fun `should not deallocate offenders that do not have high complexity of needs`() {
-    complexityOfNeedService.onComplexityChange(OFFENDER_NO_1, ComplexityOfNeedLevel.LOW)
-
-    verify(keyworkerService, never()).deallocate(OFFENDER_NO_1)
-  }
-
-  @Test
-  fun `should deallocate offenders that have high complexity of needs`() {
-    complexityOfNeedService.onComplexityChange(OFFENDER_NO_1, ComplexityOfNeedLevel.HIGH)
-
-    verify(keyworkerService, times(1)).deallocate(OFFENDER_NO_1)
+      ComplexityOfNeedService(complexityOfNeedGateway, ENABLED_PRISONS, telemetryClient)
   }
 
   @Test
@@ -91,16 +74,5 @@ class ComplexityOfNeedServiceTest {
       complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1, OFFENDER_NO_2, OFFENDER_NO_3))
 
     assertThat(complexOffenders).isEqualTo(setOf(OFFENDER_NO_3, OFFENDER_NO_2))
-  }
-
-  @Test
-  fun `should raise a telemetry event`() {
-    complexityOfNeedService.onComplexityChange(OFFENDER_NO, ComplexityOfNeedLevel.LOW)
-
-    Mockito.verify(telemetryClient, Mockito.times(1)).trackEvent(
-      "complexity-of-need-change",
-      mapOf("offenderNo" to ComplexityOfNeedListenerTest.OFFENDER_NO, "level-changed-to" to "LOW"),
-      null
-    )
   }
 }
