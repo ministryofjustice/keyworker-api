@@ -25,8 +25,8 @@ env:
   - name: SERVER_CONNECTION_TIMEOUT 
     value: "180000"
 
-  - name: WOMENS_ESTATE
-    value: "{{ .Values.env.WOMENS_ESTATE }}"
+  - name: PRISONS_WITH_OFFENDERS_THAT_HAVE_COMPLEX_NEEDS
+    value: "{{ .Values.env.PRISONS_WITH_OFFENDERS_THAT_HAVE_COMPLEX_NEEDS }}"
 
   - name: COMPLEXITY_OF_NEED_URI
     value: "{{ .Values.env.COMPLEXITY_OF_NEED_URI }}"
