@@ -19,6 +19,7 @@ dependencies {
   implementation("org.springframework.security:spring-security-oauth2-jose")
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
+  implementation("org.springframework.retry:spring-retry")
   implementation("org.apache.camel:camel-spring-boot:2.25.3")
   implementation("org.apache.camel:camel-quartz2:2.25.3")
   implementation("org.springframework:spring-jms")
