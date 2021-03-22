@@ -4,10 +4,8 @@ import com.google.common.collect.ImmutableMap
 import com.microsoft.applicationinsights.TelemetryClient
 import lombok.extern.slf4j.Slf4j
 import org.springframework.retry.RetryCallback
-import org.springframework.retry.backoff.ExponentialBackOffPolicy
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService.Companion.log
-import org.springframework.retry.policy.SimpleRetryPolicy
 
 import org.springframework.retry.support.RetryTemplate
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate

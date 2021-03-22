@@ -1,18 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch
 
-import com.google.common.collect.ImmutableMap
-import com.microsoft.applicationinsights.TelemetryClient
-import org.apache.camel.Exchange
-import org.apache.camel.LoggingLevel
 import org.apache.camel.builder.RouteBuilder
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisBatchService
-import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 
 /**
  * A Scheduled job that checks builds stats for each prison for the previous day
