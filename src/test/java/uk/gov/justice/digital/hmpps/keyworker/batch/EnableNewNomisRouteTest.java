@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.times;
@@ -119,5 +119,58 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
         verify(telemetryClient, times(2)).trackEvent(eq("ApiUsersEnabled"), isA(Map.class), isNull());
     }
 
+    @Test
+    public void testEnabledNewNomisCamelRoute_NoOpOnGetAllPrisonsError() throws Exception {
+
+        when(nomisService.getAllPrisons()).thenThrow(new RuntimeException("Error"));
+
+
+        template.send(EnableNewNomisRoute.ENABLE_NEW_NOMIS, exchange -> {
+        });
+
+        assertMockEndpointsSatisfied();
+        final var mockEndpoint = getMockEndpoint(MOCK_PRISONS_ENDPOINT);
+        mockEndpoint.assertIsSatisfied();
+
+        verify(nomisService).getAllPrisons();
+        verify(nomisService, times(0)).enableNewNomisForCaseload(anyString());
+        verify(telemetryClient, times(0)).trackEvent(anyString(), any(Map.class), isNull());
+    }
+
+    @Test
+    public void testEnabledNewNomisCamelRoute_RetriesOnEnablePrisonsError() throws Exception {
+
+        final var prisons = List.of(MDI);
+
+        when(nomisService.getAllPrisons()).thenReturn(prisons);
+        final var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
+        when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId())))
+            .thenThrow(new RuntimeException("Error"))
+            .thenReturn(MDIResponse);
+
+        template.send(EnableNewNomisRoute.ENABLE_NEW_NOMIS, exchange -> {
+        });
+
+        assertMockEndpointsSatisfied();
+        final var mockEndpoint = getMockEndpoint(MOCK_PRISONS_ENDPOINT);
+        mockEndpoint.assertIsSatisfied();
+
+        final var receivedExchanges = mockEndpoint.getReceivedExchanges();
+        assertEquals(1, receivedExchanges.size());
+        final List<Prison> exchangeData = receivedExchanges.get(0).getIn().getBody(List.class);
+        assertEquals(prisons, exchangeData);
+
+        final var mockEndpoint2 = getMockEndpoint(MOCK_ENABLE_ENDPOINT);
+        mockEndpoint2.assertIsSatisfied();
+
+        final var receivedExchanges2 = mockEndpoint2.getReceivedExchanges();
+        assertEquals(1, receivedExchanges2.size());
+
+        assertEquals(receivedExchanges2.get(0).getIn().getBody(CaseloadUpdate.class), MDIResponse);
+
+        verify(nomisService).getAllPrisons();
+        verify(nomisService, times(2)).enableNewNomisForCaseload(eq(MDI.getPrisonId()));
+        verify(telemetryClient, times(1)).trackEvent(eq("ApiUsersEnabled"), isA(Map.class), isNull());
+    }
 
 }

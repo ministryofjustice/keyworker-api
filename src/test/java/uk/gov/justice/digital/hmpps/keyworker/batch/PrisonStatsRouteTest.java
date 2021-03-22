@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -122,12 +122,74 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
     }
 
     @Test
-    public void testGenerateStatsCallError() throws Exception {
+    public void testGenerateStatsCallError_NoOpOnGetMigratedPrisonsError() throws Exception {
+
+        when(prisonSupportedService.getMigratedPrisons()).thenThrow(new RuntimeException("Error"));
+
+        template.send(PrisonStatsRoute.DIRECT_PRISON_STATS, exchange -> {
+        });
+
+        assertMockEndpointsSatisfied();
+
+        final var statsEndpoint = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
+        statsEndpoint.assertIsSatisfied();
+
+        final var receivedExchanges = statsEndpoint.getReceivedExchanges();
+        assertEquals(0, receivedExchanges.size());
+
+        final var dlqEndpoint = getMockEndpoint(MOCK_DLQ_ENDPOINT);
+        dlqEndpoint.assertIsSatisfied();
+
+        final var dlqExchanges = dlqEndpoint.getReceivedExchanges();
+        assertEquals(0, dlqExchanges.size());
+
+        verify(prisonSupportedService).getMigratedPrisons();
+        verify(keyworkerStatsService, times(0)).generatePrisonStats(anyString());
+        verify(keyworkerStatsService, times(0)).raiseStatsProcessingError(anyString(), any());
+    }
+
+    @Test
+    public void testGenerateStatsCall_RetriesOnGenerateStatsError() throws Exception {
 
         final var prisons = List.of(
-                MDI,
-                LEI,
-                LPI
+                MDI
+        );
+
+        when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
+
+        when(keyworkerStatsService.generatePrisonStats(MDI.getPrisonId()))
+            .thenThrow(NullPointerException.class)
+            .thenReturn(PrisonKeyWorkerStatistic.builder().prisonId(MDI.getPrisonId()).build());
+
+        template.send(PrisonStatsRoute.DIRECT_PRISON_STATS, exchange -> {
+        });
+
+        assertMockEndpointsSatisfied();
+
+        final var statsEndpoint = getMockEndpoint(MOCK_GENSTATS_ENDPOINT);
+        statsEndpoint.assertIsSatisfied();
+
+        final var receivedExchanges = statsEndpoint.getReceivedExchanges();
+        assertEquals(1, receivedExchanges.size());
+
+        final var dlqEndpoint = getMockEndpoint(MOCK_DLQ_ENDPOINT);
+        dlqEndpoint.assertIsSatisfied();
+
+        final var dlqExchanges = dlqEndpoint.getReceivedExchanges();
+        assertEquals(0, dlqExchanges.size());
+
+        verify(prisonSupportedService).getMigratedPrisons();
+        verify(keyworkerStatsService, times(2)).generatePrisonStats(isA(String.class));
+        verify(keyworkerStatsService, times(0)).raiseStatsProcessingError(anyString(), any());
+    }
+
+    @Test
+    public void testGenerateStatsCall_RaisesProcessingErrorOnGenerateStatsError() throws Exception {
+
+        final var prisons = List.of(
+            MDI,
+            LEI,
+            LPI
         );
 
         when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
@@ -157,7 +219,5 @@ public class PrisonStatsRouteTest extends CamelTestSupport {
         verify(keyworkerStatsService, times(5)).generatePrisonStats(isA(String.class));
         verify(keyworkerStatsService).raiseStatsProcessingError(eq(MDI.getPrisonId()), isA(Exchange.class));
     }
-
-
 
 }
