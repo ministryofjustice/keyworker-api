@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.justice.digital.hmpps.keyworker.batch.EnableNewNomisRoute;
 import uk.gov.justice.digital.hmpps.keyworker.config.RetryConfiguration;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
@@ -60,7 +59,7 @@ public class NomisBatchServiceTest {
     }
 
     @Test
-    public void testEnabledNewNomisCamelRoute_NoOpOnGetAllPrisonsError() throws Exception {
+    public void testEnabledNewNomisCamelRoute_NoOpOnGetAllPrisonsError() {
 
         when(nomisService.getAllPrisons()).thenThrow(new RuntimeException("Error"));
 
