@@ -4,7 +4,6 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,11 +131,11 @@ public class ReconciliationService {
         }
     }
 
-    public void raiseProcessingError(final String prisonId, final Exchange exchange) {
+    public void raiseProcessingError(final String prisonId, final Exception exception) {
         final var logMap = new HashMap<String, String>();
         logMap.put("prisonId", prisonId);
 
-        telemetryClient.trackException(exchange.getException(), logMap, null);
+        telemetryClient.trackException(exception, logMap, null);
     }
 
     public void checkForMergeAndDeallocate(final Long bookingId) {
