@@ -1,24 +1,24 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import lombok.extern.slf4j.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.retry.RetryCallback
 import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic
-import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService.Companion.log
 
 @Service
-@Slf4j
 class KeyworkerStatsBatchService(
   private val keyworkerStatsService: KeyworkerStatsService,
   private val prisonSupportedService: PrisonSupportedService,
   private val defaultRetryTemplate: RetryTemplate
 ) {
+  val log: Logger = LoggerFactory.getLogger(this.javaClass.name)
 
   fun generatePrisonStats() {
     try {
       val prisonsWithId = prisonSupportedService.migratedPrisons
-      log.info("There are %d migrated prisons", prisonsWithId.size)
+      log.info("There are {} migrated prisons", prisonsWithId.size)
       for (prison in prisonsWithId.stream()) {
         generatePrisonStatsForPrison(prison.prisonId)
       }
@@ -29,11 +29,11 @@ class KeyworkerStatsBatchService(
 
   private fun generatePrisonStatsForPrison(prisonId: String) {
     try {
-      log.info("Gathering stats for %s", prisonId)
+      log.info("Gathering stats for {}", prisonId)
       generatePrisonStatsWithRetry(prisonId)
-      log.info("Stats completed for %s", prisonId)
+      log.info("Stats completed for {}", prisonId)
     } catch (e: Exception) {
-      log.error("Error occurred processing %s", prisonId)
+      log.error("Error occurred processing {}", prisonId)
       keyworkerStatsService.raiseStatsProcessingError(prisonId, e)
     }
   }

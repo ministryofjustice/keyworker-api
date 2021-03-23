@@ -1,23 +1,23 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import lombok.extern.slf4j.Slf4j
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.retry.RetryCallback
 import org.springframework.retry.support.RetryTemplate
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService.Companion.log
 
 @Service
-@Slf4j
 class ReconciliationBatchService(
   private val reconciliationService: ReconciliationService,
   private val prisonSupportedService: PrisonSupportedService,
   private val defaultRetryTemplate: RetryTemplate
 ) {
+  val log: Logger = LoggerFactory.getLogger(this.javaClass.name)
 
   fun reconcileKeyWorkerAllocations() {
     try {
       val prisonsWithId = prisonSupportedService.migratedPrisons
-      log.info("There are %d prisons", prisonsWithId.size)
+      log.info("There are {} prisons", prisonsWithId.size)
       for (prison in prisonsWithId.stream()) {
         reconcileKeyWorkerAllocationsForPrison(prison.prisonId)
       }
@@ -28,11 +28,11 @@ class ReconciliationBatchService(
 
   private fun reconcileKeyWorkerAllocationsForPrison(prisonId: String) {
     try {
-      log.info("Key Worker Reconciliation for %s", prisonId)
+      log.info("Key Worker Reconciliation for {}", prisonId)
       reconcileKeyWorkersWithRetry(prisonId)
-      log.info("Key Worker Reconciliation completed for %s", prisonId)
+      log.info("Key Worker Reconciliation completed for {}", prisonId)
     } catch (e: Exception) {
-      log.error("Error occurred processing %s", prisonId)
+      log.error("Error occurred processing {}", prisonId)
       reconciliationService.raiseProcessingError(prisonId, e)
     }
   }
