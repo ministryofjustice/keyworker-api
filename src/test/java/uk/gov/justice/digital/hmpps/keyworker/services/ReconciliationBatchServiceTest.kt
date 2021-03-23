@@ -1,114 +1,112 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.services
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.justice.digital.hmpps.keyworker.config.RetryConfiguration;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
-import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService.ReconMetrics;
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.keyworker.config.RetryConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison
+import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService.ReconMetrics
 
-import java.util.List;
+@ExtendWith(SpringExtension::class)
+@ContextConfiguration(classes = [ReconciliationBatchService::class, RetryConfiguration::class])
+class ReconciliationBatchServiceTest {
+  @Autowired
+  private lateinit var batchService: ReconciliationBatchService
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.*;
+  @MockBean
+  private lateinit var reconciliationService: ReconciliationService
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ReconciliationBatchService.class, RetryConfiguration.class})
-public class ReconciliationBatchServiceTest {
+  @MockBean
+  private lateinit var prisonSupportedService: PrisonSupportedService
 
-    private static final Prison MDI = Prison.builder().prisonId("MDI").build();
-    private static final Prison LEI = Prison.builder().prisonId("LEI").build();
-    private static final Prison LPI = Prison.builder().prisonId("LPI").build();
+  @Test
+  fun testReconcileKeyWorkerAllocations_callsServices() {
+    val prisons = listOf(
+      MDI,
+      LEI,
+      LPI
+    )
+    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    `when`(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
+      .thenReturn(ReconMetrics(MDI.prisonId, 10, 0))
+    `when`(reconciliationService.reconcileKeyWorkerAllocations(LEI.prisonId))
+      .thenReturn(ReconMetrics(LEI.prisonId, 5, 1))
+    `when`(reconciliationService.reconcileKeyWorkerAllocations(LPI.prisonId))
+      .thenReturn(ReconMetrics(LPI.prisonId, 3, 2))
 
-    @Autowired
-    private ReconciliationBatchService batchService;
+    batchService.reconcileKeyWorkerAllocations()
 
-    @MockBean
-    private ReconciliationService reconciliationService;
+    verify(prisonSupportedService).migratedPrisons
+    verify(reconciliationService).reconcileKeyWorkerAllocations(eq(MDI.prisonId))
+    verify(reconciliationService).reconcileKeyWorkerAllocations(eq(LEI.prisonId))
+    verify(reconciliationService).reconcileKeyWorkerAllocations(eq(LPI.prisonId))
+    verify(reconciliationService, never())
+      .raiseProcessingError(anyString(), any())
+  }
 
-    @MockBean
-    private PrisonSupportedService prisonSupportedService;
+  @Test
+  fun testReconcileKeyWorkerAllocations_npOpOnMigratedPrisonsError() {
+    `when`(prisonSupportedService.migratedPrisons).thenThrow(RuntimeException("Error"))
 
-    @Test
-    public void testReconcileKeyWorkerAllocations_callsServices() {
+    batchService.reconcileKeyWorkerAllocations()
 
-        final var prisons = List.of(
-            MDI,
-            LEI,
-            LPI
-        );
+    verify(prisonSupportedService).migratedPrisons
+    verify(reconciliationService, never()).reconcileKeyWorkerAllocations(anyString())
+    verify(reconciliationService, never())
+      .raiseProcessingError(anyString(), any())
+  }
 
-        when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
+  @Test
+  fun testReconcileKeyWorkerAllocations_retriesOnReconcileAllocationsError() {
+    val prisons = listOf(
+      MDI
+    )
+    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    `when`(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
+      .thenThrow(RuntimeException("Error"))
+      .thenReturn(ReconMetrics(MDI.prisonId, 10, 0))
 
-        when(reconciliationService.reconcileKeyWorkerAllocations(MDI.getPrisonId())).thenReturn(new ReconMetrics(MDI.getPrisonId(), 10, 0));
-        when(reconciliationService.reconcileKeyWorkerAllocations(LEI.getPrisonId())).thenReturn(new ReconMetrics(LEI.getPrisonId(), 5, 1));
-        when(reconciliationService.reconcileKeyWorkerAllocations(LPI.getPrisonId())).thenReturn(new ReconMetrics(LPI.getPrisonId(), 3, 2));
+    batchService.reconcileKeyWorkerAllocations()
 
-        batchService.reconcileKeyWorkerAllocations();
+    verify(prisonSupportedService).migratedPrisons
+    verify(reconciliationService, times(2))
+      .reconcileKeyWorkerAllocations(eq(MDI.prisonId))
+    verify(reconciliationService, never())
+      .raiseProcessingError(anyString(), any())
+  }
 
-        verify(prisonSupportedService).getMigratedPrisons();
-        verify(reconciliationService).reconcileKeyWorkerAllocations(eq(MDI.getPrisonId()));
-        verify(reconciliationService).reconcileKeyWorkerAllocations(eq(LEI.getPrisonId()));
-        verify(reconciliationService).reconcileKeyWorkerAllocations(eq(LPI.getPrisonId()));
-        verify(reconciliationService, times(0)).raiseProcessingError(anyString(), any());
-    }
+  @Test
+  fun testReconcileKeyWorkerAllocations_raisesProcessingErrorOnReconcileAllocationsError() {
+    val prisons = listOf(
+      MDI
+    )
+    val testException = RuntimeException("Error")
+    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    `when`(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
+      .thenThrow(testException)
 
-    @Test
-    public void testReconcileKeyWorkerAllocations_npOpOnMigratedPrisonsError() {
+    batchService.reconcileKeyWorkerAllocations()
 
-        when(prisonSupportedService.getMigratedPrisons()).thenThrow(new RuntimeException("Error"));
+    verify(prisonSupportedService).migratedPrisons
+    verify(reconciliationService, times(3))
+      .reconcileKeyWorkerAllocations(eq(MDI.prisonId))
+    verify(reconciliationService)
+      .raiseProcessingError(eq(MDI.prisonId), eq(testException))
+  }
 
-        batchService.reconcileKeyWorkerAllocations();
-
-        verify(prisonSupportedService).getMigratedPrisons();
-        verify(reconciliationService, times(0)).reconcileKeyWorkerAllocations(anyString());
-        verify(reconciliationService, times(0)).raiseProcessingError(anyString(), any());
-    }
-
-    @Test
-    public void testReconcileKeyWorkerAllocations_retriesOnReconcileAllocationsError() {
-
-        final var prisons = List.of(
-            MDI
-        );
-
-        when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
-
-        when(reconciliationService.reconcileKeyWorkerAllocations(MDI.getPrisonId()))
-            .thenThrow(new RuntimeException("Error"))
-            .thenReturn(new ReconMetrics(MDI.getPrisonId(), 10, 0));
-
-        batchService.reconcileKeyWorkerAllocations();
-
-        verify(prisonSupportedService).getMigratedPrisons();
-        verify(reconciliationService, times(2)).reconcileKeyWorkerAllocations(eq(MDI.getPrisonId()));
-        verify(reconciliationService, times(0)).raiseProcessingError(anyString(), any());
-    }
-
-    @Test
-    public void testReconcileKeyWorkerAllocations_raisesProcessingErrorOnReconcileAllocationsError() {
-
-        final var prisons = List.of(
-            MDI
-        );
-        final var testException = new RuntimeException("Error");
-
-        when(prisonSupportedService.getMigratedPrisons()).thenReturn(prisons);
-
-        when(reconciliationService.reconcileKeyWorkerAllocations(MDI.getPrisonId()))
-            .thenThrow(testException);
-
-        batchService.reconcileKeyWorkerAllocations();
-
-        verify(prisonSupportedService).getMigratedPrisons();
-        verify(reconciliationService, times(3)).reconcileKeyWorkerAllocations(eq(MDI.getPrisonId()));
-
-        verify(reconciliationService).raiseProcessingError(eq(MDI.getPrisonId()), eq(testException));
-    }
-
+  companion object {
+    private val MDI = Prison.builder().prisonId("MDI").build()
+    private val LEI = Prison.builder().prisonId("LEI").build()
+    private val LPI = Prison.builder().prisonId("LPI").build()
+  }
 }

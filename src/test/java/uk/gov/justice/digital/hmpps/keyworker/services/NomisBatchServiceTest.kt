@@ -1,90 +1,105 @@
-package uk.gov.justice.digital.hmpps.keyworker.services;
+package uk.gov.justice.digital.hmpps.keyworker.services
 
-import com.microsoft.applicationinsights.TelemetryClient;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.justice.digital.hmpps.keyworker.config.RetryConfiguration;
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
+import com.microsoft.applicationinsights.TelemetryClient
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.ArgumentMatchers.isA
+import org.mockito.ArgumentMatchers.isNull
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.junit.jupiter.SpringExtension
+import uk.gov.justice.digital.hmpps.keyworker.config.RetryConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison
 
-import java.util.List;
-import java.util.Map;
+@ExtendWith(SpringExtension::class)
+@ContextConfiguration(classes = [NomisBatchService::class, RetryConfiguration::class])
+class NomisBatchServiceTest {
+  @Autowired
+  private lateinit var batchService: NomisBatchService
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.*;
+  @MockBean
+  private lateinit var nomisService: NomisService
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {NomisBatchService.class, RetryConfiguration.class})
-public class NomisBatchServiceTest {
+  @MockBean
+  private lateinit var telemetryClient: TelemetryClient
 
-    private static final Prison MDI = Prison.builder().prisonId("MDI").build();
-    private static final Prison LEI = Prison.builder().prisonId("LEI").build();
-    private static final Prison LPI = Prison.builder().prisonId("LPI").build();
+  @Test
+  fun enableNomis_makesPrisonApiCalls() {
+    val prisons = listOf(MDI, LEI, LPI)
+    `when`(nomisService.allPrisons).thenReturn(prisons)
+    val MDIResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
+    `when`(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId))).thenReturn(MDIResponse)
+    val LEIResponse = CaseloadUpdate.builder().caseload(LEI.prisonId).numUsersEnabled(0).build()
+    `when`(nomisService.enableNewNomisForCaseload(eq(LEI.prisonId))).thenReturn(LEIResponse)
+    val LPIResponse = CaseloadUpdate.builder().caseload(LPI.prisonId).numUsersEnabled(14).build()
+    `when`(nomisService.enableNewNomisForCaseload(eq(LPI.prisonId))).thenReturn(LPIResponse)
 
-    @Autowired
-    private NomisBatchService batchService;
+    batchService.enableNomis()
 
-    @MockBean
-    private NomisService nomisService;
+    verify(nomisService).allPrisons
+    verify(nomisService).enableNewNomisForCaseload(eq(MDI.prisonId))
+    verify(nomisService).enableNewNomisForCaseload(eq(LEI.prisonId))
+    verify(nomisService).enableNewNomisForCaseload(eq(LPI.prisonId))
+    verify(telemetryClient, never()).trackEvent(
+      eq("ApiUsersEnabled"),
+      isA(
+        Map::class.java
+      ) as MutableMap<String, String>?,
+      isNull()
+    )
+  }
 
-    @MockBean
-    private TelemetryClient telemetryClient;
+  @Test
+  fun testEnabledNewNomisCamelRoute_NoOpOnGetAllPrisonsError() {
+    `when`(nomisService.allPrisons).thenThrow(RuntimeException("Error"))
 
-    @Test
-    public void enableNomis_makesPrisonApiCalls() {
+    batchService.enableNomis()
 
-        final var prisons = List.of(MDI, LEI, LPI);
+    verify(nomisService).allPrisons
+    verify(nomisService, never()).enableNewNomisForCaseload(anyString())
+    verify(telemetryClient, times(0)).trackEvent(
+      anyString(),
+      any(
+        Map::class.java
+      ) as MutableMap<String, String>?,
+      isNull()
+    )
+  }
 
-        when(nomisService.getAllPrisons()).thenReturn(prisons);
-        final var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
-        when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId()))).thenReturn(MDIResponse);
-        final var LEIResponse = CaseloadUpdate.builder().caseload(LEI.getPrisonId()).numUsersEnabled(0).build();
-        when(nomisService.enableNewNomisForCaseload(eq(LEI.getPrisonId()))).thenReturn(LEIResponse);
-        final var LPIResponse = CaseloadUpdate.builder().caseload(LPI.getPrisonId()).numUsersEnabled(14).build();
-        when(nomisService.enableNewNomisForCaseload(eq(LPI.getPrisonId()))).thenReturn(LPIResponse);
+  @Test
+  fun testEnabledNewNomisCamelRoute_RetriesOnEnablePrisonsError() {
+    val prisons = listOf(MDI)
+    `when`(nomisService.allPrisons).thenReturn(prisons)
+    val MDIResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
+    `when`(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId)))
+      .thenThrow(RuntimeException("Error"))
+      .thenReturn(MDIResponse)
 
-        batchService.enableNomis();
+    batchService.enableNomis()
 
-        verify(nomisService).getAllPrisons();
-        verify(nomisService).enableNewNomisForCaseload(eq(MDI.getPrisonId()));
-        verify(nomisService).enableNewNomisForCaseload(eq(LEI.getPrisonId()));
-        verify(nomisService).enableNewNomisForCaseload(eq(LPI.getPrisonId()));
-        verify(telemetryClient, times(3)).trackEvent(eq("ApiUsersEnabled"), isA(Map.class), isNull());
-    }
+    verify(nomisService).allPrisons
+    verify(nomisService, times(2)).enableNewNomisForCaseload(eq(MDI.prisonId))
+    verify(telemetryClient, times(1)).trackEvent(
+      eq("ApiUsersEnabled"),
+      any(
+        Map::class.java
+      ) as MutableMap<String, String>?,
+      isNull()
+    )
+  }
 
-    @Test
-    public void testEnabledNewNomisCamelRoute_NoOpOnGetAllPrisonsError() {
-
-        when(nomisService.getAllPrisons()).thenThrow(new RuntimeException("Error"));
-
-        batchService.enableNomis();
-
-        verify(nomisService).getAllPrisons();
-        verify(nomisService, times(0)).enableNewNomisForCaseload(anyString());
-        verify(telemetryClient, times(0)).trackEvent(anyString(), any(Map.class), isNull());
-    }
-
-    @Test
-    public void testEnabledNewNomisCamelRoute_RetriesOnEnablePrisonsError() {
-
-        final var prisons = List.of(MDI);
-
-        when(nomisService.getAllPrisons()).thenReturn(prisons);
-        final var MDIResponse = CaseloadUpdate.builder().caseload(MDI.getPrisonId()).numUsersEnabled(2).build();
-        when(nomisService.enableNewNomisForCaseload(eq(MDI.getPrisonId())))
-            .thenThrow(new RuntimeException("Error"))
-            .thenReturn(MDIResponse);
-
-        batchService.enableNomis();
-
-        verify(nomisService).getAllPrisons();
-        verify(nomisService, times(2)).enableNewNomisForCaseload(eq(MDI.getPrisonId()));
-        verify(telemetryClient, times(1)).trackEvent(eq("ApiUsersEnabled"), isA(Map.class), isNull());
-    }
+  companion object {
+    private val MDI = Prison.builder().prisonId("MDI").build()
+    private val LEI = Prison.builder().prisonId("LEI").build()
+    private val LPI = Prison.builder().prisonId("LPI").build()
+  }
 }
