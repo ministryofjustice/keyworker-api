@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch;
 
 import groovy.util.logging.Slf4j;
-import org.apache.camel.builder.AdviceWithRouteBuilder;
+import org.apache.camel.builder.AdviceWith;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
@@ -12,7 +12,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationBatchService;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
@@ -33,11 +33,8 @@ public class KeyworkerReconRouteTest extends CamelTestSupport {
 
     @Before
     public void mockEndpoints() throws Exception {
-        context.getRouteDefinitions().get(0).adviceWith(context, new AdviceWithRouteBuilder() {
-            @Override
-            public void configure() {
-                weaveAddLast().to(MOCK_RECON_ENDPOINT);
-            }
+        AdviceWith.adviceWith(context, null, a -> {
+            a.weaveAddLast().to(MOCK_RECON_ENDPOINT);
         });
     }
 
