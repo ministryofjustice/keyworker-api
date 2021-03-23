@@ -578,11 +578,11 @@ public class KeyworkerStatsService {
         telemetryClient.trackEvent("kwStatsGenerated", logMap, metrics);
     }
 
-    public void raiseStatsProcessingError(final String prisonId, final Exchange exchange) {
+    public void raiseStatsProcessingError(final String prisonId, final Exception exception) {
         final var logMap = new HashMap<String, String>();
         logMap.put("snapshotDate", LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE));
         logMap.put("prisonId", prisonId);
 
-        telemetryClient.trackException(exchange.getException(), logMap, null);
+        telemetryClient.trackException(exception, logMap, null);
     }
 }
