@@ -4,26 +4,27 @@ import com.google.common.collect.ImmutableMap
 import com.microsoft.applicationinsights.TelemetryClient
 import lombok.extern.slf4j.Slf4j
 import org.springframework.retry.RetryCallback
-import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService.Companion.log
-
 import org.springframework.retry.support.RetryTemplate
+import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate
+import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService.Companion.log
 
 @Service
 @Slf4j
-class NomisBatchService(private val nomisService: NomisService,
-                        private val telemetryClient: TelemetryClient,
-                        private val enableNomisRetryTemplate: RetryTemplate) {
+class NomisBatchService(
+  private val nomisService: NomisService,
+  private val telemetryClient: TelemetryClient,
+  private val enableNomisRetryTemplate: RetryTemplate
+) {
 
   fun enableNomis() {
     try {
-      val prisonsWithId  = nomisService.allPrisons
+      val prisonsWithId = nomisService.allPrisons
       log.info("There are %d prisons", prisonsWithId.size)
       for (prison in prisonsWithId.stream()) {
         enableNomisForPrison(prison.prisonId)
       }
-    } catch (e: Exception ) {
+    } catch (e: Exception) {
       log.error("Error occurred retrieving prisons", e)
     }
   }
@@ -42,15 +43,16 @@ class NomisBatchService(private val nomisService: NomisService,
         caseload.numUsersEnabled.toString()
       )
       telemetryClient.trackEvent("ApiUsersEnabled", infoMap, null)
-    } catch (e: Exception ) {
+    } catch (e: Exception) {
       log.error("Error occurred enabling new nomis", e)
     }
   }
 
   private fun enableNomisForCaseloadWithRetry(prisonId: String): CaseloadUpdate {
-    return enableNomisRetryTemplate.execute(RetryCallback<CaseloadUpdate, RuntimeException> {
-      nomisService.enableNewNomisForCaseload(prisonId)
-    })
+    return enableNomisRetryTemplate.execute(
+      RetryCallback<CaseloadUpdate, RuntimeException> {
+        nomisService.enableNewNomisForCaseload(prisonId)
+      }
+    )
   }
-
 }

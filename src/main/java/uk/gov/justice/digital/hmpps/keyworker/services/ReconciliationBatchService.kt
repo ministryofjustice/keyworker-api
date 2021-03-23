@@ -8,18 +8,20 @@ import uk.gov.justice.digital.hmpps.keyworker.services.QueueAdminService.Compani
 
 @Service
 @Slf4j
-class ReconciliationBatchService(private val reconciliationService: ReconciliationService,
-                                 private val prisonSupportedService: PrisonSupportedService,
-                                 private val defaultRetryTemplate: RetryTemplate) {
+class ReconciliationBatchService(
+  private val reconciliationService: ReconciliationService,
+  private val prisonSupportedService: PrisonSupportedService,
+  private val defaultRetryTemplate: RetryTemplate
+) {
 
   fun reconcileKeyWorkerAllocations() {
     try {
-      val prisonsWithId  = prisonSupportedService.migratedPrisons
+      val prisonsWithId = prisonSupportedService.migratedPrisons
       log.info("There are %d prisons", prisonsWithId.size)
       for (prison in prisonsWithId.stream()) {
         reconcileKeyWorkerAllocationsForPrison(prison.prisonId)
       }
-    } catch (e: Exception ) {
+    } catch (e: Exception) {
       log.error("Error occurred reconciling key worker allocations for prisons", e)
     }
   }
@@ -29,15 +31,17 @@ class ReconciliationBatchService(private val reconciliationService: Reconciliati
       log.info("Key Worker Reconciliation for %s", prisonId)
       reconcileKeyWorkersWithRetry(prisonId)
       log.info("Key Worker Reconciliation completed for %s", prisonId)
-    } catch (e: Exception ) {
+    } catch (e: Exception) {
       log.error("Error occurred processing %s", prisonId)
       reconciliationService.raiseProcessingError(prisonId, e)
     }
   }
 
   private fun reconcileKeyWorkersWithRetry(prisonId: String): ReconciliationService.ReconMetrics {
-    return defaultRetryTemplate.execute(RetryCallback<ReconciliationService.ReconMetrics, RuntimeException> {
-      reconciliationService.reconcileKeyWorkerAllocations(prisonId)
-    })
+    return defaultRetryTemplate.execute(
+      RetryCallback<ReconciliationService.ReconMetrics, RuntimeException> {
+        reconciliationService.reconcileKeyWorkerAllocations(prisonId)
+      }
+    )
   }
 }
