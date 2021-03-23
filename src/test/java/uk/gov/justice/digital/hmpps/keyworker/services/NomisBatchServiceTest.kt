@@ -49,7 +49,7 @@ class NomisBatchServiceTest {
     verify(nomisService).enableNewNomisForCaseload(eq(MDI.prisonId))
     verify(nomisService).enableNewNomisForCaseload(eq(LEI.prisonId))
     verify(nomisService).enableNewNomisForCaseload(eq(LPI.prisonId))
-    verify(telemetryClient, never()).trackEvent(
+    verify(telemetryClient, times(3)).trackEvent(
       eq("ApiUsersEnabled"),
       isA(
         Map::class.java
