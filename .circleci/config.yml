@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   hmpps: ministryofjustice/hmpps@3.0
-  owasp: entur/owasp@0.0.14
 
 executors:
   builder:
@@ -98,7 +97,7 @@ workflows:
           requires:
             - request-prod-approval
 
-  scheduled:
+  security:
     triggers:
       - schedule:
           cron: "0 7 * * 1-5"
@@ -107,5 +106,9 @@ workflows:
               only:
                 - main
     jobs:
-      - owasp/gradle_owasp_dependency_check:
-          executor: hmpps/java
+      - hmpps/gradle_owasp_dependency_check:
+          context:
+            - hmpps-common-vars
+      - hmpps/veracode_pipeline_scan:
+          context:
+            - hmpps-common-vars
