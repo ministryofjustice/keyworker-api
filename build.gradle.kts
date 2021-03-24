@@ -22,6 +22,7 @@ dependencies {
   implementation("org.springframework.retry:spring-retry")
   implementation("org.apache.camel.springboot:camel-spring-boot:3.8.0")
   implementation("org.apache.camel:camel-quartz:3.8.0")
+  implementation("org.apache.camel:camel-direct:3.8.0")
   implementation("org.springframework:spring-jms")
   implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
