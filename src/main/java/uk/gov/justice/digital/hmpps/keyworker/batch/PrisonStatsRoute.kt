@@ -35,6 +35,6 @@ class PrisonStatsRoute @Autowired constructor(
 
   companion object {
     const val DIRECT_PRISON_STATS = "direct:prisonStats"
-    private const val QUARTZ_PRISON_STATS_URI = "quartz2://application/prisonStats?cron="
+    private const val QUARTZ_PRISON_STATS_URI = "quartz://application/prisonStatsJob?cron="
   }
 }

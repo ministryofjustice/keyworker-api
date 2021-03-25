@@ -34,6 +34,6 @@ class KeyworkerReconRoute @Autowired constructor(
 
   companion object {
     const val DIRECT_KEY_WORKER_RECON = "direct:keyWorkerRecon"
-    private const val QUARTZ_KEY_WORKER_RECON_URI = "quartz2://application/keyWorkerRecon?cron="
+    private const val QUARTZ_KEY_WORKER_RECON_URI = "quartz://application/keyWorkerReconJob?cron="
   }
 }
