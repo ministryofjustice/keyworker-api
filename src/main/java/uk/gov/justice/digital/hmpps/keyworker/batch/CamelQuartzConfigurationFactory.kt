@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.batch
 
 import org.apache.camel.CamelContext
 import org.apache.camel.ProducerTemplate
-import org.apache.camel.component.quartz.QuartzComponent
+import org.apache.camel.component.quartz2.QuartzComponent
 import org.apache.camel.spring.boot.CamelContextConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

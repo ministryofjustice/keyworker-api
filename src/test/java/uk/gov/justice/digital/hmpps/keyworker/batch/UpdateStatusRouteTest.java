@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.batch;
 
 import groovy.util.logging.Slf4j;
-import org.apache.camel.builder.AdviceWith;
+import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.Before;
@@ -38,8 +38,11 @@ public class UpdateStatusRouteTest extends CamelTestSupport {
 
     @Before
     public void mockEndpoints() throws Exception {
-        AdviceWith.adviceWith(context, null, a -> {
-            a.weaveAddLast().to(SUBMIT_ENDPOINT);
+        context.getRouteDefinitions().get(0).adviceWith(context, new AdviceWithRouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                weaveAddLast().to("mock:result");
+            }
         });
     }
 
@@ -47,7 +50,7 @@ public class UpdateStatusRouteTest extends CamelTestSupport {
     @Test
     public void testUpdateStatus() throws Exception {
 
-        when(service.executeUpdateStatus()).thenReturn(List.of(8L, 9L));
+        when(service.executeUpdateStatus()).thenReturn(List.of(8L,9L));
 
         template.send(UpdateStatusRoute.DIRECT_UPDATE_STATUS, exchange -> {
         });
