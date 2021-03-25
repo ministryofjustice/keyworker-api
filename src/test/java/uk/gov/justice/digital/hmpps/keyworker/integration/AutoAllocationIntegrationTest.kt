@@ -135,7 +135,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
   fun `should respond with 2xx status`() {
     webTestClient
       .post()
-      .uri("/key-worker/enable/${KeyworkerServiceControllerTest.PRISON_ID}/auto-allocate?migrate=true&capacity=6,9&frequency=2")
+      .uri("/key-worker/enable/${PRISON_ID}/auto-allocate?migrate=true&capacity=6,9&frequency=2")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
       .expectStatus().is2xxSuccessful
