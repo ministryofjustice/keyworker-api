@@ -36,6 +36,6 @@ class EnableNewNomisRoute @Autowired constructor(
 
   companion object {
     const val ENABLE_NEW_NOMIS = "direct:enableNewNomis"
-    private const val QUARTZ_ENABLE_NEW_NOMIS_URI = "quartz2://application/enableNewNomis?cron="
+    private const val QUARTZ_ENABLE_NEW_NOMIS_URI = "quartz://application/enableNewNomisJob?cron="
   }
 }
