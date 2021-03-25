@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.http.MediaType
+import uk.gov.justice.digital.hmpps.keyworker.controllers.KeyworkerServiceControllerTest
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -128,6 +130,16 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("\$[?(@.offenderNo == 'UNALLOC1')]").doesNotExist()
+  }
+
+  @Test
+  fun `should respond with 2xx status`() {
+    webTestClient
+      .post()
+      .uri("/key-worker/enable/${KeyworkerServiceControllerTest.PRISON_ID}/auto-allocate?migrate=true&capacity=6,9&frequency=2")
+      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
+      .exchange()
+      .expectStatus().is2xxSuccessful
   }
 
   fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {

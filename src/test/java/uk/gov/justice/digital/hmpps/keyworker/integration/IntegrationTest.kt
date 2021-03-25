@@ -106,7 +106,7 @@ abstract class IntegrationTest {
     eliteMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
 
     webTestClient.post()
-      .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true&capacity=6&capacity=9&frequency=2")
+      .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true&capacity=6,9&frequency=2")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
       .expectStatus().is2xxSuccessful
