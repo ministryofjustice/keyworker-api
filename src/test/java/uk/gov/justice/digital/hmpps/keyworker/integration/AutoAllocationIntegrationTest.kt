@@ -130,6 +130,16 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
       .jsonPath("\$[?(@.offenderNo == 'UNALLOC1')]").doesNotExist()
   }
 
+  @Test
+  fun `should respond with 2xx status`() {
+    webTestClient
+      .post()
+      .uri("/key-worker/enable/$PRISON_ID/auto-allocate?migrate=true&capacity=6,9&frequency=2")
+      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
+      .exchange()
+      .expectStatus().is2xxSuccessful
+  }
+
   fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {
     webTestClient.post()
       .uri("/key-worker/$keyworkerId/prison/$prisonId")
