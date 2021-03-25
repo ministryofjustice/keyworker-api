@@ -61,7 +61,7 @@ internal class CamelQuartzConfigurationFactory {
   fun contextConfiguration(): CamelContextConfiguration {
     return object : CamelContextConfiguration {
       override fun beforeApplicationStart(context: CamelContext) {
-        context.addComponent("quartz2", quartz())
+        context.addComponent("quartz", quartz())
         context.isUseMDCLogging = true
       }
 
