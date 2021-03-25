@@ -19,8 +19,8 @@ class KeyworkerStatsBatchService(
     try {
       val prisonsWithId = prisonSupportedService.migratedPrisons
       log.info("There are {} migrated prisons", prisonsWithId.size)
-      prisonsWithId.forEach {
-        generatePrisonStatsForPrison(it.prisonId)
+      for (prison in prisonsWithId.stream()) {
+        generatePrisonStatsForPrison(prison.prisonId)
       }
     } catch (e: Exception) {
       log.error("Error occurred reconciling key worker allocations for prisons", e)
