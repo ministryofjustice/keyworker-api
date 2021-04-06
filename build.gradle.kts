@@ -1,15 +1,15 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.1.3"
-  kotlin("plugin.spring") version "1.4.30"
-  kotlin("plugin.jpa") version "1.4.30"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.1.4"
+  kotlin("plugin.spring") version "1.4.32"
+  kotlin("plugin.jpa") version "1.4.32"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
 }
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.18")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.18")
+  annotationProcessor("org.projectlombok:lombok:1.18.20")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-cache")
   implementation("org.springframework.boot:spring-boot-starter-quartz")
@@ -32,18 +32,18 @@ dependencies {
   implementation("io.springfox:springfox-boot-starter:3.0.0")
   implementation("net.sf.ehcache:ehcache:2.10.6")
   implementation("org.apache.commons:commons-text:1.9")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.1")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
   implementation("com.google.code.gson:gson:2.8.6")
-  compileOnly("org.projectlombok:lombok:1.18.18")
+  compileOnly("org.projectlombok:lombok:1.18.20")
   runtimeOnly("org.hsqldb:hsqldb:2.5.1")
-  implementation("org.flywaydb:flyway-core:7.5.3")
+  implementation("org.flywaydb:flyway-core:7.7.2")
   runtimeOnly("org.postgresql:postgresql:42.2.19")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
-  testImplementation("org.spockframework:spock-spring:2.0-M4-groovy-3.0")
-  testCompile("org.spockframework:spock-core:2.0-M4-groovy-3.0") {
+  testImplementation("org.spockframework:spock-spring:2.0-M5-groovy-3.0")
+  testCompile("org.spockframework:spock-core:2.0-M5-groovy-3.0") {
     exclude("org.codehaus.groovy")
   }
-  testCompileOnly("org.projectlombok:lombok:1.18.18")
+  testCompileOnly("org.projectlombok:lombok:1.18.20")
   testImplementation("org.gebish:geb-core:4.0")
   testImplementation("org.gebish:geb-spock:4.0")
   testImplementation("org.seleniumhq.selenium:selenium-support:3.141.59")
@@ -54,7 +54,7 @@ dependencies {
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:2.25.3")
   testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.24.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.25.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
