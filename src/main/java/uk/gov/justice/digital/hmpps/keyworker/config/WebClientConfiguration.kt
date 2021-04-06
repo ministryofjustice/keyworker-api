@@ -70,7 +70,7 @@ class WebClientConfiguration(
   @Bean
   fun complexityOfNeedHealthWebClient(builder: WebClient.Builder): WebClient {
     return builder
-      .baseUrl("$complexityOfNeedUri/health")
+      .baseUrl("$complexityOfNeedUri/ping")
       .filter(addAuthHeaderFilterFunction())
       .build()
   }

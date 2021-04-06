@@ -201,7 +201,7 @@ class ComplexityOfNeedQueueHealthIntegrationTest : IntegrationTest() {
   private fun subPing(status: Int) {
     addConditionalPingStub(eliteMockServer, status)
     addConditionalPingStub(oAuthMockServer, status)
-    addConditionalPingStub(complexityOfNeedMockServer, status, "/health")
+    addConditionalPingStub(complexityOfNeedMockServer, status, "/ping")
   }
 
   private fun addConditionalPingStub(mock: WireMockServer, status: Int, url: String? = "/health/ping") {
