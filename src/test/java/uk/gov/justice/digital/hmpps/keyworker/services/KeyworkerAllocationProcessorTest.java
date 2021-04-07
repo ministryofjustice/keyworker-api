@@ -170,7 +170,7 @@ class KeyworkerAllocationProcessorTest {
 
         assertThat(keyworkerAllocations.size()).isEqualTo(1);
         assertThat(keyworkerAllocations)
-            .extracting("offenderNo", "firstName", "lastName", "assignedLivingUnitDesc")
+            .extracting("offenderNo", "firstName", "lastName", "internalLocationDesc")
             .contains(Tuple.tuple(OFFENDER_NO, "Bob", "Doe", "MDI"));
     }
 }
