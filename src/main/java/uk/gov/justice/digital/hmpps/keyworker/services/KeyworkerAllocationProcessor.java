@@ -48,52 +48,51 @@ public class KeyworkerAllocationProcessor {
 
         // Extract offender numbers having active allocation
         final var activeOffenderNos = allocs.stream()
-                .collect(Collectors.toMap(
-                        OffenderKeyworker::getOffenderNo,
-                        Function.identity(),
-                        (offender1, offender2) -> {
-                            log.error("Prisoner {} has multiple active allocations", offender1.getOffenderNo());
-                            return offender1;
-                        }
-                ));
+            .collect(Collectors.toMap(
+                OffenderKeyworker::getOffenderNo,
+                Function.identity(),
+                (offender1, offender2) -> {
+                    log.error("Prisoner {} has multiple active allocations", offender1.getOffenderNo());
+                    return offender1;
+                }
+            ));
 
         // Return input list, filtered to remove offenders that have an active allocation
         return dtos.stream().filter(dto ->
-                !activeOffenderNos.containsKey(dto.getOffenderNo())
-                        || activeOffenderNos.get(dto.getOffenderNo()).getAllocationType() == AllocationType.PROVISIONAL)
-                .collect(Collectors.toList());
+            !activeOffenderNos.containsKey(dto.getOffenderNo())
+                || activeOffenderNos.get(dto.getOffenderNo()).getAllocationType() == AllocationType.PROVISIONAL)
+            .collect(Collectors.toList());
     }
 
     public List<KeyworkerAllocationDetailsDto> decorateAllocated(final List<OffenderKeyworker> allocations, final List<OffenderLocationDto> allOffenders) {
-
         final var duplicates = allOffenders.stream()
             .map(OffenderLocationDto::getOffenderNo)
             .collect(Collectors.groupingBy(string -> string, Collectors.counting()));
 
         duplicates.keySet().forEach(key -> {
             final var count = duplicates.get(key);
-            if(count > 1) log.error("Duplicate offender at location, offenderNo: {} count: {}",key, count);
+            if (count > 1) log.error("Duplicate offender at location, offenderNo: {} count: {}", key, count);
         });
 
-        final var distinctOffenderNumbers = allOffenders.stream()
-            .map(OffenderLocationDto::getOffenderNo)
-            .distinct()
-            .collect(Collectors.toSet());
+        return allocations.stream()
+            .map(allocation -> transformToAllocationDetails(allocation, allOffenders))
+            .collect(Collectors.toList());
+    }
 
-        final var allOffendersMap = allOffenders.stream()
-            .filter(offender -> !distinctOffenderNumbers.contains(offender.getOffenderNo()))
-            .collect(Collectors.toMap(OffenderLocationDto::getOffenderNo, Function.identity()));
+    private KeyworkerAllocationDetailsDto transformToAllocationDetails(final OffenderKeyworker allocation, final List<OffenderLocationDto> allOffenders) {
+        final var keyworkerAllocationDetailsDto = ConversionHelper.INSTANCE.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(allocation);
 
-        return allocations.stream().map(t -> {
-            final var keyworkerAllocationDetailsDto = ConversionHelper.INSTANCE.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(t);
-            final var offenderLocationDto = allOffendersMap.get(t.getOffenderNo());
-                    if (offenderLocationDto != null) {
-                        keyworkerAllocationDetailsDto.setFirstName(offenderLocationDto.getFirstName());
-                        keyworkerAllocationDetailsDto.setLastName(offenderLocationDto.getLastName());
-                        keyworkerAllocationDetailsDto.setInternalLocationDesc(offenderLocationDto.getAssignedLivingUnitDesc());
-                    }
-                    return keyworkerAllocationDetailsDto;
-                }
-        ).collect(Collectors.toList());
+        final var offenderLocationDto = allOffenders.stream()
+            .filter(offender -> offender.getOffenderNo().equals(allocation.getOffenderNo()))
+            .findFirst()
+            .orElse(null);
+
+        if (offenderLocationDto != null) {
+            keyworkerAllocationDetailsDto.setFirstName(offenderLocationDto.getFirstName());
+            keyworkerAllocationDetailsDto.setLastName(offenderLocationDto.getLastName());
+            keyworkerAllocationDetailsDto.setInternalLocationDesc(offenderLocationDto.getAssignedLivingUnitDesc());
+        }
+
+        return keyworkerAllocationDetailsDto;
     }
 }

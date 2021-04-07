@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.google.common.collect.Sets;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,9 +13,9 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
@@ -61,9 +62,9 @@ class KeyworkerAllocationProcessorTest {
 
         // Mock remote to return no active allocations for specified offender numbers.
         final var ok = OffenderKeyworker.builder()
-                .offenderNo(offNos.iterator().next())
-                .allocationType(AllocationType.PROVISIONAL)
-                .build();
+            .offenderNo(offNos.iterator().next())
+            .allocationType(AllocationType.PROVISIONAL)
+            .build();
         when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(Collections.singletonList(ok));
 
         // Invoke service
@@ -156,18 +157,18 @@ class KeyworkerAllocationProcessorTest {
     void testDecorateAllocatedCanHandleDuplicates() {
         final var OFFENDER_NO = "A12345";
 
-        final var offenderKeyworkers = java.util.List.of(
+        final var offenderKeyworkers = List.of(
             OffenderKeyworker.builder().offenderNo(OFFENDER_NO).build()
         );
 
-        final var offenderLocations = java.util.List.of(
-            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).build(),
-            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).build()
+        final var offenderLocations = List.of(
+            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).firstName("Bob").lastName("Doe").build(),
+            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).firstName("Bob").lastName("Doe").build()
         );
 
         final var keyworkerAllocations = processor.decorateAllocated(offenderKeyworkers, offenderLocations);
 
         assertThat(keyworkerAllocations.size()).isEqualTo(1);
-        assertThat(keyworkerAllocations).extracting("offenderNo").contains(OFFENDER_NO);
+        assertThat(keyworkerAllocations).extracting("offenderNo", "firstName", "lastName").contains(Tuple.tuple(OFFENDER_NO, "Bob", "Doe"));
     }
 }
