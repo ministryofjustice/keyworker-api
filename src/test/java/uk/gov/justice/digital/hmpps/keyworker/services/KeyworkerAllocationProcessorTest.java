@@ -162,13 +162,15 @@ class KeyworkerAllocationProcessorTest {
         );
 
         final var offenderLocations = List.of(
-            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).firstName("Bob").lastName("Doe").build(),
-            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).firstName("Bob").lastName("Doe").build()
+            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).firstName("Bob").lastName("Doe").assignedLivingUnitDesc("MDI").build(),
+            OffenderLocationDto.builder().offenderNo(OFFENDER_NO).firstName("Bob").lastName("Doe").assignedLivingUnitDesc("MDI").build()
         );
 
         final var keyworkerAllocations = processor.decorateAllocated(offenderKeyworkers, offenderLocations);
 
         assertThat(keyworkerAllocations.size()).isEqualTo(1);
-        assertThat(keyworkerAllocations).extracting("offenderNo", "firstName", "lastName").contains(Tuple.tuple(OFFENDER_NO, "Bob", "Doe"));
+        assertThat(keyworkerAllocations)
+            .extracting("offenderNo", "firstName", "lastName", "assignedLivingUnitDesc")
+            .contains(Tuple.tuple(OFFENDER_NO, "Bob", "Doe", "MDI"));
     }
 }
