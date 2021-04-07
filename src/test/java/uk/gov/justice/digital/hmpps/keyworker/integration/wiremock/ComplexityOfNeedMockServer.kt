@@ -19,7 +19,7 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
 
   fun stubHealthOKResponse() {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/health"))
+      WireMock.get(WireMock.urlPathEqualTo("/ping"))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "test/plain")
