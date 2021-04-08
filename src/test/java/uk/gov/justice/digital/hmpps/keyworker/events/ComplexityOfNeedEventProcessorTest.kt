@@ -65,8 +65,8 @@ class ComplexityOfNeedEventProcessorTest {
 
   @Test
   fun `should do nothing when there is no complexity url`() {
-    complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, null)
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_MEDIUM)
+    complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "")
+    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_HIGH)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
     verify(telemetryClient, never()).trackEvent(anyString(), any(), any())
