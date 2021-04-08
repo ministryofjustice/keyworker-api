@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import java.time.LocalDateTime
@@ -21,7 +22,8 @@ data class ComplexityOfNeedChange(
 class ComplexityOfNeedEventProcessor(
   private val keyworkerService: KeyworkerService,
   private val telemetryClient: TelemetryClient,
-  @Qualifier("gson") private val gson: Gson
+  @Qualifier("gson") private val gson: Gson,
+  @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String?
 ) {
 
   companion object {
@@ -29,6 +31,11 @@ class ComplexityOfNeedEventProcessor(
   }
 
   fun onComplexityChange(message: String) {
+    if (complexityOfNeedUri == null) {
+      log.info("Skipping complexity of need event because it's not enabled")
+      return
+    }
+
     val event = gson.fromJson(message, ComplexityOfNeedChange::class.java)
     val complexityLevel = ComplexityOfNeedLevel.valueOf(event.level.toUpperCase())
 
