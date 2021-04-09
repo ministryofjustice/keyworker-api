@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
-import com.amazonaws.util.StringUtils
 import com.google.gson.Gson
 import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
@@ -32,7 +31,7 @@ class ComplexityOfNeedEventProcessor(
   }
 
   fun onComplexityChange(message: String) {
-    if (StringUtils.isNullOrEmpty(complexityOfNeedUri)) {
+    if (complexityOfNeedUri.isNullOrEmpty()) {
       log.info("Skipping complexity of need event because it's not enabled")
       return
     }
@@ -48,7 +47,6 @@ class ComplexityOfNeedEventProcessor(
       ),
       null
     )
-
     if (complexityLevel != ComplexityOfNeedLevel.HIGH) return
 
     log.info("Deallocating an offender based on their HIGH complexity of need")
