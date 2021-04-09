@@ -32,4 +32,16 @@ class KeyWorkerDeallocationIntegrationTest : IntegrationTest() {
       .exchange()
       .expectStatus().isNotFound
   }
+
+  @Test
+  fun `Returns 403 when the correct roles are not sent`() {
+    migrated(PRISON_ID)
+
+    webTestClient
+      .put()
+      .uri("/key-worker/deallocate/$OFFENDER_NO_1")
+      .headers(setHeaders())
+      .exchange()
+      .expectStatus().isForbidden
+  }
 }

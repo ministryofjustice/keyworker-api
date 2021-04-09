@@ -12,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -456,6 +457,7 @@ class KeyworkerServiceController(
     ]
   )
   @PutMapping(path = ["/deallocate/{offenderNo}"])
+  @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
   fun deallocate(
     @ApiParam(value = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
   ) = keyworkerService.deallocate(offenderNo)

@@ -608,9 +608,10 @@ public class KeyworkerService {
         }
     }
 
-    @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void deallocate(final String offenderNo) {
         final var offenderKeyworkers = repository.findByActiveAndOffenderNo(true, offenderNo);
+
+        log.info("Found {} matching active offender key worker records", offenderKeyworkers.size());
 
         if (offenderKeyworkers.isEmpty()) {
             throw new EntityNotFoundException(String.format("Offender No %s not allocated or does not exist", offenderNo));
@@ -623,5 +624,4 @@ public class KeyworkerService {
             log.info("De-allocated offender {} from KW {} at {}", offenderNo, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
         });
     }
-
 }
