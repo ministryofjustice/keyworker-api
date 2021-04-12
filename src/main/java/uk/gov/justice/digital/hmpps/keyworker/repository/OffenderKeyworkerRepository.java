@@ -15,6 +15,7 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     int deleteByOffenderNo(String offenderNo);
 
     List<OffenderKeyworker> findByOffenderNo(String offenderNo);
+    List<OffenderKeyworker> findByOffenderNoIn(List<String> offenderNos);
 
     List<OffenderKeyworker> findByOffenderNoAndActiveAndAllocationTypeIsNot(String offenderNo, boolean active, AllocationType type);
 
@@ -42,4 +43,5 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     @Modifying
     @Query("update OffenderKeyworker ok set ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.AUTO where ok.prisonId = :prisonId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")
     Integer confirmProvisionals(@Param("prisonId") String prisonId);
+
 }

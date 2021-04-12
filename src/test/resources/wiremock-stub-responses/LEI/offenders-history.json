@@ -1,0 +1,23 @@
+[
+  {
+    "offenderNo": "ALLOCED1",
+    "staffId":  -5,
+    "agencyId": "LEI",
+    "assigned": "2017-06-01T12:14:00",
+    "userId": "ITAG_USER",
+    "active": "Y",
+    "created": "2018-04-12T14:08:37.766",
+    "createdBy": "SA"
+  },
+  {
+    "offenderNo": "EXPIRED1",
+    "staffId":  -5,
+    "agencyId": "LEI",
+    "assigned": "2017-05-01T11:14:00",
+    "expired": "2017-06-01T12:14:00",
+    "userId": "ITAG_USER",
+    "active": "Y",
+    "created": "2018-04-12T14:08:37.766",
+    "createdBy": "SA"
+  }
+]

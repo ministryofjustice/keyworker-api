@@ -19,6 +19,18 @@ class EliteMockServer : WireMockServer(9999) {
     )
   }
 
+  fun stubOffendersAllocationHistory(json: String) {
+    stubFor(
+      WireMock.post(WireMock.urlPathEqualTo("/api/key-worker/offenders/allocationHistory"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(json)
+        )
+    )
+  }
+
   fun stubAccessCodeListForKeyRole(prisonId: String, roleCode: String? = "KEY_WORK") {
     stubFor(
       WireMock.get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
