@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyWorkerHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyWorkerHistorySummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
@@ -436,6 +437,31 @@ class KeyworkerServiceController(
     @ApiParam(value = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
   ): OffenderKeyWorkerHistory =
     keyworkerService.getFullAllocationHistory(offenderNo).orElseThrow { EntityNotFoundException() }
+
+  @ApiOperation(
+    value = "Gets a summary of the offender's allocation histories",
+    nickname = "getKeyWorkerHistorySummaryForPrisoners"
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        code = 200, message = "OK", response = OffenderKeyWorkerHistory::class
+      ), ApiResponse(
+        code = 400, message = "Invalid request.", response = ErrorResponse::class
+      ), ApiResponse(
+        code = 500,
+        message = "Unrecoverable error occurred whilst processing request.",
+        response = ErrorResponse::class
+      )
+    ]
+  )
+  @PostMapping(path = ["/allocation-history/summary"])
+  fun getKeyWorkerHistorySummaryForPrisoners(
+    @RequestBody offenderNos: List<String>?
+  ): List<OffenderKeyWorkerHistorySummary> {
+    Validate.notEmpty<List<String>?>(offenderNos, "Please provide a list of Offender Nos.")
+    return keyworkerService.getAllocationHistorySummary(offenderNos)
+  }
 
   @ApiOperation(
     value = "Deallocate a key worker from an offender",

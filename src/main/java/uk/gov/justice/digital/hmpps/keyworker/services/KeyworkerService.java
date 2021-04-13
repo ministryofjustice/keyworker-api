@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatusBehaviour;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyWorkerHistory;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyWorkerHistorySummary;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
@@ -364,6 +366,24 @@ public class KeyworkerService {
             .build();
 
         return Optional.ofNullable(offenderKeyWorkerHistory);
+    }
+
+    public List<OffenderKeyWorkerHistorySummary> getAllocationHistorySummary(final List<String> offenderNos) {
+        final var migratedOffenderNosWithHistory = repository.findByOffenderNoIn(offenderNos).stream()
+            .filter(kw -> kw.getAllocationType() != AllocationType.PROVISIONAL)
+            .map(OffenderKeyworker::getOffenderNo)
+            .collect(Collectors.toSet());
+
+        // get the allocations that are in nomis for non-migrated prisons
+        final var nomisOffenderNosWithHistory =
+            nomisService.getAllocationHistoryByOffenderNos(offenderNos).stream()
+                .map(AllocationHistoryDto::getOffenderNo)
+                .collect(Collectors.toSet());
+
+        return offenderNos.stream().map(o -> OffenderKeyWorkerHistorySummary.builder()
+            .offenderNo(o)
+            .hasHistory(migratedOffenderNosWithHistory.contains(o) || nomisOffenderNosWithHistory.contains(o))
+            .build()).collect(Collectors.toList());
     }
 
     public List<OffenderKeyworker> getAllocationsForKeyworker(final Long staffId) {

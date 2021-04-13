@@ -15,9 +15,11 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker.OffenderKeyworkerBuilder;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -36,6 +38,28 @@ class OffenderKeyworkerRepositoryTest {
 
     @Autowired
     private OffenderKeyworkerRepository repository;
+
+    @Test
+    void findByOffenderNoIn_ShouldReturnAllOffendersInList() {
+        final var offender1 = validEntityBuilder()
+            .offenderNo("A1111AA")
+            .build();
+        repository.save(offender1);
+        final var offender2 = validEntityBuilder()
+            .offenderNo("A2222AA")
+            .build();
+        repository.save(offender2);
+        final var offender3 = validEntityBuilder()
+            .offenderNo("A3333AA")
+            .build();
+        repository.save(offender3);
+
+        final var foundOffenders = repository.findByOffenderNoIn(List.of(offender1.getOffenderNo(), offender2.getOffenderNo()));
+
+        assertThat(foundOffenders).containsExactlyInAnyOrder(offender1, offender2);
+
+        repository.deleteAll();
+    }
 
     @Test
     void givenATransientOffenderKeyworkerWhenPersistedItShoudBeRetrievableById() {
@@ -197,6 +221,18 @@ class OffenderKeyworkerRepositoryTest {
                 .deallocationReason(DeallocationReason.KEYWORKER_STATUS_CHANGE)
                 //.createUpdate(creationTimeInfo())
                 .build();
+    }
+
+    private OffenderKeyworkerBuilder validEntityBuilder() {
+        return OffenderKeyworker
+            .builder()
+            .offenderNo("A1234AA")
+            .staffId(123L)
+            .assignedDateTime(ASSIGNED_DATE_TIME)
+            .allocationReason(AllocationReason.MANUAL)
+            .allocationType(AllocationType.AUTO)
+            .userId("The Assigning User")
+            .prisonId(AGENCY_ID_LEI);
     }
 
     private static long nextId() {

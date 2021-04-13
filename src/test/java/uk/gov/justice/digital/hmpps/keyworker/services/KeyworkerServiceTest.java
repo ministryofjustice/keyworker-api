@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatusBehaviour;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyWorkerHistorySummary;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
@@ -1139,6 +1140,128 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(allocationHistory).extracting("prisonId").isEqualTo(ImmutableList.of("HLI", TEST_AGENCY, "LPI"));
         assertThat(allocationHistory).extracting("assigned").isEqualTo(ImmutableList.of(now.minusMonths(1), now.minusMonths(2), now.minusMonths(3)));
         assertThat(allocationHistory).extracting("active").isEqualTo(ImmutableList.of(true, false, false));
+    }
+
+    @Test
+    void testAllocationHistorySummary_ReturnsRequestedOffenderData() {
+        final var offenderNo1 = "X1111XX";
+        final var offenderNo2 = "X2222XX";
+        final var offenderNo3 = "X3333XX";
+
+        final var now = LocalDateTime.now();
+        final var migratedHistory = List.of(
+            getTestOffenderKeyworker(offenderNo1, 1L),
+            getTestOffenderKeyworker(offenderNo1, 2L),
+            getTestOffenderKeyworker(offenderNo2, 2L)
+        );
+
+        when(repository.findByOffenderNoIn(any())).thenReturn(migratedHistory);
+
+        final var nonMigratedHistory = List.of(
+            AllocationHistoryDto.builder()
+                .agencyId("LPI")
+                .active("N")
+                .assigned(now.minusMonths(3))
+                .expired(now.minusMonths(2))
+                .created(now.minusMonths(3))
+                .createdBy("staff1")
+                .modified(now.minusMonths(2))
+                .modifiedBy("staff1")
+                .offenderNo(offenderNo1)
+                .staffId(11L)
+                .userId("staff1")
+                .build(),
+            AllocationHistoryDto.builder()
+                .agencyId("LEI")
+                .active("N")
+                .assigned(now.minusMonths(2))
+                .expired(now.minusMonths(1))
+                .created(now.minusMonths(2))
+                .createdBy("staff2")
+                .modified(now.minusMonths(1))
+                .modifiedBy("staff2")
+                .offenderNo(offenderNo3)
+                .staffId(12L)
+                .userId("staff2")
+                .build(),
+            AllocationHistoryDto.builder()
+                .agencyId("LEI")
+                .active("N")
+                .assigned(now.minusMonths(1))
+                .created(now.minusMonths(1))
+                .createdBy("staff2")
+                .modified(now.minusMonths(1))
+                .modifiedBy("staff2")
+                .offenderNo(offenderNo3)
+                .staffId(14L)
+                .userId("staff2")
+                .build()
+        );
+
+        when(nomisService.getAllocationHistoryByOffenderNos(any())).thenReturn(nonMigratedHistory);
+
+        final var summaries = service.getAllocationHistorySummary(List.of(offenderNo1, offenderNo2, offenderNo3));
+
+        assertThat(summaries).containsExactlyInAnyOrder(
+            OffenderKeyWorkerHistorySummary.builder()
+                .offenderNo(offenderNo1)
+                .hasHistory(true)
+                .build(),
+            OffenderKeyWorkerHistorySummary.builder()
+                .offenderNo(offenderNo2)
+                .hasHistory(true)
+                .build(),
+            OffenderKeyWorkerHistorySummary.builder()
+                .offenderNo(offenderNo3)
+                .hasHistory(true)
+                .build());
+    }
+
+    @Test
+    void testAllocationHistorySummary_DoesNotReturnProvisionalAllocations() {
+        final var offenderNo = "X5555XX";
+
+        when(repository.findByOffenderNoIn(any())).thenReturn(List.of(getTestOffenderKeyworker(offenderNo, 1L).toBuilder()
+            .allocationType(PROVISIONAL)
+            .build()));
+        when(nomisService.getAllocationHistoryByOffenderNos(any())).thenReturn(List.of());
+
+        final var summaries = service.getAllocationHistorySummary(List.of(offenderNo));
+
+        assertThat(summaries).containsExactlyInAnyOrder(
+            OffenderKeyWorkerHistorySummary.builder()
+                .offenderNo(offenderNo)
+                .hasHistory(false)
+                .build());
+    }
+
+    @Test
+    void testAllocationHistorySummary_ReturnsRequestedOffendersIfNoData() {
+        final var offenderNo = "X5555XX";
+
+        when(repository.findByOffenderNoIn(any())).thenReturn(List.of());
+        when(nomisService.getAllocationHistoryByOffenderNos(any())).thenReturn(List.of());
+
+        final var summaries = service.getAllocationHistorySummary(List.of(offenderNo));
+
+        assertThat(summaries).containsExactlyInAnyOrder(
+            OffenderKeyWorkerHistorySummary.builder()
+                .offenderNo(offenderNo)
+                .hasHistory(false)
+                .build());
+    }
+
+    @Test
+    void testAllocationHistorySummary_CallsKeyworkerDBAndNomis() {
+        final var offenderNo = "X5555XX";
+
+        when(repository.findByOffenderNoIn(any())).thenReturn(List.of());
+        when(nomisService.getAllocationHistoryByOffenderNos(any())).thenReturn(List.of());
+
+        service.getAllocationHistorySummary(List.of(offenderNo));
+
+        verify(repository, times(1)).findByOffenderNoIn(eq(List.of(offenderNo)));
+        verify(nomisService, times(1)).getAllocationHistoryByOffenderNos(List.of(offenderNo));
     }
 
     @Test
