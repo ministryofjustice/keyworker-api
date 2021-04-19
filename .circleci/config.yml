@@ -1,12 +1,12 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@3.0
+  hmpps: ministryofjustice/hmpps@3.1
 
 executors:
   builder:
     docker:
-      - image: cimg/openjdk:16.0-browsers
+      - image: cimg/openjdk:16.0
       - image: localstack/localstack:0.10.5
         environment:
           SERVICES: sqs
