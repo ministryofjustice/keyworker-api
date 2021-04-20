@@ -3,25 +3,13 @@ version: 2.1
 orbs:
   hmpps: ministryofjustice/hmpps@3.1
 
-executors:
-  builder:
-    docker:
-      - image: cimg/openjdk:16.0
-      - image: localstack/localstack:0.10.5
-        environment:
-          SERVICES: sqs
-          DATA_DIR: /tmp/localstack/data
-          DOCKER_HOST: unix:///var/run/docker.sock
-          AWS_EXECUTION_ENV: True
-          DEFAULT_REGION: eu-west-2
-          TMPDIR: /private
-    environment:
-      _JAVA_OPTIONS: -Xmx256m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-XX:+UseContainerSupport
-    working_directory: ~/app
-
 jobs:
   build:
-    executor: builder
+    executor:
+      name: hmpps/localstack
+      jdk_tag: "16.0"
+      localstack_tag: "0.10.5"
+      services: "sqs"
     steps:
       - checkout
       - restore_cache:
