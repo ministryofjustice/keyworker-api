@@ -44,7 +44,7 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun complexityOfNeedWebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient{
+  fun complexityOfNeedWebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("elite2-api")
 
