@@ -1,7 +1,7 @@
 version: "3"
 services:
   localstack:
-    image: localstack/localstack:0.10.5
+    image: localstack/localstack:0.12.9.1
     networks:
       - hmpps
     container_name: localstack
