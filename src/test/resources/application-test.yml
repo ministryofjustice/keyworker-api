@@ -25,7 +25,7 @@ complexity-of-need-sqs:
   dlq.name: complexity_of_need_sqs_dlq
 
 elite2.uri.root: http://localhost:9999
-auth.uri.root: http://localhost:8090
+auth.uri.root: http://localhost:8090/auth
 complexity_of_need_uri: http://localhost:10000
 
 spring:
@@ -38,3 +38,5 @@ spring:
 api.health-timeout-ms: 400
 
 prisons.with.offenders.that.have.complex.needs: LEI,MDI
+
+logging.level.org.springframework.security.oauth2: DEBUG

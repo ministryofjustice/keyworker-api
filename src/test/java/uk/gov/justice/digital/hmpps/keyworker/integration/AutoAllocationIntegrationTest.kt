@@ -25,6 +25,8 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
     migratedFoAutoAllocation(PRISON_ID)
     eliteMockServer.stubOffendersAtLocationForAutoAllocation(PRISON_ID, OFFENDERS_AT_LOCATION)
     eliteMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
+
+    oAuthMockServer.stubGrantToken()
   }
 
   @Test
