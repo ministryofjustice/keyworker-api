@@ -8,7 +8,7 @@ jobs:
     executor:
       name: hmpps/localstack
       jdk_tag: "16.0"
-      localstack_tag: "0.10.5"
+      localstack_tag: "0.12.9.1"
       services: "sqs"
     steps:
       - checkout
