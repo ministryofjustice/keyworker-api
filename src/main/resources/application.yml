@@ -48,6 +48,11 @@ spring:
   codec:
     max-in-memory-size: 10MB
 
+  profiles:
+    group:
+      test:
+        - "dev"
+
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
 elite2api:
   client:
@@ -63,6 +68,7 @@ server:
     remoteip:
       remote-ip-header: x-forwarded-for
       protocol_header: x-forwarded-proto
+  shutdown: graceful
 
 logging:
   level:
