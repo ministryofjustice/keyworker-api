@@ -673,7 +673,7 @@ class KeyworkerServiceController(
       value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9"
     ) @RequestParam("capacity") capacity: Array<Int>?,
     @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @RequestParam(
-      "capacity",
+      "frequency",
       defaultValue = "1"
     ) frequency: Int
   ): Prison = updateAndMigrate(prisonId, migrate, false, capacity, frequency)

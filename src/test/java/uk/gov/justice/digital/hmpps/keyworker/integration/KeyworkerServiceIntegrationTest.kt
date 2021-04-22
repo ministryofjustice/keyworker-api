@@ -57,6 +57,15 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .expectStatus().is4xxClientError
   }
 
+  @Test
+  fun `Enable manual allocation accepts multiple capacities`() {
+    webTestClient.post()
+      .uri("/key-worker/enable/MDI/manual?migrate=false&capacity=6,7&frequency=1")
+      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
+      .exchange()
+      .expectStatus().is2xxSuccessful
+  }
+
   fun addKeyworkerAllocation(prisonId: String, offenderId: String) {
 
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
