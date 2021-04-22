@@ -1,0 +1,36 @@
+{
+  "offender": {
+    "lastName": "ANDERSON",
+    "dateOfBirth": "1969-12-30",
+    "gender": "Male",
+    "inPrison": false
+  },
+  "allocationHistory": [
+    {
+      "offenderKeyworkerId": 2,
+      "staffId": 1001,
+      "firstName": "Another",
+      "lastName": "CUser",
+      "prisonId": "LEI",
+      "assigned": "2017-06-01T12:14:00",
+      "userId": {
+        "firstName": "User",
+        "lastName": "ITAG_USER",
+        "username": "ITAG_USER"
+      },
+      "active": true,
+      "allocationType": "M",
+      "allocationReason": "Manual",
+      "createdByUser": {
+        "firstName": "User",
+        "lastName": "ITAG_USER",
+        "username": "ITAG_USER"
+      },
+      "lastModifiedByUser": {
+        "firstName": "User",
+        "lastName": "ITAG_USER",
+        "username": "ITAG_USER"
+      }
+    }
+  ]
+}

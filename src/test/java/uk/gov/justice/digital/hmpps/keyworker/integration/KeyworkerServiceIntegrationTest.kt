@@ -20,8 +20,24 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   @Test
   fun beforeEach() {
     migratedFoAutoAllocation(PRISON_ID)
-    eliteMockServer.stubOffendersAtLocationForAutoAllocation(PRISON_ID, OFFENDERS_AT_LOCATION)
+    eliteMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
     eliteMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, STAFF_LOCATION_ROLE_LIST)
+  }
+
+  @Test
+  fun `Allocation history for offender reports ok`() {
+    addKeyworkerAllocation(PRISON_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID)
+    eliteMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
+    eliteMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    eliteMockServer.stubPrisonerStatus(NON_MIGRATED_ALLOCATION_OFFENDER_ID, getWiremockResponse("prisoners_information_A1234AA"))
+
+    webTestClient.get()
+      .uri("/key-worker/allocation-history/$NON_MIGRATED_ALLOCATION_OFFENDER_ID")
+      .headers(setOmicAdminHeaders())
+      .exchange()
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .json("keyworker-service-controller-allocation-history.json".readFile())
   }
 
   @Test
@@ -58,7 +74,6 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   }
 
   fun addKeyworkerAllocation(prisonId: String, offenderId: String) {
-
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
 
     webTestClient.post()
@@ -73,15 +88,6 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
           "allocationReason" to "MANUAL"
         )
       )
-      .exchange()
-      .expectStatus().is2xxSuccessful
-  }
-
-  fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {
-    webTestClient.post()
-      .uri("/key-worker/$keyworkerId/prison/$prisonId")
-      .headers(setOmicAdminHeaders())
-      .bodyValue(mapOf("capacity" to capacity, "status" to "ACTIVE"))
       .exchange()
       .expectStatus().is2xxSuccessful
   }

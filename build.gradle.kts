@@ -6,6 +6,7 @@ plugins {
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
 }
+
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok:1.18.20")
@@ -67,5 +68,9 @@ tasks {
     kotlinOptions {
       jvmTarget = "15"
     }
+  }
+
+  test {
+    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
   }
 }

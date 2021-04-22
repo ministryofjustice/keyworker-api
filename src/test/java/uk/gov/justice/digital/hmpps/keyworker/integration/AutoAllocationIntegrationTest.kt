@@ -23,7 +23,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
   @Test
   fun beforeEach() {
     migratedFoAutoAllocation(PRISON_ID)
-    eliteMockServer.stubOffendersAtLocationForAutoAllocation(PRISON_ID, OFFENDERS_AT_LOCATION)
+    eliteMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
     eliteMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
 
     oAuthMockServer.stubGrantToken()
@@ -115,7 +115,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
       .exchange()
       .expectStatus().is2xxSuccessful
       .expectBody()
-      .json(getResourceAsText("keyworker-service-controller-unallocated.json"))
+      .json("keyworker-service-controller-unallocated.json".readFile())
   }
 
   @Test
@@ -138,15 +138,6 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
       .post()
       .uri("/key-worker/enable/$PRISON_ID/auto-allocate?migrate=true&capacity=6,9&frequency=2")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
-      .exchange()
-      .expectStatus().is2xxSuccessful
-  }
-
-  fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {
-    webTestClient.post()
-      .uri("/key-worker/$keyworkerId/prison/$prisonId")
-      .headers(setOmicAdminHeaders())
-      .bodyValue(mapOf("capacity" to capacity, "status" to "ACTIVE"))
       .exchange()
       .expectStatus().is2xxSuccessful
   }

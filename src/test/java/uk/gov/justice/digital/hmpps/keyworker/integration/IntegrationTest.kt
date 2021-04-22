@@ -128,10 +128,19 @@ abstract class IntegrationTest {
       .expectStatus().is2xxSuccessful
   }
 
-  final fun getWiremockResponse(prisonId: String, fileName: String) =
-    getResourceAsText("/wiremock-stub-responses/$prisonId/$fileName.json")
+  fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {
+    webTestClient.post()
+      .uri("/key-worker/$keyworkerId/prison/$prisonId")
+      .headers(setOmicAdminHeaders())
+      .bodyValue(mapOf("capacity" to capacity, "status" to "ACTIVE"))
+      .exchange()
+      .expectStatus().is2xxSuccessful
+  }
 
-  final fun getWiremockResponse(fileName: String) = getResourceAsText("/wiremock-stub-responses/$fileName.json")
+  internal fun getWiremockResponse(prisonId: String, fileName: String) =
+    "/wiremock-stub-responses/$prisonId/$fileName.json".readFile()
 
-  fun getResourceAsText(path: String): String = this::class.java.getResource(path).readText()
+  internal fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
+
+  internal fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this).readText()
 }

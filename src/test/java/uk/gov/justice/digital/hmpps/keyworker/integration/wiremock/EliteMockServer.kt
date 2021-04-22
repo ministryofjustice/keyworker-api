@@ -67,7 +67,7 @@ class EliteMockServer : WireMockServer(9999) {
     )
   }
 
-  fun stubOffendersAtLocationForAutoAllocation(prisonId: String, json: String) {
+  fun stubOffendersAtLocationForAutoAllocation(json: String) {
     stubFor(
       WireMock.get(WireMock.urlPathEqualTo("/api/bookings"))
         .willReturn(
@@ -147,6 +147,18 @@ class EliteMockServer : WireMockServer(9999) {
   fun stubCaseNoteUsage(json: String) {
     stubFor(
       WireMock.get(WireMock.urlPathEqualTo("/api/case-notes/staff-usage"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.ok().status())
+            .withBody(json)
+        )
+    )
+  }
+
+  fun stubPrisonerStatus(offenderNo: String, json: String) {
+    stubFor(
+      WireMock.get(WireMock.urlPathEqualTo("/api/prisoners/$offenderNo"))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
