@@ -19,7 +19,13 @@ When running locally there will be no Auth server to supply the JWT public key, 
 
 Use spring profiles `local` to pick up the public key defined in src/main/resources.
 
-Use Spring profile `noqueue` to ignore the localstack config.
+Use spring profile `noqueue` to ignore the localstack config.
+
+In order to get the `/info` endpoint to work you will need to add in
+```
+-add-opens java.base/java.lang=ALL-UNNAMED
+```
+to your run configuration.  This is because the current version of ehcache needs to calculate the size of the objects in the cache, which the latest version of openjdk disallows.
 
 ### Health
 
