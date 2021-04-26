@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import java.time.LocalDateTime
+import javax.persistence.EntityNotFoundException
 
 data class ComplexityOfNeedChange(
   override val eventType: String,
@@ -50,6 +51,10 @@ class ComplexityOfNeedEventProcessor(
     if (complexityLevel != ComplexityOfNeedLevel.HIGH) return
 
     log.info("Deallocating an offender based on their HIGH complexity of need")
-    keyworkerService.deallocate(event.offenderNo)
+    try {
+      keyworkerService.deallocate(event.offenderNo)
+    } catch (notFound: EntityNotFoundException) {
+      log.warn(notFound.message)
+    }
   }
 }
