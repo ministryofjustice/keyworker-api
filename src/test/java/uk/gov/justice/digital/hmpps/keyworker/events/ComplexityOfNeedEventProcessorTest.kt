@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.lenient
 import org.mockito.junit.jupiter.MockitoExtension
 import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
