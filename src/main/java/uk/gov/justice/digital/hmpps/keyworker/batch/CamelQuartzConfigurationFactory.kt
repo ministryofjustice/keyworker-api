@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.batch
 
 import org.apache.camel.CamelContext
 import org.apache.camel.ProducerTemplate
-import org.apache.camel.component.quartz2.QuartzComponent
+import org.apache.camel.component.quartz.QuartzComponent
 import org.apache.camel.spring.boot.CamelContextConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -61,7 +61,7 @@ internal class CamelQuartzConfigurationFactory {
   fun contextConfiguration(): CamelContextConfiguration {
     return object : CamelContextConfiguration {
       override fun beforeApplicationStart(context: CamelContext) {
-        context.addComponent("quartz2", quartz())
+        context.addComponent("quartz", quartz())
         context.isUseMDCLogging = true
       }
 

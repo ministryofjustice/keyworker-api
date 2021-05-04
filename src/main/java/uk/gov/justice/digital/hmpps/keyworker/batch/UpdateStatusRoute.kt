@@ -31,6 +31,6 @@ class UpdateStatusRoute @Autowired constructor(private val service: KeyworkerBat
 
   companion object {
     const val DIRECT_UPDATE_STATUS = "direct:updateStatus"
-    private const val QUARTZ_UPDATE_STATUS_URI = "quartz2://application/updateStatus?cron="
+    private const val QUARTZ_UPDATE_STATUS_URI = "quartz://application/updateStatusJob?cron="
   }
 }
