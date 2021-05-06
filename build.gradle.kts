@@ -43,7 +43,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.2.19")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
   testImplementation("org.spockframework:spock-spring:2.0-M5-groovy-3.0")
-  testCompile("org.spockframework:spock-core:2.0-M5-groovy-3.0") {
+  testImplementation("org.spockframework:spock-core:2.0-M5-groovy-3.0") {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.20")
