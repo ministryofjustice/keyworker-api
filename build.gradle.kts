@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.1.7"
-  kotlin("plugin.spring") version "1.4.32"
-  kotlin("plugin.jpa") version "1.4.32"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.2.0-beta"
+  kotlin("plugin.spring") version "1.5.0"
+  kotlin("plugin.jpa") version "1.5.0"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
@@ -43,7 +43,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.2.19")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.7")
   testImplementation("org.spockframework:spock-spring:2.0-M5-groovy-3.0")
-  testCompile("org.spockframework:spock-core:2.0-M5-groovy-3.0") {
+  testImplementation("org.spockframework:spock-core:2.0-M5-groovy-3.0") {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.20")
@@ -68,7 +68,7 @@ dependencyCheck {
 tasks {
   compileKotlin {
     kotlinOptions {
-      jvmTarget = "15"
+      jvmTarget = "16"
     }
   }
 
