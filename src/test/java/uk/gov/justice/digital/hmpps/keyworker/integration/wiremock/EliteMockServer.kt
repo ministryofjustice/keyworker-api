@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.matching
-import jodd.net.HttpStatus
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
 
 class EliteMockServer : WireMockServer(9999) {
@@ -85,7 +85,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status())
+            .withStatus(HttpStatus.OK.value())
             .withBody("""{"status":"UP","HttpStatus":200}""")
         )
     )
@@ -97,7 +97,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status()).withFixedDelay(1000)
+            .withStatus(HttpStatus.OK.value()).withFixedDelay(1000)
             .withBody("""{"status":"UP","HttpStatus":200}""")
         )
     )
@@ -109,7 +109,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status())
+            .withStatus(HttpStatus.OK.value())
             .withBody(json)
         )
     )
@@ -121,7 +121,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status())
+            .withStatus(HttpStatus.OK.value())
             .withBody(json)
         )
     )
@@ -135,7 +135,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status())
+            .withStatus(HttpStatus.OK.value())
             .withBody(json)
             .withHeader(Page.HEADER_PAGE_LIMIT, "50")
             .withHeader(Page.HEADER_PAGE_OFFSET, "0")
@@ -150,7 +150,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status())
+            .withStatus(HttpStatus.OK.value())
             .withBody(json)
         )
     )
@@ -162,7 +162,7 @@ class EliteMockServer : WireMockServer(9999) {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.ok().status())
+            .withStatus(HttpStatus.OK.value())
             .withBody(json)
         )
     )
