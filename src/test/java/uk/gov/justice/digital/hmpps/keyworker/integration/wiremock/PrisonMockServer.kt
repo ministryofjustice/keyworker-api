@@ -69,7 +69,7 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubOffendersAtLocationForAutoAllocation(json: String) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/bookings"))
+      WireMock.get(WireMock.urlPathEqualTo("/api/bookings/v2"))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
