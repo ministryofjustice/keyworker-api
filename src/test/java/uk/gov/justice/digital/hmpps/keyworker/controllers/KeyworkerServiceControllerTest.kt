@@ -22,11 +22,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder
-import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService
-import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
-import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
-import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 import java.time.LocalDate
 import java.util.Optional
 
