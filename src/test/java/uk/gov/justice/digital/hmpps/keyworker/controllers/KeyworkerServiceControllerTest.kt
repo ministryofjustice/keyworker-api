@@ -22,7 +22,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder
+import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 import java.time.LocalDate
 import java.util.Optional
 
@@ -37,6 +41,18 @@ class KeyworkerServiceControllerTest() {
 
   @MockBean
   private lateinit var keyworkerService: KeyworkerService
+
+  @MockBean
+  private lateinit var keyworkerMigrationService: KeyworkerMigrationService
+
+  @MockBean
+  private lateinit var roleMigrationService: UserRolesMigrationService
+
+  @MockBean
+  private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
+
+  @MockBean
+  private lateinit var prisonSupportedService: PrisonSupportedService
 
   @ParameterizedTest
   @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
