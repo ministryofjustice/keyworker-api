@@ -34,8 +34,8 @@ class OffenderKeyworkerDetailListSpecification extends TestSpecification {
     def 'Retrieve single offender keyworker details using GET endpoint'() {
 
         given:
-        elite2api.stubOffenderKeyWorker('A6676RS')
-        elite2api.stubPrisonerLookup('A6676RS')
+        prisonapi.stubOffenderKeyWorker('A6676RS')
+        prisonapi.stubPrisonerLookup('A6676RS')
 
         when:
         getForEntity("/key-worker/offender/A6676RS", createHeaderEntity())

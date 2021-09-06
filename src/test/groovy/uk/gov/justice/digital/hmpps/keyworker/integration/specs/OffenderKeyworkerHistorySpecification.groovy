@@ -6,11 +6,11 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
 
         given:
         migrated("LEI")
-        elite2api.stubOffenderAllocationHistory("A6676RS")
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(-5)
-        elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubPrisonerLookup("A6676RS")
-        elite2api.stubStaffUserDetails("ITAG_USER")
+        prisonapi.stubOffenderAllocationHistory("A6676RS")
+        prisonapi.stubKeyworkerDetails_basicDetailsOnly(-5)
+        prisonapi.stubStaffUserDetails("omicadmin")
+        prisonapi.stubPrisonerLookup("A6676RS")
+        prisonapi.stubStaffUserDetails("ITAG_USER")
 
 
         when:
@@ -38,19 +38,19 @@ class OffenderKeyworkerHistorySpecification extends TestSpecification {
 
         given:
         migrated("LEI")
-        elite2api.stubOffenderAllocationHistory("A1234XX")
-        elite2api.stubOffenderAllocationHistory("A1234XZ")
+        prisonapi.stubOffenderAllocationHistory("A1234XX")
+        prisonapi.stubOffenderAllocationHistory("A1234XZ")
 
-        elite2api.stubKeyworkerDetails("LEI", -2,)
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(-4)
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(-2)
-        elite2api.stubStaffUserDetails("omicadmin")
-        elite2api.stubOffenderLookup("LEI", "A1234XX")
-        elite2api.stubOffenderLookup("LEI", "A1234XZ")
-        elite2api.stubPrisonerLookup("A1234XX")
-        elite2api.stubPrisonerLookup("A1234XZ")
-        elite2api.stubStaffUserDetails("ITAG_USER")
-        elite2api.stubStaffUserDetails("ELITE2_API_USER")
+        prisonapi.stubKeyworkerDetails("LEI", -2,)
+        prisonapi.stubKeyworkerDetails_basicDetailsOnly(-4)
+        prisonapi.stubKeyworkerDetails_basicDetailsOnly(-2)
+        prisonapi.stubStaffUserDetails("omicadmin")
+        prisonapi.stubOffenderLookup("LEI", "A1234XX")
+        prisonapi.stubOffenderLookup("LEI", "A1234XZ")
+        prisonapi.stubPrisonerLookup("A1234XX")
+        prisonapi.stubPrisonerLookup("A1234XZ")
+        prisonapi.stubStaffUserDetails("ITAG_USER")
+        prisonapi.stubStaffUserDetails("prison_API_USER")
 
         when: 'Allocating'
         postForEntity("/key-worker/allocate", createHeaderEntity(), "{\"allocationReason\": \"MANUAL\"," +

@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext
 
 @Configuration
 class WebClientConfiguration(
-  @Value("\${elite2.api.uri.root}") private val elite2ApiRootUri: String,
-  @Value("\${elite2.uri.root}") private val healthRootUri: String,
+  @Value("\${prison.api.uri.root}") private val prisonApiRootUri: String,
+  @Value("\${prison.uri.root}") private val healthRootUri: String,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String
 ) {
   @Bean
@@ -37,8 +37,8 @@ class WebClientConfiguration(
   @Bean
   fun oauth2WebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("elite2-api")
-    return builder.baseUrl(elite2ApiRootUri)
+    oauth2Client.setDefaultClientRegistrationId("prison-api")
+    return builder.baseUrl(prisonApiRootUri)
       .apply(oauth2Client.oauth2Configuration())
       .build()
   }
@@ -46,7 +46,7 @@ class WebClientConfiguration(
   @Bean
   fun complexityOfNeedWebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("elite2-api")
+    oauth2Client.setDefaultClientRegistrationId("prison-api")
 
     return builder.baseUrl("$complexityOfNeedUri/v1")
       .apply(oauth2Client.oauth2Configuration())
@@ -56,7 +56,7 @@ class WebClientConfiguration(
   @Bean
   fun webClient(builder: WebClient.Builder): WebClient {
     return builder
-      .baseUrl(elite2ApiRootUri)
+      .baseUrl(prisonApiRootUri)
       .filter(addAuthHeaderFilterFunction())
       .build()
   }

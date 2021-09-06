@@ -114,14 +114,14 @@
     "userId": "ITAG_USER",
     "active": "Y",
     "created": "2018-05-31T14:08:37.766",
-    "createdBy": "ELITE2_API_USER"
+    "createdBy": "PRISON_API_USER"
   },
   {
     "offenderNo": "A1234XY",
     "staffId":  -4,
     "agencyId": "LEI",
     "assigned": "2018-05-30T12:00:00",
-    "userId": "ELITE2_API_USER",
+    "userId": "PRISON_API_USER",
     "active": "Y",
     "created": "2018-05-31T14:08:37.766",
     "createdBy": "ITAG_USER"
@@ -131,7 +131,7 @@
     "staffId":  -4,
     "agencyId": "LEI",
     "assigned": "2018-05-30T12:00:00",
-    "userId": "ELITE2_API_USER",
+    "userId": "PRISON_API_USER",
     "active": "Y",
     "created": "2018-05-31T14:08:37.766",
     "createdBy": "ITAG_USER"

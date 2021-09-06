@@ -6,7 +6,7 @@ class StaffUserStub {
         def response = """
 {
     "staffId": -2,
-    "firstName": "Elite2",
+    "firstName": "Prison",
     "lastName": "User",
     "username": "${username}"
 }

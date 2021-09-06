@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConversionHelperTest {
 
     @Test
-    void convertOffenderKeyworkerDto2ModelItem1() {
+    void convertOffenderKeyworkerDto2Modprisonm1() {
         final var testDto = getActiveOffenderKeyworkerDto();
 
         final var okw = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(testDto);
@@ -25,7 +25,7 @@ class ConversionHelperTest {
     }
 
     @Test
-    void convertOffenderKeyworkerDto2ModelItem2() {
+    void convertOffenderKeyworkerDto2Modprisonm2() {
         final var testDto = getExpiredOffenderKeyworkerDto();
 
         final var okw = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(testDto);

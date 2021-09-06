@@ -82,7 +82,7 @@ public class OffenderKeyworker {
      * Generic fields below here.  Move to super-type?
      *
      * The way these fields behave and are used will probably change when OFFENDER_KEY_WORKER
-     * data is no longer imported from elite2-api.
+     * data is no longer imported from prison-api.
      * ------------------------------------------------------------------------------------- */
 
     @CreatedDate

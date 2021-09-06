@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.matching
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
 
-class EliteMockServer : WireMockServer(9999) {
+class PrisonMockServer : WireMockServer(9999) {
   fun stubAllocationHistory(prisonId: String, json: String) {
     stubFor(
       WireMock.get(WireMock.urlPathEqualTo("/api/key-worker/$prisonId/allocationHistory"))

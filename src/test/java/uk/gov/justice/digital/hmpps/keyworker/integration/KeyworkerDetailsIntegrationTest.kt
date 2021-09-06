@@ -15,7 +15,7 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
   fun `key worker details happy path`() {
     migrated(PRISON_ID)
 
-    eliteMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, STAFF_LOCATION_ROLE_LIST)
+    prisonMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, STAFF_LOCATION_ROLE_LIST)
 
     webTestClient
       .get()
@@ -39,8 +39,8 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
     migrated(PRISON_ID)
 
     // lookup for prison fails to retrieve the keyworker details  (no longer working for current agency)
-    eliteMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, "[]")
-    eliteMockServer.stubkeyworkerDetails(STAFF_ID, STAFF_DETAILS)
+    prisonMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, "[]")
+    prisonMockServer.stubkeyworkerDetails(STAFF_ID, STAFF_DETAILS)
 
     webTestClient
       .get()

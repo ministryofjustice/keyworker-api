@@ -576,7 +576,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    void testGetKeyworkerDetails_NoEliteKeyworkerForAgency() {
+    void testGetKeyworkerDetails_NoPrisonKeyworkerForAgency() {
         final var staffId = 5L;
         when(nomisService.getStaffKeyWorkerForPrison(TEST_AGENCY, staffId)).thenReturn(Optional.empty());
         expectBasicStaffApiCall(staffId);
@@ -675,7 +675,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    void testGetAllocationsForKeyworkerWithOffenderDetails_NoAssociatedEliteBookingRecord() {
+    void testGetAllocationsForKeyworkerWithOffenderDetails_NoAssociatedprisonBookingRecord() {
 
         final var offender1 = KeyworkerTestHelper.getPrisonerDetail(61, TEST_AGENCY, "1", true, TEST_AGENCY + "-A-1-001");
         final var offender3 = KeyworkerTestHelper.getPrisonerDetail(63, TEST_AGENCY, "3", true, TEST_AGENCY + "-A-1-002");

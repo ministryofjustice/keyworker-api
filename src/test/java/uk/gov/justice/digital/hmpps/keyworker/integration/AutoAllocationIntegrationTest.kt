@@ -23,8 +23,8 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
   @Test
   fun beforeEach() {
     migratedFoAutoAllocation(PRISON_ID)
-    eliteMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
-    eliteMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
+    prisonMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
+    prisonMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
 
     oAuthMockServer.stubGrantToken()
   }

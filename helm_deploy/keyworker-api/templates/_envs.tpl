@@ -16,8 +16,8 @@ env:
   - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI
     value: "{{ .Values.env.SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI }}"
 
-  - name: ELITE2_URI_ROOT
-    value: "{{ .Values.env.ELITE2_URI_ROOT }}"
+  - name: PRISON_URI_ROOT
+    value: "{{ .Values.env.PRISON_URI_ROOT }}"
 
   - name: AUTH_URI_ROOT 
     value: "{{ .Values.env.AUTH_URI_ROOT }}"
@@ -40,17 +40,17 @@ env:
   - name: APPLICATIONINSIGHTS_CONNECTION_STRING
     value: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
 
-  - name: ELITE2API_CLIENT_CLIENTID
+  - name: PRISONAPI_CLIENT_CLIENTID
     valueFrom:
       secretKeyRef:
         name: {{ template "app.name" . }}
-        key: ELITE2API_CLIENT_CLIENTID
+        key: PRISONAPI_CLIENT_CLIENTID
 
-  - name: ELITE2API_CLIENT_CLIENTSECRET
+  - name: PRISONAPI_CLIENT_CLIENTSECRET
     valueFrom:
       secretKeyRef:
         name: {{ template "app.name" . }}
-        key: ELITE2API_CLIENT_CLIENTSECRET
+        key: PRISONAPI_CLIENT_CLIENTSECRET
 
   - name: SPRING_DATASOURCE_USERNAME
     valueFrom:

@@ -30,8 +30,8 @@ class KeyworkerStatsSpecification extends TestSpecification {
         ]
         given:
         migrated("LEI")
-        elite2api.stubKeyworkerDetails_basicDetailsOnly(staffId)
-        elite2api.stubCaseNoteUsagePrisonerFor(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, fromDateStr, toDateStr, caseNoteUsageCounts)
+        prisonapi.stubKeyworkerDetails_basicDetailsOnly(staffId)
+        prisonapi.stubCaseNoteUsagePrisonerFor(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, fromDateStr, toDateStr, caseNoteUsageCounts)
 
         when: "a request for stats is made for the a member of staff"
         getForEntity("/key-worker-stats/${staffId}/prison/LEI?fromDate=${fromDateStr}&toDate=${toDateStr}".toString(), createHeaderEntity())

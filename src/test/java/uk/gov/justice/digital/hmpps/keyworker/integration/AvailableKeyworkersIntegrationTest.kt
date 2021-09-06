@@ -12,7 +12,7 @@ class AvailableKeyworkersIntegrationTest : IntegrationTest() {
 
   @Test
   fun `Available keyworkers - decorated with defaults after migration`() {
-    eliteMockServer.stubAvailableKeyworkersForAutoAllocation(AutoAllocationIntegrationTest.PRISON_ID, AVAILABLE_KEYWORKERS)
+    prisonMockServer.stubAvailableKeyworkersForAutoAllocation(AutoAllocationIntegrationTest.PRISON_ID, AVAILABLE_KEYWORKERS)
 
     migratedFoAutoAllocation(PRISON_ID)
 

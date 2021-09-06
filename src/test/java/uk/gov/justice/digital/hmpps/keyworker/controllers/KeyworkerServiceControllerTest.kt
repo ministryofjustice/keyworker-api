@@ -42,18 +42,6 @@ class KeyworkerServiceControllerTest() {
   @MockBean
   private lateinit var keyworkerService: KeyworkerService
 
-  @MockBean
-  private lateinit var keyworkerMigrationService: KeyworkerMigrationService
-
-  @MockBean
-  private lateinit var roleMigrationService: UserRolesMigrationService
-
-  @MockBean
-  private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
-
-  @MockBean
-  private lateinit var prisonSupportedService: PrisonSupportedService
-
   @ParameterizedTest
   @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
   fun `offender keyworker found should return ok`(pathPrefix: String) {

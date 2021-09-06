@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ToString(exclude={"firstName","lastName","middleName","aliases"})
+@ToString(exclude={"firstName","lastName","middleName"})
 public class OffenderLocationDto {
 
     @ApiModelProperty(required = true, value = "The offender's unique offender number (aka NOMS Number in the UK).")
@@ -53,12 +53,4 @@ public class OffenderLocationDto {
 
     @ApiModelProperty(value = "Internal location description (if known)")
     private String assignedLivingUnitDesc;
-
-    private Long facialImageId;
-
-    private String assignedOfficerUserId;
-
-    private List<String> aliases;
-
-    private String iepLevel;
 }
