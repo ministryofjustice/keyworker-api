@@ -35,10 +35,10 @@ spring:
     oauth2:
       client:
         registration:
-          elite2-api:
+          prison-api:
             provider: hmpps-auth
-            client-id: ${elite2api.client.clientId}
-            client-secret: ${elite2api.client.clientSecret}
+            client-id: ${prisonapi.client.clientId}
+            client-secret: ${prisonapi.client.clientSecret}
             authorization-grant-type: client_credentials
             scope: read
         provider:
@@ -54,7 +54,7 @@ spring:
         - "dev"
 
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
-elite2api:
+prisonapi:
   client:
     clientId: omicadmin
     clientSecret: clientsecret

@@ -17,8 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
-import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.EliteMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -50,7 +50,7 @@ abstract class IntegrationTest {
 
   companion object {
     @JvmField
-    internal val eliteMockServer = EliteMockServer()
+    internal val prisonMockServer = PrisonMockServer()
     @JvmField
     internal val complexityOfNeedMockServer = ComplexityOfNeedMockServer()
 
@@ -61,7 +61,7 @@ abstract class IntegrationTest {
     @JvmStatic
     fun startMocks() {
       oAuthMockServer.start()
-      eliteMockServer.start()
+      prisonMockServer.start()
       complexityOfNeedMockServer.start()
     }
 
@@ -69,7 +69,7 @@ abstract class IntegrationTest {
     @JvmStatic
     fun stopMocks() {
       oAuthMockServer.stop()
-      eliteMockServer.stop()
+      prisonMockServer.stop()
       complexityOfNeedMockServer.stop()
     }
   }
@@ -77,7 +77,7 @@ abstract class IntegrationTest {
   @BeforeEach
   fun resetStubs() {
     oAuthMockServer.resetAll()
-    eliteMockServer.resetAll()
+    prisonMockServer.resetAll()
     complexityOfNeedMockServer.resetAll()
     oAuthMockServer.stubGrantToken()
   }
@@ -105,9 +105,9 @@ abstract class IntegrationTest {
   }
 
   fun migratedFoAutoAllocation(prisonId: String) {
-    eliteMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "auto-allocation"))
-    eliteMockServer.stubAccessCodeListForKeyRole(prisonId)
-    eliteMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
+    prisonMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "auto-allocation"))
+    prisonMockServer.stubAccessCodeListForKeyRole(prisonId)
+    prisonMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
 
     webTestClient.post()
       .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true&capacity=6,9&frequency=2")
@@ -117,9 +117,9 @@ abstract class IntegrationTest {
   }
 
   fun migrated(prisonId: String) {
-    eliteMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "migrated"))
-    eliteMockServer.stubAccessCodeListForKeyRole(prisonId)
-    eliteMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
+    prisonMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "migrated"))
+    prisonMockServer.stubAccessCodeListForKeyRole(prisonId)
+    prisonMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
 
     webTestClient.post()
       .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true")

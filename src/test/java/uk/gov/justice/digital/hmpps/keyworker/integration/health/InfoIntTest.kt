@@ -36,18 +36,18 @@ class InfoIntTest : IntegrationTest
   @Test
   fun `Info page still works when items in ehcache`() {
     migratedFoAutoAllocation(PRISON_ID)
-    eliteMockServer.stubOffendersAtLocationForAutoAllocation(
+    prisonMockServer.stubOffendersAtLocationForAutoAllocation(
       getWiremockResponse(PRISON_ID, "offenders-at-location")
     )
-    eliteMockServer.stubKeyworkerRoles(
+    prisonMockServer.stubKeyworkerRoles(
       PRISON_ID,
       KEYWORKER_ID_1,
       getWiremockResponse(PRISON_ID, "staff-location-role-list")
     )
     addKeyworkerAllocation(PRISON_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID)
-    eliteMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
-    eliteMockServer.stubOffendersAllocationHistory(getWiremockResponse(PRISON_ID, "offenders-history"))
-    eliteMockServer.stubPrisonerStatus(
+    prisonMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
+    prisonMockServer.stubOffendersAllocationHistory(getWiremockResponse(PRISON_ID, "offenders-history"))
+    prisonMockServer.stubPrisonerStatus(
       NON_MIGRATED_ALLOCATION_OFFENDER_ID,
       getWiremockResponse("prisoners_information_A1234AA")
     )

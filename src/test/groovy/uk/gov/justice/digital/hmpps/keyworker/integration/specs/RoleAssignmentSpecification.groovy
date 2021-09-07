@@ -54,7 +54,7 @@ class RoleAssignmentSpecification extends TestSpecification {
     }
 
     private WebTestClient.ResponseSpec applyRoleAssignmentsSpecification(RoleAssignmentsSpecification specification, String accessToken) {
-        elite2api.stubAccessCodeListForKeyAdminRole('MDI')
+        prisonapi.stubAccessCodeListForKeyAdminRole('MDI')
 
         HttpHeaders headers = new HttpHeaders()
         headers.setBearerAuth(accessToken)

@@ -121,14 +121,14 @@ class OffenderKeyworkerDtoListStub {
         "userId": "ITAG_USER",
         "active": "Y",
         "created": "2018-05-31T14:08:37.766",
-        "createdBy": "ELITE2_API_USER"
+        "createdBy": "prison_API_USER"
     },
     {
         "offenderNo": "A1234XY",
         "staffId":  -4,
         "agencyId": "${prisonId}",
         "assigned": "2018-05-30T12:00:00",
-        "userId": "ELITE2_API_USER",
+        "userId": "prison_API_USER",
         "active": "Y",
         "created": "2018-05-31T14:08:37.766",
         "createdBy": "ITAG_USER"
@@ -138,7 +138,7 @@ class OffenderKeyworkerDtoListStub {
         "staffId":  -4,
         "agencyId": "${prisonId}",
         "assigned": "2018-05-30T12:00:00",
-        "userId": "ELITE2_API_USER",
+        "userId": "prison_API_USER",
         "active": "Y",
         "created": "2018-05-31T14:08:37.766",
         "createdBy": "ITAG_USER"
@@ -167,12 +167,12 @@ class OffenderKeyworkerDtoListStub {
     "agencyId": "LEI",
     "assigned": "2018-05-03T13:35:12.000",
     "expired": "2018-06-03T13:35:12.000",
-    "userId": "ELITE2_API_USER",
+    "userId": "prison_API_USER",
     "active": "N",
     "created": "2018-05-03T13:35:12.000",
-    "createdBy": "ELITE2_API_USER",
+    "createdBy": "prison_API_USER",
     "modified": "2018-06-03T13:35:12.000",
-    "modifiedBy": "ELITE2_API_USER"
+    "modifiedBy": "prison_API_USER"
   }
 ]"""
     }

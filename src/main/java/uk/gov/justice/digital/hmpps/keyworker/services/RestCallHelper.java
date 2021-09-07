@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +13,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RestResponsePage;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.HEADER_PAGE_LIMIT;
@@ -130,25 +134,19 @@ public class RestCallHelper {
                 .block();
     }
 
-    <T> List<T> getObjectListWithSorting(final String path,
+    <T> RestResponsePage<T> getPageWithSorting(final String path,
                                          final MultiValueMap<String, String> queryParams,
-                                         final Map<String, String> uriVariables,
-                                         final String sortFields,
-                                         final SortOrder sortOrder,
-                                         final ParameterizedTypeReference<List<T>> responseType,
+                                         final ParameterizedTypeReference<RestResponsePage<T>> responseType,
                                          final boolean admin) {
-        final long initialPageSize = Integer.MAX_VALUE;
 
-        final var pagingAndSorting = PagingAndSortingDto.builder()
-                .sortFields(sortFields)
-                .sortOrder(sortOrder)
-                .pageOffset(0L)
-                .pageLimit(initialPageSize)
-                .build();
-
-        final var response = getEntityWithPagingAndSorting(path, queryParams, uriVariables, pagingAndSorting, responseType, admin);
-
-        return response.getBody() != null ? new ArrayList<>(response.getBody()) : new ArrayList<>();
+        return Optional.ofNullable(getWebClient(admin)
+                .get()
+                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build())
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .retrieve()
+                .toEntity(responseType)
+                .block())
+                .map(HttpEntity::getBody).orElse(new RestResponsePage<>());
     }
 
     public void delete(final String path,

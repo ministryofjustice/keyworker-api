@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NomisService {
-    String URI_ACTIVE_OFFENDERS_BY_AGENCY = "/bookings";
+    String URI_ACTIVE_OFFENDERS_BY_PRISON = "/bookings/v2";
     String URI_STAFF = "/staff/{staffId}";
     String GET_USER_DETAILS = "/users/{username}";
     String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
@@ -41,7 +41,6 @@ public interface NomisService {
     String URI_GET_AGENCY = "/agencies/{agencyId}";
     String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
     String URI_IDENTIFIERS = "/identifiers/{type}/{value}";
-    String BOOKING_MOVEMENT = "/bookings/{bookingId}/movement/{seq}";
     String BOOKING_DETAILS = "/bookings/{bookingId}";
     String BOOKING_IDENTIFIERS = "/bookings/{bookingId}/identifiers";
     String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";

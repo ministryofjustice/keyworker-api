@@ -49,7 +49,7 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.elite2ApiHealth.details.HttpStatus").isEqualTo("OK")
+      .jsonPath("$.components.prisonApiHealth.details.HttpStatus").isEqualTo("OK")
   }
 
   @Test
@@ -70,9 +70,9 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.elite2ApiHealth.details.error")
+      .jsonPath("$.components.prisonApiHealth.details.error")
       .value<String> { error -> assertThat(error).contains("404") }
-      .jsonPath("$.components.elite2ApiHealth.details.body")
+      .jsonPath("$.components.prisonApiHealth.details.body")
       .value<String> { body -> assertThat(body).contains("some error") }
   }
 
@@ -84,9 +84,9 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
       .jsonPath("$.status").isEqualTo("DOWN")
-      .jsonPath("$.components.elite2ApiHealth.details.error")
+      .jsonPath("$.components.prisonApiHealth.details.error")
       .value<String> { error -> assertThat(error).contains("418") }
-      .jsonPath("$.components.elite2ApiHealth.details.body")
+      .jsonPath("$.components.prisonApiHealth.details.body")
       .value<String> { body -> assertThat(body).contains("some error") }
   }
 
@@ -196,7 +196,7 @@ class OffenderEventsHealthCheckIntegrationTest : IntegrationTest() {
   }
 
   private fun subPing(status: Int) {
-    addConditionalPingStub(eliteMockServer, status)
+    addConditionalPingStub(prisonMockServer, status)
     addConditionalPingStub(oAuthMockServer, status)
     addConditionalPingStub(complexityOfNeedMockServer, status, "/ping")
   }

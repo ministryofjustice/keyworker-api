@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 class APIHealthIntegrationTest : IntegrationTest() {
   @Test
   fun `Health page reports ok`() {
-    eliteMockServer.stubHealthOKResponse()
+    prisonMockServer.stubHealthOKResponse()
     oAuthMockServer.stubHealthOKResponse()
     complexityOfNeedMockServer.stubHealthOKResponse()
 
@@ -21,14 +21,14 @@ class APIHealthIntegrationTest : IntegrationTest() {
 
   @Test
   fun `Health page dependency timeout`() {
-    eliteMockServer.stubHealthDependencyTimeoutResponse()
+    prisonMockServer.stubHealthDependencyTimeoutResponse()
 
     webTestClient.get()
       .uri("/health")
       .exchange()
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
-      .jsonPath("$.components.elite2ApiHealth.status").isEqualTo("DOWN")
-      .jsonPath("$.components.elite2ApiHealth.details.error").value<String> { assertThat(it).contains("Timeout") }
+      .jsonPath("$.components.prisonApiHealth.status").isEqualTo("DOWN")
+      .jsonPath("$.components.prisonApiHealth.details.error").value<String> { assertThat(it).contains("Timeout") }
   }
 }

@@ -15,8 +15,8 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
   fun `keyworker search - decorated with defaults after migration`() {
     migrated(PRISON_ID)
 
-    eliteMockServer.stubKeyworkerSearch(PRISON_ID, USERNAME, STAFF_DETAILS, 4)
-    eliteMockServer.stubCaseNoteUsage(CASE_NOTE_USAGE)
+    prisonMockServer.stubKeyworkerSearch(PRISON_ID, USERNAME, STAFF_DETAILS, 4)
+    prisonMockServer.stubCaseNoteUsage(CASE_NOTE_USAGE)
 
     webTestClient
       .get()

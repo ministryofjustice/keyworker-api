@@ -8,9 +8,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 
 @Component
-public class Elite2ApiHealth extends HealthCheck {
+public class PrisonApiHealth extends HealthCheck {
 
-    public Elite2ApiHealth(@Qualifier("healthWebClient") final WebClient healthWebClient,
+    public PrisonApiHealth(@Qualifier("healthWebClient") final WebClient healthWebClient,
                            @Value("${api.health-timeout-ms}") final Duration healthTimeout) {
         super(healthWebClient, healthTimeout);
     }

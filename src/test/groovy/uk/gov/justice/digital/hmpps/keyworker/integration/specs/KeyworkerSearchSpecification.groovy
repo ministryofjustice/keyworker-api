@@ -6,8 +6,8 @@ class KeyworkerSearchSpecification extends TestSpecification {
 
         given:
         migrated("LEI")
-        elite2api.stubKeyworkerSearch("LEI", "User")
-        elite2api.stubCaseNoteUsage()
+        prisonapi.stubKeyworkerSearch("LEI", "User")
+        prisonapi.stubCaseNoteUsage()
 
         when:
         getForEntity("/key-worker/LEI/members?nameFilter=User&statusFilter=ACTIVE", createHeaderEntity())

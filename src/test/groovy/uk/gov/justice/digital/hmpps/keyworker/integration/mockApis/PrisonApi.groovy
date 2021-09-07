@@ -12,14 +12,14 @@ import uk.gov.justice.digital.hmpps.keyworker.rolemigration.remote.RemoteRoleSer
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 import static uk.gov.justice.digital.hmpps.keyworker.services.NomisService.*
 
-class Elite2Api extends WireMockRule {
+class PrisonApi extends WireMockRule {
 
     public static final int WIREMOCK_PORT = 8999
 
     public static String NOMIS_API_PREFIX = "/api"
 
 
-    Elite2Api() {
+    prisonApi() {
         super(WIREMOCK_PORT)
     }
 

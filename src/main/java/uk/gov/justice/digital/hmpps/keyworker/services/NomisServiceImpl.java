@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -26,6 +28,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonContactDetailDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
+import uk.gov.justice.digital.hmpps.keyworker.dto.RestResponsePage;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffUser;
@@ -50,10 +53,10 @@ public class NomisServiceImpl implements NomisService {
     private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFFENDER_KEY_WORKER =
             new ParameterizedTypeReference<>() {};
 
-    private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> ELITE_STAFF_LOCATION_DTO_LIST =
+    private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> PRISON_STAFF_LOCATION_DTO_LIST =
             new ParameterizedTypeReference<>() {};
 
-    private static final ParameterizedTypeReference<List<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
+    private static final ParameterizedTypeReference<RestResponsePage<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
             new ParameterizedTypeReference<>() {};
 
     private static final ParameterizedTypeReference<List<PrisonerDetail>> PRISONER_DETAIL_LIST =
@@ -89,9 +92,20 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public Optional<OffenderLocationDto> getOffenderForPrison(final String prisonId, final String offenderNo) {
         log.info("Getting offender in prison {} offender No {}", prisonId, offenderNo);
-        final var queryParams = queryParamsOf("query", format("agencyId:eq:'%s'", prisonId), "offenderNo", offenderNo, "iepLevel", "true");
-        final var offenders = restCallHelper.getEntity(URI_ACTIVE_OFFENDERS_BY_AGENCY, queryParams, uriVariablesOf(), OFFENDER_LOCATION_DTO_LIST, false).getBody();
-        return Optional.ofNullable(offenders.size() > 0 ? offenders.get(0) : null);
+        final var queryParams = queryParamsOf("prisonId", prisonId, "offenderNo", offenderNo);
+        final var body = restCallHelper.getEntity(URI_ACTIVE_OFFENDERS_BY_PRISON, queryParams, uriVariablesOf(), OFFENDER_LOCATION_DTO_LIST, false).getBody();
+        return body != null ? body.getContent().stream().findFirst() : Optional.empty();
+    }
+
+    @Override
+    public List<OffenderLocationDto> getOffendersAtLocation(final String prisonId, final String sortFields, final SortOrder sortOrder, final boolean admin) {
+        log.info("Getting offenders in prison {}", prisonId);
+        final var queryParams = queryParamsOf("prisonId", prisonId, "page", "0", "size", "4000");
+        if (StringUtils.isNotBlank(sortFields)) {
+            queryParams.putAll(queryParamsOf("sort", sortFields + " " + sortOrder.name()));
+        }
+
+        return restCallHelper.getPageWithSorting(URI_ACTIVE_OFFENDERS_BY_PRISON, queryParams, OFFENDER_LOCATION_DTO_LIST, admin).getContent();
     }
 
     @Override
@@ -122,7 +136,7 @@ public class NomisServiceImpl implements NomisService {
         nameFilter.ifPresent(filter -> queryParams.add("nameFilter", filter));
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
 
-        return restCallHelper.getEntityWithPagingAndSorting(GET_STAFF_IN_SPECIFIC_PRISON, queryParams, uriVariables, pagingAndSorting, ELITE_STAFF_LOCATION_DTO_LIST, admin);
+        return restCallHelper.getEntityWithPagingAndSorting(GET_STAFF_IN_SPECIFIC_PRISON, queryParams, uriVariables, pagingAndSorting, PRISON_STAFF_LOCATION_DTO_LIST, admin);
     }
 
     @Override
@@ -130,10 +144,10 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting staff in prison {} staff Id {}", prisonId, staffId);
 
         final var uri = GET_STAFF_IN_SPECIFIC_PRISON;
-        log.debug("About to retrieve keyworker from Elite2api using uri {}", uri);
+        log.debug("About to retrieve keyworker from prison-api using uri {}", uri);
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         final var queryParams = queryParamsOf("staffId", String.valueOf(staffId), "activeOnly", "false");
-        final var staff = restCallHelper.getEntity(uri, queryParams, uriVariables, ELITE_STAFF_LOCATION_DTO_LIST, false).getBody();
+        final var staff = restCallHelper.getEntity(uri, queryParams, uriVariables, PRISON_STAFF_LOCATION_DTO_LIST, false).getBody();
         final var staffLocationRoleDto = Optional.ofNullable(staff.size() > 0 ? staff.get(0) : null);
         log.debug("Result: {}", staffLocationRoleDto);
         return staffLocationRoleDto;
@@ -154,19 +168,11 @@ public class NomisServiceImpl implements NomisService {
         return restCallHelper.getEntity(URI_AVAILABLE_KEYWORKERS, queryParamsOf(), uriVariables, KEYWORKER_DTO_LIST, false).getBody();
     }
 
-    @Override
-    public List<OffenderLocationDto> getOffendersAtLocation(final String prisonId, final String sortFields, final SortOrder sortOrder, final boolean admin) {
-        log.info("Getting offenders in prison {}", prisonId);
-        final var queryParams = queryParamsOf("query", format("agencyId:eq:'%s'", prisonId));
-        return restCallHelper.getObjectListWithSorting(
-                URI_ACTIVE_OFFENDERS_BY_AGENCY, queryParams, uriVariablesOf(), sortFields, sortOrder, new ParameterizedTypeReference<List<OffenderLocationDto>>() {
-                }, admin);
-    }
 
     @Override
     @Cacheable("getBasicKeyworkerDtoForStaffId")
     public StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(final Long staffId) {
-        log.debug("Getting basic keyworker details for staffId {} from Elite2api using uri {}", staffId, URI_STAFF);
+        log.debug("Getting basic keyworker details for staffId {} from prisonapi using uri {}", staffId, URI_STAFF);
         final var uriVariables = uriVariablesOf("staffId", String.valueOf(staffId));
         return restCallHelper.getObject(URI_STAFF, queryParamsOf(), uriVariables, StaffLocationRoleDto.class, false);
     }
@@ -187,7 +193,7 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting staff details for user Id {}", userId);
         final var uri = GET_USER_DETAILS;
         final var uriVariables = uriVariablesOf("username", userId);
-        log.debug("About to retrieve staff details from Elite2api using uri {}", uri);
+        log.debug("About to retrieve staff details from prisonapi using uri {}", uri);
 
         try {
             final var staffUser = restCallHelper.getObject(uri, queryParamsOf(), uriVariables, StaffUser.class, false);

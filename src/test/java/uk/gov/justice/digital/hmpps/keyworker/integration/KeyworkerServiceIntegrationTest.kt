@@ -20,16 +20,16 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   @Test
   fun beforeEach() {
     migratedFoAutoAllocation(PRISON_ID)
-    eliteMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
-    eliteMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, STAFF_LOCATION_ROLE_LIST)
+    prisonMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
+    prisonMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, STAFF_LOCATION_ROLE_LIST)
   }
 
   @Test
   fun `Allocation history for offender reports ok`() {
     addKeyworkerAllocation(PRISON_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID)
-    eliteMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
-    eliteMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
-    eliteMockServer.stubPrisonerStatus(NON_MIGRATED_ALLOCATION_OFFENDER_ID, getWiremockResponse("prisoners_information_A1234AA"))
+    prisonMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
+    prisonMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    prisonMockServer.stubPrisonerStatus(NON_MIGRATED_ALLOCATION_OFFENDER_ID, getWiremockResponse("prisoners_information_A1234AA"))
 
     webTestClient.get()
       .uri("/key-worker/allocation-history/$NON_MIGRATED_ALLOCATION_OFFENDER_ID")
@@ -43,7 +43,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   @Test
   fun `Allocation history summary reports ok`() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
-    eliteMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    prisonMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
 
     webTestClient.post()
       .uri("/key-worker/allocation-history/summary")
@@ -64,7 +64,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   @Test
   fun `Allocation history summary validates offender nos provided`() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
-    eliteMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    prisonMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
 
     webTestClient.post()
       .uri("/key-worker/allocation-history/summary")
