@@ -19,7 +19,7 @@ class PrisonApi extends WireMockRule {
     public static String NOMIS_API_PREFIX = "/api"
 
 
-    prisonApi() {
+    PrisonApi() {
         super(WIREMOCK_PORT)
     }
 
