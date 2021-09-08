@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import spock.lang.Specification
-import uk.gov.justice.digital.hmpps.keyworker.integration.mockApis.prisonApi
+import uk.gov.justice.digital.hmpps.keyworker.integration.mockApis.PrisonApi
 
 import java.util.function.Consumer
 
@@ -30,7 +30,7 @@ abstract class TestSpecification extends Specification {
     private static final adminToken = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpbnRlcm5hbFVzZXIiOmZhbHNlLCJzY29wZSI6WyJyZWFkIl0sImV4cCI6MTgzOTEyMTg4OSwiYXV0aG9yaXRpZXMiOlsiUk9MRV9TWVNURU1fVVNFUiIsIlJPTEVfTUFJTlRBSU5fQUNDRVNTX1JPTEVTIiwiUk9MRV9LV19NSUdSQVRJT04iXSwianRpIjoiMmZmNDhmN2EtNzM4MS00OTI0LTkzMTctMDc2MWQ5M2ZjMGRiIiwiY2xpZW50X2lkIjoib21pY2FkbWluIn0.BpPv6Jpjkcz2VDkS41mzkgY3tZTB0k0BYqyuksyUAQbpMMEC5TN3KneQgSOHtGb0A8JOixrO1-OJcyxLIoAd4uoflKUA7FekVW75efOTezYfh-aGm41Bf1s7nv4j-BZSvtunmhRuEyPBYNfQVaMo1L7gdf01pLF9mvJVe_4vp-kZalMuqo5P13mgZO9EBNjv_JrtvL8Zp8D-MnadUJXorL8__v3eRhImJuGULhkXbIb7nc7h1MsNmJ-Fvh8jO62OIyqih7SYx_ed1VBG89CETIwVmZCa9msY4zpdLmzS_Si53vmznLNyZ-lH_Gre1d_qe3jU_EC0H5F3B_U7Oq1bTg'
 
     @Rule
-    prisonApi prisonapi = new prisonApi()
+    PrisonApi prisonApi = new PrisonApi()
 
     @Rule
     TestWatcher t = new TestWatcher() {
@@ -55,9 +55,9 @@ abstract class TestSpecification extends Specification {
     int localServerPort
 
     def migrated(prisonId) {
-        prisonapi.stubAllocationHistory(prisonId)
-        prisonapi.stubAccessCodeListForKeyRole(prisonId)
-        prisonapi.stubAccessCodeListForKeyAdminRole(prisonId)
+        prisonApi.stubAllocationHistory(prisonId)
+        prisonApi.stubAccessCodeListForKeyRole(prisonId)
+        prisonApi.stubAccessCodeListForKeyAdminRole(prisonId)
 
         def response = postForEntity("/key-worker/enable/${prisonId}/auto-allocate?migrate=true", createHeaderEntityForAdminUser(), "headers")
 
@@ -65,9 +65,9 @@ abstract class TestSpecification extends Specification {
     }
 
     def migratedForAutoAllocation(prisonId) {
-        prisonapi.stubAllocationHistoryForAutoAllocation(prisonId)
-        prisonapi.stubAccessCodeListForKeyRole(prisonId)
-        prisonapi.stubAccessCodeListForKeyAdminRole(prisonId)
+        prisonApi.stubAllocationHistoryForAutoAllocation(prisonId)
+        prisonApi.stubAccessCodeListForKeyRole(prisonId)
+        prisonApi.stubAccessCodeListForKeyAdminRole(prisonId)
 
         def response = postForEntity("/key-worker/enable/${prisonId}/auto-allocate?migrate=true&capacity=6,9&frequency=2", createHeaderEntityForAdminUser(), "headers")
 
