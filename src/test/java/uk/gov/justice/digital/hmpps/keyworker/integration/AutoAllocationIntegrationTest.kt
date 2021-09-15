@@ -61,7 +61,6 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
       .jsonPath("$.length()").isEqualTo(11)
       .jsonPath("$[0].offenderNo").isEqualTo("ALLOCED1") // KW is already 1001
       .jsonPath("$[0].allocationType").isEqualTo("M")
-
       .jsonPath("$[1].offenderNo").isEqualTo("UNALLOC1")
       .jsonPath("$[1].staffId").isEqualTo(1002) // 1001 not chosen as its no allocated > 0
       .jsonPath("$[1].allocationType").isEqualTo("A")
@@ -69,32 +68,23 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
         val dateTime = LocalDateTime.parse(it)
         assertThat(dateTime).isCloseTo(dateTime, within(1, ChronoUnit.HOURS))
       }
-
       .jsonPath("$[2].offenderNo").isEqualTo("UNALLOC2")
       .jsonPath("$[2].staffId").isEqualTo(1003)
-
       .jsonPath("$[3].offenderNo").isEqualTo("UNALLOC3")
       .jsonPath("$[3].staffId").isEqualTo(1001) // Now chosen in staffId numerical order
       // 1001 is not bypassed due to an old allocation because this was NOT auto!
-
       .jsonPath("$[4].offenderNo").isEqualTo("UNALLOC4")
       .jsonPath("$[4].staffId").isEqualTo(1003) // 1002 is now full
-
       .jsonPath("$[5].offenderNo").isEqualTo("UNALLOC5")
       .jsonPath("$[5].staffId").isEqualTo(1001)
-
       .jsonPath("$[6].offenderNo").isEqualTo("UNALLOC6")
       .jsonPath("$[6].staffId").isEqualTo(1003)
-
       .jsonPath("$[7].offenderNo").isEqualTo("UNALLOC7")
       .jsonPath("$[7].staffId").isEqualTo(1001)
-
       .jsonPath("$[8].offenderNo").isEqualTo("UNALLOC8")
       .jsonPath("$[8].staffId").isEqualTo(1003)
-
       .jsonPath("$[9].offenderNo").isEqualTo("UNALLOC9")
       .jsonPath("$[9].staffId").isEqualTo(1003) // 1001 is now full
-
       .jsonPath("$[10].offenderNo").isEqualTo("EXPIRED1") // KW set to previous: 1002, despite being full
       .jsonPath("$[10].staffId").isEqualTo(1002)
       .jsonPath("$[10].allocationType").isEqualTo("A")
