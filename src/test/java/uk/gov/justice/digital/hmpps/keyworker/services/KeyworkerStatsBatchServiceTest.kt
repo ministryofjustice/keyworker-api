@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
+import com.nhaarman.mockitokotlin2.whenever
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.isA
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -38,14 +38,14 @@ class KeyworkerStatsBatchServiceTest {
       LEI,
       LPI
     )
-    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     val now = LocalDate.now()
     val mdiStats = PrisonKeyWorkerStatistic.builder().prisonId(MDI.prisonId).snapshotDate(now).build()
-    `when`(keyworkerStatsService.generatePrisonStats(MDI.prisonId)).thenReturn(mdiStats)
+    whenever(keyworkerStatsService.generatePrisonStats(MDI.prisonId)).thenReturn(mdiStats)
     val leiStats = PrisonKeyWorkerStatistic.builder().prisonId(LEI.prisonId).snapshotDate(now).build()
-    `when`(keyworkerStatsService.generatePrisonStats(LEI.prisonId)).thenReturn(leiStats)
+    whenever(keyworkerStatsService.generatePrisonStats(LEI.prisonId)).thenReturn(leiStats)
     val lpiStats = PrisonKeyWorkerStatistic.builder().prisonId(LPI.prisonId).snapshotDate(now).build()
-    `when`(keyworkerStatsService.generatePrisonStats(LPI.prisonId)).thenReturn(lpiStats)
+    whenever(keyworkerStatsService.generatePrisonStats(LPI.prisonId)).thenReturn(lpiStats)
 
     batchService.generatePrisonStats()
 
@@ -61,7 +61,7 @@ class KeyworkerStatsBatchServiceTest {
 
   @Test
   fun testGenerateStatsCall_noOpOnGetMigratedPrisonsError() {
-    `when`(prisonSupportedService.migratedPrisons).thenThrow(RuntimeException("Error"))
+    whenever(prisonSupportedService.migratedPrisons).thenThrow(RuntimeException("Error"))
 
     batchService.generatePrisonStats()
 
@@ -76,8 +76,8 @@ class KeyworkerStatsBatchServiceTest {
     val prisons = listOf(
       MDI
     )
-    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
-    `when`(keyworkerStatsService.generatePrisonStats(MDI.prisonId))
+    whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    whenever(keyworkerStatsService.generatePrisonStats(MDI.prisonId))
       .thenThrow(NullPointerException::class.java)
       .thenReturn(PrisonKeyWorkerStatistic.builder().prisonId(MDI.prisonId).build())
 
@@ -100,16 +100,16 @@ class KeyworkerStatsBatchServiceTest {
       LEI,
       LPI
     )
-    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
-    `when`(keyworkerStatsService.generatePrisonStats(MDI.prisonId)).thenThrow(
+    whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    whenever(keyworkerStatsService.generatePrisonStats(MDI.prisonId)).thenThrow(
       NullPointerException::class.java
     )
-    `when`(keyworkerStatsService.generatePrisonStats(LEI.prisonId)).thenReturn(
+    whenever(keyworkerStatsService.generatePrisonStats(LEI.prisonId)).thenReturn(
       PrisonKeyWorkerStatistic.builder().prisonId(
         LEI.prisonId
       ).build()
     )
-    `when`(keyworkerStatsService.generatePrisonStats(LPI.prisonId)).thenReturn(
+    whenever(keyworkerStatsService.generatePrisonStats(LPI.prisonId)).thenReturn(
       PrisonKeyWorkerStatistic.builder().prisonId(
         LPI.prisonId
       ).build()

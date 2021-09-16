@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.7"
-  kotlin("plugin.spring") version "1.5.20"
-  kotlin("plugin.jpa") version "1.5.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.8"
+  kotlin("plugin.spring") version "1.5.30"
+  kotlin("plugin.jpa") version "1.5.30"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import com.microsoft.applicationinsights.TelemetryClient
+import com.nhaarman.mockitokotlin2.whenever
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
@@ -8,7 +9,6 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.isA
 import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -35,13 +35,13 @@ class NomisBatchServiceTest {
   @Test
   fun enableNomis_makesPrisonApiCalls() {
     val prisons = listOf(MDI, LEI, LPI)
-    `when`(nomisService.allPrisons).thenReturn(prisons)
+    whenever(nomisService.allPrisons).thenReturn(prisons)
     val MDIResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
-    `when`(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId))).thenReturn(MDIResponse)
+    whenever(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId))).thenReturn(MDIResponse)
     val LEIResponse = CaseloadUpdate.builder().caseload(LEI.prisonId).numUsersEnabled(0).build()
-    `when`(nomisService.enableNewNomisForCaseload(eq(LEI.prisonId))).thenReturn(LEIResponse)
+    whenever(nomisService.enableNewNomisForCaseload(eq(LEI.prisonId))).thenReturn(LEIResponse)
     val LPIResponse = CaseloadUpdate.builder().caseload(LPI.prisonId).numUsersEnabled(14).build()
-    `when`(nomisService.enableNewNomisForCaseload(eq(LPI.prisonId))).thenReturn(LPIResponse)
+    whenever(nomisService.enableNewNomisForCaseload(eq(LPI.prisonId))).thenReturn(LPIResponse)
 
     batchService.enableNomis()
 
@@ -60,7 +60,7 @@ class NomisBatchServiceTest {
 
   @Test
   fun testEnabledNewNomisCamelRoute_NoOpOnGetAllPrisonsError() {
-    `when`(nomisService.allPrisons).thenThrow(RuntimeException("Error"))
+    whenever(nomisService.allPrisons).thenThrow(RuntimeException("Error"))
 
     batchService.enableNomis()
 
@@ -78,9 +78,9 @@ class NomisBatchServiceTest {
   @Test
   fun testEnabledNewNomisCamelRoute_RetriesOnEnablePrisonsError() {
     val prisons = listOf(MDI)
-    `when`(nomisService.allPrisons).thenReturn(prisons)
+    whenever(nomisService.allPrisons).thenReturn(prisons)
     val MDIResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
-    `when`(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId)))
+    whenever(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId)))
       .thenThrow(RuntimeException("Error"))
       .thenReturn(MDIResponse)
 

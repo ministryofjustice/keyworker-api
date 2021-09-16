@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
+import com.nhaarman.mockitokotlin2.whenever
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -36,12 +36,12 @@ class ReconciliationBatchServiceTest {
       LEI,
       LPI
     )
-    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
-    `when`(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
+    whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    whenever(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
       .thenReturn(ReconMetrics(MDI.prisonId, 10, 0))
-    `when`(reconciliationService.reconcileKeyWorkerAllocations(LEI.prisonId))
+    whenever(reconciliationService.reconcileKeyWorkerAllocations(LEI.prisonId))
       .thenReturn(ReconMetrics(LEI.prisonId, 5, 1))
-    `when`(reconciliationService.reconcileKeyWorkerAllocations(LPI.prisonId))
+    whenever(reconciliationService.reconcileKeyWorkerAllocations(LPI.prisonId))
       .thenReturn(ReconMetrics(LPI.prisonId, 3, 2))
 
     batchService.reconcileKeyWorkerAllocations()
@@ -56,7 +56,7 @@ class ReconciliationBatchServiceTest {
 
   @Test
   fun testReconcileKeyWorkerAllocations_npOpOnMigratedPrisonsError() {
-    `when`(prisonSupportedService.migratedPrisons).thenThrow(RuntimeException("Error"))
+    whenever(prisonSupportedService.migratedPrisons).thenThrow(RuntimeException("Error"))
 
     batchService.reconcileKeyWorkerAllocations()
 
@@ -71,8 +71,8 @@ class ReconciliationBatchServiceTest {
     val prisons = listOf(
       MDI
     )
-    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
-    `when`(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
+    whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    whenever(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
       .thenThrow(RuntimeException("Error"))
       .thenReturn(ReconMetrics(MDI.prisonId, 10, 0))
 
@@ -91,8 +91,8 @@ class ReconciliationBatchServiceTest {
       MDI
     )
     val testException = RuntimeException("Error")
-    `when`(prisonSupportedService.migratedPrisons).thenReturn(prisons)
-    `when`(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
+    whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
+    whenever(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
       .thenThrow(testException)
 
     batchService.reconcileKeyWorkerAllocations()
