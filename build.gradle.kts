@@ -1,7 +1,7 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.10"
-  kotlin("plugin.spring") version "1.5.30"
-  kotlin("plugin.jpa") version "1.5.30"
+  kotlin("plugin.spring") version "1.5.31"
+  kotlin("plugin.jpa") version "1.5.31"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
@@ -21,9 +21,9 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
-  implementation("org.apache.camel.springboot:camel-spring-boot:3.12.0")
-  implementation("org.apache.camel:camel-quartz:3.12.0")
-  implementation("org.apache.camel:camel-direct:3.12.0")
+  implementation("org.apache.camel.springboot:camel-spring-boot:3.8.0")
+  implementation("org.apache.camel:camel-quartz:3.8.0")
+  implementation("org.apache.camel:camel-direct:3.8.0")
   implementation("org.springframework:spring-jms")
   implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
