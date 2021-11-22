@@ -23,6 +23,7 @@ public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<Priso
             "avg(s.numberOfActiveKeyworkers), " +
             "avg(s.numPrisonersAssignedKeyWorker), " +
             "avg(s.totalNumPrisoners), " +
+            "avg(s.totalNumEligiblePrisoners), " +
             "avg(s.avgNumDaysFromReceptionToAllocationDays), " +
             "avg(s.avgNumDaysFromReceptionToKeyWorkingSession)) " +
             "from PrisonKeyWorkerStatistic s " +

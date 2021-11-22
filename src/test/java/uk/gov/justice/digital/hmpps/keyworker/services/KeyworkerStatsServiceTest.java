@@ -410,6 +410,7 @@ class KeyworkerStatsServiceTest {
                                 120D,
                                 600D,
                                 840D,
+                                820D,
                                 3D,
                                 5D)
                 )
@@ -427,6 +428,7 @@ class KeyworkerStatsServiceTest {
                                 120D,
                                 600D,
                                 840D,
+                                820D,
                                 4D,
                                 6D)
                 )
@@ -489,6 +491,7 @@ class KeyworkerStatsServiceTest {
                                 7D,
                                 50D,
                                 50D,
+                                48D,
                                 3D,
                                 5D)
                 )
@@ -505,6 +508,7 @@ class KeyworkerStatsServiceTest {
                                 6L,
                                 5D,
                                 32D,
+                                50D,
                                 50D,
                                 4D,
                                 6D)
@@ -567,6 +571,7 @@ class KeyworkerStatsServiceTest {
                                 7D,
                                 50D,
                                 50D,
+                                48D,
                                 3D,
                                 5D)
                 )
