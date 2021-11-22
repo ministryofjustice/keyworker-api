@@ -71,6 +71,9 @@ class KeyworkerStatsServiceTest {
     @Mock
     private TelemetryClient telemetryClient;
 
+    @Mock
+    private ComplexityOfNeedService complexityOfNeedService;
+
     private KeyworkerStatsService service;
 
     private LocalDate fromDate;
@@ -86,7 +89,7 @@ class KeyworkerStatsServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, keyworkerRepository, telemetryClient);
+        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, keyworkerRepository, telemetryClient, complexityOfNeedService);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(10).atStartOfDay()).build());
@@ -330,7 +333,7 @@ class KeyworkerStatsServiceTest {
 
         basicSetup();
 
-        lenient().when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
+        when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true)))
                 .thenReturn(List.of(
                         CaseNoteUsagePrisonersDto.builder()
@@ -348,6 +351,9 @@ class KeyworkerStatsServiceTest {
                                 .numCaseNotes(1)
                                 .build())
                 );
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenderNos.stream().collect(Collectors.toSet())))
+            .thenReturn(offenderNos.stream().skip(1).collect(Collectors.toSet()));
+
         final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
@@ -357,6 +363,7 @@ class KeyworkerStatsServiceTest {
         assertThat(statsResult.getNumberOfActiveKeyworkers()).isEqualTo(2);
         assertThat(statsResult.getAvgNumDaysFromReceptionToAllocationDays()).isEqualTo(3);
         assertThat(statsResult.getAvgNumDaysFromReceptionToKeyWorkingSession()).isEqualTo(3);
+        assertThat(statsResult.getTotalNumEligiblePrisoners()).isEqualTo(2);
 
         verifyChecks();
 

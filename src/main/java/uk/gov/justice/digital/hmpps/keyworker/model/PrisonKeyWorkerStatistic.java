@@ -48,6 +48,10 @@ public class PrisonKeyWorkerStatistic implements Comparable<PrisonKeyWorkerStati
     @Column(name = "TOTAL_NUM_PRISONERS", nullable = false)
     private Integer totalNumPrisoners;
 
+    @NotNull
+    @Column(name = "TOTAL_NUM_ELIGIBLE_PRISONERS", nullable = false)
+    private Integer totalNumEligiblePrisoners;
+
     @Column(name = "NUM_KW_SESSIONS")
     private Integer numberKeyWorkerSessions;
 
