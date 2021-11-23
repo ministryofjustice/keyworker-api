@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,7 +62,7 @@ public class KeyworkerStatsService {
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
     private final TelemetryClient telemetryClient;
-    private final ComplexityOfNeedService complexityOfNeedService;
+    private final ComplexityOfNeed complexityOfNeedService;
 
     private final BigDecimal HUNDRED = new BigDecimal("100.00");
 
@@ -72,7 +71,7 @@ public class KeyworkerStatsService {
                                  final PrisonKeyWorkerStatisticRepository statisticRepository,
                                  final KeyworkerRepository keyworkerRepository,
                                  final TelemetryClient telemetryClient,
-                                 final ComplexityOfNeedService complexityOfNeedService) {
+                                 final ComplexityOfNeed complexityOfNeedService) {
         this.nomisService = nomisService;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
