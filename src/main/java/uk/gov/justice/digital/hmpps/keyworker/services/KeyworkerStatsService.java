@@ -571,6 +571,7 @@ public class KeyworkerStatsService {
 
         final Map<String, Double> metrics = new HashMap<>();
         metrics.put("totalNumPrisoners", stats.getTotalNumPrisoners().doubleValue());
+        metrics.put("totalNumEligiblePrisoners", stats.getTotalNumEligiblePrisoners().doubleValue());
         metrics.put("numPrisonersAssignedKeyWorker", stats.getNumPrisonersAssignedKeyWorker().doubleValue());
         metrics.put("numberOfActiveKeyworkers", stats.getNumberOfActiveKeyworkers().doubleValue());
         metrics.put("numberKeyWorkerEntries", stats.getNumberKeyWorkerEntries().doubleValue());
