@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.Exchange;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +33,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,6 +62,7 @@ public class KeyworkerStatsService {
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
     private final TelemetryClient telemetryClient;
+    private final ComplexityOfNeed complexityOfNeedService;
 
     private final BigDecimal HUNDRED = new BigDecimal("100.00");
 
@@ -69,13 +70,15 @@ public class KeyworkerStatsService {
                                  final OffenderKeyworkerRepository offenderKeyworkerRepository,
                                  final PrisonKeyWorkerStatisticRepository statisticRepository,
                                  final KeyworkerRepository keyworkerRepository,
-                                 final TelemetryClient telemetryClient) {
+                                 final TelemetryClient telemetryClient,
+                                 final ComplexityOfNeed complexityOfNeedService) {
         this.nomisService = nomisService;
         this.offenderKeyworkerRepository = offenderKeyworkerRepository;
         this.prisonSupportedService = prisonSupportedService;
         this.statisticRepository = statisticRepository;
         this.keyworkerRepository = keyworkerRepository;
         this.telemetryClient = telemetryClient;
+        this.complexityOfNeedService = complexityOfNeedService;
     }
 
     public KeyworkerStatsDto getStatsForStaff(final Long staffId, final String prisonId, final LocalDate fromDate, final LocalDate toDate) {
@@ -145,6 +148,9 @@ public class KeyworkerStatsService {
 
             // get a distinct list of offenderNos
             final var offenderNos = activePrisoners.stream().map(OffenderLocationDto::getOffenderNo).distinct().collect(Collectors.toList());
+
+            // get a list of the eligible offenders (i.e. not high-complexity)
+            final var eligibleOffenderNos = complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(prisonId, new HashSet<>(offenderNos));
 
             // list of active key worker active assignments
             final var allocatedKeyWorkers = offenderKeyworkerRepository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
@@ -216,6 +222,7 @@ public class KeyworkerStatsService {
                     .snapshotDate(snapshotDate)
                     .numPrisonersAssignedKeyWorker(allocatedKeyWorkers.size())
                     .totalNumPrisoners(activePrisoners.size())
+                    .totalNumEligiblePrisoners(eligibleOffenderNos.size())
                     .numberKeyWorkerEntries(caseNoteSummary.entriesDone)
                     .numberKeyWorkerSessions(caseNoteSummary.sessionsDone)
                     .numberOfActiveKeyworkers(keyWorkers.size())
@@ -564,6 +571,7 @@ public class KeyworkerStatsService {
 
         final Map<String, Double> metrics = new HashMap<>();
         metrics.put("totalNumPrisoners", stats.getTotalNumPrisoners().doubleValue());
+        metrics.put("totalNumEligiblePrisoners", stats.getTotalNumEligiblePrisoners().doubleValue());
         metrics.put("numPrisonersAssignedKeyWorker", stats.getNumPrisonersAssignedKeyWorker().doubleValue());
         metrics.put("numberOfActiveKeyworkers", stats.getNumberOfActiveKeyworkers().doubleValue());
         metrics.put("numberKeyWorkerEntries", stats.getNumberKeyWorkerEntries().doubleValue());
