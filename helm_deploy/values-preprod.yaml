@@ -31,3 +31,9 @@ whitelist:
   cloudplatform-live1-2: "3.8.51.207/32"
   cloudplatform-live1-3: "35.177.252.54/32"
 
+<<<<<<< HEAD
+=======
+resources:
+  limits:
+    memory: 2Gi
+>>>>>>> main
