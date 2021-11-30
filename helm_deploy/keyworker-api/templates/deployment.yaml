@@ -55,4 +55,5 @@ spec:
             initialDelaySeconds: 60
             timeoutSeconds: 30
             failureThreshold: 15
+          resources: {{- toYaml .Values.resources | nindent 12 }}
 {{ include "deployment.envs" . | nindent 10 }}
