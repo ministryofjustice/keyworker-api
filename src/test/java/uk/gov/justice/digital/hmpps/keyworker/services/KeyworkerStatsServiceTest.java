@@ -409,8 +409,8 @@ class KeyworkerStatsServiceTest {
                                 400L,
                                 120D,
                                 600D,
+                                860D,
                                 840D,
-                                820D,
                                 3D,
                                 5D)
                 )
@@ -427,15 +427,15 @@ class KeyworkerStatsServiceTest {
                                 400L,
                                 120D,
                                 600D,
+                                860D,
                                 840D,
-                                820D,
                                 4D,
                                 6D)
                 )
         );
 
         final var timeline = getTimeline(fromDate, toDate, previousFromDate, TEST_AGENCY_ID,
-                400, 840, 400, 420, 840,
+                400, 840, 400, 420, 860, 840,
                 600, 120);
         assertThat(timeline.size()).isEqualTo(56);
 
@@ -490,8 +490,8 @@ class KeyworkerStatsServiceTest {
                                 20L,
                                 7D,
                                 50D,
+                                52D,
                                 50D,
-                                48D,
                                 3D,
                                 5D)
                 )
@@ -508,7 +508,7 @@ class KeyworkerStatsServiceTest {
                                 6L,
                                 5D,
                                 32D,
-                                50D,
+                                52D,
                                 50D,
                                 4D,
                                 6D)
@@ -516,7 +516,7 @@ class KeyworkerStatsServiceTest {
         );
 
         final var timeline = getTimeline(fromDate, toDate, previousFromDate, "MDI",
-                20, 50, 6, 25, 50, 50, 7);
+                20, 50, 6, 25, 52,50, 50, 7);
         assertThat(timeline.size()).isEqualTo(28);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, toDate.minusYears(1), toDate)).thenReturn(timeline);
@@ -570,8 +570,8 @@ class KeyworkerStatsServiceTest {
                                 2L,
                                 7D,
                                 50D,
+                                52D,
                                 50D,
-                                48D,
                                 3D,
                                 5D)
                 )
@@ -580,7 +580,7 @@ class KeyworkerStatsServiceTest {
         final var previousFromDate = fromDate.minusDays(DAYS.between(fromDate, now) + 1);
 
         final var timeline = getTimeline(fromDate, now, previousFromDate, "MDI",
-                2, 5, 0, 0, 50, 50, 7);
+                2, 5, 0, 0, 52, 50, 50, 7);
         assertThat(timeline.size()).isEqualTo(2);
 
         when(statisticRepository.findByPrisonIdInAndSnapshotDateBetween(prisonIds, now.minusYears(1), now)).thenReturn(timeline);
@@ -612,7 +612,7 @@ class KeyworkerStatsServiceTest {
         assertThat(prisonStats.getPrisons().get("MDI").getAvgOverallKeyworkerSessions()).isEqualTo(2);
     }
 
-    private List<PrisonKeyWorkerStatistic> getTimeline(final LocalDate fromDate, final LocalDate toDate, final LocalDate previousFromDate, final String prisonId, final int kwEntriesCurrent, final int kwSessionsCurrent, final int kwEntriesPrevious, final int kwSessionsPrevious, final int totalNumPrisoners, final int numPrisonersAssignedKeyWorker, final int numberOfActiveKeyworkers) {
+    private List<PrisonKeyWorkerStatistic> getTimeline(final LocalDate fromDate, final LocalDate toDate, final LocalDate previousFromDate, final String prisonId, final int kwEntriesCurrent, final int kwSessionsCurrent, final int kwEntriesPrevious, final int kwSessionsPrevious, final int totalNumPrisoners, final int totalNumEligiblePrisoners, final int numPrisonersAssignedKeyWorker, final int numberOfActiveKeyworkers) {
         final List<PrisonKeyWorkerStatistic> timeline = new ArrayList<>();
 
         var day = 0;
@@ -622,6 +622,7 @@ class KeyworkerStatsServiceTest {
                     .prisonId(prisonId)
                     .snapshotDate(fromDate.plusDays(day))
                     .totalNumPrisoners(totalNumPrisoners)
+                    .totalNumEligiblePrisoners(totalNumEligiblePrisoners)
                     .numPrisonersAssignedKeyWorker(numPrisonersAssignedKeyWorker)
                     .numberOfActiveKeyworkers(numberOfActiveKeyworkers)
                     .numberKeyWorkerEntries((int) (kwEntriesCurrent / between))
@@ -640,6 +641,7 @@ class KeyworkerStatsServiceTest {
                         .prisonId(prisonId)
                         .snapshotDate(previousFromDate.plusDays(day))
                         .totalNumPrisoners(totalNumPrisoners)
+                        .totalNumEligiblePrisoners(totalNumEligiblePrisoners)
                         .numPrisonersAssignedKeyWorker(numPrisonersAssignedKeyWorker)
                         .numberOfActiveKeyworkers(numberOfActiveKeyworkers)
                         .numberKeyWorkerEntries((int) (kwEntriesPrevious / between))
