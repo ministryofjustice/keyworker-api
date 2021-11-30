@@ -381,6 +381,7 @@ public class KeyworkerStatsService {
                     .dataRangeFrom(stats.stream().map(SummaryStatistic::getDataRangeFrom).min(LocalDate::compareTo).orElse(null))
                     .dataRangeTo(stats.stream().map(SummaryStatistic::getDataRangeTo).max(LocalDate::compareTo).orElse(null))
                     .totalNumPrisoners(stats.stream().mapToInt(SummaryStatistic::getTotalNumPrisoners).sum())
+                    .totalNumEligiblePrisoners(stats.stream().mapToInt(SummaryStatistic::getTotalNumEligiblePrisoners).sum())
                     .numberOfActiveKeyworkers(stats.stream().mapToInt(SummaryStatistic::getNumberOfActiveKeyworkers).sum())
                     .numberKeyWorkerEntries(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkerEntries).sum())
                     .numberKeyWorkerSessions(stats.stream().mapToInt(SummaryStatistic::getNumberKeyWorkerSessions).sum())
@@ -435,7 +436,7 @@ public class KeyworkerStatsService {
                     Collectors.groupingBy(s -> s.getSnapshotDate().with(weekAdjuster),
                             Collectors.averagingDouble(p ->
                             {
-                                var projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumPrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
+                                var projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumEligiblePrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
                                 return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
                             }))
             ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
@@ -463,7 +464,7 @@ public class KeyworkerStatsService {
 
         if (prisonStats != null) {
             final var sessionMultiplier = (DAYS.between(prisonStats.getStartDate(), prisonStats.getEndDate()) + 1) / (double) (kwSessionFrequencyInWeeks * 7);
-            final var projectedSessions = Math.round(Math.floor(prisonStats.getTotalNumPrisoners()) * sessionMultiplier);
+            final var projectedSessions = Math.round(Math.floor(prisonStats.getTotalNumEligiblePrisoners()) * sessionMultiplier);
 
             return SummaryStatistic.builder()
                     .dataRangeFrom(prisonStats.getStartDate())
@@ -474,13 +475,23 @@ public class KeyworkerStatsService {
                     .numberKeyWorkerSessions(prisonStats.getNumberKeyWorkerSessions().intValue())
                     .numberOfActiveKeyworkers(prisonStats.getNumberOfActiveKeyworkers().intValue())
                     .totalNumPrisoners(prisonStats.getTotalNumPrisoners().intValue())
+                    .totalNumEligiblePrisoners(prisonStats.getTotalNumEligiblePrisoners().intValue())
                     .numPrisonersAssignedKeyWorker(prisonStats.getNumPrisonersAssignedKeyWorker().intValue())
-                    .percentagePrisonersWithKeyworker(new BigDecimal(prisonStats.getNumPrisonersAssignedKeyWorker() * 100.00 / prisonStats.getTotalNumPrisoners()).setScale(2, RoundingMode.HALF_UP))
+                    .percentagePrisonersWithKeyworker(percentagePrisonersWithKeyworker(prisonStats.getNumPrisonersAssignedKeyWorker(), prisonStats.getTotalNumEligiblePrisoners()))
                     .numProjectedKeyworkerSessions((int) projectedSessions)
                     .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkerSessions(), projectedSessions))
                     .build();
         }
         return null;
+    }
+
+    private BigDecimal percentagePrisonersWithKeyworker(final double numPrisonersAssignedKeyWorker, final double totalNumEligiblePrisoners) {
+        var percentage = HUNDRED;
+
+        if (totalNumEligiblePrisoners > 0) {
+            new BigDecimal(numPrisonersAssignedKeyWorker * 100.00 / totalNumEligiblePrisoners).setScale(2, RoundingMode.HALF_UP);
+        }
+        return percentage;
     }
 
     private BigDecimal getComplianceRate(final long sessionCount, final double projectedKeyworkerSessions) {
