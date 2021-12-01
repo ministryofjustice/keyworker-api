@@ -133,6 +133,7 @@ public class PrisonSupportedService {
                 .capacityTier2(prison.getCapacityTier2())
                 .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
                 .migratedDateTime(prison.getMigratedDateTime())
+                .highComplexity(prisonsWithOffenderComplexityNeeds.contains(prison.getPrisonId()))
                 .build();
     }
 

@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedReposito
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,6 +38,7 @@ class PrisonSupportedServiceTest {
     void setUp() {
         prisonSupportedService = new PrisonSupportedService(repository);
         ReflectionTestUtils.setField(prisonSupportedService, "capacityTiers", List.of(6,9));
+        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Set.of("MDI","LEI"));
     }
 
     @Test
