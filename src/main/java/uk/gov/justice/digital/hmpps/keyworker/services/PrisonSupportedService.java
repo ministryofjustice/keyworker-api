@@ -14,11 +14,15 @@ import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
 public class PrisonSupportedService {
+
+    @Value("${prisons.with.offenders.that.have.complex.needs}")
+    private Set<String> prisonsWithOffenderComplexityNeeds;
 
     @Value("${svc.kw.allocation.capacity.tiers:6,9}")
     private List<Integer> capacityTiers;
@@ -113,6 +117,7 @@ public class PrisonSupportedService {
                     .capacityTier1(capacityTiers.get(0))
                     .capacityTier2(capacityTiers.get(1))
                     .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
+                    .highComplexity(prisonsWithOffenderComplexityNeeds.contains(prisonId))
                     .build()
                 );
 
