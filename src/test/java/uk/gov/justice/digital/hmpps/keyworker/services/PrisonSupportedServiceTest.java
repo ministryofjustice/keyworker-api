@@ -7,12 +7,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -38,7 +40,7 @@ class PrisonSupportedServiceTest {
     void setUp() {
         prisonSupportedService = new PrisonSupportedService(repository);
         ReflectionTestUtils.setField(prisonSupportedService, "capacityTiers", List.of(6,9));
-        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Set.of("MDI","LEI"));
+        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Collections.emptySet());
     }
 
     @Test
@@ -109,6 +111,52 @@ class PrisonSupportedServiceTest {
         verify(repository, never()).save(any(PrisonSupported.class));
         assertThat(prison.getCapacityTier1()).isEqualTo(5);
         assertThat(prison.getCapacityTier2()).isEqualTo(7);
+    }
+
+    @Test
+    void testGetMigratedPrisons() {
+        final var agencyWithHighComplexity = "MDI";
+        final var agencyWithoutHighComplexity = "LEI";
+        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Set.of(agencyWithHighComplexity));
+        when(repository.findAllByMigratedEquals(true)).thenReturn(
+            List.of(
+                PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true).capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1).build(),
+                PrisonSupported.builder().prisonId(agencyWithoutHighComplexity).autoAllocate(true).migrated(true).capacityTier1(2).capacityTier2(5).kwSessionFrequencyInWeeks(4).build()
+            )
+        );
+
+        final var migratedPrisons = prisonSupportedService.getMigratedPrisons();
+        assertThat(migratedPrisons).hasSize(2);
+        assertThat(migratedPrisons.get(0).isMigrated()).isTrue();
+        assertThat(migratedPrisons.get(0).getPrisonId()).isEqualTo(agencyWithHighComplexity);
+        assertThat(migratedPrisons.get(0).getCapacityTier1()).isEqualTo(5);
+        assertThat(migratedPrisons.get(0).getCapacityTier2()).isEqualTo(7);
+        assertThat(migratedPrisons.get(0).getKwSessionFrequencyInWeeks()).isEqualTo(1);
+        assertThat(migratedPrisons.get(0).isHighComplexity()).isTrue();
+
+        assertThat(migratedPrisons).hasSize(2);
+        assertThat(migratedPrisons.get(1).isMigrated()).isTrue();
+        assertThat(migratedPrisons.get(1).getPrisonId()).isEqualTo(agencyWithoutHighComplexity);
+        assertThat(migratedPrisons.get(1).getCapacityTier1()).isEqualTo(2);
+        assertThat(migratedPrisons.get(1).getCapacityTier2()).isEqualTo(5);
+        assertThat(migratedPrisons.get(1).getKwSessionFrequencyInWeeks()).isEqualTo(4);
+        assertThat(migratedPrisons.get(1).isHighComplexity()).isFalse();
+    }
+
+    @Test
+    void getPrisonDetail() {
+        final var agencyWithHighComplexity = "MDI";
+        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Set.of(agencyWithHighComplexity));
+        when(repository.findById(agencyWithHighComplexity))
+            .thenReturn(Optional.of(PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true).capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1).build()));
+
+        final var prison = prisonSupportedService.getPrisonDetail(agencyWithHighComplexity);
+        assertThat(prison.isMigrated()).isTrue();
+        assertThat(prison.getPrisonId()).isEqualTo(agencyWithHighComplexity);
+        assertThat(prison.getCapacityTier1()).isEqualTo(5);
+        assertThat(prison.getCapacityTier2()).isEqualTo(7);
+        assertThat(prison.getKwSessionFrequencyInWeeks()).isEqualTo(1);
+        assertThat(prison.isHighComplexity()).isTrue();
     }
 
     @Test
