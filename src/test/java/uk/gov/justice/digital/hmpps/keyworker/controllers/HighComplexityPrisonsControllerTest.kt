@@ -26,8 +26,10 @@ class HighComplexityPrisonsControllerTest {
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("""
+      .jsonPath(
+        """
         ["LEI", "MDI"]
-        """.trimIndent())
+        """.trimIndent()
+      )
   }
 }
