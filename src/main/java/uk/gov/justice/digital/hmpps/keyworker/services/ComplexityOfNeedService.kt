@@ -28,4 +28,6 @@ class ComplexityOfNeedService(
       !complexOffenders.contains(it)
     }.toSet()
   }
+
+  override fun isComplexPrison(prisonId: String): Boolean = prisonsWithOffenderComplexityNeeds.contains(prisonId)
 }

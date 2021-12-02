@@ -79,7 +79,6 @@ public class KeyworkerService {
     private final ComplexityOfNeed complexityOfNeedService;
     private final TelemetryClient telemetryClient;
 
-
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {
 
         final var returnedList = nomisService.getAvailableKeyworkers(prisonId);

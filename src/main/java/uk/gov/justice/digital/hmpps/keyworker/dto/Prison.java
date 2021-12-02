@@ -23,6 +23,10 @@ public class Prison {
     @NotBlank
     private boolean migrated;
 
+    @ApiModelProperty(required = true, value = "Indicates this prison has high complexity prisoners", example = "true", position = 2)
+    @NotBlank
+    private boolean highComplexity;
+
     @ApiModelProperty(required = true, value = "Indicates that this prison supports auto allocation of prisoner to key workers", example = "true", position = 3)
     @NotBlank
     private boolean autoAllocatedSupported;
@@ -44,7 +48,7 @@ public class Prison {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime migratedDateTime;
 
-    public Prison(@NotBlank String prisonId, @NotBlank boolean supported, @NotBlank boolean migrated, @NotBlank boolean autoAllocatedSupported, @NotBlank int capacityTier1, @NotBlank int capacityTier2, @NotBlank int kwSessionFrequencyInWeeks, @NotBlank LocalDateTime migratedDateTime) {
+    public Prison(@NotBlank String prisonId, @NotBlank boolean supported, @NotBlank boolean migrated, @NotBlank boolean autoAllocatedSupported, @NotBlank int capacityTier1, @NotBlank int capacityTier2, @NotBlank int kwSessionFrequencyInWeeks, @NotBlank LocalDateTime migratedDateTime, @NotBlank boolean highComplexity) {
         this.prisonId = prisonId;
         this.supported = supported;
         this.migrated = migrated;
@@ -53,6 +57,7 @@ public class Prison {
         this.capacityTier2 = capacityTier2;
         this.kwSessionFrequencyInWeeks = kwSessionFrequencyInWeeks;
         this.migratedDateTime = migratedDateTime;
+        this.highComplexity = highComplexity;
     }
 
     public Prison() {
@@ -72,6 +77,10 @@ public class Prison {
 
     public @NotBlank boolean isMigrated() {
         return this.migrated;
+    }
+
+    public @NotBlank boolean isHighComplexity() {
+        return this.highComplexity;
     }
 
     public @NotBlank boolean isAutoAllocatedSupported() {
@@ -106,6 +115,10 @@ public class Prison {
         this.migrated = migrated;
     }
 
+    public void setHighComplexity(@NotBlank boolean highComplexity) {
+        this.highComplexity = highComplexity;
+    }
+
     public void setAutoAllocatedSupported(@NotBlank boolean autoAllocatedSupported) {
         this.autoAllocatedSupported = autoAllocatedSupported;
     }
@@ -127,7 +140,7 @@ public class Prison {
     }
 
     public String toString() {
-        return "Prison(prisonId=" + this.getPrisonId() + ", supported=" + this.isSupported() + ", migrated=" + this.isMigrated() + ", autoAllocatedSupported=" + this.isAutoAllocatedSupported() + ", capacityTier1=" + this.getCapacityTier1() + ", capacityTier2=" + this.getCapacityTier2() + ", kwSessionFrequencyInWeeks=" + this.getKwSessionFrequencyInWeeks() + ", migratedDateTime=" + this.getMigratedDateTime() + ")";
+        return "Prison(prisonId=" + this.getPrisonId() + ", supported=" + this.isSupported() + ", migrated=" + this.isMigrated() + ", autoAllocatedSupported=" + this.isAutoAllocatedSupported() + ", capacityTier1=" + this.getCapacityTier1() + ", capacityTier2=" + this.getCapacityTier2() + ", kwSessionFrequencyInWeeks=" + this.getKwSessionFrequencyInWeeks() + ", migratedDateTime=" + this.getMigratedDateTime() + ", highComplexity=" + this.highComplexity + ")";
     }
 
     public boolean equals(final Object o) {
@@ -161,6 +174,7 @@ public class Prison {
         private @NotBlank int capacityTier1;
         private @NotBlank int capacityTier2;
         private @NotBlank int kwSessionFrequencyInWeeks;
+        private @NotBlank boolean highComplexity;
         private @NotBlank LocalDateTime migratedDateTime;
 
         PrisonBuilder() {
@@ -206,12 +220,17 @@ public class Prison {
             return this;
         }
 
+        public Prison.PrisonBuilder highComplexity(@NotBlank boolean highComplexity) {
+            this.highComplexity = highComplexity;
+            return this;
+        }
+
         public Prison build() {
-            return new Prison(prisonId, supported, migrated, autoAllocatedSupported, capacityTier1, capacityTier2, kwSessionFrequencyInWeeks, migratedDateTime);
+            return new Prison(prisonId, supported, migrated, autoAllocatedSupported, capacityTier1, capacityTier2, kwSessionFrequencyInWeeks, migratedDateTime, highComplexity);
         }
 
         public String toString() {
-            return "Prison.PrisonBuilder(prisonId=" + this.prisonId + ", supported=" + this.supported + ", migrated=" + this.migrated + ", autoAllocatedSupported=" + this.autoAllocatedSupported + ", capacityTier1=" + this.capacityTier1 + ", capacityTier2=" + this.capacityTier2 + ", kwSessionFrequencyInWeeks=" + this.kwSessionFrequencyInWeeks + ", migratedDateTime=" + this.migratedDateTime + ")";
+            return "Prison.PrisonBuilder(prisonId=" + this.prisonId + ", supported=" + this.supported + ", migrated=" + this.migrated + ", autoAllocatedSupported=" + this.autoAllocatedSupported + ", capacityTier1=" + this.capacityTier1 + ", capacityTier2=" + this.capacityTier2 + ", kwSessionFrequencyInWeeks=" + this.kwSessionFrequencyInWeeks + ", migratedDateTime=" + this.migratedDateTime + ", highComplexity=" + this.highComplexity + ")";
         }
     }
 }
