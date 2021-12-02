@@ -8,7 +8,6 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.WordUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,10 +78,6 @@ public class KeyworkerService {
     private final NomisService nomisService;
     private final ComplexityOfNeed complexityOfNeedService;
     private final TelemetryClient telemetryClient;
-
-    @Value("${prisons.with.offenders.that.have.complex.needs}")
-    private final List<String> prisonsWithOffenderComplexityNeeds;
-
 
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {
 
