@@ -30,10 +30,10 @@ public class SummaryStatistic {
     @ApiModelProperty(required = true, value = "Average number of prisoners assigned a key worker over this time range", example = "423", position = 2)
     private Integer numPrisonersAssignedKeyWorker;
 
-    @ApiModelProperty(required = true, value = "Average total number of prisoners in the prions over this time range", example = "600", position = 3)
+    @ApiModelProperty(required = true, value = "Average total number of prisoners in the prisons over this time range", example = "600", position = 3)
     private Integer totalNumPrisoners;
 
-    @ApiModelProperty(required = true, value = "Average total number of eligible prisoners in the prions over this time range", example = "600", position = 3)
+    @ApiModelProperty(required = true, value = "Average total number of eligible prisoners in the prisons over this time range", example = "600", position = 3)
     private Integer totalNumEligiblePrisoners;
 
     @ApiModelProperty(required = true, value = "Average number of Key Working Sessions done over this time range", example = "354", position = 4)
