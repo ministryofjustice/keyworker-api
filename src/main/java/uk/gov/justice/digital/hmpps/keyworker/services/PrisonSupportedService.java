@@ -28,9 +28,12 @@ public class PrisonSupportedService {
 
     private final PrisonSupportedRepository repository;
 
+    private final ComplexityOfNeed complexityOfNeedService;
+
     @Autowired
-    public PrisonSupportedService(final PrisonSupportedRepository repository) {
+    public PrisonSupportedService(final PrisonSupportedRepository repository, final ComplexityOfNeed complexityOfNeedService) {
         this.repository = repository;
+        this.complexityOfNeedService = complexityOfNeedService;
     }
 
     private void verifyPrisonSupported(final String prisonId) {
@@ -113,6 +116,7 @@ public class PrisonSupportedService {
                     .capacityTier1(capacityTiers.get(0))
                     .capacityTier2(capacityTiers.get(1))
                     .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
+                    .highComplexity(complexityOfNeedService.isComplexPrison(prisonId))
                     .build()
                 );
 
@@ -128,6 +132,7 @@ public class PrisonSupportedService {
                 .capacityTier2(prison.getCapacityTier2())
                 .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
                 .migratedDateTime(prison.getMigratedDateTime())
+                .highComplexity(complexityOfNeedService.isComplexPrison(prison.getPrisonId()))
                 .build();
     }
 

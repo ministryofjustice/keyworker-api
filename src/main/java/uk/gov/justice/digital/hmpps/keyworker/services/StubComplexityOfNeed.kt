@@ -8,4 +8,6 @@ import org.springframework.stereotype.Service
 class StubComplexityOfNeed : ComplexityOfNeed {
   override fun removeOffendersWithHighComplexityOfNeed(prisonId: String, offenders: Set<String>): Set<String> =
     offenders
+
+  override fun isComplexPrison(prisonId: String): Boolean = false
 }

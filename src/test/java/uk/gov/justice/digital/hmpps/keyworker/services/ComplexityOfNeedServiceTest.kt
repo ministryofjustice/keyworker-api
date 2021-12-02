@@ -43,6 +43,20 @@ class ComplexityOfNeedServiceTest {
   }
 
   @Test
+  fun `should report when a prison is high complexity`() {
+    val highComplexity = complexityOfNeedService.isComplexPrison("MDI")
+
+    assertThat(highComplexity).isTrue()
+  }
+
+  @Test
+  fun `should report when a prison is not high complexity`() {
+    val notHighComplexity = complexityOfNeedService.isComplexPrison("LEI")
+
+    assertThat(notHighComplexity).isFalse()
+  }
+
+  @Test
   fun `should not filter out complex offenders for none enabled prisons`() {
     val complexOffenders = complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("LEI", setOf(OFFENDER_NO_1))
 
