@@ -489,7 +489,7 @@ public class KeyworkerStatsService {
         var percentage = HUNDRED;
 
         if (totalNumEligiblePrisoners > 0) {
-            new BigDecimal(numPrisonersAssignedKeyWorker * 100.00 / totalNumEligiblePrisoners).setScale(2, RoundingMode.HALF_UP);
+            percentage = new BigDecimal(numPrisonersAssignedKeyWorker * 100.00 / totalNumEligiblePrisoners).setScale(2, RoundingMode.HALF_UP);
         }
         return percentage;
     }
