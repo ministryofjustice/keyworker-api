@@ -7,14 +7,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -36,11 +34,13 @@ class PrisonSupportedServiceTest {
     @Mock
     private PrisonSupportedRepository repository;
 
+    @Mock
+    private ComplexityOfNeedService complexityOfNeedService;
+
     @BeforeEach
     void setUp() {
-        prisonSupportedService = new PrisonSupportedService(repository);
+        prisonSupportedService = new PrisonSupportedService(repository, complexityOfNeedService);
         ReflectionTestUtils.setField(prisonSupportedService, "capacityTiers", List.of(6,9));
-        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Collections.emptySet());
     }
 
     @Test
@@ -117,7 +117,8 @@ class PrisonSupportedServiceTest {
     void testGetMigratedPrisons() {
         final var agencyWithHighComplexity = "MDI";
         final var agencyWithoutHighComplexity = "LEI";
-        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Set.of(agencyWithHighComplexity));
+        when(complexityOfNeedService.isComplexPrison(agencyWithHighComplexity)).thenReturn(true);
+        when(complexityOfNeedService.isComplexPrison(agencyWithoutHighComplexity)).thenReturn(false);
         when(repository.findAllByMigratedEquals(true)).thenReturn(
             List.of(
                 PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true).capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1).build(),
@@ -146,7 +147,7 @@ class PrisonSupportedServiceTest {
     @Test
     void getPrisonDetail() {
         final var agencyWithHighComplexity = "MDI";
-        ReflectionTestUtils.setField(prisonSupportedService, "prisonsWithOffenderComplexityNeeds", Set.of(agencyWithHighComplexity));
+        when(complexityOfNeedService.isComplexPrison(agencyWithHighComplexity)).thenReturn(true);
         when(repository.findById(agencyWithHighComplexity))
             .thenReturn(Optional.of(PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true).capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1).build()));
 

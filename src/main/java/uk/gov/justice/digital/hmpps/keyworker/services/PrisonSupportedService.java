@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class PrisonSupportedService {
 
-    @Value("${prisons.with.offenders.that.have.complex.needs}")
-    private Set<String> prisonsWithOffenderComplexityNeeds;
-
     @Value("${svc.kw.allocation.capacity.tiers:6,9}")
     private List<Integer> capacityTiers;
 
@@ -32,9 +29,12 @@ public class PrisonSupportedService {
 
     private final PrisonSupportedRepository repository;
 
+    private final ComplexityOfNeed complexityOfNeedService;
+
     @Autowired
-    public PrisonSupportedService(final PrisonSupportedRepository repository) {
+    public PrisonSupportedService(final PrisonSupportedRepository repository, final ComplexityOfNeed complexityOfNeedService) {
         this.repository = repository;
+        this.complexityOfNeedService = complexityOfNeedService;
     }
 
     private void verifyPrisonSupported(final String prisonId) {
@@ -117,7 +117,7 @@ public class PrisonSupportedService {
                     .capacityTier1(capacityTiers.get(0))
                     .capacityTier2(capacityTiers.get(1))
                     .kwSessionFrequencyInWeeks(keyWorkerSessionDefaultFrequency)
-                    .highComplexity(prisonsWithOffenderComplexityNeeds.contains(prisonId))
+                    .highComplexity(complexityOfNeedService.isComplexPrison(prisonId))
                     .build()
                 );
 
@@ -133,7 +133,7 @@ public class PrisonSupportedService {
                 .capacityTier2(prison.getCapacityTier2())
                 .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
                 .migratedDateTime(prison.getMigratedDateTime())
-                .highComplexity(prisonsWithOffenderComplexityNeeds.contains(prison.getPrisonId()))
+                .highComplexity(complexityOfNeedService.isComplexPrison(prison.getPrisonId()))
                 .build();
     }
 
