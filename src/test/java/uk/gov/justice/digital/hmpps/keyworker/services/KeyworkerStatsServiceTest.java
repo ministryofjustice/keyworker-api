@@ -96,6 +96,21 @@ class KeyworkerStatsServiceTest {
         lenient().when(prisonSupportedService.getPrisonDetail("MDI")).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(2).migrated(true).migratedDateTime(toDate.minusDays(10).atStartOfDay()).build());
     }
 
+
+    @Test
+    void testPercentage() {
+        assertThat(KeyworkerStatsService.percentage(50, 100)).isEqualTo(new BigDecimal("50.00"));
+        assertThat(KeyworkerStatsService.percentage(50, 0)).isEqualTo(new BigDecimal("100.00")); // denominator is zero we return 100.
+        assertThat(KeyworkerStatsService.percentage(0, 100)).isEqualTo(new BigDecimal("0.00"));
+    }
+
+    @Test
+    void testRate() {
+        assertThat(KeyworkerStatsService.rate(50, 100)).isEqualTo(new BigDecimal("50.00"));
+        assertThat(KeyworkerStatsService.rate(50, 0)).isEqualTo(new BigDecimal("100.00")); // denominator is zero we return 100.
+        assertThat(KeyworkerStatsService.rate(0, 100)).isEqualTo(new BigDecimal("0.00"));
+    }
+
     @Test
     void testShouldThrowIfRequiredParametersAreMissing() {
         assertThatThrownBy(() -> service.getStatsForStaff(null, null, null, null)).isInstanceOf(NullPointerException.class);
