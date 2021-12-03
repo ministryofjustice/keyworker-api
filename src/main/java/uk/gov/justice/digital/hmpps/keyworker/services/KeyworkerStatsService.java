@@ -64,7 +64,7 @@ public class KeyworkerStatsService {
     private final TelemetryClient telemetryClient;
     private final ComplexityOfNeed complexityOfNeedService;
 
-    private final BigDecimal HUNDRED = new BigDecimal("100.00");
+    private final static BigDecimal HUNDRED = new BigDecimal("100.00");
 
     public KeyworkerStatsService(final NomisService nomisService, final PrisonSupportedService prisonSupportedService,
                                  final OffenderKeyworkerRepository offenderKeyworkerRepository,
@@ -107,7 +107,7 @@ public class KeyworkerStatsService {
                     false);
 
             final var projectedKeyworkerSessions = getProjectedKeyworkerSessions(applicableAssignments, staffId, prisonId, range.getStartDate(), nextEndDate);
-            final var complianceRate = getComplianceRate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
+            final var complianceRate = rate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
 
             return KeyworkerStatsDto.builder()
                     .staffId(staffId)
@@ -437,7 +437,7 @@ public class KeyworkerStatsService {
                             Collectors.averagingDouble(p ->
                             {
                                 var projectedKeyworkerSessions = Math.floorDiv(p.getTotalNumEligiblePrisoners(), prisonConfig.getKwSessionFrequencyInWeeks() * 7);
-                                return getComplianceRate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
+                                return rate(p.getNumberKeyWorkerSessions(), projectedKeyworkerSessions).doubleValue();
                             }))
             ).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey,
                     e -> new BigDecimal(e.getValue()).setScale(2, RoundingMode.HALF_UP))));
@@ -477,28 +477,28 @@ public class KeyworkerStatsService {
                     .totalNumPrisoners(prisonStats.getTotalNumPrisoners().intValue())
                     .totalNumEligiblePrisoners(prisonStats.getTotalNumEligiblePrisoners().intValue())
                     .numPrisonersAssignedKeyWorker(prisonStats.getNumPrisonersAssignedKeyWorker().intValue())
-                    .percentagePrisonersWithKeyworker(percentagePrisonersWithKeyworker(prisonStats.getNumPrisonersAssignedKeyWorker(), prisonStats.getTotalNumEligiblePrisoners()))
+                    .percentagePrisonersWithKeyworker(percentage(prisonStats.getNumPrisonersAssignedKeyWorker(), prisonStats.getTotalNumEligiblePrisoners()))
                     .numProjectedKeyworkerSessions((int) projectedSessions)
-                    .complianceRate(getComplianceRate(prisonStats.getNumberKeyWorkerSessions(), projectedSessions))
+                    .complianceRate(rate(prisonStats.getNumberKeyWorkerSessions(), projectedSessions))
                     .build();
         }
         return null;
     }
 
-    private BigDecimal percentagePrisonersWithKeyworker(final double numPrisonersAssignedKeyWorker, final double totalNumEligiblePrisoners) {
+    static BigDecimal percentage(final double numerator, final double denominator) {
         var percentage = HUNDRED;
 
-        if (totalNumEligiblePrisoners > 0) {
-            percentage = new BigDecimal(numPrisonersAssignedKeyWorker * 100.00 / totalNumEligiblePrisoners).setScale(2, RoundingMode.HALF_UP);
+        if (denominator > 0) {
+            percentage = new BigDecimal(numerator * 100.00 / denominator).setScale(2, RoundingMode.HALF_UP);
         }
         return percentage;
     }
 
-    private BigDecimal getComplianceRate(final long sessionCount, final double projectedKeyworkerSessions) {
+    static BigDecimal rate(final long numerator, final double denominator) {
         var complianceRate = HUNDRED;
 
-        if (projectedKeyworkerSessions > 0) {
-            complianceRate = new BigDecimal(sessionCount * 100.00 / projectedKeyworkerSessions).setScale(2, RoundingMode.HALF_UP);
+        if (denominator > 0) {
+            complianceRate = new BigDecimal(numerator * 100.00 / denominator).setScale(2, RoundingMode.HALF_UP);
         }
         return complianceRate;
     }
