@@ -6,11 +6,11 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesResult
 import com.amazonaws.services.sqs.model.GetQueueUrlResult
 import com.amazonaws.services.sqs.model.QueueAttributeName
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.boot.actuate.health.Status
 import uk.gov.justice.digital.hmpps.keyworker.services.health.ComplexityOfNeedQueueHealth
 import uk.gov.justice.digital.hmpps.keyworker.services.health.DlqStatus

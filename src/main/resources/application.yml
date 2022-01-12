@@ -45,6 +45,13 @@ spring:
           hmpps-auth:
             token-uri: ${auth.uri.root}/oauth/token
 
+  # This is required so SpringFox can generate swagger docs. It expects the pattern matcher to be ant_path_matcher and
+  # not path_pattern_parser which is the default now in spring boot 2.6. We need to migrate from SpringFox to
+  # SpringDoc.
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
   codec:
     max-in-memory-size: 10MB
 
@@ -94,6 +101,9 @@ management:
     info:
       cache:
         time-to-live: 2000ms
+  info:
+    env:
+      enabled: true
 
 role-migration:
   rolesToMatch:

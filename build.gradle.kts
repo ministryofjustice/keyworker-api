@@ -56,7 +56,6 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:3.8.0")
-  testImplementation("com.nhaarman:mockito-kotlin-kt1.1:1.6.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
