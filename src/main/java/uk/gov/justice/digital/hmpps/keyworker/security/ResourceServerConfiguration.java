@@ -30,13 +30,7 @@ import java.util.Optional;
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 @EnableWebSecurity
 public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
-
-    private BuildProperties buildProperties;
-
-    public ResourceServerConfiguration(@Autowired(required = false) final BuildProperties buildProperties) {
-        this.buildProperties = buildProperties;
-    }
-
+    
     @Override
     public void configure(final HttpSecurity http) throws Exception {
 
@@ -54,44 +48,6 @@ public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
                         "/swagger-resources/configuration/security")
                         .permitAll().anyRequest().authenticated())
         .oauth2ResourceServer().jwt().jwtAuthenticationConverter(new AuthAwareTokenConverter());
-    }
-
-    @Bean
-    public Docket api() {
-
-        final var apiInfo = new ApiInfo(
-                "Key Worker API Documentation",
-                "API for accessing the Key Worker services.",
-                getVersion(), "", contactInfo(), "", "",
-                Collections.emptyList());
-
-        final var docket = new Docket(DocumentationType.SWAGGER_2)
-                .useDefaultResponseMessages(false)
-                .apiInfo(apiInfo)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage(KeyworkerServiceController.class.getPackage().getName()))
-                .paths(PathSelectors.any())
-                .build();
-
-        docket.genericModelSubstitutes(Optional.class);
-        docket.directModelSubstitute(ZonedDateTime.class, java.util.Date.class);
-        docket.directModelSubstitute(LocalDateTime.class, java.util.Date.class);
-
-        return docket;
-    }
-
-    /**
-     * @return health data. Note this is unsecured so no sensitive data allowed!
-     */
-    private String getVersion(){
-        return buildProperties == null ? "version not available" : buildProperties.getVersion();
-    }
-
-    private Contact contactInfo() {
-        return new Contact(
-                "HMPPS Digital Studio",
-                "",
-                "feedback@digital.justice.gov.uk");
     }
 
     @Service(value = "auditorAware")

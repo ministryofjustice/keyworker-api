@@ -13,7 +13,7 @@ import java.util.Set;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +48,7 @@ class UserRolesMigrationServiceTest {
     void givenNoRolesToMigrateThenDoNothing() {
         initialiseService(NO_ROLES, NO_ROLES, SINGLE_ROLE_TO_MIGRATE);
         service.migrate(PRISON_ID);
-        verifyZeroInteractions(roleService);
+        verifyNoInteractions(roleService);
     }
 
     @Test
