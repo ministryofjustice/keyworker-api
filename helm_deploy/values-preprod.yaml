@@ -10,7 +10,6 @@ image:
 
 ingress:
   enabled: true
-  contextColour: green
   enable_whitelist: true
   hosts:
     - host: keyworker-api-preprod.prison.service.justice.gov.uk
