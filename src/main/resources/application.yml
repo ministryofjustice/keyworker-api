@@ -23,7 +23,7 @@ spring:
 
     hikari:
       pool-name: Keyworker-CP
-      connectionTimeout: 1000
+      connectionTimeout: 2000
       validationTimeout:  500
 
   jackson:
