@@ -42,8 +42,8 @@ dependencies {
   implementation("org.flywaydb:flyway-core:8.5.1")
   runtimeOnly("org.postgresql:postgresql:42.3.3")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.9")
-  testImplementation("org.spockframework:spock-spring:2.2-M1-groovy-4.0")
-  testImplementation("org.spockframework:spock-core:2.2-M1-groovy-4.0") {
+  testImplementation("org.spockframework:spock-spring:2.0-groovy-3.0") // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-core:2.0-groovy-3.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.22")
