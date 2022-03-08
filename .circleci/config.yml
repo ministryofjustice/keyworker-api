@@ -16,7 +16,7 @@ jobs:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
-      - run: ./gradlew -Dorg.gradle.jvmargs="-Xmx1g --illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" check
+      - run: ./gradlew -Dorg.gradle.jvmargs="-Xmx2g --illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" check
       - save_cache:
           paths:
             - ~/.gradle
