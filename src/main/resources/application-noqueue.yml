@@ -1,5 +1,0 @@
-offender-events-sqs:
-  provider: false
-
-complexity-of-need-sqs:
-  provider: false

@@ -1,11 +1,16 @@
-offender-events-sqs:
+hmpps.sqs:
   provider: localstack
-  queue.name: keyworker_api_queue
-  dlq.name: keyworker_api_dlq
-  endpoint.url: http://localhost:4566
-
-complexity-of-need-sqs:
-  provider: localstack
-  queue.name: complexity_of_need_sqs
-  dlq.name: complexity_of_need_sqs_dlq
-  endpoint.url: http://localhost:4566
+  queues:
+    offenderevents:
+      queueName: keyworker_api_queue
+      dlqName: keyworker_api_dlq
+      subscribeTopicId: keyworkerevents
+    complexityofneed:
+      queueName: complexity_of_need_sqs
+      dlqName: complexity_of_need_sqs_dlq
+      subscribeTopicId: complexityevents
+  topics:
+    keyworkerevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:offender_events
+    complexityevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:complexity_of_need

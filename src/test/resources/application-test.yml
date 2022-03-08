@@ -8,18 +8,22 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-offender-events-sqs:
+hmpps.sqs:
   provider: localstack
-  endpoint.url: http://localhost:4566
-  queue.name: keyworker_api_queue
-  dlq.name: keyworker_api_dlq
-
-
-complexity-of-need-sqs:
-  provider: localstack
-  endpoint.url: http://localhost:4566
-  queue.name: complexity_of_need_sqs
-  dlq.name: complexity_of_need_sqs_dlq
+  queues:
+    offenderevents:
+      queueName: keyworker_api_queue
+      dlqName: keyworker_api_dlq
+      subscribeTopicId: keyworkerevents
+    complexityofneed:
+      queueName: complexity_of_need_sqs
+      dlqName: complexity_of_need_sqs_dlq
+      subscribeTopicId: complexityevents
+  topics:
+    keyworkerevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:offender_events
+    complexityevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:complexity_of_need
 
 prison.uri.root: http://localhost:9999
 auth.uri.root: http://localhost:8090/auth

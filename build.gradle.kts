@@ -25,7 +25,7 @@ dependencies {
   implementation("org.apache.camel:camel-quartz:3.8.0")
   implementation("org.apache.camel:camel-direct:3.8.0")
   implementation("org.springframework:spring-jms")
-  implementation("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.6")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl:3.0.2")
