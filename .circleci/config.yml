@@ -9,7 +9,6 @@ jobs:
       name: hmpps/localstack
       jdk_tag: "17.0"
       localstack_tag: "0.14.0"
-      services: "sqs"
     steps:
       - checkout
       - restore_cache:
