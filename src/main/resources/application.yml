@@ -113,13 +113,4 @@ role-migration:
 
   rolesToAssign:
 
-offender-events-sqs:
-  provider: aws
-  endpoint.region: eu-west-2
-
-complexity-of-need-sqs:
-  provider: aws
-  endpoint.region: eu-west-2
-
-
 api.health-timeout-ms: 1000

@@ -1,15 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import com.amazonaws.services.sqs.AmazonSQS
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
@@ -30,14 +29,6 @@ abstract class IntegrationTest {
 
   @Autowired
   lateinit var webTestClient: WebTestClient
-
-  @SpyBean
-  @Qualifier("awsSqsClientForOffenderEvents")
-  internal lateinit var awsSqsClientForOffenderEvents: AmazonSQS
-
-  @SpyBean
-  @Qualifier("awsSqsClientForComplexityOfNeed")
-  internal lateinit var awsSqsClientForComplexityOfNeed: AmazonSQS
 
   @Autowired
   internal lateinit var jwtAuthHelper: JwtAuthHelper
@@ -135,6 +126,23 @@ abstract class IntegrationTest {
       .bodyValue(mapOf("capacity" to capacity, "status" to "ACTIVE"))
       .exchange()
       .expectStatus().is2xxSuccessful
+  }
+
+  fun subPing(status: Int) {
+    addConditionalPingStub(prisonMockServer, status)
+    addConditionalPingStub(oAuthMockServer, status)
+    addConditionalPingStub(complexityOfNeedMockServer, status, "/ping")
+  }
+
+  fun addConditionalPingStub(mock: WireMockServer, status: Int, url: String? = "/health/ping") {
+    mock.stubFor(
+      WireMock.get(url).willReturn(
+        WireMock.aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
+          .withStatus(status)
+      )
+    )
   }
 
   internal fun getWiremockResponse(prisonId: String, fileName: String) =

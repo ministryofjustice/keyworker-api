@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.events
 import com.google.gson.Gson
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 import java.time.LocalDateTime
 
 @Service
-@ConditionalOnExpression("{'aws', 'localstack'}.contains('\${offender-events-sqs.provider}')")
 class OffenderEventListener(
   private val reconciliationService: ReconciliationService,
   private val keyworkerService: KeyworkerService,
@@ -22,7 +20,7 @@ class OffenderEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @JmsListener(destination = "\${offender-events-sqs.queue.name}", containerFactory = "jmsListenerContainerFactoryForOffenderEvents")
+  @JmsListener(destination = "offenderevents", containerFactory = "hmppsQueueContainerFactoryProxy")
   fun eventListener(requestJson: String) {
     val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
     val eventType = messageAttributes.eventType.Value

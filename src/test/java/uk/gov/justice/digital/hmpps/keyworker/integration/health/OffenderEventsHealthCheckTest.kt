@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 
-class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
+class OffenderEventsHealthCheckTest : IntegrationTest() {
 
   @BeforeEach
   fun setup() {
@@ -17,8 +17,17 @@ class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.complexityofneed-health.status").isEqualTo("UP")
-      .jsonPath("$.components.complexityofneed-health.details.dlqStatus").isEqualTo("UP")
+      .jsonPath("$.components.offenderevents-health.status").isEqualTo("UP")
+      .jsonPath("$.components.offenderevents-health.details.dlqStatus").isEqualTo("UP")
+  }
+
+  @Test
+  fun `Health page reports ok`() {
+    getForEntity("/health")
+      .expectStatus().is2xxSuccessful
+      .expectBody()
+      .jsonPath("$.status").isEqualTo("UP")
+      .jsonPath("$.components.prisonApiHealth.details.HttpStatus").isEqualTo("OK")
   }
 
   @Test
