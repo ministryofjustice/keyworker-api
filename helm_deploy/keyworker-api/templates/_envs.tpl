@@ -79,73 +79,73 @@ env:
   - name: APP_DB_URL
     value: "jdbc:postgresql://$(DB_ENDPOINT)/$(DB_NAME)?sslmode=verify-full"
 
-  - name: OFFENDER_EVENTS_SQS_AWS_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: kw-sqs-instance-output
         key: access_key_id
 
-  - name: OFFENDER_EVENTS_SQS_AWS_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: kw-sqs-instance-output
         key: secret_access_key
 
-  - name: OFFENDER_EVENTS_SQS_QUEUE_NAME
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_NAME
     valueFrom:
       secretKeyRef:
         name: kw-sqs-instance-output
         key: sqs_kw_name
 
-  - name: OFFENDER_EVENTS_SQS_AWS_DLQ_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: kw-sqs-dl-instance-output
         key: access_key_id
 
-  - name: OFFENDER_EVENTS_SQS_AWS_DLQ_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: kw-sqs-dl-instance-output
         key: secret_access_key
 
-  - name: OFFENDER_EVENTS_SQS_DLQ_NAME
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_NAME
     valueFrom:
       secretKeyRef:
         name: kw-sqs-dl-instance-output
         key: sqs_kw_name
 
-  - name: COMPLEXITY_OF_NEED_SQS_AWS_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-instance-output
         key: access_key_id
 
-  - name: COMPLEXITY_OF_NEED_SQS_AWS_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-instance-output
         key: secret_access_key
 
-  - name: COMPLEXITY_OF_NEED_SQS_QUEUE_NAME
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_NAME
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-instance-output
         key: sqs_kw_name
 
-  - name: COMPLEXITY_OF_NEED_SQS_AWS_DLQ_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-dl-instance-output
         key: access_key_id
 
-  - name: COMPLEXITY_OF_NEED_SQS_AWS_DLQ_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-dl-instance-output
         key: secret_access_key
 
-  - name: COMPLEXITY_OF_NEED_SQS_DLQ_NAME
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-dl-instance-output
