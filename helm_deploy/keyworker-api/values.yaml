@@ -10,6 +10,13 @@ ingress:
   annotations:
     external-dns.alpha.kubernetes.io/aws-weight: "100"
     nginx.ingress.kubernetes.io/custom-http-errors: "418"
+    # Secure the retry all dlqs endpoint from outside of the Kubernetes ingress
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      server_tokens off;
+      location /queue-admin/retry-all-dlqs {
+        deny all;
+        return 401;
+      }
 
 resources:
   limits:
