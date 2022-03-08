@@ -16,7 +16,6 @@ class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
     getForEntity("/health")
       .expectStatus().is2xxSuccessful
       .expectBody()
-      .consumeWith(Out())
       .jsonPath("$.status").isEqualTo("UP")
       .jsonPath("$.components.complexityofneed-health.status").isEqualTo("UP")
       .jsonPath("$.components.complexityofneed-health.details.dlqStatus").isEqualTo("UP")

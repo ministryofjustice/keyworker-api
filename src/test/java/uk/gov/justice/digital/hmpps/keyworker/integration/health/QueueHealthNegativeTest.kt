@@ -32,7 +32,6 @@ class QueueHealthNegativeTest : IntegrationTest() {
     getForEntity("/health")
       .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
-      .consumeWith(Out())
       .jsonPath("$.status").isEqualTo("DOWN")
       .jsonPath("$.components.badQueueHealth.status").isEqualTo("DOWN")
       .jsonPath("$.components.badQueueHealth.details.dlqStatus").isEqualTo("DOWN")
