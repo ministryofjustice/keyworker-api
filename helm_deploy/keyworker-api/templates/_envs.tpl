@@ -115,7 +115,7 @@ env:
         name: kw-sqs-dl-instance-output
         key: sqs_kw_name
 
-  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-instance-output
