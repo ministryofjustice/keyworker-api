@@ -79,13 +79,13 @@ env:
   - name: APP_DB_URL
     value: "jdbc:postgresql://$(DB_ENDPOINT)/$(DB_NAME)?sslmode=verify-full"
 
-  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_ACCESS_KEY_ID
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: kw-sqs-instance-output
         key: access_key_id
 
-  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: kw-sqs-instance-output
@@ -121,7 +121,7 @@ env:
         name: kw-sqs-complexity-of-need-instance-output
         key: access_key_id
 
-  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: kw-sqs-complexity-of-need-instance-output
