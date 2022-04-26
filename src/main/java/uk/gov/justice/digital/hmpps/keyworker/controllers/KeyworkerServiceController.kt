@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import springfox.documentation.annotations.ApiIgnore
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
@@ -292,7 +291,6 @@ class KeyworkerServiceController(
     @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
   ): KeyworkerDto = keyworkerService.getKeyworkerDetails(prisonId, staffId)
 
-  @ApiIgnore
   @ApiOperation(
     value = "Offenders current Keyworker",
     notes = "Offenders current Keyworker",
