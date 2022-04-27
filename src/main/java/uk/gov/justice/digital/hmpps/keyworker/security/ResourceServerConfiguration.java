@@ -24,7 +24,7 @@ public class ResourceServerConfiguration extends WebSecurityConfigurerAdapter {
             .authorizeRequests(auth ->
                 auth.antMatchers("/webjars/**", "/favicon.ico", "/csrf",
                         "/health/**", "/info", "/ping",
-                        "/v3/api-docs", "/v2/api-docs", "/swagger-ui/**",
+                        "/v3/api-docs/**", "/v2/api-docs", "/swagger-ui/**", "/swagger-ui.html",
                         "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
                         "/queue-admin/retry-all-dlqs")
                         .permitAll().anyRequest().authenticated())
