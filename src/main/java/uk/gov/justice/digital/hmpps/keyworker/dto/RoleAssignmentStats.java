@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -14,19 +15,19 @@ import java.util.Map;
 @ToString
 public class RoleAssignmentStats {
 
-    @ApiModelProperty(required = true, value = "Caseload")
+    @Schema(required = true, description = "Caseload")
     private String caseload;
-    @ApiModelProperty(required = true, value = "Number of matched users")
+    @Schema(required = true, description = "Number of matched users")
     private int numMatchedUsers;
-    @ApiModelProperty(required = true, value = "Number of role assignments succeeded")
+    @Schema(required = true, description = "Number of role assignments succeeded")
     private long numAssignRoleSucceeded;
-    @ApiModelProperty(required = true, value = "Number of role assignments failed")
+    @Schema(required = true, description = "Number of role assignments failed")
     private long numAssignRoleFailed;
-    @ApiModelProperty(required = true, value = "Number of role unassignments succeeded")
+    @Schema(required = true, description = "Number of role unassignments succeeded")
     private long numUnassignRoleSucceeded;
-    @ApiModelProperty(required = true, value = "Number of role unassignments ignored - When role does not exist")
+    @Schema(required = true, description = "Number of role unassignments ignored - When role does not exist")
     private long numUnassignRoleIgnored;
-    @ApiModelProperty(required = true, value = "Number of role unassignments failed")
+    @Schema(required = true, description = "Number of role unassignments failed")
     private long numUnassignRoleFailed;
 
     public void incrementAssignmentFailure() {

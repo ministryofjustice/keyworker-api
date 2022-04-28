@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 
@@ -14,52 +15,52 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyworkerAllocationDetailsDto {
 
-    @ApiModelProperty(required = true, value = "Offender Booking Id")
+    @Schema(required = true, description = "Offender Booking Id")
     @NotNull
     private Long bookingId;
 
-    @ApiModelProperty(required = true, value = "Offender Unique Reference")
+    @Schema(required = true, description = "Offender Unique Reference")
     @NotBlank
     private String offenderNo;
 
-    @ApiModelProperty(required = true, value = "First Name")
+    @Schema(required = true, description = "First Name")
     @NotBlank
     private String firstName;
 
-    @ApiModelProperty(value = "Middle Name(s)")
+    @Schema(description = "Middle Name(s)")
     private String middleNames;
 
-    @ApiModelProperty(required = true, value = "Last Name")
+    @Schema(required = true, description = "Last Name")
     @NotBlank
     private String lastName;
 
-    @ApiModelProperty(required = true, value = "The key worker's Staff Id")
+    @Schema(required = true, description = "The key worker's Staff Id")
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Agency Id - will be removed - use prisonId")
+    @Schema(required = true, description = "Agency Id - will be removed - use prisonId")
     @NotBlank
     @Deprecated
     private String agencyId;
 
-    @ApiModelProperty(required = true, value = "Prison Id")
+    @Schema(required = true, description = "Prison Id")
     @NotBlank
     private String prisonId;
 
-    @ApiModelProperty(required = true, value = "Date and time of the allocation")
+    @Schema(required = true, description = "Date and time of the allocation")
     @NotNull
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime assigned;
 
-    @ApiModelProperty(required = true, value = "A")
+    @Schema(required = true, description = "A")
     @NotNull
     private AllocationType allocationType;
 
-    @ApiModelProperty(required = true, value = "Description of the location within the prison")
+    @Schema(required = true, description = "Description of the location within the prison")
     @NotBlank
     private String internalLocationDesc;
 
-    @ApiModelProperty(required = true, value = "Prison different to current - deallocation only allowed")
+    @Schema(required = true, description = "Prison different to current - deallocation only allowed")
     private boolean deallocOnly;
 
   public KeyworkerAllocationDetailsDto(@NotNull Long bookingId, @NotBlank String offenderNo, @NotBlank String firstName, String middleNames, @NotBlank String lastName, @NotNull Long staffId, @NotBlank String agencyId, @NotBlank String prisonId, @NotNull LocalDateTime assigned, @NotNull AllocationType allocationType, @NotBlank String internalLocationDesc, boolean deallocOnly) {

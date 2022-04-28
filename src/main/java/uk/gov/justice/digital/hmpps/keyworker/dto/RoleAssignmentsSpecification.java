@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,19 +33,19 @@ public class RoleAssignmentsSpecification {
         this.rolesToRemove = rolesToRemove == null ? List.of() : rolesToRemove;
     }
 
-    @ApiModelProperty(required = true, value = "The caseloads to search for users having roles matching 'rolesToMatch'.")
+    @Schema(required = true, description = "The caseloads to search for users having roles matching 'rolesToMatch'.")
     @NotEmpty(message = "Expected at least one 'caseload'")
     private List<String> caseloads;
 
-    @ApiModelProperty(required = true, value = "users within the caseloads will be selected if they have at least one role matching the codes in rolesToMatch.", position = 1)
+    @Schema(required = true, description = "users within the caseloads will be selected if they have at least one role matching the codes in rolesToMatch.")
     @NotEmpty(message = "Expected at least one 'rolesToMatch'")
     private List<String> rolesToMatch;
 
-    @ApiModelProperty(value = "Users with the named caseloads, having roles matching rolesToMatch will be assigned these roles in the 'NWEB' caseload.", position = 2)
+    @Schema(description = "Users with the named caseloads, having roles matching rolesToMatch will be assigned these roles in the 'NWEB' caseload.")
     @NotNull
     private List<String> rolesToAssign = List.of();
 
-    @ApiModelProperty(value = "For each caseload in caseloads; find the users having at least one role matching 'rolesToMatch'. For each matched user at the current caseload remove each of the roles in 'rolesToRemove' at that caseload.", position = 3)
+    @Schema(description = "For each caseload in caseloads; find the users having at least one role matching 'rolesToMatch'. For each matched user at the current caseload remove each of the roles in 'rolesToRemove' at that caseload.")
     @NotNull
     private List<String> rolesToRemove = List.of();
 

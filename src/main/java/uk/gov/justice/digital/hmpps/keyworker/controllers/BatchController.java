@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,7 +24,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.batch.KeyworkerReconRoute.D
 import static uk.gov.justice.digital.hmpps.keyworker.batch.PrisonStatsRoute.DIRECT_PRISON_STATS;
 import static uk.gov.justice.digital.hmpps.keyworker.batch.UpdateStatusRoute.DIRECT_UPDATE_STATUS;
 
-@Api(tags = {"batch"}, hidden = true)
+@Tag(name = "batch")
 @RestController
 @RequestMapping(
         value="batch",
@@ -38,16 +40,16 @@ public class BatchController {
     }
 
 
-    @ApiOperation(
-            value = "Enable Users access to New Nomis prison by prison batch process",
-            notes = "Can only be run with SYSTEM_USER role",
-            nickname = "runEnableNewNomisBatch",
-            authorizations = { @Authorization("SYSTEM_USER") },
+    @Operation(
+        description = "Enable Users access to New Nomis prison by prison batch process, Can only be run with SYSTEM_USER role",
+        summary = "runEnableNewNomisBatch",
+        security = { @SecurityRequirement( name = "SYSTEM_USER") },
             hidden = true)
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request.",
+                content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
 
     @PostMapping(path = "/add-users-to-new-nomis")
     @PreAuthorize("hasRole('SYSTEM_USER')")
@@ -55,18 +57,17 @@ public class BatchController {
         producerTemplate.send(EnableNewNomisRoute.ENABLE_NEW_NOMIS, exchange -> {});
     }
 
-    @ApiOperation(
-            value = "Generate prison stats at specified prison.",
-            notes = "Can only be run with SYSTEM_USER role",
-            nickname = "runBatchPrisonStats",
-            authorizations = { @Authorization("SYSTEM_USER") },
+    @Operation(
+            description = "Generate prison stats at specified prison. Can only be run with SYSTEM_USER role",
+            summary = "runBatchPrisonStats",
+            security = { @SecurityRequirement(name = "SYSTEM_USER") },
             hidden = true)
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class ),
-            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Invalid request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))} ),
+            @ApiResponse(responseCode = "404", description = "Requested resource not found.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
 
     @PostMapping(path = "/generate-stats")
     @PreAuthorize("hasRole('SYSTEM_USER')")
@@ -74,16 +75,15 @@ public class BatchController {
         producerTemplate.send(DIRECT_PRISON_STATS, exchange -> {});
     }
 
-    @ApiOperation(
-            value = "Checks for non active keyworkers with a reached active_date and updates the status to active",
-            notes = "Can only be run with SYSTEM_USER role",
+    @Operation(
+            description = "Checks for non active keyworkers with a reached active_date and updates the status to active, Can only be run with SYSTEM_USER role",
             hidden = true,
-            authorizations = { @Authorization("SYSTEM_USER") },
-            nickname="runBatchUpdateStatus")
+            security = { @SecurityRequirement(name = "SYSTEM_USER") },
+            summary="runBatchUpdateStatus")
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Update status process complete", response = String.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+            @ApiResponse(responseCode = "200", description = "Update status process complete", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
 
     @PostMapping(path = "/update-status")
     @PreAuthorize("hasRole('SYSTEM_USER')")
@@ -97,18 +97,17 @@ public class BatchController {
 
     /* --------------------------------------------------------------------------------*/
 
-    @ApiOperation(
-            value = "Run the KW reconciliation process",
-            notes = "Can only be run with SYSTEM_USER role",
-            nickname = "runKWReconciliation",
-            authorizations = { @Authorization("SYSTEM_USER") },
+    @Operation(
+            description = "Run the KW reconciliation process, Can only be run with SYSTEM_USER role",
+            summary = "runKWReconciliation",
+            security = { @SecurityRequirement(name = "SYSTEM_USER") },
             hidden = true)
 
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse.class ),
-            @ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse.class),
-            @ApiResponse(code = 500, message = "Unrecoverable error occurred whilst processing request.", response = ErrorResponse.class) })
+            @ApiResponse(responseCode ="200", description = "OK"),
+            @ApiResponse(responseCode ="400", description = "Invalid request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))} ),
+            @ApiResponse(responseCode ="404", description = "Requested resource not found.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode ="500", description = "Unrecoverable error occurred whilst processing request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
 
     @PostMapping(path = "/key-worker-recon")
     @PreAuthorize("hasRole('SYSTEM_USER')")

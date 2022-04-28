@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,24 +22,24 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CaseNoteUsageRequest {
 
-    @ApiModelProperty(required = true, value = "List of staff Id to look at case notes")
+    @Schema(required = true, description = "List of staff Id to look at case notes")
     @NotEmpty
     private List<Long> staffIds;
 
-    @ApiModelProperty(required = true, value = "Case Note Type")
+    @Schema(required = true, description = "Case Note Type")
     @NotNull
     private String type;
 
-    @ApiModelProperty(required = true, value = "Case Note Sub Type")
+    @Schema(required = true, description = "Case Note Sub Type")
     private String subType;
 
-    @ApiModelProperty(required = true, value = "Number of Months to look at")
+    @Schema(required = true, description = "Number of Months to look at")
     private Integer numMonths;
 
-    @ApiModelProperty(required = true, value = "From Date to search from")
+    @Schema(required = true, description = "From Date to search from")
     private LocalDate fromDate;
 
-    @ApiModelProperty(required = true, value = "To Date to search to")
+    @Schema(required = true, description = "To Date to search to")
     private LocalDate toDate;
 
 }

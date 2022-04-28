@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,67 +26,67 @@ import java.time.LocalDateTime;
 @ToString(exclude={"firstName","lastName"})
 public class KeyWorkerAllocation {
 
-    @ApiModelProperty(required = true, value = "Id of offender allocation.")
+    @Schema(required = true, description = "Id of offender allocation.")
     @NotNull
     private Long offenderKeyworkerId;
 
-    @ApiModelProperty(required = true, value = "The offender's Key worker staff Id.")
+    @Schema(required = true, description = "The offender's Key worker staff Id.")
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Key worker's first name.")
+    @Schema(required = true, description = "Key worker's first name.")
     @NotBlank
     private String firstName;
 
-    @ApiModelProperty(required = true, value = "Key worker's last name.")
+    @Schema(required = true, description = "Key worker's last name.")
     @NotBlank
     private String lastName;
 
-    @ApiModelProperty(required = true, value = "Prison Id where allocation is effective.")
+    @Schema(required = true, description = "Prison Id where allocation is effective.")
     @NotBlank
     private String prisonId;
 
-    @ApiModelProperty(required = true, value = "The date and time of the allocation.")
+    @Schema(required = true, description = "The date and time of the allocation.")
     @NotNull
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime assigned;
 
-    @ApiModelProperty(required = false, value = "The date and time of deallocation.")
+    @Schema(required = false, description = "The date and time of deallocation.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime expired;
 
-    @ApiModelProperty(required = true, value = "The user who created the allocation.")
+    @Schema(required = true, description = "The user who created the allocation.")
     @NotBlank
     private StaffUser userId;
 
-    @ApiModelProperty(required = true, value = "Whether allocation is active.")
+    @Schema(required = true, description = "Whether allocation is active.")
     @NotBlank
     private boolean active;
 
-    @ApiModelProperty(required = true, value = "Type of allocation - auto or manual.")
+    @Schema(required = true, description = "Type of allocation - auto or manual.")
     @NotNull
     private AllocationType allocationType;
 
-    @ApiModelProperty(required = true, value = "Reason for allocation.")
+    @Schema(required = true, description = "Reason for allocation.")
     @NotNull
     private String allocationReason;
 
-    @ApiModelProperty(value = "Reason for de-allocation.")
+    @Schema(description = "Reason for de-allocation.")
     private String deallocationReason;
 
-    @ApiModelProperty(required = false, value = "The date and time of creation.")
+    @Schema(required = false, description = "The date and time of creation.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime creationDateTime;
 
-    @ApiModelProperty(required = true, value = "The user who created the allocation.")
+    @Schema(required = true, description = "The user who created the allocation.")
     @NotBlank
     private StaffUser createdByUser;
 
-    @ApiModelProperty(required = false, value = "Last date and time of modification.")
+    @Schema(required = false, description = "Last date and time of modification.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime modifyDateTime;
 
-    @ApiModelProperty(required = true, value = "The user who last modified the allocation.")
+    @Schema(required = true, description = "The user who last modified the allocation.")
     private StaffUser lastModifiedByUser;
 
 }

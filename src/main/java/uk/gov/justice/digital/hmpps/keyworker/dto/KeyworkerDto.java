@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 
 import javax.validation.constraints.NotBlank;
@@ -13,51 +14,51 @@ import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyworkerDto {
 
-    @ApiModelProperty(required = true, value = "Unique staff identifier for Key worker.")
+    @Schema(required = true, description = "Unique staff identifier for Key worker.")
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Key worker's first name.")
+    @Schema(required = true, description = "Key worker's first name.")
     @NotBlank
     private String firstName;
 
-    @ApiModelProperty(required = true, value = "Key worker's last name.")
+    @Schema(required = true, description = "Key worker's last name.")
     @NotBlank
     private String lastName;
 
-    @ApiModelProperty(value = "Key worker's email address.")
+    @Schema(description = "Key worker's email address.")
     private String email;
 
-    @ApiModelProperty(value = "Identifier for Key worker image.")
+    @Schema(description = "Identifier for Key worker image.")
     private Long thumbnailId;
 
-    @ApiModelProperty(required = true, value = "Key worker's allocation capacity.")
+    @Schema(required = true, description = "Key worker's allocation capacity.")
     @NotNull
     private Integer capacity;
 
-    @ApiModelProperty(required = true, value = "Number of offenders allocated to Key worker.")
+    @Schema(required = true, description = "Number of offenders allocated to Key worker.")
     @NotNull
     private Integer numberAllocated;
 
-    @ApiModelProperty(value = "Key worker's schedule type.")
+    @Schema(description = "Key worker's schedule type.")
     private String scheduleType;
 
-    @ApiModelProperty(value = "Key worker's agency Id.")
+    @Schema(description = "Key worker's agency Id.")
     private String agencyId;
 
-    @ApiModelProperty(value = "Key worker's agency description.")
+    @Schema(description = "Key worker's agency description.")
     private String agencyDescription;
 
-    @ApiModelProperty(value = "Key worker's status.")
+    @Schema(description = "Key worker's status.")
     private KeyworkerStatus status;
 
-    @ApiModelProperty(value = "Key worker is eligible for auto allocation.")
+    @Schema(description = "Key worker is eligible for auto allocation.")
     private Boolean autoAllocationAllowed;
 
-    @ApiModelProperty(value = "Date keyworker status should return to active. (returning from annual leave)")
+    @Schema(description = "Date keyworker status should return to active. (returning from annual leave)")
     private LocalDate activeDate;
 
-    @ApiModelProperty(value = "Number of KW sessions in the time period specified")
+    @Schema(description = "Number of KW sessions in the time period specified")
     private Integer numKeyWorkerSessions;
 
   public KeyworkerDto(@NotNull Long staffId, @NotBlank String firstName, @NotBlank String lastName, String email, Long thumbnailId, @NotNull Integer capacity, @NotNull Integer numberAllocated, String scheduleType, String agencyId, String agencyDescription, KeyworkerStatus status, Boolean autoAllocationAllowed, LocalDate activeDate, Integer numKeyWorkerSessions) {

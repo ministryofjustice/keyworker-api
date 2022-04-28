@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,17 +22,17 @@ import java.time.LocalDate;
 
 public class KeyworkerUpdateDto {
 
-    @ApiModelProperty(required = true, value = "Key worker's allocation capacity.")
+    @Schema(required = true, description = "Key worker's allocation capacity.")
     @NotNull
     private Integer capacity;
 
-    @ApiModelProperty(required = true, value = "Key worker's status.")
+    @Schema(required = true, description = "Key worker's status.")
     @NotNull
     private KeyworkerStatus status;
 
-    @ApiModelProperty(value = "Determines behaviour to apply to auto-allocation")
+    @Schema(description = "Determines behaviour to apply to auto-allocation")
     private KeyworkerStatusBehaviour behaviour;
 
-    @ApiModelProperty(required = false, value = "Date that the Key worker's status should be updated to Active")
+    @Schema(required = false, description = "Date that the Key worker's status should be updated to Active")
     private LocalDate activeDate;
 }

@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
-import io.swagger.annotations.ApiResponse
-import io.swagger.annotations.ApiResponses
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.MediaType
@@ -22,65 +24,107 @@ import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 import java.time.LocalDate
 import java.util.stream.Collectors
 
-@Api(tags = ["key-worker-stats"])
+@Tag(name = "key-worker-stats")
 @RestController
 @RequestMapping(value = ["key-worker-stats"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class KeyworkerStatsController(
   private val keyworkerStatsService: KeyworkerStatsService,
   private val prisonSupportedService: PrisonSupportedService
 ) {
-  @ApiOperation(
-    value = "Return staff members stats",
-    notes = "Statistic for key workers and the prisoners that they support",
-    nickname = "getStatsForStaff"
+  @Operation(
+    description = "Statistic for key workers and the prisoners that they support",
+    summary = "getStatsForStaff"
   )
   @ApiResponses(
     value =
     [
-      ApiResponse(code = 200, message = "OK", response = KeyworkerStatsDto::class),
-      ApiResponse(code = 400, message = "Invalid request", response = ErrorResponse::class),
       ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "200", description = "OK",
+      ),
+      ApiResponse(
+        responseCode = "400", description = "Invalid request",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ]
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ]
       )
     ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun getStatsForStaff(
-    @ApiParam("staffId") @PathVariable("staffId") staffId: Long,
-    @ApiParam("prisonId") @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).") @RequestParam(value = "fromDate") @DateTimeFormat(
+    @Parameter(name = "staffId") @PathVariable("staffId") staffId: Long,
+    @Parameter(name = "prisonId") @PathVariable("prisonId") prisonId: String,
+    @Parameter(description = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).") @RequestParam(value = "fromDate") @DateTimeFormat(
       iso = DateTimeFormat.ISO.DATE
     ) fromDate: LocalDate?,
-    @ApiParam(value = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).") @RequestParam(value = "toDate") @DateTimeFormat(
+    @Parameter(description = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).") @RequestParam(value = "toDate") @DateTimeFormat(
       iso = DateTimeFormat.ISO.DATE
     ) toDate: LocalDate?
   ): KeyworkerStatsDto = keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate)
 
-  @ApiOperation(value = "Get Key Worker stats for any prison.", nickname = "getAllPrisonStats")
+  @Operation(description = "Get Key Worker stats for any prison.", summary = "getAllPrisonStats")
   @ApiResponses(
     value =
     [
-      ApiResponse(code = 200, message = "OK", responseContainer = "Map", response = KeyworkerStatSummary::class),
-      ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class),
-      ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class),
       ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "200", description = "OK",
+      ),
+      ApiResponse(
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ]
+      ),
+      ApiResponse(
+        responseCode = "404", description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ]
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ]
       )
     ]
   )
   @GetMapping
   fun getPrisonStats(
-    @ApiParam(value = "List of prisonIds", allowMultiple = true, example = "prisonId=MDI&prisonId=LEI") @RequestParam(
+    @Parameter(description = "List of prisonIds", example = "prisonId=MDI&prisonId=LEI") @RequestParam(
       value = "prisonId"
     ) prisonIdList: List<String>?,
-    @ApiParam(value = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)") @RequestParam(
+    @Parameter(description = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)") @RequestParam(
       value = "fromDate"
     ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
-    @ApiParam(value = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)") @RequestParam(
+    @Parameter(description = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)") @RequestParam(
       value = "toDate"
     ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?
   ): KeyworkerStatSummary {

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,33 +21,33 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyworkerStatsDto {
-    @ApiModelProperty(required = true, value = "Identifies the staff by ID.", example = "234233", position = 0)
+    @Schema(required = true, description = "Identifies the staff by ID.", example = "234233")
     @NotBlank
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Start date on which statistic results are based", example = "2018-07-01", position = 1)
+    @Schema(required = true, description = "Start date on which statistic results are based", example = "2018-07-01")
     @NotBlank
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate fromDate;
 
-    @ApiModelProperty(required = true, value = "End date on which statistic results are based", example = "2018-07-31", position = 2)
+    @Schema(required = true, description = "End date on which statistic results are based", example = "2018-07-31")
     @NotBlank
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate toDate;
 
-    @ApiModelProperty(required = true, value = "Number of Session done based on case note type Key worker Activity, sub type Session", example = "24", position = 3)
+    @Schema(required = true, description = "Number of Session done based on case note type Key worker Activity, sub type Session", example = "24")
     @NotBlank
     private int caseNoteSessionCount;
 
-    @ApiModelProperty(required = true, value = "Number of key worker entry case notes done based on case note type Key worker Activity, sub type Entry", example = "12", position = 4)
+    @Schema(required = true, description = "Number of key worker entry case notes done based on case note type Key worker Activity, sub type Entry", example = "12")
     @NotBlank
     private int caseNoteEntryCount;
 
-    @ApiModelProperty(required = true, value = "Number of projected key worker sessions that could have been done based on number of prisoners assigned to key worker and frequency of sessions set by this prison", example = "22", position = 5)
+    @Schema(required = true, description = "Number of projected key worker sessions that could have been done based on number of prisoners assigned to key worker and frequency of sessions set by this prison", example = "22")
     @NotBlank
     private int projectedKeyworkerSessions;
 
-    @ApiModelProperty(required = true, value = "Percentage Compliance Rate of key worker session done over this time range", example = "87.5", position = 6)
+    @Schema(required = true, description = "Percentage Compliance Rate of key worker session done over this time range", example = "87.5")
     @NotBlank
     private BigDecimal complianceRate;
 }

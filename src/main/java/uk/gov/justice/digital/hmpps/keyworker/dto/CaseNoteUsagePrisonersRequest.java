@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,29 +21,29 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CaseNoteUsagePrisonersRequest {
 
-    @ApiModelProperty(value = "The prison to filter by for case notes")
+    @Schema(description = "The prison to filter by for case notes")
     private String agencyId;
 
-    @ApiModelProperty(value = "List of offender Nos to look at case notes")
+    @Schema(description = "List of offender Nos to look at case notes")
     private List<String> offenderNos;
 
-    @ApiModelProperty(value = "Staff Id linked to these case notes (optional)")
+    @Schema(description = "Staff Id linked to these case notes (optional)")
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Case Note Type")
+    @Schema(required = true, description = "Case Note Type")
     @NotNull
     private String type;
 
-    @ApiModelProperty(value = "Case Note Sub Type")
+    @Schema(description = "Case Note Sub Type")
     private String subType;
 
-    @ApiModelProperty(value = "Number of Months to look at")
+    @Schema(description = "Number of Months to look at")
     private Integer numMonths;
 
-    @ApiModelProperty(value = "From Date to search from")
+    @Schema(description = "From Date to search from")
     private LocalDate fromDate;
 
-    @ApiModelProperty(value = "To Date to search to")
+    @Schema(description = "To Date to search to")
     private LocalDate toDate;
 
 }

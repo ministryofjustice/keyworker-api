@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,27 +21,27 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PrisonerCustodyStatusDto {
 
-    @ApiModelProperty(required = true, value = "Identifies prisoner.")
+    @Schema(required = true, description = "Identifies prisoner.")
     @NotBlank
     private String offenderNo;
 
-    @ApiModelProperty(required = true, value = "Date and time the prisoner movement was created.")
+    @Schema(required = true, description = "Date and time the prisoner movement was created.")
     @NotNull
     private LocalDateTime createDateTime;
 
-    @ApiModelProperty(required = true, value = "Agency travelling from.")
+    @Schema(required = true, description = "Agency travelling from.")
     @NotBlank
     private String fromAgency;
 
-    @ApiModelProperty(required = true, value = "Agency travelling to.")
+    @Schema(required = true, description = "Agency travelling to.")
     @NotBlank
     private String toAgency;
 
-    @ApiModelProperty(required = true, value = "ADM(ission), REL(ease) or TRN(sfer).")
+    @Schema(required = true, description = "ADM(ission), REL(ease) or TRN(sfer).")
     @NotBlank
     private String movementType;
 
-    @ApiModelProperty(required = true, value = "IN or OUT.")
+    @Schema(required = true, description = "IN or OUT.")
     @NotBlank
     private String directionCode;
 }

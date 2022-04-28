@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
@@ -14,27 +15,27 @@ import javax.validation.constraints.NotNull;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyworkerAllocationDto {
 
-    @ApiModelProperty(required = true, value = "Identifies offender who is subject of allocation.")
+    @Schema(required = true, description = "Identifies offender who is subject of allocation.")
     @NotBlank
     private String offenderNo;
 
-    @ApiModelProperty(required = true, value = "Identifies Key worker who is subject of allocation.")
+    @Schema(required = true, description = "Identifies Key worker who is subject of allocation.")
     @NotNull
     private Long staffId;
 
-    @ApiModelProperty(required = true, value = "Prison where allocation is effective.")
+    @Schema(required = true, description = "Prison where allocation is effective.")
     @NotBlank
     private String prisonId;
 
-    @ApiModelProperty(required = true, value = "Type of allocation - auto or manual.")
+    @Schema(required = true, description = "Type of allocation - auto or manual.")
     @NotNull
     private AllocationType allocationType;
 
-    @ApiModelProperty(required = true, value = "Reason for allocation.")
+    @Schema(required = true, description = "Reason for allocation.")
     @NotNull
     private AllocationReason allocationReason;
 
-    @ApiModelProperty(value = "Reason for de-allocation.")
+    @Schema(description = "Reason for de-allocation.")
     private DeallocationReason deallocationReason;
 
   public KeyworkerAllocationDto(@NotBlank String offenderNo, @NotNull Long staffId, @NotBlank String prisonId, @NotNull AllocationType allocationType, @NotNull AllocationReason allocationReason, DeallocationReason deallocationReason) {
