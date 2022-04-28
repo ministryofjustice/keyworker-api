@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,6 +59,6 @@ public class SummaryStatistic {
     private Integer avgNumDaysFromReceptionToAllocationDays;
 
     @Schema(required = true, description = "Average number of days between a prisoner entering this prison and receiving a session from key worker",
-           example = "10")
+        example = "10")
     private Integer avgNumDaysFromReceptionToKeyWorkingSession;
 }

@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -72,68 +71,68 @@ public class Prison {
         return this.prisonId;
     }
 
-    public @NotBlank boolean isSupported() {
-        return this.supported;
-    }
-
-    public @NotBlank boolean isMigrated() {
-        return this.migrated;
-    }
-
-    public @NotBlank boolean isHighComplexity() {
-        return this.highComplexity;
-    }
-
-    public @NotBlank boolean isAutoAllocatedSupported() {
-        return this.autoAllocatedSupported;
-    }
-
-    public @NotBlank int getCapacityTier1() {
-        return this.capacityTier1;
-    }
-
-    public @NotBlank int getCapacityTier2() {
-        return this.capacityTier2;
-    }
-
-    public @NotBlank int getKwSessionFrequencyInWeeks() {
-        return this.kwSessionFrequencyInWeeks;
-    }
-
-    public @NotBlank LocalDateTime getMigratedDateTime() {
-        return this.migratedDateTime;
-    }
-
     public void setPrisonId(@NotBlank String prisonId) {
         this.prisonId = prisonId;
+    }
+
+    public @NotBlank boolean isSupported() {
+        return this.supported;
     }
 
     public void setSupported(@NotBlank boolean supported) {
         this.supported = supported;
     }
 
+    public @NotBlank boolean isMigrated() {
+        return this.migrated;
+    }
+
     public void setMigrated(@NotBlank boolean migrated) {
         this.migrated = migrated;
+    }
+
+    public @NotBlank boolean isHighComplexity() {
+        return this.highComplexity;
     }
 
     public void setHighComplexity(@NotBlank boolean highComplexity) {
         this.highComplexity = highComplexity;
     }
 
+    public @NotBlank boolean isAutoAllocatedSupported() {
+        return this.autoAllocatedSupported;
+    }
+
     public void setAutoAllocatedSupported(@NotBlank boolean autoAllocatedSupported) {
         this.autoAllocatedSupported = autoAllocatedSupported;
+    }
+
+    public @NotBlank int getCapacityTier1() {
+        return this.capacityTier1;
     }
 
     public void setCapacityTier1(@NotBlank int capacityTier1) {
         this.capacityTier1 = capacityTier1;
     }
 
+    public @NotBlank int getCapacityTier2() {
+        return this.capacityTier2;
+    }
+
     public void setCapacityTier2(@NotBlank int capacityTier2) {
         this.capacityTier2 = capacityTier2;
     }
 
+    public @NotBlank int getKwSessionFrequencyInWeeks() {
+        return this.kwSessionFrequencyInWeeks;
+    }
+
     public void setKwSessionFrequencyInWeeks(@NotBlank int kwSessionFrequencyInWeeks) {
         this.kwSessionFrequencyInWeeks = kwSessionFrequencyInWeeks;
+    }
+
+    public @NotBlank LocalDateTime getMigratedDateTime() {
+        return this.migratedDateTime;
     }
 
     public void setMigratedDateTime(@NotBlank LocalDateTime migratedDateTime) {
@@ -148,11 +147,10 @@ public class Prison {
         if (o == this) return true;
         if (!(o instanceof Prison)) return false;
         final Prison other = (Prison) o;
-        if (!other.canEqual((Object) this)) return false;
+        if (!other.canEqual(this)) return false;
         final Object this$prisonId = this.getPrisonId();
         final Object other$prisonId = other.getPrisonId();
-        if (this$prisonId == null ? other$prisonId != null : !this$prisonId.equals(other$prisonId)) return false;
-        return true;
+        return this$prisonId == null ? other$prisonId == null : this$prisonId.equals(other$prisonId);
     }
 
     protected boolean canEqual(final Object other) {

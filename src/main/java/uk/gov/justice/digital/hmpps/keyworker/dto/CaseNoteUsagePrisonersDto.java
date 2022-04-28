@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +19,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@EqualsAndHashCode(of = {"offenderNo","caseNoteType","caseNoteSubType"})
+@EqualsAndHashCode(of = {"offenderNo", "caseNoteType", "caseNoteSubType"})
 @ToString
 public class CaseNoteUsagePrisonersDto {
 

@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

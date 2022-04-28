@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -67,60 +66,60 @@ public class OffenderKeyworkerDto {
         return this.offenderKeyworkerId;
     }
 
-    public @NotBlank String getOffenderNo() {
-        return this.offenderNo;
-    }
-
-    public @NotNull Long getStaffId() {
-        return this.staffId;
-    }
-
-    public @NotBlank String getAgencyId() {
-        return this.agencyId;
-    }
-
-    public @NotNull LocalDateTime getAssigned() {
-        return this.assigned;
-    }
-
-    public LocalDateTime getExpired() {
-        return this.expired;
-    }
-
-    public @NotBlank String getUserId() {
-        return this.userId;
-    }
-
-    public @NotBlank String getActive() {
-        return this.active;
-    }
-
     public void setOffenderKeyworkerId(@NotNull Long offenderKeyworkerId) {
         this.offenderKeyworkerId = offenderKeyworkerId;
+    }
+
+    public @NotBlank String getOffenderNo() {
+        return this.offenderNo;
     }
 
     public void setOffenderNo(@NotBlank String offenderNo) {
         this.offenderNo = offenderNo;
     }
 
+    public @NotNull Long getStaffId() {
+        return this.staffId;
+    }
+
     public void setStaffId(@NotNull Long staffId) {
         this.staffId = staffId;
+    }
+
+    public @NotBlank String getAgencyId() {
+        return this.agencyId;
     }
 
     public void setAgencyId(@NotBlank String agencyId) {
         this.agencyId = agencyId;
     }
 
+    public @NotNull LocalDateTime getAssigned() {
+        return this.assigned;
+    }
+
     public void setAssigned(@NotNull LocalDateTime assigned) {
         this.assigned = assigned;
+    }
+
+    public LocalDateTime getExpired() {
+        return this.expired;
     }
 
     public void setExpired(LocalDateTime expired) {
         this.expired = expired;
     }
 
+    public @NotBlank String getUserId() {
+        return this.userId;
+    }
+
     public void setUserId(@NotBlank String userId) {
         this.userId = userId;
+    }
+
+    public @NotBlank String getActive() {
+        return this.active;
     }
 
     public void setActive(@NotBlank String active) {
@@ -131,7 +130,7 @@ public class OffenderKeyworkerDto {
         if (o == this) return true;
         if (!(o instanceof OffenderKeyworkerDto)) return false;
         final OffenderKeyworkerDto other = (OffenderKeyworkerDto) o;
-        if (!other.canEqual((Object) this)) return false;
+        if (!other.canEqual(this)) return false;
         final Object this$offenderKeyworkerId = this.getOffenderKeyworkerId();
         final Object other$offenderKeyworkerId = other.getOffenderKeyworkerId();
         if (this$offenderKeyworkerId == null ? other$offenderKeyworkerId != null : !this$offenderKeyworkerId.equals(other$offenderKeyworkerId))
@@ -157,8 +156,7 @@ public class OffenderKeyworkerDto {
         if (this$userId == null ? other$userId != null : !this$userId.equals(other$userId)) return false;
         final Object this$active = this.getActive();
         final Object other$active = other.getActive();
-        if (this$active == null ? other$active != null : !this$active.equals(other$active)) return false;
-        return true;
+        return this$active == null ? other$active == null : this$active.equals(other$active);
     }
 
     protected boolean canEqual(final Object other) {

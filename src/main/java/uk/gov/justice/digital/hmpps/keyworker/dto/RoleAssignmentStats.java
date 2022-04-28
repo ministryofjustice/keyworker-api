@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -41,6 +40,7 @@ public class RoleAssignmentStats {
     public void incrementUnassignmentSuccess() {
         numUnassignRoleSucceeded++;
     }
+
     public void incrementUnassignmentFailure() {
         numUnassignRoleFailed++;
     }
@@ -52,12 +52,12 @@ public class RoleAssignmentStats {
 
     public Map<String, String> toMap() {
         return Map.of(
-                "caseload", caseload,
-                "numUsersMatched", String.valueOf(numMatchedUsers),
-                "numAssignRoleSucceeded", String.valueOf(getNumAssignRoleSucceeded()),
-                "numAssignRoleFailed", String.valueOf(getNumAssignRoleFailed()),
-                "numUnassignRoleSucceeded", String.valueOf(getNumUnassignRoleSucceeded()),
-                "numUnassignRoleIgnored", String.valueOf(getNumUnassignRoleIgnored()),
-                "numUnassignRoleFailed", String.valueOf(getNumUnassignRoleFailed()));
+            "caseload", caseload,
+            "numUsersMatched", String.valueOf(numMatchedUsers),
+            "numAssignRoleSucceeded", String.valueOf(getNumAssignRoleSucceeded()),
+            "numAssignRoleFailed", String.valueOf(getNumAssignRoleFailed()),
+            "numUnassignRoleSucceeded", String.valueOf(getNumUnassignRoleSucceeded()),
+            "numUnassignRoleIgnored", String.valueOf(getNumUnassignRoleIgnored()),
+            "numUnassignRoleFailed", String.valueOf(getNumUnassignRoleFailed()));
     }
 }
