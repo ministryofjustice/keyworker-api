@@ -23,5 +23,4 @@ public class OffenderKeyWorkerHistory {
     private List<KeyWorkerAllocation> allocationHistory;
 
 
-
 }

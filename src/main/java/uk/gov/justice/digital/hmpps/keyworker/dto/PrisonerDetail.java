@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,58 +20,58 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ToString(of = { "offenderNo" })
+@ToString(of = {"offenderNo"})
 public class PrisonerDetail implements Serializable {
 
-    @ApiModelProperty(required = true, value = "Identifies prisoner.")
+    @Schema(required = true, description = "Identifies prisoner.")
     @NotBlank
     private String offenderNo;
 
-    @ApiModelProperty(required = true, value = "The prisoner's Title")
+    @Schema(required = true, description = "The prisoner's Title")
     private String title;
 
-    @ApiModelProperty(required = true, value = "The prisoner's Suffix")
+    @Schema(required = true, description = "The prisoner's Suffix")
     private String suffix;
 
-    @ApiModelProperty(required = true, value = "The prisoner's first name.")
+    @Schema(required = true, description = "The prisoner's first name.")
     @NotBlank
     private String firstName;
 
-    @ApiModelProperty(required = true, value = "The prisoner's middle names.")
+    @Schema(required = true, description = "The prisoner's middle names.")
     private String middleNames;
 
-    @ApiModelProperty(required = true, value = "The prisoner's last name.")
+    @Schema(required = true, description = "The prisoner's last name.")
     @NotBlank
     private String lastName;
 
-    @ApiModelProperty(required = true, value = "The prisoner's date of birth")
+    @Schema(required = true, description = "The prisoner's date of birth")
     @NotNull
     private LocalDate dateOfBirth;
 
-    @ApiModelProperty(required = true, value = "The prisoner's gender")
+    @Schema(required = true, description = "The prisoner's gender")
     @NotBlank
     private String gender;
 
-    @ApiModelProperty(required = true, value = "Indicate Y if in prison")
+    @Schema(required = true, description = "Indicate Y if in prison")
     @NotBlank
     private String currentlyInPrison;
 
-    @ApiModelProperty(required = true, value = "Latest booking id")
+    @Schema(required = true, description = "Latest booking id")
     private Long latestBookingId;
 
-    @ApiModelProperty(required = true, value = "Latest Location Id")
+    @Schema(required = true, description = "Latest Location Id")
     private String latestLocationId;
 
-    @ApiModelProperty(required = true, value = "Latest location")
+    @Schema(required = true, description = "Latest location")
     private String latestLocation;
 
-    @ApiModelProperty(required = true, value = "Last Internal location")
+    @Schema(required = true, description = "Last Internal location")
     private String internalLocation;
 
-    @ApiModelProperty(required = true, value = "Current Imprisonment Status")
+    @Schema(required = true, description = "Current Imprisonment Status")
     private String imprisonmentStatus;
 
-    @ApiModelProperty(required = true, value = "Date received into prison")
+    @Schema(required = true, description = "Date received into prison")
     private LocalDate receptionDate;
 
     public boolean isInPrison() {

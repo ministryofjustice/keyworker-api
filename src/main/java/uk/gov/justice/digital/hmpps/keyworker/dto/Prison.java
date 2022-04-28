@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotBlank;
@@ -11,39 +11,39 @@ import java.time.LocalDateTime;
 @ApiModel(description = "Prison")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Prison {
-    @ApiModelProperty(required = true, value = "Identifies prison.", example = "MDI", position = 0)
+    @Schema(required = true, description = "Identifies prison.", example = "MDI")
     @NotBlank
     private String prisonId;
 
-    @ApiModelProperty(required = true, value = "Indicates that Key working is supported in this prison", example = "true", position = 1)
+    @Schema(required = true, description = "Indicates that Key working is supported in this prison", example = "true")
     @NotBlank
     private boolean supported;
 
-    @ApiModelProperty(required = true, value = "Indicates that Key Worker data has been migrated to the Key Worker Service", example = "true", position = 2)
+    @Schema(required = true, description = "Indicates that Key Worker data has been migrated to the Key Worker Service", example = "true")
     @NotBlank
     private boolean migrated;
 
-    @ApiModelProperty(required = true, value = "Indicates this prison has high complexity prisoners", example = "true", position = 2)
+    @Schema(required = true, description = "Indicates this prison has high complexity prisoners", example = "true")
     @NotBlank
     private boolean highComplexity;
 
-    @ApiModelProperty(required = true, value = "Indicates that this prison supports auto allocation of prisoner to key workers", example = "true", position = 3)
+    @Schema(required = true, description = "Indicates that this prison supports auto allocation of prisoner to key workers", example = "true")
     @NotBlank
     private boolean autoAllocatedSupported;
 
-    @ApiModelProperty(required = true, value = "Default auto allocation amount for staff in this prison.", example = "6", position = 4)
+    @Schema(required = true, description = "Default auto allocation amount for staff in this prison.", example = "6")
     @NotBlank
     private int capacityTier1;
 
-    @ApiModelProperty(required = true, value = "Over allocation amount per staff member (max)", example = "9", position = 5)
+    @Schema(required = true, description = "Over allocation amount per staff member (max)", example = "9")
     @NotBlank
     private int capacityTier2;
 
-    @ApiModelProperty(required = true, value = "Frequency of Key working sessions in this prison", example = "1", position = 6)
+    @Schema(required = true, description = "Frequency of Key working sessions in this prison", example = "1")
     @NotBlank
     private int kwSessionFrequencyInWeeks;
 
-    @ApiModelProperty(required = true, value = "Date and time migration of key workers was done for this prison", example = "2018-10-02T01:12:55.000", position = 7)
+    @Schema(required = true, description = "Date and time migration of key workers was done for this prison", example = "2018-10-02T01:12:55.000")
     @NotBlank
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime migratedDateTime;
@@ -71,68 +71,68 @@ public class Prison {
         return this.prisonId;
     }
 
-    public @NotBlank boolean isSupported() {
-        return this.supported;
-    }
-
-    public @NotBlank boolean isMigrated() {
-        return this.migrated;
-    }
-
-    public @NotBlank boolean isHighComplexity() {
-        return this.highComplexity;
-    }
-
-    public @NotBlank boolean isAutoAllocatedSupported() {
-        return this.autoAllocatedSupported;
-    }
-
-    public @NotBlank int getCapacityTier1() {
-        return this.capacityTier1;
-    }
-
-    public @NotBlank int getCapacityTier2() {
-        return this.capacityTier2;
-    }
-
-    public @NotBlank int getKwSessionFrequencyInWeeks() {
-        return this.kwSessionFrequencyInWeeks;
-    }
-
-    public @NotBlank LocalDateTime getMigratedDateTime() {
-        return this.migratedDateTime;
-    }
-
     public void setPrisonId(@NotBlank String prisonId) {
         this.prisonId = prisonId;
+    }
+
+    public @NotBlank boolean isSupported() {
+        return this.supported;
     }
 
     public void setSupported(@NotBlank boolean supported) {
         this.supported = supported;
     }
 
+    public @NotBlank boolean isMigrated() {
+        return this.migrated;
+    }
+
     public void setMigrated(@NotBlank boolean migrated) {
         this.migrated = migrated;
+    }
+
+    public @NotBlank boolean isHighComplexity() {
+        return this.highComplexity;
     }
 
     public void setHighComplexity(@NotBlank boolean highComplexity) {
         this.highComplexity = highComplexity;
     }
 
+    public @NotBlank boolean isAutoAllocatedSupported() {
+        return this.autoAllocatedSupported;
+    }
+
     public void setAutoAllocatedSupported(@NotBlank boolean autoAllocatedSupported) {
         this.autoAllocatedSupported = autoAllocatedSupported;
+    }
+
+    public @NotBlank int getCapacityTier1() {
+        return this.capacityTier1;
     }
 
     public void setCapacityTier1(@NotBlank int capacityTier1) {
         this.capacityTier1 = capacityTier1;
     }
 
+    public @NotBlank int getCapacityTier2() {
+        return this.capacityTier2;
+    }
+
     public void setCapacityTier2(@NotBlank int capacityTier2) {
         this.capacityTier2 = capacityTier2;
     }
 
+    public @NotBlank int getKwSessionFrequencyInWeeks() {
+        return this.kwSessionFrequencyInWeeks;
+    }
+
     public void setKwSessionFrequencyInWeeks(@NotBlank int kwSessionFrequencyInWeeks) {
         this.kwSessionFrequencyInWeeks = kwSessionFrequencyInWeeks;
+    }
+
+    public @NotBlank LocalDateTime getMigratedDateTime() {
+        return this.migratedDateTime;
     }
 
     public void setMigratedDateTime(@NotBlank LocalDateTime migratedDateTime) {
@@ -147,11 +147,10 @@ public class Prison {
         if (o == this) return true;
         if (!(o instanceof Prison)) return false;
         final Prison other = (Prison) o;
-        if (!other.canEqual((Object) this)) return false;
+        if (!other.canEqual(this)) return false;
         final Object this$prisonId = this.getPrisonId();
         final Object other$prisonId = other.getPrisonId();
-        if (this$prisonId == null ? other$prisonId != null : !this$prisonId.equals(other$prisonId)) return false;
-        return true;
+        return this$prisonId == null ? other$prisonId == null : this$prisonId.equals(other$prisonId);
     }
 
     protected boolean canEqual(final Object other) {

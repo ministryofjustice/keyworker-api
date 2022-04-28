@@ -32,28 +32,28 @@ public class PagingAndSortingDto {
         return this.pageOffset;
     }
 
-    public Long getPageLimit() {
-        return this.pageLimit;
-    }
-
-    public String getSortFields() {
-        return this.sortFields;
-    }
-
-    public SortOrder getSortOrder() {
-        return this.sortOrder;
-    }
-
     public void setPageOffset(Long pageOffset) {
         this.pageOffset = pageOffset;
+    }
+
+    public Long getPageLimit() {
+        return this.pageLimit;
     }
 
     public void setPageLimit(Long pageLimit) {
         this.pageLimit = pageLimit;
     }
 
+    public String getSortFields() {
+        return this.sortFields;
+    }
+
     public void setSortFields(String sortFields) {
         this.sortFields = sortFields;
+    }
+
+    public SortOrder getSortOrder() {
+        return this.sortOrder;
     }
 
     public void setSortOrder(SortOrder sortOrder) {
@@ -64,7 +64,7 @@ public class PagingAndSortingDto {
         if (o == this) return true;
         if (!(o instanceof PagingAndSortingDto)) return false;
         final PagingAndSortingDto other = (PagingAndSortingDto) o;
-        if (!other.canEqual((Object) this)) return false;
+        if (!other.canEqual(this)) return false;
         final Object this$pageOffset = this.getPageOffset();
         final Object other$pageOffset = other.getPageOffset();
         if (this$pageOffset == null ? other$pageOffset != null : !this$pageOffset.equals(other$pageOffset))
@@ -78,8 +78,7 @@ public class PagingAndSortingDto {
             return false;
         final Object this$sortOrder = this.getSortOrder();
         final Object other$sortOrder = other.getSortOrder();
-        if (this$sortOrder == null ? other$sortOrder != null : !this$sortOrder.equals(other$sortOrder)) return false;
-        return true;
+        return this$sortOrder == null ? other$sortOrder == null : this$sortOrder.equals(other$sortOrder);
     }
 
     protected boolean canEqual(final Object other) {

@@ -31,28 +31,28 @@ public class AllocationsFilterDto {
         return this.prisonId;
     }
 
-    public Optional<AllocationType> getAllocationType() {
-        return this.allocationType;
-    }
-
-    public Optional<LocalDate> getFromDate() {
-        return this.fromDate;
-    }
-
-    public LocalDate getToDate() {
-        return this.toDate;
-    }
-
     public void setPrisonId(String prisonId) {
         this.prisonId = prisonId;
+    }
+
+    public Optional<AllocationType> getAllocationType() {
+        return this.allocationType;
     }
 
     public void setAllocationType(Optional<AllocationType> allocationType) {
         this.allocationType = allocationType;
     }
 
+    public Optional<LocalDate> getFromDate() {
+        return this.fromDate;
+    }
+
     public void setFromDate(Optional<LocalDate> fromDate) {
         this.fromDate = fromDate;
+    }
+
+    public LocalDate getToDate() {
+        return this.toDate;
     }
 
     public void setToDate(LocalDate toDate) {
@@ -63,7 +63,7 @@ public class AllocationsFilterDto {
         if (o == this) return true;
         if (!(o instanceof AllocationsFilterDto)) return false;
         final AllocationsFilterDto other = (AllocationsFilterDto) o;
-        if (!other.canEqual((Object) this)) return false;
+        if (!other.canEqual(this)) return false;
         final Object this$prisonId = this.getPrisonId();
         final Object other$prisonId = other.getPrisonId();
         if (this$prisonId == null ? other$prisonId != null : !this$prisonId.equals(other$prisonId)) return false;
@@ -76,8 +76,7 @@ public class AllocationsFilterDto {
         if (this$fromDate == null ? other$fromDate != null : !this$fromDate.equals(other$fromDate)) return false;
         final Object this$toDate = this.getToDate();
         final Object other$toDate = other.getToDate();
-        if (this$toDate == null ? other$toDate != null : !this$toDate.equals(other$toDate)) return false;
-        return true;
+        return this$toDate == null ? other$toDate == null : this$toDate.equals(other$toDate);
     }
 
     protected boolean canEqual(final Object other) {

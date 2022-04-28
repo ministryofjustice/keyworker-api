@@ -1,11 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
-import io.swagger.annotations.ApiResponse
-import io.swagger.annotations.ApiResponses
-import io.swagger.annotations.Authorization
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.apache.commons.lang3.Validate
 import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
@@ -48,7 +50,7 @@ import java.util.Optional
 import javax.persistence.EntityNotFoundException
 import javax.validation.Valid
 
-@Api(tags = ["key-worker"])
+@Tag(name = "key-worker")
 @RestController
 @RequestMapping(value = ["key-worker"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class KeyworkerServiceController(
@@ -63,107 +65,131 @@ class KeyworkerServiceController(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @ApiOperation(
-    value = "Key workers available for allocation at specified prison.",
-    notes = "Key workers available for allocation at specified prison.",
-    nickname = "getAvailableKeyworkers"
+  @Operation(
+    description = "Key workers available for allocation at specified prison.",
+    summary = "getAvailableKeyworkers"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = KeyworkerDto::class,
-        responseContainer = "List"
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{prisonId}/available"])
   fun getAvailableKeyworkers(
-    @ApiParam(value = "prisonId", required = true) @PathVariable(name = "prisonId") prisonId: String
+    @Parameter(name = "prisonId", required = true) @PathVariable(name = "prisonId") prisonId: String
   ): List<KeyworkerDto> {
     log.debug("finding available key-workers for prison Id {}", prisonId)
     return keyworkerService.getAvailableKeyworkers(prisonId, true)
   }
 
-  @ApiOperation(
-    value = "Allocations in specified prison.",
-    notes = "Allocations in specified prison.",
-    nickname = "getAllocations"
+  @Operation(
+    description = "Allocations in specified prison.",
+    summary = "getAllocations"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = KeyworkerAllocationDetailsDto::class,
-        responseContainer = "List"
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{prisonId}/allocations"])
   fun getKeyworkerAllocations(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Optional filter by type of allocation. A for auto allocations, M for manual allocations.") @RequestParam(
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(description = "Optional filter by type of allocation. A for auto allocations, M for manual allocations.") @RequestParam(
       value = "allocationType",
       required = false
     ) allocationType: String?,
-    @ApiParam(value = "Returned allocations must have been assigned on or after this date (in YYYY-MM-DD format).") @RequestParam(
+    @Parameter(description = "Returned allocations must have been assigned on or after this date (in YYYY-MM-DD format).") @RequestParam(
       value = "fromDate",
       required = false
     ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
-    @ApiParam(
-      value = "Returned allocations must have been assigned on or before this date (in YYYY-MM-DD format).",
-      defaultValue = "today's date"
+    @Parameter(
+      description = "Returned allocations must have been assigned on or before this date (in YYYY-MM-DD format).",
+      example = "today's date"
     ) @RequestParam(
       value = "toDate",
       required = false
     ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?,
-    @ApiParam(
-      value = "Requested offset of first record in returned collection of allocation records.",
-      defaultValue = "0"
+    @Parameter(
+      description = "Requested offset of first record in returned collection of allocation records.",
+      example = "0"
     ) @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long,
-    @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(
+    @Parameter(description = "Requested limit to number of allocation records returned.", example = "10") @RequestHeader(
       value = PagingAndSortingDto.HEADER_PAGE_LIMIT,
       defaultValue = "10"
     ) pageLimit: Long,
-    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>") @RequestHeader(
+    @Parameter(description = "Comma separated list of one or more of the following fields - <b>firstName, lastName, assigned</b>") @RequestHeader(
       value = PagingAndSortingDto.HEADER_SORT_FIELDS,
       defaultValue = ""
     ) sortFields: String,
-    @ApiParam(
-      value = "Sort order (ASC or DESC) - defaults to ASC.",
-      defaultValue = "ASC"
+    @Parameter(
+      description = "Sort order (ASC or DESC) - defaults to ASC.",
+      example = "ASC"
     ) @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): ResponseEntity<List<KeyworkerAllocationDetailsDto>> {
     val page = keyworkerService.getAllocations(
@@ -185,33 +211,51 @@ class KeyworkerServiceController(
     return ResponseEntity(page.items, page.toHeaders(), HttpStatus.OK)
   }
 
-  @ApiOperation(
-    value = "Keyworker details for specified offenders in the given prison.",
-    notes = "Keyworker details for specified offenders in the given prison, where the offender and details exist.",
-    nickname = "getOffenderForPrison"
+  @Operation(
+    description = "Keyworker details for specified offenders in the given prison, where the offender and details exist.",
+    summary = "getOffenderForPrison"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = OffenderKeyworkerDto::class,
-        responseContainer = "List"
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{prisonId}/offenders"])
   fun getOffenderKeyworkerDetailsList(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Offenders for which details are required, or get all.") @RequestParam(
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(description = "Offenders for which details are required, or get all.") @RequestParam(
       value = "offenderNo",
       required = false
     ) offenderNos: List<String>?
@@ -219,97 +263,152 @@ class KeyworkerServiceController(
 
   @PostMapping(path = ["/{prisonId}/offenders"])
   fun getOffenderKeyworkerDetailsListPost(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Offenders for which details are required, use GET version of endpoint if all offenders for prison are required.") @RequestBody offenderNos: List<String>?
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(description = "Offenders for which details are required, use GET version of endpoint if all offenders for prison are required.") @RequestBody offenderNos: List<String>?
   ): List<OffenderKeyworkerDto> {
     Validate.notEmpty<List<String>?>(offenderNos, "Please provide a list of Offender Nos.")
     return keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos)
   }
 
-  @ApiOperation(
-    value = "All unallocated offenders in specified prison.",
-    notes = "All unallocated offenders in specified prison.",
-    nickname = "getUnallocatedOffenders"
+  @Operation(
+    description = "All unallocated offenders in specified prison.",
+    summary = "getUnallocatedOffenders"
   )
   @ApiResponses(
     value = [
-      ApiResponse(code = 200, message = "OK", response = OffenderLocationDto::class, responseContainer = "List"),
       ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "200", description = "OK",
       ),
       ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ),
       ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class,
-        responseContainer = "List"
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ),
+      ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{prisonId}/offenders/unallocated"])
   fun getUnallocatedOffenders(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(description = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(
       value = PagingAndSortingDto.HEADER_SORT_FIELDS,
       defaultValue = ""
     ) sortFields: String,
-    @ApiParam(
-      value = "Sort order (ASC or DESC) - defaults to ASC.",
-      defaultValue = "ASC"
+    @Parameter(
+      description = "Sort order (ASC or DESC) - defaults to ASC.",
+      example = "ASC"
     ) @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): List<OffenderLocationDto> = keyworkerService.getUnallocatedOffenders(prisonId, sortFields, sortOrder)
 
-  @ApiOperation(value = "Key worker details.", notes = "Key worker details.", nickname = "getKeyworkerDetails")
+  @Operation(description = "Key worker details.", summary = "getKeyworkerDetails")
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = KeyworkerDto::class
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun getKeyworkerDetails(
-    @ApiParam(value = "staffId", required = true) @PathVariable("staffId") staffId: Long,
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
+    @Parameter(name = "staffId", required = true) @PathVariable("staffId") staffId: Long,
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
   ): KeyworkerDto = keyworkerService.getKeyworkerDetails(prisonId, staffId)
 
-  @ApiOperation(
-    value = "Offenders current Keyworker",
-    notes = "Offenders current Keyworker",
-    nickname = "getOffendersKeyworker"
+  @Operation(
+    description = "Offenders current Keyworker",
+    summary = "getOffendersKeyworker"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = BasicKeyworkerDto::class
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
@@ -317,139 +416,216 @@ class KeyworkerServiceController(
   @Deprecated("")
   /** Deprecated - don't need to pass in the prison id  */
   fun deprecated_getOffendersKeyworker(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(name = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
   ): BasicKeyworkerDto =
     keyworkerService.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow { EntityNotFoundException() }
 
-  @ApiOperation(
-    value = "Offenders current Keyworker",
-    notes = "Offenders current Keyworker",
-    nickname = "getOffendersKeyworker"
+  @Operation(
+    description = "Offenders current Keyworker",
+    summary = "getOffendersKeyworker"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = BasicKeyworkerDto::class
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/offender/{offenderNo}"])
   fun getOffendersKeyworker(
-    @ApiParam(value = "offenderNo", required = true, example = "A1234BC") @PathVariable("offenderNo") offenderNo: String
+    @Parameter(name = "offenderNo", required = true, example = "A1234BC") @PathVariable("offenderNo") offenderNo: String
   ): BasicKeyworkerDto =
     keyworkerService.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow { EntityNotFoundException() }
 
-  @ApiOperation(
-    value = "Initiate auto-allocation process for specified prison.",
-    notes = "Initiate auto-allocation process for specified prison.",
-    nickname = "autoAllocate"
+  @Operation(
+    description = "Initiate auto-allocation process for specified prison.",
+    summary = "autoAllocate"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "Request to initiate auto-allocation process has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)",
-        response = String::class
+        responseCode = "200",
+        description = "Request to initiate auto-allocation process has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)",
       ), ApiResponse(
-        code = 404,
-        message = "Prison id provided is not valid or is not accessible to user.",
-        response = ErrorResponse::class
+        responseCode = "404",
+        description = "Prison id provided is not valid or is not accessible to user.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 409,
-        message = "Auto-allocation processing not able to proceed or halted due to state of dependent resources.",
-        response = ErrorResponse::class
+        responseCode = "409",
+        description = "Auto-allocation processing not able to proceed or halted due to state of dependent resources.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @PostMapping(path = ["/{prisonId}/allocate/start"])
   fun startAutoAllocation(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
   ): Double = keyworkerAutoAllocationService.autoAllocate(prisonId).toDouble()
 
-  @ApiOperation(
-    value = "Confirm allocations chosen by the auto-allocation process.",
-    notes = "Confirm allocations chosen by the auto-allocation process.",
-    nickname = "confirmAutoAllocation"
+  @Operation(
+    description = "Confirm allocations chosen by the auto-allocation process.",
+    summary = "confirmAutoAllocation"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "Request to confirm allocations has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)",
-        response = String::class
+        responseCode = "200",
+        description = "Request to confirm allocations has been successfully processed. (NOT YET IMPLEMENTED - Use returned process id to monitor process execution and outcome.) Note that until asynchronous processing is implemented, this request will execute synchronously and return total number of allocations processed.)",
       ), ApiResponse(
-        code = 404,
-        message = "Prison id provided is not valid or is not accessible to user.",
-        response = ErrorResponse::class
+        responseCode = "404",
+        description = "Prison id provided is not valid or is not accessible to user.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @PostMapping(path = ["/{prisonId}/allocate/confirm"])
   fun confirmAutoAllocation(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String
   ): Long = keyworkerAutoAllocationService.confirmAllocations(prisonId)
 
-  @ApiOperation(
-    value = "Gets a complete history of the offenders allocations",
-    notes = "Order by most recent first",
-    nickname = "getKeyWorkerHistoryForPrisoner"
+  @Operation(
+    description = "Order by most recent first",
+    summary = "getKeyWorkerHistoryForPrisoner"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = OffenderKeyWorkerHistory::class
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/allocation-history/{offenderNo}"])
   fun getKeyWorkerHistoryForPrisoner(
-    @ApiParam(value = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
+    @Parameter(name = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
   ): OffenderKeyWorkerHistory =
     keyworkerService.getFullAllocationHistory(offenderNo).orElseThrow { EntityNotFoundException() }
 
-  @ApiOperation(
-    value = "Gets a summary of the offender's allocation histories",
-    nickname = "getKeyWorkerHistorySummaryForPrisoners"
+  @Operation(
+    description = "Gets a summary of the offender's allocation histories",
+    summary = "getKeyWorkerHistorySummaryForPrisoners"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200, message = "OK", response = OffenderKeyWorkerHistory::class
+        responseCode = "200", description = "OK",
       ), ApiResponse(
-        code = 400, message = "Invalid request.", response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
@@ -461,42 +637,61 @@ class KeyworkerServiceController(
     return keyworkerService.getAllocationHistorySummary(offenderNos)
   }
 
-  @ApiOperation(
-    value = "Deallocate a key worker from an offender",
-    notes = "Marks the offender with expired time on active record",
-    authorizations = [Authorization("OMIC_ADMIN")],
-    nickname = "deallocate"
+  @Operation(
+    description = "Marks the offender with expired time on active record",
+    security = [ SecurityRequirement(name = "OMIC_ADMIN") ],
+    summary = "deallocate"
   )
   @ApiResponses(
     value = [
-      ApiResponse(code = 200, message = "De allocated"), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class
-      ), ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+      ApiResponse(responseCode = "200", description = "De allocated"), ApiResponse(
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404", description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @PutMapping(path = ["/deallocate/{offenderNo}"])
   @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
   fun deallocate(
-    @ApiParam(value = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
+    @Parameter(name = "offenderNo", required = true) @PathVariable("offenderNo") offenderNo: String
   ) = keyworkerService.deallocate(offenderNo)
 
-  @ApiOperation(
-    value = "Process manual allocation of an offender to a Key worker.",
-    notes = "Process manual allocation of an offender to a Key worker.",
-    authorizations = [Authorization("OMIC_ADMIN")],
-    nickname = "allocate"
+  @Operation(
+    description = "Process manual allocation of an offender to a Key worker.",
+    security = [SecurityRequirement(name = "OMIC_ADMIN")],
+    summary = "allocate"
   )
-  @ApiResponses(value = [ApiResponse(code = 201, message = "The allocation has been created.")])
+  @ApiResponses(value = [ApiResponse(responseCode = "201", description = "The allocation has been created.")])
   @PostMapping(path = ["/allocate"], consumes = [MediaType.APPLICATION_JSON_VALUE])
   fun allocate(
-    @ApiParam(
-      value = "New allocation details.",
+    @Parameter(
+      description = "New allocation details.",
       required = true
     ) @RequestBody keyworkerAllocation: @Valid KeyworkerAllocationDto
   ): ResponseEntity<*> {
@@ -504,51 +699,69 @@ class KeyworkerServiceController(
     return ResponseEntity.status(HttpStatus.CREATED).build<Any>()
   }
 
-  @ApiOperation(
-    value = "Search for key workers within prison.",
-    notes = "Search for key workers using firstname or lastname",
-    nickname = "keyworkersearch"
+  @Operation(
+    description = "Search for key workers within prison.",
+    summary = "keyworkersearch"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = KeyworkerDto::class,
-        responseContainer = "List"
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{prisonId}/members"])
   fun keyworkerSearch(
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "Filter results by first name and/or last name of key worker. Supplied filter term is matched to start of key worker's first and last name.") @RequestParam(
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(description = "Filter results by first name and/or last name of key worker. Supplied filter term is matched to start of key worker's first and last name.") @RequestParam(
       value = "nameFilter"
     ) nameFilter: Optional<String>?,
-    @ApiParam(value = "Filter results by status of key worker.") @RequestParam(value = "statusFilter") statusFilter: Optional<KeyworkerStatus>?,
-    @ApiParam(
-      value = "Requested offset of first record in returned collection of allocation records.",
-      defaultValue = "0"
+    @Parameter(description = "Filter results by status of key worker.") @RequestParam(value = "statusFilter") statusFilter: Optional<KeyworkerStatus>?,
+    @Parameter(
+      description = "Requested offset of first record in returned collection of allocation records.",
+      example = "0"
     ) @RequestHeader(value = PagingAndSortingDto.HEADER_PAGE_OFFSET, defaultValue = "0") pageOffset: Long,
-    @ApiParam(value = "Requested limit to number of allocation records returned.", defaultValue = "10") @RequestHeader(
+    @Parameter(description = "Requested limit to number of allocation records returned.", example = "10") @RequestHeader(
       value = PagingAndSortingDto.HEADER_PAGE_LIMIT,
       defaultValue = "1000"
     ) pageLimit: Long,
-    @ApiParam(value = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(
+    @Parameter(description = "Comma separated list of one or more of the following fields - <b>firstName, lastName</b>") @RequestHeader(
       value = PagingAndSortingDto.HEADER_SORT_FIELDS,
       defaultValue = "lastName,firstName"
     ) sortFields: String,
-    @ApiParam(
-      value = "Sort order (ASC or DESC) - defaults to ASC.",
-      defaultValue = "ASC"
+    @Parameter(
+      description = "Sort order (ASC or DESC) - defaults to ASC.",
+      example = "ASC"
     ) @RequestHeader(value = PagingAndSortingDto.HEADER_SORT_ORDER, defaultValue = "ASC") sortOrder: SortOrder
   ): ResponseEntity<*> {
     val pageDto = PagingAndSortingDto
@@ -562,146 +775,253 @@ class KeyworkerServiceController(
     return ResponseEntity(activeKeyworkerPage.items, activeKeyworkerPage.toHeaders(), HttpStatus.OK)
   }
 
-  @ApiOperation(
-    value = "Specified key worker’s currently assigned offenders for given prison.",
-    notes = "Specified key worker’s currently assigned offenders for given prison.",
-    nickname = "keyworkerallocations"
+  @Operation(
+    description = "Specified key worker’s currently assigned offenders for given prison.",
+    summary = "keyworkerallocations"
   )
   @ApiResponses(
     value = [
       ApiResponse(
-        code = 200,
-        message = "OK",
-        response = KeyworkerAllocationDetailsDto::class,
-        responseContainer = "List"
-      ), ApiResponse(code = 400, message = "Invalid request.", response = ErrorResponse::class), ApiResponse(
-        code = 404,
-        message = "Requested resource not found.",
-        response = ErrorResponse::class
+        responseCode = "200",
+        description = "OK",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = KeyworkerAllocationDetailsDto::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400", description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404",
+        description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}/offenders"])
   fun getAllocationsForKeyworkerWithOffenderDetails(
-    @ApiParam(value = "staffId", required = true) @PathVariable("staffId") staffId: Long,
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(value = "skipOffenderDetails", defaultValue = "false") @RequestParam(
+    @Parameter(name = "staffId", required = true) @PathVariable("staffId") staffId: Long,
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(name = "skipOffenderDetails", example = "false") @RequestParam(
       value = "skipOffenderDetails",
       defaultValue = "false"
     ) skipOffenderDetails: Boolean
   ): List<KeyworkerAllocationDetailsDto> =
     keyworkerService.getAllocationsForKeyworkerWithOffenderDetails(prisonId, staffId, skipOffenderDetails)
 
-  @ApiOperation(
-    value = "Add or update a key worker record",
-    notes = "Staff members available capacity",
-    authorizations = [Authorization("OMIC_ADMIN")],
-    nickname = "addOrUpdateKeyworker"
+  @Operation(
+    description = "Add or update a key worker record",
+    security = [SecurityRequirement(name = "OMIC_ADMIN")],
+    summary = "addOrUpdateKeyworker"
   )
   @ApiResponses(
     value = [
-      ApiResponse(code = 201, message = "OK"), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class
+      ApiResponse(responseCode = "201", description = "OK"), ApiResponse(
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @PostMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun addOrUpdateKeyworker(
-    @ApiParam(value = "staffId", required = true) @PathVariable("staffId") staffId: Long,
-    @ApiParam(value = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
-    @ApiParam(
-      value = "New keyworker details.",
+    @Parameter(name = "staffId", required = true) @PathVariable("staffId") staffId: Long,
+    @Parameter(name = "prisonId", required = true) @PathVariable("prisonId") prisonId: String,
+    @Parameter(
+      description = "New keyworker details.",
       required = true
     ) @RequestBody keyworkerUpdateDto: @Valid KeyworkerUpdateDto
   ) = keyworkerService.addOrUpdate(staffId, prisonId, keyworkerUpdateDto)
 
-  @ApiOperation(value = "Get Prison Migration Status")
+  @Operation(summary = "Get Prison Migration Status")
   @ApiResponses(
     value = [
-      ApiResponse(code = 200, message = "OK", response = Prison::class), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class
-      ), ApiResponse(code = 404, message = "Requested resource not found.", response = ErrorResponse::class), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+      ApiResponse(
+        responseCode = "200", description = "OK",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Prison::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "404", description = "Requested resource not found.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @GetMapping(path = ["/prison/{prisonId}"])
-  fun getPrisonMigrationStatus(@ApiParam("prisonId") @PathVariable("prisonId") prisonId: String): Prison {
+  fun getPrisonMigrationStatus(@Parameter(name = "prisonId") @PathVariable("prisonId") prisonId: String): Prison {
     val prisonDetail = prisonSupportedService.getPrisonDetail(prisonId)
     return prisonDetail ?: Prison.builder().prisonId(prisonId).supported(false).build()
   }
-
-  @ApiOperation(
-    value = "Enable Manual Allocation and Migrate",
-    notes = "Role Required: KW_MIGRATION. This will invoke migration from NOMIS DB"
+  @Operation(
+    summary = "Enable Manual Allocation and Migrate",
+    description = "Role Required: KW_MIGRATION. This will invoke migration from NOMIS DB"
   )
   @ApiResponses(
     value = [
-      ApiResponse(code = 200, message = "OK", response = Prison::class), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class
+      ApiResponse(
+        responseCode = "200", description = "OK",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Prison::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @PostMapping(path = ["/enable/{prisonId}/manual"])
   fun addSupportedPrisonForManualAllocation(
-    @ApiParam("prisonId") @PathVariable("prisonId") prisonId: String,
-    @ApiParam("migrate") @RequestParam("migrate", defaultValue = "false") migrate: Boolean,
-    @ApiParam(
+    @Parameter(name = "prisonId") @PathVariable("prisonId") prisonId: String,
+    @Parameter(name = "migrate") @RequestParam("migrate", defaultValue = "false") migrate: Boolean,
+    @Parameter(
       name = "capacity",
-      value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9"
+      description = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9"
     ) @RequestParam("capacity") capacity: Array<Int>?,
-    @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @RequestParam(
+    @Parameter(name = "frequency", description = "default KW Session Frequency in weeks (default 1)") @RequestParam(
       "frequency",
       defaultValue = "1"
     ) frequency: Int
   ): Prison = updateAndMigrate(prisonId, migrate, false, capacity, frequency)
 
-  @ApiOperation(
-    value = "Enable Auto Allocation for specified prison and Migrate",
-    notes = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB"
+  @Operation(
+    summary = "Enable Auto Allocation for specified prison and Migrate",
+    description = "Role Required: KW_MIGRATION. This will also invoke migration from NOMIS DB"
   )
   @ApiResponses(
     value = [
-      ApiResponse(code = 200, message = "OK", response = Prison::class), ApiResponse(
-        code = 400,
-        message = "Invalid request.",
-        response = ErrorResponse::class
+      ApiResponse(
+        responseCode = "200", description = "OK",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = Prison::class)
+          )
+        ],
       ), ApiResponse(
-        code = 500,
-        message = "Unrecoverable error occurred whilst processing request.",
-        response = ErrorResponse::class
+        responseCode = "400",
+        description = "Invalid request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
+      ), ApiResponse(
+        responseCode = "500",
+        description = "Unrecoverable error occurred whilst processing request.",
+        content =
+        [
+          Content(
+            mediaType = "application/json",
+            schema = Schema(implementation = ErrorResponse::class)
+          )
+        ],
       )
     ]
   )
   @PostMapping(path = ["/enable/{prisonId}/auto-allocate"])
   fun addSupportedPrisonForAutoAllocation(
-    @ApiParam("prisonId") @PathVariable("prisonId") prisonId: String,
-    @ApiParam("migrate") @RequestParam("migrate", defaultValue = "false") migrate: Boolean,
-    @ApiParam(
+    @Parameter(name = "prisonId") @PathVariable("prisonId") prisonId: String,
+    @Parameter(name = "migrate") @RequestParam("migrate", defaultValue = "false") migrate: Boolean,
+    @Parameter(
       name = "capacity",
-      value = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9"
+      description = "standard and extended default keyworker capacities for this prison, comma separated, e.g. &capacity=6,9"
     ) @RequestParam("capacity") capacity: Array<Int>?,
-    @ApiParam(name = "frequency", value = "default KW Session Frequency in weeks (default 1)") @RequestParam(
+    @Parameter(name = "frequency", description = "default KW Session Frequency in weeks (default 1)") @RequestParam(
       "frequency",
       defaultValue = "1"
     ) frequency: Int
