@@ -37,3 +37,6 @@ whitelist:
 # determine which slack channel alerts are sent to, via the correct Alert Manager receiver
 generic-prometheus-alerts:
   alertSeverity: digital-prison-service
+  rdsAlertsDatabases:
+    cloud-platform-fa888e83362e61b1: "Keyworker API"
+
