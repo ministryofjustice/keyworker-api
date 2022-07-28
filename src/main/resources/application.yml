@@ -17,8 +17,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://${DB_ENDPOINT}/${DB_NAME}?sslmode=verify-full
-    username: sa
-    password:
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
     continueOnError: true
 
     hikari:
