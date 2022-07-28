@@ -4,75 +4,11 @@
 generic-prometheus-alerts:
   targetApplication: keyworker-api
 
-generic-service:
-  image:
-    repository: quay.io/hmpps/keyworker-api
-    tag: latest
-    port: 8080
-
-  env:
-    JAVA_OPTS: "-Xmx512m"
-    SERVER_PORT: "8080"
-    SPRING_PROFILES_ACTIVE: "batch,sqs"
-    SERVER_CONNECTION_TIMEOUT: "180000"
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
-    APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
-
-  ingress:
-    enabled: true
-    host: app-hostname.local
-    tlsSecretName: keyworker-api-cert
-    v1_2_enabled: true
-    v0_47_enabled: false
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      server_tokens off;
-      location /queue-admin/retry-all-dlqs {
-        deny all;
-        return 401;
-      }
-
-  namespace_secrets:
-    keyworker-api:
-      APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
-      PRISONAPI_CLIENT_CLIENTID: "PRISONAPI_CLIENT_CLIENTID"
-      PRISONAPI_CLIENT_CLIENTSECRET: "PRISONAPI_CLIENT_CLIENTSECRET"
-    dps-rds-instance-output:
-      SPRING_DATASOURCE_USERNAME: "database_username"
-      SPRING_DATASOURCE_PASSWORD: "database_password"
-      DB_NAME: "database_name"
-      DB_ENDPOINT: "rds_instance_endpoint"
-    kw-sqs-instance-output:
-      HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
-      HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_NAME: "sqs_kw_name"
-    kw-sqs-dl-instance-output:
-      HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
-      HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_NAME: "sqs_kw_name"
-    kw-sqs-complexity-of-need-instance-output:
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_NAME: "sqs_kw_name"
-    kw-sqs-complexity-of-need-dl-instance-output:
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME: "sqs_kw_name"
-
-  allowlist:
-    office: "217.33.148.210/32"
-    health-kick: "35.177.252.195/32"
-    mojvpn: "81.134.202.29/32"
-    cloudplatform-live1-1: "35.178.209.113/32"
-    cloudplatform-live1-2: "3.8.51.207/32"
-    cloudplatform-live1-3: "35.177.252.54/32"
-    petty-france-wifi: "213.121.161.112/28"
-    global-protect: "35.176.93.186/32"
-
 ingress:
   # live-1 is blue, live is green
   contextColour: green
   annotations:
-    external-dns.alpha.kubernetes.io/aws-weight: "0"
+    external-dns.alpha.kubernetes.io/aws-weight: "100"
     nginx.ingress.kubernetes.io/custom-http-errors: "418"
     # Secure the retry all dlqs endpoint from outside of the Kubernetes ingress
     nginx.ingress.kubernetes.io/configuration-snippet: |
@@ -81,3 +17,9 @@ ingress:
         deny all;
         return 401;
       }
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    memory: 512Mi
