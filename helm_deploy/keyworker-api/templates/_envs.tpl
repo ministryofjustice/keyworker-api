@@ -76,9 +76,6 @@ env:
         name: dps-rds-instance-output
         key: rds_instance_endpoint
 
-  - name: APP_DB_URL
-    value: "jdbc:postgresql://$(DB_ENDPOINT)/$(DB_NAME)?sslmode=verify-full"
-
   - name: HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
