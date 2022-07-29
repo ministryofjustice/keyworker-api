@@ -58,7 +58,7 @@ generic-service:
       HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME: "sqs_kw_name"
 
-  allowlist:
+  allowlist:AVA_OPTS: "-Xmx1024m"
     office: "217.33.148.210/32"
     health-kick: "35.177.252.195/32"
     mojvpn: "81.134.202.29/32"
