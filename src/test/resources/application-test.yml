@@ -30,6 +30,8 @@ auth.uri.root: http://localhost:8090/auth
 complexity_of_need_uri: http://localhost:10000
 
 spring:
+  datasource:
+    url: "jdbc:hsqldb:mem:keyworker-db;sql.syntax_pgs=true;shutdown=false"
   security:
     oauth2:
       resourceserver:
