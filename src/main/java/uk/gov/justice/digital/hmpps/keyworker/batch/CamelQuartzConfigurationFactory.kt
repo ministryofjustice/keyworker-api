@@ -24,7 +24,7 @@ internal class CamelQuartzConfigurationFactory {
   @Value("\${org.quartz.threadPool.threadCount}")
   private val threadCount: String? = null
 
-  @Value("\${app.db.url}")
+  @Value("\${spring.datasource.url}")
   private val url: String? = null
 
   @Value("\${spring.datasource.username}")
