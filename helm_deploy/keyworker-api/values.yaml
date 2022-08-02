@@ -19,6 +19,12 @@ generic-service:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      memory: 512Mi
+
   ingress:
     enabled: true
     host: app-hostname.local
