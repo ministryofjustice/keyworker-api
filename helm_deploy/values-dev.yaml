@@ -14,6 +14,8 @@ generic-service:
  ingress:
    host: keyworker-api-dev.prison.service.justice.gov.uk
 
+ allowlist: false
+
 ingress:
   enabled: true
   enable_whitelist: false
