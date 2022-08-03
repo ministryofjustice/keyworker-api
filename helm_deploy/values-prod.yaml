@@ -25,25 +25,6 @@ generic-service:
   petty-france-wifi: "213.121.161.112/28"
   global-protect: "35.176.93.186/32"
 
-ingress:
-  enabled: true
-  ingress:
-  enable_whitelist: true
-  hosts:
-    - host: keyworker-api.prison.service.justice.gov.uk
-      cert_secret: keyworker-api-cert
-  path: /
-
-whitelist:
-  office: "217.33.148.210/32"
-  health-kick: "35.177.252.195/32"
-  mojvpn: "81.134.202.29/32"
-  cloudplatform-live1-1: "35.178.209.113/32"
-  cloudplatform-live1-2: "3.8.51.207/32"
-  cloudplatform-live1-3: "35.177.252.54/32"
-  petty-france-wifi: "213.121.161.112/28"
-  global-protect: "35.176.93.186/32"
-
 # determine which slack channel alerts are sent to, via the correct Alert Manager receiver
 generic-prometheus-alerts:
   alertSeverity: digital-prison-service

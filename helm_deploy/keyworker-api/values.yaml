@@ -74,17 +74,3 @@ generic-service:
     cloudplatform-live1-3: "35.177.252.54/32"
     petty-france-wifi: "213.121.161.112/28"
     global-protect: "35.176.93.186/32"
-
-ingress:
-  # live-1 is blue, live is green
-  contextColour: green
-  annotations:
-    external-dns.alpha.kubernetes.io/aws-weight: "0"
-    nginx.ingress.kubernetes.io/custom-http-errors: "418"
-    # Secure the retry all dlqs endpoint from outside of the Kubernetes ingress
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      server_tokens off;
-      location /queue-admin/retry-all-dlqs {
-        deny all;
-        return 401;
-      }

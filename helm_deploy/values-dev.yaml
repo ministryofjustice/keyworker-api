@@ -16,11 +16,4 @@ generic-service:
 
  allowlist: false
 
-ingress:
-  enabled: true
-  enable_whitelist: false
-  hosts:
-    - host: keyworker-api-dev.prison.service.justice.gov.uk
-      cert_secret: keyworker-api-cert
-  path: /
 
