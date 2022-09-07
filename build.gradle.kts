@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.3.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.4.3"
   kotlin("plugin.spring") version "1.7.0"
   kotlin("plugin.jpa") version "1.7.0"
 }
@@ -33,9 +33,9 @@ dependencies {
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
   implementation("io.swagger:swagger-annotations:1.6.6")
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.8")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.8")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.8")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.11")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.11")
   implementation("net.sf.ehcache:ehcache:2.10.9.2")
   implementation("org.apache.commons:commons-text:1.9")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
