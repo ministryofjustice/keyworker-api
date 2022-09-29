@@ -20,5 +20,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl -XPUT http://keyworker-api/queue-admin/retry-all-dlqs
+                - curl --retry 2 -XPUT http://keyworker-api/queue-admin/retry-all-dlqs
           restartPolicy: Never
