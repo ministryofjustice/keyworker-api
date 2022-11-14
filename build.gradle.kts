@@ -45,8 +45,8 @@ dependencies {
   implementation("org.flywaydb:flyway-core:9.8.1")
   runtimeOnly("org.postgresql:postgresql:42.5.0")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.13")
-  testImplementation("org.spockframework:spock-spring:2.3-groovy-4.0") // Upgrade breaks groovy
-  testImplementation("org.spockframework:spock-core:2.3-groovy-4.0") { // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-spring:2.0-groovy-3.0") // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-core:2.0-groovy-3.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.24")
@@ -58,7 +58,7 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:3.19.0") // DO NOT UPDATE - BREAKS CAMEL
+  testImplementation("org.apache.camel:camel-test-spring:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
