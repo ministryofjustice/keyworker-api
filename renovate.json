@@ -8,6 +8,36 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non major Gradle dependencies",
       "groupSlug": "all-gradle-minor-patch"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["camel-spring-boot"],
+      "allowedVersions": "3.8.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["camel-quartz"],
+      "allowedVersions": "3.8.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["camel-direct"],
+      "allowedVersions": "3.8.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["camel-test-spring"],
+      "allowedVersions": "3.8.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["spock-spring"],
+      "allowedVersions": "2.0-groovy-3.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["spock-core"],
+      "allowedVersions": "2.0-groovy-3.0"
     }
   ]
 }

@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.4"
-  kotlin("plugin.spring") version "1.7.22"
-  kotlin("plugin.jpa") version "1.7.22"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.3"
+  kotlin("plugin.spring") version "1.8.10"
+  kotlin("plugin.jpa") version "1.8.10"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
@@ -9,8 +9,8 @@ configurations {
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.24")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+  annotationProcessor("org.projectlombok:lombok:1.18.26")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-cache")
   implementation("org.springframework.boot:spring-boot-starter-quartz")
@@ -28,8 +28,8 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.2.0")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
-  implementation("com.sun.xml.bind:jaxb-impl:4.0.1")
-  implementation("com.sun.xml.bind:jaxb-core:4.0.1")
+  implementation("com.sun.xml.bind:jaxb-impl:4.0.2")
+  implementation("com.sun.xml.bind:jaxb-core:4.0.2")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
   implementation("io.swagger:swagger-annotations:1.6.9")
@@ -38,28 +38,28 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-data-rest:1.6.14")
   implementation("net.sf.ehcache:ehcache:2.10.9.2")
   implementation("org.apache.commons:commons-text:1.10.0")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.1")
-  implementation("com.google.code.gson:gson:2.10")
-  compileOnly("org.projectlombok:lombok:1.18.24")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
+  implementation("com.google.code.gson:gson:2.10.1")
+  compileOnly("org.projectlombok:lombok:1.18.26")
   runtimeOnly("org.hsqldb:hsqldb:2.7.1")
-  implementation("org.flywaydb:flyway-core:9.10.2")
-  runtimeOnly("org.postgresql:postgresql:42.5.1")
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.13")
+  implementation("org.flywaydb:flyway-core:9.14.1")
+  runtimeOnly("org.postgresql:postgresql:42.5.3")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.15")
   testImplementation("org.spockframework:spock-spring:2.0-groovy-3.0") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:2.0-groovy-3.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
-  testCompileOnly("org.projectlombok:lombok:1.18.24")
-  testImplementation("org.gebish:geb-core:6.0")
-  testImplementation("org.gebish:geb-spock:6.0")
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.7.2")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.7.2")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.7.2")
+  testCompileOnly("org.projectlombok:lombok:1.18.26")
+  testImplementation("org.gebish:geb-core:7.0")
+  testImplementation("org.gebish:geb-spock:7.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.8.0")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.8.0")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.8.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.1")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
