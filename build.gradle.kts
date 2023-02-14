@@ -50,8 +50,8 @@ dependencies {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.26")
-  testImplementation("org.gebish:geb-core:7.0")
-  testImplementation("org.gebish:geb-spock:7.0")
+  testImplementation("org.gebish:geb-core:6.0") // Upgrade breaks groovy
+  testImplementation("org.gebish:geb-spock:6.0") // Upgrade breaks groovy
   testImplementation("org.seleniumhq.selenium:selenium-support:4.8.0")
   testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.8.0")
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.8.0")

@@ -38,6 +38,16 @@
       "matchDatasources": ["gradle"],
       "matchPackageNames": ["spock-core"],
       "allowedVersions": "2.0-groovy-3.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["geb-core"],
+      "allowedVersions": "6.0"
+    },
+    {
+      "matchDatasources": ["gradle"],
+      "matchPackageNames": ["geb-spock"],
+      "allowedVersions": "6.0"
     }
   ]
 }
