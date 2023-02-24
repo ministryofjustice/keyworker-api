@@ -18,11 +18,11 @@ spec:
             runAsUser: 999
           containers:
           - name: dbrefresh
-            image: "postgres:11.4"
+            image: "postgres:14.3"
             command:
             - /bin/entrypoint.sh
             volumeMounts:
-            - name: db-refresh-script 
+            - name: db-refresh-script
               mountPath: /bin/entrypoint.sh
               readOnly: true
               subPath: entrypoint.sh
