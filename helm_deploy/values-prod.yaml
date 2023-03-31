@@ -12,6 +12,20 @@ generic-service:
   PRISONS_WITH_OFFENDERS_THAT_HAVE_COMPLEX_NEEDS: "AGI,BZI,DHI,DWI,ESI,EWI,FHI,LNI,NHI,PFI,SDI,STI"
   JAVA_OPTS: "-Xmx1024m"
 
+ postgresDatabaseRestore:
+  enabled: true
+  namespace_secrets:
+   dps-rds-instance-output:
+    DB_NAME: "database_name"
+    DB_USER: "database_username"
+    DB_PASS: "database_password"
+    DB_HOST: "rds_instance_address"
+   dps-rds-instance-output-preprod:
+    DB_NAME_PREPROD: "database_name"
+    DB_USER_PREPROD: "database_username"
+    DB_PASS_PREPROD: "database_password"
+    DB_HOST_PREPROD: "rds_instance_address"
+
  ingress:
    host: keyworker-api.prison.service.justice.gov.uk
 
@@ -25,23 +39,9 @@ generic-service:
   petty-france-wifi: "213.121.161.112/28"
   global-protect: "35.176.93.186/32"
 
-  postgresDatabaseRestore:
-   enabled: true
-   namespace_secrets:
-    dps-rds-instance-output:
-     DB_NAME: "database_name"
-     DB_USER: "database_username"
-     DB_PASS: "database_password"
-     DB_HOST: "rds_instance_address"
-    dps-rds-instance-output-preprod:
-     DB_NAME_PREPROD: "database_name"
-     DB_USER_PREPROD: "database_username"
-     DB_PASS_PREPROD: "database_password"
-     DB_HOST_PREPROD: "rds_instance_address"
 
 # determine which slack channel alerts are sent to, via the correct Alert Manager receiver
 generic-prometheus-alerts:
   alertSeverity: digital-prison-service
   rdsAlertsDatabases:
     cloud-platform-fa888e83362e61b1: "Keyworker API"
-
