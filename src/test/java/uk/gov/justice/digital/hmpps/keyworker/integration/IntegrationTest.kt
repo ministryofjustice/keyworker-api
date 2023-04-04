@@ -42,6 +42,7 @@ abstract class IntegrationTest {
   companion object {
     @JvmField
     internal val prisonMockServer = PrisonMockServer()
+
     @JvmField
     internal val complexityOfNeedMockServer = ComplexityOfNeedMockServer()
 

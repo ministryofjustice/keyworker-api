@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.3"
-  kotlin("plugin.spring") version "1.8.10"
-  kotlin("plugin.jpa") version "1.8.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.5"
+  kotlin("plugin.spring") version "1.8.20"
+  kotlin("plugin.jpa") version "1.8.20"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
@@ -32,19 +32,19 @@ dependencies {
   implementation("com.sun.xml.bind:jaxb-core:4.0.2")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
-  implementation("io.swagger:swagger-annotations:1.6.9")
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.14")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.14")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.14")
+  implementation("io.swagger:swagger-annotations:1.6.10")
+  implementation("org.springdoc:springdoc-openapi-ui:1.7.0")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.7.0")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.7.0")
   implementation("net.sf.ehcache:ehcache:2.10.9.2")
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
   implementation("com.google.code.gson:gson:2.10.1")
   compileOnly("org.projectlombok:lombok:1.18.26")
   runtimeOnly("org.hsqldb:hsqldb:2.7.1")
-  implementation("org.flywaydb:flyway-core:9.14.1")
-  runtimeOnly("org.postgresql:postgresql:42.5.3")
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.15")
+  implementation("org.flywaydb:flyway-core:9.16.1")
+  runtimeOnly("org.postgresql:postgresql:42.6.0")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.17")
   testImplementation("org.spockframework:spock-spring:2.0-groovy-3.0") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:2.0-groovy-3.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
@@ -52,14 +52,14 @@ dependencies {
   testCompileOnly("org.projectlombok:lombok:1.18.26")
   testImplementation("org.gebish:geb-core:6.0") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:6.0") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.8.0")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.8.0")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.8.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.8.3")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.8.3")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.8.3")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.37.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }

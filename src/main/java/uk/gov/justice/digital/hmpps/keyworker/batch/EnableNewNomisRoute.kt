@@ -21,7 +21,6 @@ class EnableNewNomisRoute @Autowired constructor(
   private val cronExpression: String? = null
 
   override fun configure() {
-
     if (StringUtils.isNotBlank(cronExpression)) {
       from(QUARTZ_ENABLE_NEW_NOMIS_URI + cronExpression)
         .to(ENABLE_NEW_NOMIS)

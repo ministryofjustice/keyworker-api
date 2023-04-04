@@ -92,7 +92,6 @@ class KeyworkerStatsControllerTest {
 
   @Test
   fun `get stats happy path`() {
-
     val fromDate = LocalDate.now()
     val toDate = LocalDate.now()
 
@@ -117,7 +116,6 @@ class KeyworkerStatsControllerTest {
 
   @Test
   fun `get stats when missing dates and prisonIds`() {
-
     whenever(
       prisonSupportedService.migratedPrisons
     ).thenReturn(emptyList())
@@ -137,7 +135,6 @@ class KeyworkerStatsControllerTest {
 
   @Test
   fun `get stats when missing dates and prisonIds and one migrated prison`() {
-
     whenever(
       prisonSupportedService.migratedPrisons
     ).thenReturn(listOf(Prison.builder().prisonId("MDI").build()))
@@ -157,7 +154,6 @@ class KeyworkerStatsControllerTest {
 
   @Test
   fun `get stats when missing dates`() {
-
     whenever(
       keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null)
     ).thenReturn(KeyworkerStatSummary())
@@ -173,7 +169,6 @@ class KeyworkerStatsControllerTest {
 
   @Test
   fun `get stats when missing formDate`() {
-
     val toDate = LocalDate.now()
 
     whenever(
@@ -191,7 +186,6 @@ class KeyworkerStatsControllerTest {
 
   @Test
   fun `get stats when missing toDate`() {
-
     val fromDate = LocalDate.now()
 
     whenever(
