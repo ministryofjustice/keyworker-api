@@ -21,9 +21,9 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
-  implementation("org.apache.camel.springboot:camel-spring-boot:3.20.3") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-quartz:3.20.3") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-direct:3.20.3") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel.springboot:camel-spring-boot:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel:camel-quartz:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel:camel-direct:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.springframework:spring-jms")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.2.0")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
@@ -45,8 +45,8 @@ dependencies {
   implementation("org.flywaydb:flyway-core:9.16.1")
   runtimeOnly("org.postgresql:postgresql:42.6.0")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.17")
-  testImplementation("org.spockframework:spock-spring:2.3-groovy-4.0") // Upgrade breaks groovy
-  testImplementation("org.spockframework:spock-core:2.3-groovy-4.0") { // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-spring:2.0-groovy-3.0") // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-core:2.0-groovy-3.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok:1.18.26")
@@ -58,7 +58,7 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:3.20.3") // DO NOT UPDATE - BREAKS CAMEL
+  testImplementation("org.apache.camel:camel-test-spring:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.37.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
