@@ -39,10 +39,12 @@ class KeyworkerStatsController(
     value =
     [
       ApiResponse(
-        responseCode = "200", description = "OK",
+        responseCode = "200",
+        description = "OK"
       ),
       ApiResponse(
-        responseCode = "400", description = "Invalid request",
+        responseCode = "400",
+        description = "Invalid request",
         content =
         [
           Content(
@@ -66,14 +68,24 @@ class KeyworkerStatsController(
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun getStatsForStaff(
-    @Parameter(name = "staffId") @PathVariable("staffId") staffId: Long,
-    @Parameter(name = "prisonId") @PathVariable("prisonId") prisonId: String,
-    @Parameter(description = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).") @RequestParam(value = "fromDate") @DateTimeFormat(
+    @Parameter(name = "staffId")
+    @PathVariable("staffId")
+    staffId: Long,
+    @Parameter(name = "prisonId")
+    @PathVariable("prisonId")
+    prisonId: String,
+    @Parameter(description = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).")
+    @RequestParam(value = "fromDate")
+    @DateTimeFormat(
       iso = DateTimeFormat.ISO.DATE
-    ) fromDate: LocalDate?,
-    @Parameter(description = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).") @RequestParam(value = "toDate") @DateTimeFormat(
+    )
+    fromDate: LocalDate?,
+    @Parameter(description = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).")
+    @RequestParam(value = "toDate")
+    @DateTimeFormat(
       iso = DateTimeFormat.ISO.DATE
-    ) toDate: LocalDate?
+    )
+    toDate: LocalDate?
   ): KeyworkerStatsDto = keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate)
 
   @Operation(description = "Get Key Worker stats for any prison.", summary = "getAllPrisonStats")
@@ -81,10 +93,12 @@ class KeyworkerStatsController(
     value =
     [
       ApiResponse(
-        responseCode = "200", description = "OK",
+        responseCode = "200",
+        description = "OK"
       ),
       ApiResponse(
-        responseCode = "400", description = "Invalid request.",
+        responseCode = "400",
+        description = "Invalid request.",
         content =
         [
           Content(
@@ -94,7 +108,8 @@ class KeyworkerStatsController(
         ]
       ),
       ApiResponse(
-        responseCode = "404", description = "Requested resource not found.",
+        responseCode = "404",
+        description = "Requested resource not found.",
         content =
         [
           Content(
@@ -118,15 +133,23 @@ class KeyworkerStatsController(
   )
   @GetMapping
   fun getPrisonStats(
-    @Parameter(description = "List of prisonIds", example = "prisonId=MDI&prisonId=LEI") @RequestParam(
+    @Parameter(description = "List of prisonIds", example = "prisonId=MDI&prisonId=LEI")
+    @RequestParam(
       value = "prisonId"
-    ) prisonIdList: List<String>?,
-    @Parameter(description = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)") @RequestParam(
+    )
+    prisonIdList: List<String>?,
+    @Parameter(description = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)")
+    @RequestParam(
       value = "fromDate"
-    ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate?,
-    @Parameter(description = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)") @RequestParam(
+    )
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    fromDate: LocalDate?,
+    @Parameter(description = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)")
+    @RequestParam(
       value = "toDate"
-    ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate?
+    )
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    toDate: LocalDate?
   ): KeyworkerStatSummary {
     val prisonIds: MutableList<String> = ArrayList()
     if (prisonIdList == null || prisonIdList.isEmpty()) {

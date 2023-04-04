@@ -57,7 +57,6 @@ class KeyworkerServiceControllerTest() {
   @ParameterizedTest
   @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
   fun `offender keyworker found should return ok`(pathPrefix: String) {
-
     whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
       .thenReturn(Optional.of(BasicKeyworkerDto.builder().build()))
 
@@ -73,7 +72,6 @@ class KeyworkerServiceControllerTest() {
   @ParameterizedTest
   @ValueSource(strings = arrayOf("/key-worker/LEI", "/key-worker")) // Includes deprecated version of the API
   fun `offender keyworker not found should return not found`(pathPrefix: String) {
-
     whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
       .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, null, null, null))
 

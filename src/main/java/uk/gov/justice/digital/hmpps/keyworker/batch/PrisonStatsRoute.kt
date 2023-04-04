@@ -21,7 +21,6 @@ class PrisonStatsRoute @Autowired constructor(
   private val cronExpression: String? = null
 
   override fun configure() {
-
     if (StringUtils.isNotBlank(cronExpression)) {
       from(QUARTZ_PRISON_STATS_URI + cronExpression)
         .to(DIRECT_PRISON_STATS)

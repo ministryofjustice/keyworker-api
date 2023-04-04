@@ -88,7 +88,9 @@ object ConversionHelper {
       .agencyId(dto.agencyId)
       .capacity(if (dto.hoursPerWeek != null) dto.hoursPerWeek.toInt() else null)
       .build()
-  } else null
+  } else {
+    null
+  }
 
   fun getOffenderKeyworker(model: KeyworkerAllocationDetailsDto): OffenderKeyworker {
     Validate.notNull(model)
