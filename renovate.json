@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>ministryofjustice/hmpps-renovate-config:jvm"],
-  "reviewers": ["neilmendum", "timoj58", "natclamp-moj"],
+  "reviewers": ["neilmendum", "timoj58", "natclamp-moj", "p-nik"],
   "packageRules": [
     {
       "matchManagers": ["gradle"],
@@ -10,43 +10,43 @@
       "groupSlug": "all-gradle-minor-patch"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["camel-spring-boot"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.apache.camel.springboot:camel-spring-boot"],
       "allowedVersions": "3.8.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["camel-quartz"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.apache.camel:camel-quartz"],
       "allowedVersions": "3.8.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["camel-direct"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.apache.camel:camel-direct"],
       "allowedVersions": "3.8.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["camel-test-spring"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.apache.camel:camel-test-spring"],
       "allowedVersions": "3.8.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["spock-spring"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.spockframework:spock-spring"],
       "allowedVersions": "2.0-groovy-3.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["spock-core"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.spockframework:spock-core"],
       "allowedVersions": "2.0-groovy-3.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["geb-core"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.gebish:geb-core"],
       "allowedVersions": "6.0"
     },
     {
-      "matchDatasources": ["gradle"],
-      "matchPackageNames": ["geb-spock"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["org.gebish:geb-spock"],
       "allowedVersions": "6.0"
     }
   ]
