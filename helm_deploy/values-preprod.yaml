@@ -1,9 +1,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-
 generic-service:
- replicaCount: 4
+ replicaCount: 2
  env:
   PRISON_URI_ROOT: "https://api-preprod.prison.service.justice.gov.uk"
   AUTH_URI_ROOT: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
@@ -24,4 +23,3 @@ generic-service:
   petty-france-wifi: "213.121.161.112/28"
   global-protect: "35.176.93.186/32"
 
-  
