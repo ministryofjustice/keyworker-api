@@ -29,6 +29,24 @@ generic-service:
  ingress:
    host: keyworker-api.prison.service.justice.gov.uk
 
+ namespace_secrets:
+  kw-sqs-instance-output:
+   HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_ACCESS_KEY_ID: "access_key_id"
+   HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
+   HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_NAME: "sqs_kw_name"
+  kw-sqs-dl-instance-output:
+   HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_ACCESS_KEY_ID: "access_key_id"
+   HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
+   HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_NAME: "sqs_kw_name"
+  kw-sqs-complexity-of-need-instance-output:
+   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_ACCESS_KEY_ID: "access_key_id"
+   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
+   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_NAME: "sqs_kw_name"
+  kw-sqs-complexity-of-need-dl-instance-output:
+   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_ACCESS_KEY_ID: "access_key_id"
+   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
+   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME: "sqs_kw_name"
+
  allowlist:
   office: "217.33.148.210/32"
   health-kick: "35.177.252.195/32"
@@ -38,7 +56,6 @@ generic-service:
   cloudplatform-live1-3: "35.177.252.54/32"
   petty-france-wifi: "213.121.161.112/28"
   global-protect: "35.176.93.186/32"
-
 
 # determine which slack channel alerts are sent to, via the correct Alert Manager receiver
 generic-prometheus-alerts:
