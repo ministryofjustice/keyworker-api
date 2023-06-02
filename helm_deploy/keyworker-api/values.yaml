@@ -18,6 +18,7 @@ generic-service:
     SERVER_CONNECTION_TIMEOUT: "180000"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
+    HMPPS_SQS_USE_WEB_TOKEN: "true"
 
   resources:
     limits:
@@ -47,6 +48,14 @@ generic-service:
       SPRING_DATASOURCE_PASSWORD: "database_password"
       DB_NAME: "database_name"
       DB_ENDPOINT: "rds_instance_endpoint"
+    kw-sqs-instance-output:
+      HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_NAME: "sqs_kw_name"
+    kw-sqs-dl-instance-output:
+      HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_NAME: "sqs_kw_name"
+    kw-sqs-complexity-of-need-instance-output:
+      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_NAME: "sqs_kw_name"
+    kw-sqs-complexity-of-need-dl-instance-output:
+      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME: "sqs_kw_name"
 
   allowlist:
     office: "217.33.148.210/32"
