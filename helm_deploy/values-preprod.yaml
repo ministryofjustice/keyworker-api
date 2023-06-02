@@ -3,6 +3,9 @@
 
 generic-service:
  replicaCount: 2
+
+ serviceAccountName: keyworker-api-preprod
+
  env:
   PRISON_URI_ROOT: "https://api-preprod.prison.service.justice.gov.uk"
   AUTH_URI_ROOT: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
@@ -12,24 +15,6 @@ generic-service:
 
  ingress:
    host: keyworker-api-preprod.prison.service.justice.gov.uk
-
- namespace_secrets:
-  kw-sqs-instance-output:
-   HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_ACCESS_KEY_ID: "access_key_id"
-   HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
-   HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_NAME: "sqs_kw_name"
-  kw-sqs-dl-instance-output:
-   HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_ACCESS_KEY_ID: "access_key_id"
-   HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
-   HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_NAME: "sqs_kw_name"
-  kw-sqs-complexity-of-need-instance-output:
-   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_ACCESS_KEY_ID: "access_key_id"
-   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
-   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_NAME: "sqs_kw_name"
-  kw-sqs-complexity-of-need-dl-instance-output:
-   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_ACCESS_KEY_ID: "access_key_id"
-   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
-   HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME: "sqs_kw_name"
 
  allowlist:
   office: "217.33.148.210/32"
