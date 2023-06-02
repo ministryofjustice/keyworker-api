@@ -16,6 +16,4 @@ generic-service:
  ingress:
    host: keyworker-api-dev.prison.service.justice.gov.uk
 
- namespace_secrets:
-
  allowlist: false
