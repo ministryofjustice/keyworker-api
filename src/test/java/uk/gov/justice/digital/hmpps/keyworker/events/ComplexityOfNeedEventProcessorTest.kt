@@ -33,6 +33,7 @@ class ComplexityOfNeedEventProcessorTest {
     const val OFFENDER_NO = "A12345"
   }
 
+  val COMPLEXITY_MESSAGE_INACTIVE = this::class.java.getResource("complexity-message-inactive.json").readText()
   val COMPLEXITY_MESSAGE_HIGH = this::class.java.getResource("complexity-message-high.json").readText()
   val COMPLEXITY_MESSAGE_MEDIUM = this::class.java.getResource("complexity-message-medium.json").readText()
   val COMPLEXITY_MESSAGE_LOW = this::class.java.getResource("complexity-message-low.json").readText()
@@ -72,6 +73,15 @@ class ComplexityOfNeedEventProcessorTest {
   fun `should do nothing when there is no complexity url`() {
     complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "")
     complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_HIGH)
+
+    verify(keyworkerService, never()).deallocate(OFFENDER_NO)
+    verify(telemetryClient, never()).trackEvent(anyString(), any(), any())
+  }
+
+  @Test
+  fun `should do nothing when record is not active`() {
+    complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
+    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_INACTIVE)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
     verify(telemetryClient, never()).trackEvent(anyString(), any(), any())

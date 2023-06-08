@@ -16,7 +16,8 @@ data class ComplexityOfNeedChange(
   override val apiEndpoint: String,
   override val eventOccurred: LocalDateTime,
   val offenderNo: String,
-  val level: String
+  val level: String,
+  val active: Boolean?,
 ) : DomainEvent
 
 @Service
@@ -38,6 +39,14 @@ class ComplexityOfNeedEventProcessor(
     }
 
     val event = gson.fromJson(message, ComplexityOfNeedChange::class.java)
+
+    event.active?.let {
+      if(!it){
+        log.info("Skipping complexity of need record is not active")
+        return
+      }
+    }
+
     val complexityLevel = ComplexityOfNeedLevel.valueOf(event.level.toUpperCase())
 
     telemetryClient.trackEvent(
