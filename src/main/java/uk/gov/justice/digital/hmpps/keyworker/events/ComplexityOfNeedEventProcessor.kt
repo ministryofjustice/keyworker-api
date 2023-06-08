@@ -17,7 +17,7 @@ data class ComplexityOfNeedChange(
   override val eventOccurred: LocalDateTime,
   val offenderNo: String,
   val level: String,
-  val active: Boolean?,
+  val active: Boolean?
 ) : DomainEvent
 
 @Service
@@ -41,7 +41,7 @@ class ComplexityOfNeedEventProcessor(
     val event = gson.fromJson(message, ComplexityOfNeedChange::class.java)
 
     event.active?.let {
-      if(!it){
+      if (!it) {
         log.info("Skipping complexity of need record is not active")
         return
       }
