@@ -6,6 +6,7 @@ generic-prometheus-alerts:
 
 generic-service:
   nameOverride: keyworker-api
+  serviceAccountName: keyworker-api
   image:
     repository: quay.io/hmpps/keyworker-api
     tag: latest
