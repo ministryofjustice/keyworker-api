@@ -5,8 +5,6 @@
 generic-service:
  replicaCount: 4
 
- serviceAccountName: keyworker-api-prod
-
  env:
   PRISON_URI_ROOT: "https://api.prison.service.justice.gov.uk"
   AUTH_URI_ROOT: "https://sign-in.hmpps.service.justice.gov.uk/auth"
