@@ -24,6 +24,7 @@ dependencies {
   implementation("org.apache.camel.springboot:camel-spring-boot:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.apache.camel:camel-quartz:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.apache.camel:camel-direct:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel:camel-bean:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.springframework:spring-jms")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.3.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
