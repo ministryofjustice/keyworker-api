@@ -9,8 +9,8 @@ configurations {
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.28")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.28")
+  annotationProcessor("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-cache")
   implementation("org.springframework.boot:spring-boot-starter-quartz")
@@ -21,9 +21,9 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
-  implementation("org.apache.camel.springboot:camel-spring-boot:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-quartz:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-direct:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel.springboot:camel-spring-boot:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel:camel-quartz:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
+  implementation("org.apache.camel:camel-direct:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.springframework:spring-jms")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.3.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
@@ -39,17 +39,18 @@ dependencies {
   implementation("net.sf.ehcache:ehcache:2.10.9.2")
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
-  implementation("com.google.code.gson:gson:2.10.1")
-  compileOnly("org.projectlombok:lombok:1.18.28")
+  implementation("com.google.code.gson:gson")
+  implementation("com.google.guava:guava:32.0.1-jre")
+  compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb:2.7.2")
-  implementation("org.flywaydb:flyway-core:9.20.0")
-  runtimeOnly("org.postgresql:postgresql:42.6.0")
+  implementation("org.flywaydb:flyway-core")
+  runtimeOnly("org.postgresql:postgresql")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.18")
   testImplementation("org.spockframework:spock-spring:2.0-groovy-3.0") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:2.0-groovy-3.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
-  testCompileOnly("org.projectlombok:lombok:1.18.28")
+  testCompileOnly("org.projectlombok:lombok")
   testImplementation("org.gebish:geb-core:6.0") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:6.0") // Upgrade breaks groovy
   testImplementation("org.seleniumhq.selenium:selenium-support:4.10.0")
@@ -58,7 +59,7 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:3.8.0") // DO NOT UPDATE - BREAKS CAMEL
+  testImplementation("org.apache.camel:camel-test-spring:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.38.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")

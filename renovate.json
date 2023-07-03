@@ -12,22 +12,22 @@
     {
       "matchDatasources": ["maven"],
       "matchPackageNames": ["org.apache.camel.springboot:camel-spring-boot"],
-      "allowedVersions": "3.8.0"
+      "allowedVersions": "3.20.4"
     },
     {
       "matchDatasources": ["maven"],
       "matchPackageNames": ["org.apache.camel:camel-quartz"],
-      "allowedVersions": "3.8.0"
+      "allowedVersions": "3.20.4"
     },
     {
       "matchDatasources": ["maven"],
       "matchPackageNames": ["org.apache.camel:camel-direct"],
-      "allowedVersions": "3.8.0"
+      "allowedVersions": "3.20.4"
     },
     {
       "matchDatasources": ["maven"],
       "matchPackageNames": ["org.apache.camel:camel-test-spring"],
-      "allowedVersions": "3.8.0"
+      "allowedVersions": "3.20.4"
     },
     {
       "matchDatasources": ["maven"],
