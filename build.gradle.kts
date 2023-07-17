@@ -1,7 +1,7 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.9.1"
-  kotlin("plugin.spring") version "1.8.22"
-  kotlin("plugin.jpa") version "1.8.22"
+  kotlin("plugin.spring") version "1.9.0"
+  kotlin("plugin.jpa") version "1.9.0"
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
@@ -41,7 +41,7 @@ dependencies {
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
   implementation("com.google.code.gson:gson")
-  implementation("com.google.guava:guava:32.0.1-jre")
+  implementation("com.google.guava:guava:32.1.1-jre")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb:2.7.2")
   implementation("org.flywaydb:flyway-core")
