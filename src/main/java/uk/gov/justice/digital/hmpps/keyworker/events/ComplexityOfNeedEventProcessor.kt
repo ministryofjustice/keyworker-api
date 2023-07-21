@@ -2,13 +2,14 @@ package uk.gov.justice.digital.hmpps.keyworker.events
 
 import com.google.gson.Gson
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import java.time.LocalDateTime
-import javax.persistence.EntityNotFoundException
+import java.util.Locale
 
 data class ComplexityOfNeedChange(
   override val eventType: String,
@@ -47,7 +48,7 @@ class ComplexityOfNeedEventProcessor(
       }
     }
 
-    val complexityLevel = ComplexityOfNeedLevel.valueOf(event.level.toUpperCase())
+    val complexityLevel = ComplexityOfNeedLevel.valueOf(event.level.uppercase(Locale.getDefault()))
 
     telemetryClient.trackEvent(
       "complexity-of-need-change",

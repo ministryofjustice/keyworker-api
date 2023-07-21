@@ -2,6 +2,19 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.google.common.base.Preconditions;
 import com.microsoft.applicationinsights.TelemetryClient;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RegExUtils;
@@ -41,21 +54,6 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
-
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import static java.lang.String.format;
 import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE;
 
@@ -291,7 +289,7 @@ public class KeyworkerService {
         final List<KeyWorkerAllocation> keyWorkerAllocations;
 
         // get distinct list of prisons that have been migrated for this offender
-        final var prisonsMigrated = keyworkers.stream().map(OffenderKeyworker::getPrisonId).distinct().collect(Collectors.toList());
+        final var prisonsMigrated = keyworkers.stream().map(OffenderKeyworker::getPrisonId).distinct().toList();
 
         // get the allocations that are in nomis for other prisons
         final var allocations =

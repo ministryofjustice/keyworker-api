@@ -1,6 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.rolemigration;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -8,12 +12,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentStats;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RoleAssignmentsSpecification;
-
-import javax.validation.Valid;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 

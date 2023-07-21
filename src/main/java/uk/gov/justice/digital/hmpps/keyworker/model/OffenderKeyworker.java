@@ -1,6 +1,16 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
-import org.hibernate.annotations.Type;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.hibernate.validator.constraints.Length;
 import org.slf4j.Logger;
 import org.springframework.data.annotation.CreatedBy;
@@ -8,19 +18,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import static java.time.temporal.ChronoUnit.DAYS;
 
 @Entity
@@ -30,7 +27,7 @@ public class OffenderKeyworker {
 
   private static final Logger log = org.slf4j.LoggerFactory.getLogger(OffenderKeyworker.class);
   @Id()
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name = "offender_keyworker_id", nullable = false)
     private Long offenderKeyworkerId;
 
@@ -47,7 +44,6 @@ public class OffenderKeyworker {
     @Column(name = "ASSIGNED_DATE_TIME", nullable = false)
     private LocalDateTime assignedDateTime;
 
-    @Type(type = "yes_no")
     @Column(name = "ACTIVE_FLAG", nullable = false)
     private boolean active;
 
