@@ -7,6 +7,8 @@ configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
   implementation { exclude(mapOf("module" to "commons-logging")) }
   implementation { exclude(mapOf("module" to "log4j")) }
+  implementation { exclude(mapOf("module" to "logback-classic")) }
+  implementation { exclude(mapOf("module" to "spring-boot-starter-logging")) }
 }
 
 val camelVersion = "3.20.4"
