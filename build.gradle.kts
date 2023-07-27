@@ -67,6 +67,15 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
+
+allOpen {
+  annotations(
+    "jakarta.persistence.Entity",
+    "jakarta.persistence.MappedSuperclass",
+    "jakarta.persistence.Embeddable"
+  )
+}
+
 dependencyCheck {
   suppressionFiles.add("suppressions.xml")
 }
