@@ -24,10 +24,10 @@ public class ResourceServerConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(httpRequest -> httpRequest.requestMatchers("/webjars/**", "/favicon.ico", "/csrf",
-                "/health/**", "/info", "/ping", "/h2-console/**",
-                "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
-                "/swagger-resources", "/swagger-resources/configuration/ui",
-                "/swagger-resources/configuration/security", "/api/restore-info").permitAll().anyRequest().authenticated())
+                "/health/**", "/info", "/ping",
+                "/v3/api-docs/**", "/v2/api-docs", "/swagger-ui/**", "/swagger-ui.html",
+                "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
+                "/queue-admin/retry-all-dlqs").permitAll().anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(new AuthAwareTokenConverter())))
             .build();
     }
