@@ -5,6 +5,7 @@ plugins {
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
+  implementation { exclude(mapOf("module" to "logback-classic")) }
 }
 
 val camelVersion = "3.20.4"
