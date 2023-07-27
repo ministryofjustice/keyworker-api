@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.config
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
