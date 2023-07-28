@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.4"
   kotlin("plugin.spring") version "1.9.0"
   kotlin("plugin.jpa") version "1.9.0"
 }
@@ -8,7 +8,10 @@ configurations {
   implementation { exclude(mapOf("module" to "logback-classic")) }
 }
 
+// DO NOT UPDATE - BREAKS CAMEL / GROOVY
 val camelVersion = "3.20.4"
+val spockVersion = "2.4-M1-groovy-3.0"
+val gebishVersion = "6.0"
 
 dependencies {
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -49,13 +52,13 @@ dependencies {
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:postgresql")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.18")
-  testImplementation("org.spockframework:spock-spring:2.4-M1-groovy-4.0") // Upgrade breaks groovy
-  testImplementation("org.spockframework:spock-core:2.4-M1-groovy-4.0") { // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-core:$spockVersion") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok")
-  testImplementation("org.gebish:geb-core:7.0") // Upgrade breaks groovy
-  testImplementation("org.gebish:geb-spock:7.0") // Upgrade breaks groovy
+  testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
+  testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.seleniumhq.selenium:selenium-support:4.10.0")
   testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.10.0")
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.10.0")
