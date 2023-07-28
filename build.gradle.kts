@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.4"
   kotlin("plugin.spring") version "1.9.0"
   kotlin("plugin.jpa") version "1.9.0"
 }
@@ -49,13 +49,13 @@ dependencies {
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:postgresql")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.18")
-  testImplementation("org.spockframework:spock-spring:2.4-M1-groovy-3.0") // Upgrade breaks groovy
-  testImplementation("org.spockframework:spock-core:2.4-M1-groovy-3.0") { // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-spring:2.4-M1-groovy-4.0") // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-core:2.4-M1-groovy-4.0") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok")
-  testImplementation("org.gebish:geb-core:6.0") // Upgrade breaks groovy
-  testImplementation("org.gebish:geb-spock:6.0") // Upgrade breaks groovy
+  testImplementation("org.gebish:geb-core:7.0") // Upgrade breaks groovy
+  testImplementation("org.gebish:geb-spock:7.0") // Upgrade breaks groovy
   testImplementation("org.seleniumhq.selenium:selenium-support:4.10.0")
   testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.10.0")
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.10.0")
@@ -63,7 +63,7 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("org.apache.camel:camel-test-spring:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.38.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.0.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
 }
