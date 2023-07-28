@@ -5,7 +5,6 @@ plugins {
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
-  implementation { exclude(mapOf("module" to "logback-classic")) }
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
@@ -27,10 +26,10 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
-  implementation("org.apache.camel.springboot:camel-spring-boot:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-quartz:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-direct:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-bean:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
+//  implementation("org.apache.camel.springboot:camel-spring-boot:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
+//  implementation("org.apache.camel:camel-quartz:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
+//  implementation("org.apache.camel:camel-direct:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
+//  implementation("org.apache.camel:camel-bean:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.springframework:spring-jms")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
@@ -65,7 +64,7 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
+  testImplementation("org.apache.camel:camel-test-spring:3.20.4") // DO NOT UPDATE - BREAKS CAMEL
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.0.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")

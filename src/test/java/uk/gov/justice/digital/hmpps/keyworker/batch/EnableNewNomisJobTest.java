@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
-public class EnableNewNomisRouteTest extends CamelTestSupport {
+public class EnableNewNomisJobTest extends CamelTestSupport {
 
     private final static String MOCK_ENABLE_ENDPOINT = "mock:enableNewNomis";
 
@@ -27,8 +27,8 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
     @Override
     public RouteBuilder[] createRouteBuilders() {
         MockitoAnnotations.initMocks(this);
-        final var route = new EnableNewNomisRoute(nomisBatchService);
-        return new RouteBuilder[]{route};
+        final var route = new EnableNewNomisJob(nomisBatchService);
+//        return new RouteBuilder[]{route};
     }
 
     @Before
@@ -41,7 +41,7 @@ public class EnableNewNomisRouteTest extends CamelTestSupport {
     @Test
     public void testEnabledNewNomisCamelRoute_callsNomisBatchService() throws Exception {
 
-        template.send(EnableNewNomisRoute.ENABLE_NEW_NOMIS, exchange -> {
+        template.send(EnableNewNomisJob.ENABLE_NEW_NOMIS, exchange -> {
         });
 
         assertMockEndpointsSatisfied();
