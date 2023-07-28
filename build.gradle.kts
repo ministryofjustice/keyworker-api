@@ -35,8 +35,8 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
-  implementation("com.sun.xml.bind:jaxb-impl:4.0.3")
-  implementation("com.sun.xml.bind:jaxb-core:4.0.3")
+  implementation("com.sun.xml.bind:jaxb-impl")
+  implementation("com.sun.xml.bind:jaxb-core")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
   implementation("io.swagger:swagger-annotations:1.6.11")
@@ -44,11 +44,11 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-kotlin:1.7.0")
   implementation("org.springdoc:springdoc-openapi-data-rest:1.7.0")
   implementation("org.apache.commons:commons-text:1.10.0")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
   implementation("com.google.guava:guava:32.1.1-jre")
   compileOnly("org.projectlombok:lombok")
-  runtimeOnly("org.hsqldb:hsqldb:2.7.2")
+  runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:postgresql")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.18")
@@ -93,4 +93,8 @@ tasks {
   test {
     jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
   }
+}
+
+tasks.withType<Jar>() {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
