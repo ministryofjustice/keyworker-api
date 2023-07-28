@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.events
 
 import com.google.gson.Gson
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.anyString
@@ -15,7 +16,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
-import javax.persistence.EntityNotFoundException
 
 @ExtendWith(MockitoExtension::class)
 class ComplexityOfNeedEventProcessorTest {

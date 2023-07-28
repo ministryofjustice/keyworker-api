@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.Valid
 import org.apache.commons.lang3.Validate
 import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
@@ -47,8 +49,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonSupportedService
 import java.time.LocalDate
 import java.util.Optional
-import javax.persistence.EntityNotFoundException
-import javax.validation.Valid
 
 @Tag(name = "key-worker")
 @RestController

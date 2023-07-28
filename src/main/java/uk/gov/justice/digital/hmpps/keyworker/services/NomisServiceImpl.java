@@ -1,10 +1,17 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -31,16 +38,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.RestResponsePage;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffUser;
-
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.queryParamsOf;
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.uriVariablesOf;
 
@@ -168,7 +165,6 @@ public class NomisServiceImpl implements NomisService {
 
 
     @Override
-    @Cacheable("getBasicKeyworkerDtoForStaffId")
     public StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(final Long staffId) {
         log.debug("Getting basic keyworker details for staffId {} from prison-api using uri {}", staffId, URI_STAFF);
         final var uriVariables = uriVariablesOf("staffId", String.valueOf(staffId));
@@ -186,7 +182,6 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    @Cacheable("getStaffDetailByUserId")
     public StaffUser getStaffDetailByUserId(final String userId) {
         log.info("Getting staff details for user Id {}", userId);
         final var uri = GET_USER_DETAILS;

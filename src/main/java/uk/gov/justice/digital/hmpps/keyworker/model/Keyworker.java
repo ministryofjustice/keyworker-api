@@ -1,19 +1,17 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
-
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "KEY_WORKER")
@@ -37,7 +35,6 @@ public class Keyworker {
     @Convert(converter = KeyworkerStatusConvertor.class)
     private KeyworkerStatus status;
 
-    @Type(type = "yes_no")
     @NotNull
     @Column(name = "AUTO_ALLOCATION_FLAG", nullable = false)
     @Builder.Default

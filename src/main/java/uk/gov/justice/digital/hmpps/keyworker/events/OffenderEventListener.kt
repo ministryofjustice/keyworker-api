@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
 import com.google.gson.Gson
+import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.jms.annotation.JmsListener
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
@@ -20,7 +20,7 @@ class OffenderEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @JmsListener(destination = "offenderevents", containerFactory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
   fun eventListener(requestJson: String) {
     val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
     val eventType = messageAttributes.eventType.Value

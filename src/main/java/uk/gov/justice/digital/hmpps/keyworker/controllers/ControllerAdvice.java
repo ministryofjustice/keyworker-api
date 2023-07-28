@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +13,6 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
-
-import javax.persistence.EntityNotFoundException;
-
 
 @org.springframework.web.bind.annotation.RestControllerAdvice(
         basePackageClasses = KeyworkerServiceController.class
