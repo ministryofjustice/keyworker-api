@@ -60,7 +60,6 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("org.apache.camel:camel-test-spring:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.0.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.springframework.security:spring-security-test")
