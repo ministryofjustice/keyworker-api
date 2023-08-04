@@ -9,7 +9,6 @@ configurations {
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
-val camelVersion = "3.20.4"
 val spockVersion = "2.4-M1-groovy-3.0"
 val gebishVersion = "6.0"
 
@@ -27,10 +26,6 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
-  implementation("org.apache.camel.springboot:camel-spring-boot:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-quartz:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-direct:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
-  implementation("org.apache.camel:camel-bean:$camelVersion") // DO NOT UPDATE - BREAKS CAMEL
   implementation("org.springframework:spring-jms")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")

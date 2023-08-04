@@ -1,11 +1,11 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "app.fullname" . }}-queue-housekeeping
+  name: {{ include "app.fullname" . }}-keyworker-recon
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "0 0 21 ? * *"
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 5
   startingDeadlineSeconds: 600
@@ -20,5 +20,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPUT http://keyworker-api/queue-admin/retry-all-dlqs
+                - curl --retry 2 -XPOST http://keyworker-api/key-worker-recon
           restartPolicy: Never
