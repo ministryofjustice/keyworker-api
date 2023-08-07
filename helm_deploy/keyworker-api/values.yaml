@@ -14,10 +14,11 @@ generic-service:
     tag: latest
     port: 8080
 
+
   env:
     JAVA_OPTS: "-Xmx512m"
     SERVER_PORT: "8080"
-    SPRING_PROFILES_ACTIVE: "batch,sqs"
+    SPRING_PROFILES_ACTIVE: "sqs"
     SERVER_CONNECTION_TIMEOUT: "180000"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
@@ -37,6 +38,22 @@ generic-service:
       nginx.ingress.kubernetes.io/configuration-snippet: |
         server_tokens off;
         location /queue-admin/retry-all-dlqs {
+          deny all;
+          return 401;
+        }
+        location /batch/add-users-to-new-nomis {
+          deny all;
+          return 401;
+        }
+        location /batch/key-worker-recon {
+          deny all;
+          return 401;
+        }
+        location /batch/generate-stats {
+          deny all;
+          return 401;
+        }
+        location /batch/update-status {
           deny all;
           return 401;
         }

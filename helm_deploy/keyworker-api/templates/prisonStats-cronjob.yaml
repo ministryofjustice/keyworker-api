@@ -1,11 +1,11 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "app.fullname" . }}-queue-housekeeping
+  name: {{ include "app.fullname" . }}-keyworker-recon
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "5 0 * * *"
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 5
   startingDeadlineSeconds: 600
@@ -15,10 +15,10 @@ spec:
       template:
         spec:
           containers:
-            - name: housekeeping-keyworker-api
+            - name: prisonstats-keyworker-api
               image: ghcr.io/ministryofjustice/hmpps-devops-tools
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPUT http://keyworker-api/queue-admin/retry-all-dlqs
+                - curl --retry 2 -XPOST http://keyworker-api/batch/generate-stats
           restartPolicy: Never
