@@ -44,7 +44,7 @@ services:
       - SERVER_PORT=8080
       - PRISON_URI_ROOT=http://prison-api:8080
       - AUTH_URI_ROOT=http://oauth-server:8080/auth
-      - SPRING_PROFILES_ACTIVE=localstack,batch
+      - SPRING_PROFILES_ACTIVE=localstack
       - APP_DB_URL=jdbc:postgresql://localhost:5432/keyworker-api-db
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin_password
