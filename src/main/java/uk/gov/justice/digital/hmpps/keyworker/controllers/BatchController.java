@@ -56,6 +56,7 @@ public class BatchController {
 
     @PostMapping(path = "/add-users-to-new-nomis")
     public void runEnableNewNomisBatch() {
+        log.info("Cronjob triggered from enable-new-nomis ");
         nomisBatchService.enableNomis();
     }
 
@@ -73,6 +74,7 @@ public class BatchController {
 
     @PostMapping(path = "/generate-stats")
     public void runBatchPrisonStats() {
+        log.info("Cronjob triggered from generate-stats ");
         keyworkerStatsBatchService.generatePrisonStats();
     }
 
@@ -88,6 +90,7 @@ public class BatchController {
 
     @PostMapping(path = "/update-status")
     public List<Long> runBatchUpdateStatus() {
+        log.info("Cronjob triggered from update-status ");
         final List<Long> ids = keyworkerBatchService.executeUpdateStatus();
         log.info("processed /batch/updateStatus call. The following key workers have been set to status active: {}", ids.size());
         return ids;
@@ -109,6 +112,7 @@ public class BatchController {
 
     @PostMapping(path = "/key-worker-recon")
     public void runKWReconciliation() {
+        log.info("Cronjob triggered from key-worker-recon ");
         reconciliationBatchService.reconcileKeyWorkerAllocations();
     }
 
