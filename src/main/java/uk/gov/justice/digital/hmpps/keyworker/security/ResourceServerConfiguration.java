@@ -27,7 +27,7 @@ public class ResourceServerConfiguration {
                 "/health/**", "/info", "/ping",
                 "/v3/api-docs/**", "/v2/api-docs", "/swagger-ui/**", "/swagger-ui.html",
                 "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
-                "/queue-admin/retry-all-dlqs").permitAll().anyRequest().authenticated())
+                "/queue-admin/retry-all-dlqs", "/batch/key-worker-recon", "/batch/update-status", "/batch/generate-stats", "/batch/add-users-to-new-nomis").permitAll().anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(new AuthAwareTokenConverter())))
             .build();
     }
