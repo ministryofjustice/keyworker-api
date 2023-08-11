@@ -11,6 +11,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import org.hibernate.type.YesNoConverter;
 import org.hibernate.validator.constraints.Length;
 import org.slf4j.Logger;
 import org.springframework.data.annotation.CreatedBy;
@@ -45,6 +47,7 @@ public class OffenderKeyworker {
     private LocalDateTime assignedDateTime;
 
     @Column(name = "ACTIVE_FLAG", nullable = false)
+    @Convert(converter = YesNoConverter.class)
     private boolean active;
 
     @NotNull
