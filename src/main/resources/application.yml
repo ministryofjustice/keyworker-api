@@ -110,7 +110,3 @@ role-migration:
   rolesToAssign:
 
 api.health-timeout-ms: 1000
-
-database:
-  driver:
-    class: org.postgresql.Driver
