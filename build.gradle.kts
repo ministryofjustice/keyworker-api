@@ -5,7 +5,7 @@ plugins {
 }
 configurations {
   implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
-//  implementation { exclude(mapOf("module" to "logback-classic")) }
+  implementation { exclude(mapOf("module" to "logback-classic")) }
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
