@@ -4,8 +4,6 @@ plugins {
   kotlin("plugin.jpa") version "1.9.0"
 }
 configurations {
-  implementation { exclude(mapOf("module" to "tomcat-jdbc")) }
-  implementation { exclude(mapOf("module" to "logback-classic")) }
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
@@ -50,13 +48,13 @@ dependencies {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.seleniumhq.selenium:selenium-support:4.10.0")
   testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.10.0")
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.10.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
-  testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.0.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
