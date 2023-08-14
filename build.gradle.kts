@@ -3,8 +3,6 @@ plugins {
   kotlin("plugin.spring") version "1.9.0"
   kotlin("plugin.jpa") version "1.9.0"
 }
-configurations {
-}
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
 val spockVersion = "2.4-M1-groovy-3.0"
