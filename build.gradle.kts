@@ -36,6 +36,8 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
   implementation("com.google.guava:guava:32.1.1-jre")
+  implementation("io.opentelemetry:opentelemetry-api:1.28.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.28.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
