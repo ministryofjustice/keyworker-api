@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.events
 
 import com.google.gson.Gson
 import io.awspring.cloud.sqs.annotation.SqsListener
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -17,6 +19,7 @@ class DomainEventListener(
   }
 
   @SqsListener("complexityofneed", factory = "hmppsQueueContainerFactoryProxy")
+  @WithSpan(value = "keyworker-api-complexity-event-queue", kind = SpanKind.SERVER)
   fun eventListener(requestJson: String) {
     val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
     val eventType = messageAttributes.eventType.Value
