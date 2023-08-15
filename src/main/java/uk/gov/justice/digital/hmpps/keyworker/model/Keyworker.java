@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.type.YesNoConverter;
 
 @Entity
 @Table(name = "KEY_WORKER")
@@ -38,6 +39,7 @@ public class Keyworker {
     @NotNull
     @Column(name = "AUTO_ALLOCATION_FLAG", nullable = false)
     @Builder.Default
+    @Convert(converter = YesNoConverter.class)
     private Boolean autoAllocationFlag = Boolean.TRUE;
 
     @Column(name = "ACTIVE_DATE")
