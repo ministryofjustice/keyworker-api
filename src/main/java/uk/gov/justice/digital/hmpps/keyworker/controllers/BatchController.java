@@ -56,9 +56,9 @@ public class BatchController {
 
     @PostMapping(path = "/add-users-to-new-nomis")
     public void runEnableNewNomisBatch() {
-        log.info("Starting: Cronjob triggered from enable-new-nomis ");
+        log.info("Starting: Checking for new users and enabling user access to API");
         nomisBatchService.enableNomis();
-        log.info("Complete: Cronjob triggered from enable-new-nomis ");
+        log.info("Complete: Checking for new Users and Enabling User access to API");
     }
 
     @Operation(
@@ -75,9 +75,9 @@ public class BatchController {
 
     @PostMapping(path = "/generate-stats")
     public void runBatchPrisonStats() {
-        log.info("Starting: Cronjob triggered from generate-stats ");
+        log.info("Starting: Daily Prison Statistics");
         keyworkerStatsBatchService.generatePrisonStats();
-        log.info("Complete: Cronjob triggered from generate-stats ");
+        log.info("Complete: Daily Prison Statistics");
     }
 
     @Operation(
@@ -92,10 +92,9 @@ public class BatchController {
 
     @PostMapping(path = "/update-status")
     public List<Long> runBatchUpdateStatus() {
-        log.info("Starting: Cronjob triggered from update-status ");
         final List<Long> ids = keyworkerBatchService.executeUpdateStatus();
         log.info("processed /batch/updateStatus call. The following key workers have been set to status active: {}", ids.size());
-        log.info("Complete: Cronjob triggered from update-status ");
+        log.info("Keyworkers updated to active status: {}", ids.size());
         return ids;
     }
 
@@ -115,9 +114,9 @@ public class BatchController {
 
     @PostMapping(path = "/key-worker-recon")
     public void runKWReconciliation() {
-        log.info("Starting: Cronjob triggered from key-worker-recon ");
+        log.info("Starting: Key Worker Reconciliation");
         reconciliationBatchService.reconcileKeyWorkerAllocations();
-        log.info("Complete: Cronjob triggered from key-worker-recon ");
+        log.info("Complete: Key Worker Reconciliation");
     }
 
 }
