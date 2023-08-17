@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.4"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.3.0"
   kotlin("plugin.spring") version "1.9.0"
   kotlin("plugin.jpa") version "1.9.0"
 }
@@ -35,9 +35,9 @@ dependencies {
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
-  implementation("com.google.guava:guava:32.1.1-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.28.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.28.0")
+  implementation("com.google.guava:guava:32.1.2-jre")
+  implementation("io.opentelemetry:opentelemetry-api:1.29.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.29.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
@@ -51,9 +51,9 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.10.0")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.10.0")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.10.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.11.0")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.11.0")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.11.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.0.0")
