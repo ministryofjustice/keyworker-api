@@ -66,10 +66,10 @@ public class ControllerAdvice {
     public ResponseEntity<ErrorResponse> handleException(final Exception e) {
         log.error("Unexpected exception", e);
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse
                         .builder()
-                        .status(HttpStatus.BAD_REQUEST.value())
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .developerMessage(e.getMessage())
                         .build());
     }

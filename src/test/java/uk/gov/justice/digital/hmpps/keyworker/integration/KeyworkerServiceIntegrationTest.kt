@@ -70,7 +70,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .uri("/key-worker/allocation-history/summary")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is4xxClientError
+      .expectStatus().is5xxServerError
   }
 
   @Test
