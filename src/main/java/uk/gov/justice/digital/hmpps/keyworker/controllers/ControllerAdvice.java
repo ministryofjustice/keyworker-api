@@ -54,7 +54,7 @@ public class ControllerAdvice {
     @ExceptionHandler(AllocationException.class)
     public ResponseEntity<ErrorResponse> handleException(final AllocationException e) {
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse
                         .builder()
                         .status(HttpStatus.BAD_REQUEST.value())
