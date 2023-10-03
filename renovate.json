@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>ministryofjustice/hmpps-renovate-config:jvm"],
-  "reviewers": ["neilmendum", "timoj58", "natclamp-moj", "p-nik"],
+  "reviewers": ["timoj58", "natclamp-moj", "nagendramoj"],
   "packageRules": [
     {
       "matchManagers": ["gradle"],
