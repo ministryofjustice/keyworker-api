@@ -23,11 +23,13 @@ public class ResourceServerConfiguration {
         return http.headers(headersConfigurer -> headersConfigurer.frameOptions(FrameOptionsConfig::sameOrigin))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(httpRequest -> httpRequest.requestMatchers("/webjars/**", "/favicon.ico", "/csrf",
+            .authorizeHttpRequests(httpRequest -> httpRequest.requestMatchers(
+                "/webjars/**", "/favicon.ico", "/csrf",
                 "/health/**", "/info", "/ping",
-                "/v3/api-docs/**", "/v2/api-docs", "/swagger-ui/**", "/swagger-ui.html",
+                "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
                 "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
-                "/queue-admin/retry-all-dlqs", "/batch/key-worker-recon", "/batch/update-status", "/batch/generate-stats", "/batch/add-users-to-new-nomis").permitAll().anyRequest().authenticated())
+                "/queue-admin/retry-all-dlqs", "/batch/key-worker-recon", "/batch/update-status", "/batch/generate-stats", "/batch/add-users-to-new-nomis"
+            ).permitAll().anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(new AuthAwareTokenConverter())))
             .build();
     }
