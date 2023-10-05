@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -67,6 +68,7 @@ class KeyworkerStatsController(
     ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
+  @PreAuthorize("hasAnyRole('ROLE_MAINTAIN_KEYWORKERS')")
   fun getStatsForStaff(
     @Parameter(name = "staffId")
     @PathVariable("staffId")
@@ -132,6 +134,7 @@ class KeyworkerStatsController(
     ]
   )
   @GetMapping
+  @PreAuthorize("hasAnyRole('ROLE_MAINTAIN_KEYWORKERS')")
   fun getPrisonStats(
     @Parameter(description = "List of prisonIds", example = "prisonId=MDI&prisonId=LEI")
     @RequestParam(
