@@ -80,9 +80,9 @@ abstract class IntegrationTest {
     flyway.migrate()
   }
 
-  internal fun setOmicAdminHeaders(): (HttpHeaders) -> Unit = setHeaders(roles = listOf("ROLE_OMIC_ADMIN"))
+  internal fun setOmicAdminHeaders(): (HttpHeaders) -> Unit = setHeaders(roles = listOf("ROLE_OMIC_ADMIN", "ROLE_MAINTAIN_KEYWORKERS"))
 
-  internal fun setHeaders(username: String? = "ITAG_USER", roles: List<String>? = emptyList()): (HttpHeaders) -> Unit {
+  internal fun setHeaders(username: String? = "ITAG_USER", roles: List<String>? = listOf("ROLE_MAINTAIN_KEYWORKERS")): (HttpHeaders) -> Unit {
     val token = jwtAuthHelper.createJwt(subject = username, roles = roles)
     return {
       it.setBearerAuth(token)
@@ -103,7 +103,7 @@ abstract class IntegrationTest {
 
     webTestClient.post()
       .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true&capacity=6,9&frequency=2")
-      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
+      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION", "ROLE_MAINTAIN_KEYWORKERS")))
       .exchange()
       .expectStatus().is2xxSuccessful
   }
@@ -115,7 +115,7 @@ abstract class IntegrationTest {
 
     webTestClient.post()
       .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true")
-      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
+      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION", "ROLE_MAINTAIN_KEYWORKERS")))
       .exchange()
       .expectStatus().is2xxSuccessful
   }

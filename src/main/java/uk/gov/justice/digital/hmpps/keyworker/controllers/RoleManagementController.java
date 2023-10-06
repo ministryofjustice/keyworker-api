@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,9 +42,11 @@ public class RoleManagementController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Ok"),
-            @ApiResponse(responseCode = "400", description = "Client error")
+            @ApiResponse(responseCode = "400", description = "Client error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
     public ResponseEntity<List<RoleAssignmentStats>> assignRolesJson(@RequestBody final RoleAssignmentsSpecification specification) {
         final var result = roleAssignmentsService.updateRoleAssignments(specification);
         return ResponseEntity.ok(result);
@@ -55,9 +58,11 @@ public class RoleManagementController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Successful"),
-            @ApiResponse(responseCode = "400", description = "Client error")
+            @ApiResponse(responseCode = "400", description = "Client error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
     public ResponseEntity assignRolesForm(@Parameter(description = "An application/x-www-form-urlencoded form.  Keys 'caseloads' and 'rolesToMatch' are mandatory, 'rolesToAdd' and 'rolesToRemove' should be supplied as needed") @RequestParam final MultiValueMap<String, String> form) {
         roleAssignmentsService.updateRoleAssignments(RoleAssignmentsSpecification.fromForm(form));
         return ResponseEntity.noContent().build();
