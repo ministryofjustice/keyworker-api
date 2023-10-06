@@ -108,7 +108,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{prisonId}/available"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getAvailableKeyworkers(
     @Parameter(name = "prisonId", required = true)
     @PathVariable(name = "prisonId")
@@ -161,7 +160,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{prisonId}/allocations"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getKeyworkerAllocations(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -276,7 +274,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{prisonId}/offenders"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getOffenderKeyworkerDetailsList(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -290,7 +287,6 @@ class KeyworkerServiceController(
   ): List<OffenderKeyworkerDto> = keyworkerService.getOffenderKeyworkerDetailList(prisonId, offenderNos)
 
   @PostMapping(path = ["/{prisonId}/offenders"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getOffenderKeyworkerDetailsListPost(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -347,7 +343,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{prisonId}/offenders/unallocated"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getUnallocatedOffenders(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -406,7 +401,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getKeyworkerDetails(
     @Parameter(name = "staffId", required = true)
     @PathVariable("staffId")
@@ -460,7 +454,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{prisonId}/offender/{offenderNo}"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   @Deprecated("")
   fun deprecated_getOffendersKeyworker(
     @Parameter(name = "prisonId", required = true)
@@ -515,9 +508,8 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/offender/{offenderNo}"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getOffendersKeyworker(
-//    @Parameter(name = "offenderNo", required = true, example = "A1234BC")
+    @Parameter(name = "offenderNo", required = true, example = "A1234BC")
     @PathVariable("offenderNo")
     offenderNo: String
   ): BasicKeyworkerDto =
@@ -566,7 +558,6 @@ class KeyworkerServiceController(
     ]
   )
   @PostMapping(path = ["/{prisonId}/allocate/start"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun startAutoAllocation(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -606,7 +597,6 @@ class KeyworkerServiceController(
     ]
   )
   @PostMapping(path = ["/{prisonId}/allocate/confirm"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun confirmAutoAllocation(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -656,7 +646,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/allocation-history/{offenderNo}"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getKeyWorkerHistoryForPrisoner(
     @Parameter(name = "offenderNo", required = true)
     @PathVariable("offenderNo")
@@ -697,7 +686,6 @@ class KeyworkerServiceController(
     ]
   )
   @PostMapping(path = ["/allocation-history/summary"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getKeyWorkerHistorySummaryForPrisoners(
     @RequestBody offenderNos: List<String>?
   ): List<OffenderKeyWorkerHistorySummary> {
@@ -813,7 +801,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{prisonId}/members"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun keyworkerSearch(
     @Parameter(name = "prisonId", required = true)
     @PathVariable("prisonId")
@@ -912,7 +899,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}/offenders"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getAllocationsForKeyworkerWithOffenderDetails(
     @Parameter(name = "staffId", required = true)
     @PathVariable("staffId")
@@ -960,7 +946,6 @@ class KeyworkerServiceController(
     ]
   )
   @PostMapping(path = ["/{staffId}/prison/{prisonId}"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun addOrUpdateKeyworker(
     @Parameter(name = "staffId", required = true)
     @PathVariable("staffId")
@@ -1021,7 +1006,6 @@ class KeyworkerServiceController(
     ]
   )
   @GetMapping(path = ["/prison/{prisonId}"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun getPrisonMigrationStatus(
     @Parameter(name = "prisonId")
     @PathVariable("prisonId")
@@ -1071,7 +1055,6 @@ class KeyworkerServiceController(
     ]
   )
   @PostMapping(path = ["/enable/{prisonId}/manual"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun addSupportedPrisonForManualAllocation(
     @Parameter(name = "prisonId")
     @PathVariable("prisonId")
@@ -1133,7 +1116,6 @@ class KeyworkerServiceController(
     ]
   )
   @PostMapping(path = ["/enable/{prisonId}/auto-allocate"])
-  @PreAuthorize("hasAnyRole('MAINTAIN_KEYWORKERS')")
   fun addSupportedPrisonForAutoAllocation(
     @Parameter(name = "prisonId")
     @PathVariable("prisonId")
