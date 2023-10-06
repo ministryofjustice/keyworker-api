@@ -46,7 +46,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
 
     webTestClient.post()
       .uri("/key-worker/$PRISON_ID/allocate/confirm")
-      .headers(setHeaders(roles = listOf("ROLE_OMIC_ADMIN", "ROLE_MAINTAIN_KEYWORKERS")))
+      .headers(setHeaders(roles = listOf("ROLE_OMIC_ADMIN")))
       .exchange()
       .expectStatus().is2xxSuccessful
       .expectBody()
@@ -127,7 +127,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
     webTestClient
       .post()
       .uri("/key-worker/enable/$PRISON_ID/auto-allocate?migrate=true&capacity=6,9&frequency=2")
-      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION", "ROLE_MAINTAIN_KEYWORKERS")))
+      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
       .expectStatus().is2xxSuccessful
   }
