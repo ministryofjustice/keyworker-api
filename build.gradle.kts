@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.4.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.7.0"
   kotlin("plugin.spring") version "1.9.10"
   kotlin("plugin.jpa") version "1.9.10"
 }
@@ -21,21 +21,21 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
   implementation("org.springframework:spring-jms")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl")
   implementation("com.sun.xml.bind:jaxb-core")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
-  implementation("io.swagger:swagger-annotations:1.6.11")
+  implementation("io.swagger:swagger-annotations:1.6.12")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
   implementation("org.apache.commons:commons-text:1.10.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
-  implementation("com.google.guava:guava:32.1.2-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.29.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.29.0")
+  implementation("com.google.guava:guava:32.1.3-jre")
+  implementation("io.opentelemetry:opentelemetry-api:1.31.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.31.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
@@ -49,13 +49,13 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.12.1")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.12.1")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.12.1")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.14.1")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.14.1")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.14.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.0.0")
-  testImplementation("io.jsonwebtoken:jjwt:0.9.1")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.2")
+  testImplementation("io.jsonwebtoken:jjwt:0.12.3")
   testImplementation("org.springframework.security:spring-security-test")
 }
 
