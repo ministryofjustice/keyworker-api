@@ -46,7 +46,7 @@ dependencies {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok")
-  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.1")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.seleniumhq.selenium:selenium-support:4.12.1")
