@@ -126,7 +126,7 @@ Localstack has been introduced for some integration tests and it is also possibl
 
 * In the root of the localstack project, run command
 ```
-sudo rm -rf /tmp/localstack && docker-compose -f docker-compose-localstack.yaml down && docker-compose -f docker-compose-localstack.yaml up
+docker-compose -f docker-compose-localstack.yaml down && docker-compose -f docker-compose-localstack.yaml up
 ```
 to clear down and then bring up localstack
 * Start the Spring Boot app with profile='localstack'

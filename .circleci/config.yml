@@ -8,7 +8,7 @@ jobs:
     executor:
       name: hmpps/localstack
       jdk_tag: "18.0"
-      localstack_tag: "0.14.0"
+      localstack_tag: "2.3"
     steps:
       - checkout
       - restore_cache:

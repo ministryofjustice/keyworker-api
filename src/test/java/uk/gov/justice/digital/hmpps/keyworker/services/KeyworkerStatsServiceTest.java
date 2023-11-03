@@ -124,7 +124,7 @@ class KeyworkerStatsServiceTest {
         final var usageCounts = getCaseNoteUsagePrisonersDtos();
 
 
-        when(nomisService.getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+        when(nomisService.getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
                 .thenReturn(usageCounts);
 
         final var stats = service.getStatsForStaff(
@@ -139,7 +139,7 @@ class KeyworkerStatsServiceTest {
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
 
         verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate, false);
+                null, fromDate, toDate);
     }
 
     private List<CaseNoteUsagePrisonersDto> getCaseNoteUsagePrisonersDtos() {
@@ -325,7 +325,7 @@ class KeyworkerStatsServiceTest {
                 .numCaseNotes(2)
                 .build());
 
-        when(nomisService.getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate, false))
+        when(nomisService.getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
                 .thenReturn(usageCounts);
 
         final var stats = service.getStatsForStaff(
@@ -340,7 +340,7 @@ class KeyworkerStatsServiceTest {
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
 
         verify(nomisService).getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
-                null, fromDate, toDate, false);
+                null, fromDate, toDate);
     }
 
     @Test
@@ -349,7 +349,7 @@ class KeyworkerStatsServiceTest {
         basicSetup();
 
         when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
-                isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true)))
+                isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate)))
                 .thenReturn(List.of(
                         CaseNoteUsagePrisonersDto.builder()
                                 .caseNoteSubType(TRANSFER_CASENOTE_TYPE)
@@ -366,7 +366,7 @@ class KeyworkerStatsServiceTest {
                                 .numCaseNotes(1)
                                 .build())
                 );
-        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenderNos.stream().collect(Collectors.toSet())))
+        when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, new HashSet<>(offenderNos)))
             .thenReturn(offenderNos.stream().skip(1).collect(Collectors.toSet()));
 
         final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
@@ -390,7 +390,7 @@ class KeyworkerStatsServiceTest {
         basicSetup();
 
         lenient().when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
-                isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true)))
+                isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate)))
                 .thenReturn(Collections.emptyList());
 
         final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
@@ -743,7 +743,7 @@ class KeyworkerStatsServiceTest {
         verify(repository).findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(eq(TEST_AGENCY_ID), eq(toDate.minusDays(1).atStartOfDay()),
                 eq(new HashSet<>(List.of(offenderNos.get(2), offenderNos.get(1)))), eq(AllocationType.PROVISIONAL));
         verify(nomisService).getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
-                isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate), eq(true));
+                isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate));
     }
 
 }

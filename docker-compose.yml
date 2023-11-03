@@ -50,20 +50,16 @@ services:
       - SPRING_DATASOURCE_PASSWORD=admin_password
 
   localstack:
-    image: localstack/localstack:0.12.10
+    image: localstack/localstack:2.3
     networks:
       - hmpps
-    container_name: localstack
+    container_name: localstack-kw
     ports:
-      - "4566-4597:4566-4597"
+      - "4566:4566"
     environment:
       - SERVICES=sqs
-      - DATA_DIR=/tmp/localstack/data
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - DEFAULT_REGION=eu-west-2
     volumes:
-      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
 
   keyworker-api-db:
     image: postgres
