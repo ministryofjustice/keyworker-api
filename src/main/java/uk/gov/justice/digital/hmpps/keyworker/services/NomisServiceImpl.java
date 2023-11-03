@@ -108,7 +108,7 @@ public class NomisServiceImpl implements NomisService {
         log.debug("Getting prisoner details for NOMIS No {}", offenderNo);
         final var uriVariables = uriVariablesOf("offenderNo", offenderNo);
         final var prisonerDetail = restCallHelper.getEntity(URI_PRISONER_LOOKUP + "/{offenderNo}", queryParamsOf(), uriVariables, PRISONER_DETAIL_LIST, admin).getBody();
-        return Optional.ofNullable(prisonerDetail.size() > 0 ? prisonerDetail.get(0) : null);
+        return Optional.ofNullable(prisonerDetail.isEmpty() ? null : prisonerDetail.get(0));
     }
 
     @Override
@@ -143,7 +143,7 @@ public class NomisServiceImpl implements NomisService {
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         final var queryParams = queryParamsOf("staffId", String.valueOf(staffId), "activeOnly", "false");
         final var staff = restCallHelper.getEntity(uri, queryParams, uriVariables, PRISON_STAFF_LOCATION_DTO_LIST, false).getBody();
-        final var staffLocationRoleDto = Optional.ofNullable(staff.size() > 0 ? staff.get(0) : null);
+        final var staffLocationRoleDto = Optional.ofNullable(staff.isEmpty() ? null : staff.get(0));
         log.debug("Result: {}", staffLocationRoleDto);
         return staffLocationRoleDto;
     }
@@ -162,7 +162,6 @@ public class NomisServiceImpl implements NomisService {
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         return restCallHelper.getEntity(URI_AVAILABLE_KEYWORKERS, queryParamsOf(), uriVariables, KEYWORKER_DTO_LIST, false).getBody();
     }
-
 
     @Override
     public StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(final Long staffId) {
@@ -213,11 +212,11 @@ public class NomisServiceImpl implements NomisService {
                 .numMonths(numMonths)
                 .build();
 
-        return restCallHelper.post(CASE_NOTE_USAGE, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_DTO_LIST, false);
+        return restCallHelper.post(CASE_NOTE_USAGE, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_DTO_LIST, true);
     }
 
     @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(final List<String> offenderNos, final Long staffId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final boolean admin) {
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(final List<String> offenderNos, final Long staffId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate) {
         log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
 
         final var body = CaseNoteUsagePrisonersRequest.builder()
@@ -229,7 +228,7 @@ public class NomisServiceImpl implements NomisService {
                 .toDate(toDate)
                 .build();
 
-        return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, admin);
+        return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, true);
     }
 
     @Override
