@@ -213,7 +213,6 @@ public class NomisServiceImpl implements NomisService {
                 .build();
 
         return restCallHelper.post(CASE_NOTE_USAGE, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_DTO_LIST, true);
-        // true => uses keyworker-api client id, need VIEW_CASE_NOTES role
     }
 
     @Override
@@ -230,7 +229,6 @@ public class NomisServiceImpl implements NomisService {
                 .build();
 
         return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, true);
-        // if admin true, need VIEW_CASE_NOTES role
     }
 
     @Override
