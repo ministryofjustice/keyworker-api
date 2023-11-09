@@ -26,8 +26,8 @@ hs_err_pid*
 .gradle/
 build/
 /.env
-*.iml
 Dockerrun.aws.json
 out
 
 dps-gradle-spring-boot-suppressions.xml
+volume

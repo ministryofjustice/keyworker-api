@@ -708,7 +708,7 @@ class KeyworkerStatsServiceTest {
 
         when(nomisService.getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),
-                eq(toDate.minusDays(1)), eq(true)))
+                eq(toDate.minusDays(1))))
                 .thenReturn(getCaseNoteUsagePrisonersDtos());
 
         final var assignedOffenders = List.of(
@@ -738,7 +738,7 @@ class KeyworkerStatsServiceTest {
         verify(nomisService).getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true));
         verify(nomisService).getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),
-                eq(toDate.minusDays(1)), eq(true));
+                eq(toDate.minusDays(1)));
         verify(repository).findByPrisonIdAndAssignedDateTimeBetween(eq(TEST_AGENCY_ID), eq(toDate.atStartOfDay().minusDays(1)), eq(toDate.atStartOfDay()));
         verify(repository).findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(eq(TEST_AGENCY_ID), eq(toDate.minusDays(1).atStartOfDay()),
                 eq(new HashSet<>(List.of(offenderNos.get(2), offenderNos.get(1)))), eq(AllocationType.PROVISIONAL));

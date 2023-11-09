@@ -232,7 +232,7 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final boolean admin) {
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate) {
         log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
 
         final var body = CaseNoteUsagePrisonersRequest.builder()
@@ -243,7 +243,7 @@ public class NomisServiceImpl implements NomisService {
                 .toDate(toDate)
                 .build();
 
-        return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, admin);
+        return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, true);
     }
 
     @Override

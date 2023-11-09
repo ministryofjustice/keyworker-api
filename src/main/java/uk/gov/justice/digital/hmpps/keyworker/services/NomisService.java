@@ -71,7 +71,7 @@ public interface NomisService {
 
     List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate);
 
-    List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final boolean admin);
+    List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate);
 
     List<KeyworkerAllocationDetailsDto> getCurrentAllocations(List<Long> staffIds, String agencyId);
 
