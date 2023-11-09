@@ -103,8 +103,7 @@ public class KeyworkerStatsService {
                     prisonerNosList,
                     range.startDate,
                     range.endDate,
-                    staffId,
-                    false);
+                    staffId);
 
             final var projectedKeyworkerSessions = getProjectedKeyworkerSessions(applicableAssignments, staffId, prisonId, range.getStartDate(), nextEndDate);
             final var complianceRate = rate(caseNoteSummary.getSessionsDone(), projectedKeyworkerSessions);
@@ -180,8 +179,7 @@ public class KeyworkerStatsService {
                     null,
                     snapshotDate,
                     snapshotDate,
-                    null,
-                    true);
+                    null);
 
             log.info("There were {} Key Working Sessions and {} Key working entries on {}", caseNoteSummary.sessionsDone, caseNoteSummary.entriesDone, snapshotDate);
 
@@ -556,10 +554,10 @@ public class KeyworkerStatsService {
 
         KeyWorkingCaseNoteSummary(final String prisonId, final List<String> offenderNos,
                                   final LocalDate start, final LocalDate end,
-                                  final Long staffId, final boolean admin) {
+                                  final Long staffId) {
 
             if (prisonId != null) {
-                usageCounts = nomisService.getCaseNoteUsageByPrison(prisonId, KEYWORKER_CASENOTE_TYPE, null, start, end, admin);
+                usageCounts = nomisService.getCaseNoteUsageByPrison(prisonId, KEYWORKER_CASENOTE_TYPE, null, start, end);
             } else {
                 usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
             }
