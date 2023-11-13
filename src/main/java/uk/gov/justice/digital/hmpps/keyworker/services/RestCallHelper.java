@@ -124,7 +124,7 @@ public class RestCallHelper {
                                               final Map<String, String> uriVariables,
                                               final PagingAndSortingDto pagingAndSorting,
                                               final ParameterizedTypeReference<T> responseType) {
-        return getWebClient(false)
+        return getWebClient(true)
                 .get()
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
