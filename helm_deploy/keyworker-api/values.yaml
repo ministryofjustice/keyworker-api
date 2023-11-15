@@ -16,7 +16,7 @@ generic-service:
 
 
   env:
-    JAVA_OPTS: "-Xmx512m"
+    JAVA_OPTS: "-Xmx1024m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "sqs"
     SERVER_CONNECTION_TIMEOUT: "180000"
