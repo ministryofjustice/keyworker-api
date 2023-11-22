@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder
-import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
@@ -44,9 +43,6 @@ class KeyworkerServiceControllerTest() {
 
   @MockBean
   private lateinit var keyworkerMigrationService: KeyworkerMigrationService
-
-  @MockBean
-  private lateinit var roleMigrationService: UserRolesMigrationService
 
   @MockBean
   private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
