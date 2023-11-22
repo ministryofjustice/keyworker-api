@@ -42,7 +42,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prison
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
-import uk.gov.justice.digital.hmpps.keyworker.rolemigration.UserRolesMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
@@ -57,7 +56,6 @@ class KeyworkerServiceController(
   private val keyworkerService: KeyworkerService,
   private val keyworkerMigrationService: KeyworkerMigrationService,
   private val keyworkerAutoAllocationService: KeyworkerAutoAllocationService,
-  private val roleMigrationService: UserRolesMigrationService,
   private val prisonSupportedService: PrisonSupportedService
 ) {
 
@@ -1160,7 +1158,6 @@ class KeyworkerServiceController(
     }
     if (migrate) {
       keyworkerMigrationService.migrateKeyworkerByPrison(prisonId)
-      roleMigrationService.migrate(prisonId)
     }
     return prisonSupportedService.getPrisonDetail(prisonId)
   }
