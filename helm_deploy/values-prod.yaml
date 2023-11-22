@@ -1,44 +1,34 @@
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-
 generic-service:
- replicaCount: 4
+  replicaCount: 4
 
- env:
-  PRISON_URI_ROOT: "https://api.prison.service.justice.gov.uk"
-  AUTH_URI_ROOT: "https://sign-in.hmpps.service.justice.gov.uk/auth"
-  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
-  COMPLEXITY_OF_NEED_URI: https://complexity-of-need.hmpps.service.justice.gov.uk
-  PRISONS_WITH_OFFENDERS_THAT_HAVE_COMPLEX_NEEDS: "AGI,BZI,DHI,DWI,ESI,EWI,FHI,LNI,NHI,PFI,SDI,STI"
-  JAVA_OPTS: "-Xmx1024m"
+  env:
+    PRISON_URI_ROOT: "https://api.prison.service.justice.gov.uk"
+    AUTH_URI_ROOT: "https://sign-in.hmpps.service.justice.gov.uk/auth"
+    SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
+    COMPLEXITY_OF_NEED_URI: https://complexity-of-need.hmpps.service.justice.gov.uk
+    PRISONS_WITH_OFFENDERS_THAT_HAVE_COMPLEX_NEEDS: "AGI,BZI,DHI,DWI,ESI,EWI,FHI,LNI,NHI,PFI,SDI,STI"
+    JAVA_OPTS: "-Xmx1024m"
 
- postgresDatabaseRestore:
-  enabled: true
-  namespace_secrets:
-   dps-rds-instance-output:
-    DB_NAME: "database_name"
-    DB_USER: "database_username"
-    DB_PASS: "database_password"
-    DB_HOST: "rds_instance_address"
-   dps-rds-instance-output-preprod:
-    DB_NAME_PREPROD: "database_name"
-    DB_USER_PREPROD: "database_username"
-    DB_PASS_PREPROD: "database_password"
-    DB_HOST_PREPROD: "rds_instance_address"
+  postgresDatabaseRestore:
+    enabled: true
+    namespace_secrets:
+      dps-rds-instance-output:
+        DB_NAME: "database_name"
+        DB_USER: "database_username"
+        DB_PASS: "database_password"
+        DB_HOST: "rds_instance_address"
+      dps-rds-instance-output-preprod:
+        DB_NAME_PREPROD: "database_name"
+        DB_USER_PREPROD: "database_username"
+        DB_PASS_PREPROD: "database_password"
+        DB_HOST_PREPROD: "rds_instance_address"
 
- ingress:
-   host: keyworker-api.prison.service.justice.gov.uk
+  ingress:
+    host: keyworker-api.prison.service.justice.gov.uk
 
- allowlist:
-  office: "217.33.148.210/32"
-  health-kick: "35.177.252.195/32"
-  mojvpn: "81.134.202.29/32"
-  cloudplatform-live1-1: "35.178.209.113/32"
-  cloudplatform-live1-2: "3.8.51.207/32"
-  cloudplatform-live1-3: "35.177.252.54/32"
-  petty-france-wifi: "213.121.161.112/28"
-  global-protect: "35.176.93.186/32"
+  allowlist:
+    groups:
+      - internal
 
 # determine which slack channel alerts are sent to, via the correct Alert Manager receiver
 generic-prometheus-alerts:
