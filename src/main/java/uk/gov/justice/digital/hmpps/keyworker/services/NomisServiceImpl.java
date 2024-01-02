@@ -161,14 +161,14 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting available KW in prison {}", prisonId);
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         return restCallHelper.getEntity(URI_AVAILABLE_KEYWORKERS, queryParamsOf(), uriVariables, KEYWORKER_DTO_LIST, true).getBody();
-        // /key-worker/{agencyId}/available
     }
 
     @Override
     public StaffLocationRoleDto getBasicKeyworkerDtoForStaffId(final Long staffId) {
         log.debug("Getting basic keyworker details for staffId {} from prison-api using uri {}", staffId, URI_STAFF);
         final var uriVariables = uriVariablesOf("staffId", String.valueOf(staffId));
-        return restCallHelper.getObject(URI_STAFF, queryParamsOf(), uriVariables, StaffLocationRoleDto.class, false);
+        return restCallHelper.getObject(URI_STAFF, queryParamsOf(), uriVariables, StaffLocationRoleDto.class, true);
+        // client id needed as getting details for various key workers
     }
 
     @Override
@@ -180,7 +180,6 @@ public class NomisServiceImpl implements NomisService {
         final var pagingAndSorting = PagingAndSortingDto.builder().pageOffset(offset).pageLimit(limit).build();
 
         return restCallHelper.getEntityWithPaging(URI_KEY_WORKER_GET_ALLOCATION_HISTORY, queryParamsOf(), uriVariables, pagingAndSorting, PARAM_TYPE_REF_OFFENDER_KEY_WORKER).getBody();
-        // /key-worker/{agencyId}/allocationHistory
     }
 
     @Override
@@ -255,7 +254,6 @@ public class NomisServiceImpl implements NomisService {
 
         final var uriVariables = uriVariablesOf("agencyId", agencyId);
         return restCallHelper.post(URI_CURRENT_ALLOCATIONS, queryParamsOf(), uriVariables, staffIds, LEGACY_KEYWORKER_ALLOCATIONS, true);
-        // /key-worker/{agencyId}/current-allocations
     }
 
     @Override
@@ -264,7 +262,6 @@ public class NomisServiceImpl implements NomisService {
 
         final var uriVariables = uriVariablesOf("agencyId", agencyId);
         return restCallHelper.post(URI_CURRENT_ALLOCATIONS_BY_OFFENDERS, queryParamsOf(), uriVariables, offenderNos, LEGACY_KEYWORKER_ALLOCATIONS, true);
-        // /key-worker/{agencyId}/current-allocations/offenders  NOT USED??
     }
 
     @Override
@@ -272,7 +269,6 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting Key worker allocations for offender Nos {}", offenderNos);
 
         return restCallHelper.post(URI_OFFENDERS_ALLOCATION_HISTORY, queryParamsOf(), uriVariablesOf(), offenderNos, ALLOCATION_HISTORY, true);
-        // /key-worker/offenders/allocationHistory
     }
 
     @Override
