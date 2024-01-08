@@ -58,7 +58,6 @@ import static java.lang.String.format;
 import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE;
 
 @Service
-@Transactional
 @Validated
 @Slf4j
 @AllArgsConstructor
@@ -218,6 +217,7 @@ public class KeyworkerService {
         return keyworkerDto;
     }
 
+    @Transactional
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void allocate(@Valid @NotNull final KeyworkerAllocationDto keyworkerAllocation) {
         prisonSupportedService.verifyPrisonMigrated(keyworkerAllocation.getPrisonId());
@@ -261,6 +261,7 @@ public class KeyworkerService {
      *
      * @param allocation allocation details.
      */
+    @Transactional
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void allocate(final OffenderKeyworker allocation) {
         Validate.notNull(allocation);
@@ -494,6 +495,7 @@ public class KeyworkerService {
         return new Page<>(keyworkers, response.getHeaders());
     }
 
+    @Transactional
     public void deleteKeyworkersForOffender(final String offenderNo) {
         Preconditions.checkState(StringUtils.isNotBlank(offenderNo), "Found blank offender id");
         final var count = repository.deleteByOffenderNo(offenderNo);
@@ -582,6 +584,7 @@ public class KeyworkerService {
         }
     }
 
+    @Transactional
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public void addOrUpdate(final Long staffId, final String prisonId, final KeyworkerUpdateDto keyworkerUpdateDto) {
 
@@ -625,6 +628,7 @@ public class KeyworkerService {
         }
     }
 
+    @Transactional
     public void deallocate(final String offenderNo) {
         final var offenderKeyworkers = repository.findByActiveAndOffenderNo(true, offenderNo);
 
