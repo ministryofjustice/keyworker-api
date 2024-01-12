@@ -1,7 +1,7 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.11.0"
-  kotlin("plugin.spring") version "1.9.21"
-  kotlin("plugin.jpa") version "1.9.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.14.1"
+  kotlin("plugin.spring") version "1.9.22"
+  kotlin("plugin.jpa") version "1.9.22"
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
@@ -21,7 +21,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
   implementation("org.springframework:spring-jms")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.2.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl")
@@ -34,13 +34,13 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
   implementation("com.google.guava:guava:32.1.3-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.33.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.34.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:postgresql")
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.19")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.20")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:$spockVersion") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
