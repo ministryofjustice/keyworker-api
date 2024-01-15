@@ -34,7 +34,6 @@ import java.util.Optional
 @AutoConfigureWebTestClient
 @WithMockUser
 class KeyworkerServiceControllerTest() {
-
   @Autowired
   private lateinit var webTestClient: WebTestClient
 
@@ -93,21 +92,23 @@ class KeyworkerServiceControllerTest() {
       .exchange()
       .expectStatus().isOk
 
-    val expectedFilterDto = AllocationsFilterDto
-      .builder()
-      .prisonId(prisonId)
-      .fromDate(Optional.empty())
-      .toDate(LocalDate.now())
-      .allocationType(Optional.empty())
-      .build()
+    val expectedFilterDto =
+      AllocationsFilterDto
+        .builder()
+        .prisonId(prisonId)
+        .fromDate(Optional.empty())
+        .toDate(LocalDate.now())
+        .allocationType(Optional.empty())
+        .build()
 
-    val expectedPagingDto = PagingAndSortingDto
-      .builder()
-      .pageOffset(0)
-      .pageLimit(10)
-      .sortOrder(SortOrder.ASC)
-      .sortFields("")
-      .build()
+    val expectedPagingDto =
+      PagingAndSortingDto
+        .builder()
+        .pageOffset(0)
+        .pageLimit(10)
+        .sortOrder(SortOrder.ASC)
+        .sortFields("")
+        .build()
 
     verify(keyworkerService).getAllocations(expectedFilterDto, expectedPagingDto)
   }

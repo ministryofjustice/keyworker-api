@@ -15,9 +15,8 @@ import java.time.LocalDateTime
 class OffenderEventListener(
   private val reconciliationService: ReconciliationService,
   private val keyworkerService: KeyworkerService,
-  @Qualifier("gson") private val gson: Gson
+  @Qualifier("gson") private val gson: Gson,
 ) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -46,6 +45,6 @@ class OffenderEventListener(
     val directionCode: String?,
     val escortCode: String?,
     val fromAgencyLocationId: String,
-    val toAgencyLocationId: String
+    val toAgencyLocationId: String,
   )
 }

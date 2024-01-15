@@ -14,9 +14,12 @@ import java.io.IOException
 @Component
 @Order(4)
 class UserContextFilter : Filter {
-
   @Throws(IOException::class, ServletException::class)
-  override fun doFilter(servletRequest: ServletRequest, servletResponse: ServletResponse, filterChain: FilterChain) {
+  override fun doFilter(
+    servletRequest: ServletRequest,
+    servletResponse: ServletResponse,
+    filterChain: FilterChain,
+  ) {
     val httpServletRequest = servletRequest as HttpServletRequest
     val authToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)
     UserContext.setAuthToken(authToken)

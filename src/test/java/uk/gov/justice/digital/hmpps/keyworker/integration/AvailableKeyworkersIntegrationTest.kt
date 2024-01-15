@@ -3,16 +3,15 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.junit.jupiter.api.Test
 
 class AvailableKeyworkersIntegrationTest : IntegrationTest() {
-
   companion object {
     const val PRISON_ID = "LEI"
   }
 
-  val AVAILABLE_KEYWORKERS = getWiremockResponse(AutoAllocationIntegrationTest.PRISON_ID, "available-keyworkers")
+  val aVAILABLEKEYWORKERS = getWiremockResponse(AutoAllocationIntegrationTest.PRISON_ID, "available-keyworkers")
 
   @Test
   fun `Available keyworkers - decorated with defaults after migration`() {
-    prisonMockServer.stubAvailableKeyworkersForAutoAllocation(AutoAllocationIntegrationTest.PRISON_ID, AVAILABLE_KEYWORKERS)
+    prisonMockServer.stubAvailableKeyworkersForAutoAllocation(AutoAllocationIntegrationTest.PRISON_ID, aVAILABLEKEYWORKERS)
 
     migratedFoAutoAllocation(PRISON_ID)
 

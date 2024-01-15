@@ -14,9 +14,8 @@ import java.time.Duration
 @ConditionalOnExpression("T(org.apache.commons.lang3.StringUtils).isNotBlank('\${complexity_of_need_uri}')")
 class ComplexityOfNeedApiHealth(
   private val complexityOfNeedHealthWebClient: WebClient,
-  @Value("\${api.health-timeout-ms}") private val timeout: Duration
+  @Value("\${api.health-timeout-ms}") private val timeout: Duration,
 ) : HealthIndicator {
-
   override fun health(): Health {
     return try {
       val responseEntity: ResponseEntity<String> =

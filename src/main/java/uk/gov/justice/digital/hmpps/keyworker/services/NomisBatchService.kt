@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate
 class NomisBatchService(
   private val nomisService: NomisService,
   private val telemetryClient: TelemetryClient,
-  private val enableNomisRetryTemplate: RetryTemplate
+  private val enableNomisRetryTemplate: RetryTemplate,
 ) {
   val log: Logger = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -36,12 +36,13 @@ class NomisBatchService(
       if (caseload.numUsersEnabled > 0) {
         log.info("Enabled {} new users for API access", caseload.numUsersEnabled)
       }
-      val infoMap = ImmutableMap.of(
-        "prisonId",
-        caseload.caseload,
-        "numUsersEnabled",
-        caseload.numUsersEnabled.toString()
-      )
+      val infoMap =
+        ImmutableMap.of(
+          "prisonId",
+          caseload.caseload,
+          "numUsersEnabled",
+          caseload.numUsersEnabled.toString(),
+        )
       telemetryClient.trackEvent("ApiUsersEnabled", infoMap, null)
     } catch (e: Exception) {
       log.error("Error occurred enabling new nomis", e)
@@ -52,7 +53,7 @@ class NomisBatchService(
     return enableNomisRetryTemplate.execute(
       RetryCallback<CaseloadUpdate, RuntimeException> {
         nomisService.enableNewNomisForCaseload(prisonId)
-      }
+      },
     )
   }
 }

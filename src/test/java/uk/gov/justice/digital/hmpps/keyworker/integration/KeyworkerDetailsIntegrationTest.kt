@@ -8,14 +8,14 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
     const val STAFF_ID = -5L
   }
 
-  val STAFF_LOCATION_ROLE_LIST = getWiremockResponse(PRISON_ID, "staff-location-role-list")
-  val STAFF_DETAILS = getWiremockResponse("staff-details-$STAFF_ID")
+  val sTAFFLOCATIONROLELIST = getWiremockResponse(PRISON_ID, "staff-location-role-list")
+  val sTAFFDETAILS = getWiremockResponse("staff-details-$STAFF_ID")
 
   @Test
   fun `key worker details happy path`() {
     migrated(PRISON_ID)
 
-    prisonMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, STAFF_LOCATION_ROLE_LIST)
+    prisonMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, sTAFFLOCATIONROLELIST)
 
     webTestClient
       .get()
@@ -40,7 +40,7 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
 
     // lookup for prison fails to retrieve the keyworker details  (no longer working for current agency)
     prisonMockServer.stubKeyworkerRoles(PRISON_ID, STAFF_ID, "[]")
-    prisonMockServer.stubkeyworkerDetails(STAFF_ID, STAFF_DETAILS)
+    prisonMockServer.stubkeyworkerDetails(STAFF_ID, sTAFFDETAILS)
 
     webTestClient
       .get()
@@ -49,7 +49,9 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
       .exchange()
       .expectStatus().is2xxSuccessful()
       .expectBody()
-      .jsonPath("$.agencyId").doesNotExist() // basic details do not return agency id - we are only retreiving these details to enable displaying of keyworker name
+      .jsonPath(
+        "$.agencyId",
+      ).doesNotExist() // basic details do not return agency id - we are only retreiving these details to enable displaying of keyworker name
       .jsonPath("$.numberAllocated").doesNotExist() // unable to determine allocations without agencyId
       .jsonPath("$.firstName").isEqualTo("Another")
       .jsonPath("$.lastName").isEqualTo("CUser")

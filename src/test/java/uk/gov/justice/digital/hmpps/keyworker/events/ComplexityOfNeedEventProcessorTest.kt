@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 
 @ExtendWith(MockitoExtension::class)
 class ComplexityOfNeedEventProcessorTest {
-
   @Mock
   lateinit var telemetryClient: TelemetryClient
 
@@ -33,16 +32,16 @@ class ComplexityOfNeedEventProcessorTest {
     const val OFFENDER_NO = "A12345"
   }
 
-  val COMPLEXITY_MESSAGE_INACTIVE = this::class.java.getResource("complexity-message-inactive.json").readText()
-  val COMPLEXITY_MESSAGE_HIGH = this::class.java.getResource("complexity-message-high.json").readText()
-  val COMPLEXITY_MESSAGE_MEDIUM = this::class.java.getResource("complexity-message-medium.json").readText()
-  val COMPLEXITY_MESSAGE_LOW = this::class.java.getResource("complexity-message-low.json").readText()
+  private val cOMPLEXITYMESSAGEINACTIVE = this::class.java.getResource("complexity-message-inactive.json").readText()
+  private val cOMPLEXITYMESSAGEHIGH = this::class.java.getResource("complexity-message-high.json").readText()
+  private val cOMPLEXITYMESSAGEMEDIUM = this::class.java.getResource("complexity-message-medium.json").readText()
+  private val cOMPLEXITYMESSAGELOW = this::class.java.getResource("complexity-message-low.json").readText()
 
   @Test
   fun `should not deallocate offenders that do not have high complexity of needs`() {
     complexityOfNeedEventProcessor =
       ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_LOW)
+    complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGELOW)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
   }
@@ -51,7 +50,7 @@ class ComplexityOfNeedEventProcessorTest {
   fun `should deallocate offenders that have high complexity of needs`() {
     complexityOfNeedEventProcessor =
       ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_HIGH)
+    complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEHIGH)
 
     verify(keyworkerService, times(1)).deallocate(OFFENDER_NO)
   }
@@ -60,19 +59,19 @@ class ComplexityOfNeedEventProcessorTest {
   fun `should raise a telemetry event`() {
     complexityOfNeedEventProcessor =
       ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_MEDIUM)
+    complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEMEDIUM)
 
     verify(telemetryClient, Mockito.times(1)).trackEvent(
       "complexity-of-need-change",
       mapOf("offenderNo" to OFFENDER_NO, "level-changed-to" to "MEDIUM"),
-      null
+      null,
     )
   }
 
   @Test
   fun `should do nothing when there is no complexity url`() {
     complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "")
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_HIGH)
+    complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEHIGH)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
     verify(telemetryClient, never()).trackEvent(anyString(), any(), any())
@@ -81,7 +80,7 @@ class ComplexityOfNeedEventProcessorTest {
   @Test
   fun `should do nothing when record is not active`() {
     complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_INACTIVE)
+    complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEINACTIVE)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
     verify(telemetryClient, never()).trackEvent(anyString(), any(), any())
@@ -94,6 +93,6 @@ class ComplexityOfNeedEventProcessorTest {
     complexityOfNeedEventProcessor =
       ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
 
-    complexityOfNeedEventProcessor.onComplexityChange(COMPLEXITY_MESSAGE_HIGH)
+    complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEHIGH)
   }
 }

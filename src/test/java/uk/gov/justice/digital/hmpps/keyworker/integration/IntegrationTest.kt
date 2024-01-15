@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTest {
-
   @Autowired
   lateinit var flyway: Flyway
 
@@ -82,7 +81,10 @@ abstract class IntegrationTest {
 
   internal fun setOmicAdminHeaders(): (HttpHeaders) -> Unit = setHeaders(roles = listOf("ROLE_OMIC_ADMIN"))
 
-  internal fun setHeaders(username: String? = "ITAG_USER", roles: List<String>? = emptyList()): (HttpHeaders) -> Unit {
+  internal fun setHeaders(
+    username: String? = "ITAG_USER",
+    roles: List<String>? = emptyList(),
+  ): (HttpHeaders) -> Unit {
     val token = jwtAuthHelper.createJwt(subject = username, roles = roles)
     return {
       it.setBearerAuth(token)
@@ -120,7 +122,11 @@ abstract class IntegrationTest {
       .expectStatus().is2xxSuccessful
   }
 
-  fun setKeyworkerCapacity(prisonId: String, keyworkerId: Long, capacity: Int) {
+  fun setKeyworkerCapacity(
+    prisonId: String,
+    keyworkerId: Long,
+    capacity: Int,
+  ) {
     webTestClient.post()
       .uri("/key-worker/$keyworkerId/prison/$prisonId")
       .headers(setOmicAdminHeaders())
@@ -135,19 +141,25 @@ abstract class IntegrationTest {
     addConditionalPingStub(complexityOfNeedMockServer, status, "/ping")
   }
 
-  fun addConditionalPingStub(mock: WireMockServer, status: Int, url: String? = "/health/ping") {
+  fun addConditionalPingStub(
+    mock: WireMockServer,
+    status: Int,
+    url: String? = "/health/ping",
+  ) {
     mock.stubFor(
       WireMock.get(url).willReturn(
         WireMock.aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
-          .withStatus(status)
-      )
+          .withStatus(status),
+      ),
     )
   }
 
-  internal fun getWiremockResponse(prisonId: String, fileName: String) =
-    "/wiremock-stub-responses/$prisonId/$fileName.json".readFile()
+  internal fun getWiremockResponse(
+    prisonId: String,
+    fileName: String,
+  ) = "/wiremock-stub-responses/$prisonId/$fileName.json".readFile()
 
   internal fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
 

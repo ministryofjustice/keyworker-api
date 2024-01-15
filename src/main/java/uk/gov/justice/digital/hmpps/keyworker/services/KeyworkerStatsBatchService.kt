@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic
 class KeyworkerStatsBatchService(
   private val keyworkerStatsService: KeyworkerStatsService,
   private val prisonSupportedService: PrisonSupportedService,
-  private val defaultRetryTemplate: RetryTemplate
+  private val defaultRetryTemplate: RetryTemplate,
 ) {
   val log: Logger = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -42,7 +42,7 @@ class KeyworkerStatsBatchService(
     return defaultRetryTemplate.execute(
       RetryCallback<PrisonKeyWorkerStatistic, RuntimeException> {
         keyworkerStatsService.generatePrisonStats(prisonId)
-      }
+      },
     )
   }
 }

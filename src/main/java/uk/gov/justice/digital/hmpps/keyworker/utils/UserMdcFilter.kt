@@ -14,9 +14,12 @@ import java.io.IOException
 @Component
 @Order(1)
 class UserMdcFilter(private val userSecurityUtils: UserSecurityUtils) : Filter {
-
   @Throws(IOException::class, ServletException::class)
-  override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+  override fun doFilter(
+    request: ServletRequest,
+    response: ServletResponse,
+    chain: FilterChain,
+  ) {
     val currentUsername = userSecurityUtils.currentUsername
     try {
       if (currentUsername != null) {

@@ -11,9 +11,8 @@ import org.springframework.stereotype.Service
 @Service
 class DomainEventListener(
   private val complexityOfNeedEventProcessor: ComplexityOfNeedEventProcessor,
-  @Qualifier("gson") private val gson: Gson
+  @Qualifier("gson") private val gson: Gson,
 ) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }

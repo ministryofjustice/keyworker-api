@@ -20,7 +20,6 @@ import java.util.Locale
 
 @Configuration
 open class JsonConfig() {
-
   @Bean
   @Primary
   open fun gson(): Gson {
@@ -31,11 +30,19 @@ open class JsonConfig() {
   }
 
   internal class LocalDateAdapter : JsonSerializer<LocalDate?>, JsonDeserializer<LocalDate> {
-    override fun serialize(src: LocalDate?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+    override fun serialize(
+      src: LocalDate?,
+      typeOfSrc: Type?,
+      context: JsonSerializationContext?,
+    ): JsonElement {
       return JsonPrimitive(src?.format(DateTimeFormatter.ISO_LOCAL_DATE))
     }
 
-    override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDate {
+    override fun deserialize(
+      json: JsonElement?,
+      typeOfT: Type?,
+      context: JsonDeserializationContext?,
+    ): LocalDate {
       return LocalDate.parse(json?.asJsonPrimitive?.asString)
     }
   }
@@ -44,16 +51,20 @@ open class JsonConfig() {
     override fun serialize(
       localDateTime: LocalDateTime?,
       srcType: Type,
-      context: JsonSerializationContext
+      context: JsonSerializationContext,
     ): JsonElement {
       return JsonPrimitive(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(localDateTime))
     }
 
     @Throws(JsonParseException::class)
-    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): LocalDateTime {
+    override fun deserialize(
+      json: JsonElement,
+      typeOfT: Type,
+      context: JsonDeserializationContext,
+    ): LocalDateTime {
       return LocalDateTime.parse(
         json.asString,
-        DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.ENGLISH)
+        DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.ENGLISH),
       )
     }
   }

@@ -12,8 +12,8 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(json)
-        )
+            .withBody(json),
+        ),
     )
   }
 
@@ -24,8 +24,8 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
           WireMock.aResponse()
             .withHeader("Content-Type", "test/plain")
             .withStatus(HttpStatus.OK.value())
-            .withBody("Everything is fine.")
-        )
+            .withBody("Everything is fine."),
+        ),
     )
   }
 }

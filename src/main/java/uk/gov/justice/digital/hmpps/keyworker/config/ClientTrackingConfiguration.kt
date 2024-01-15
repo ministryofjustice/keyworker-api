@@ -29,7 +29,11 @@ class ClientTrackingConfiguration(private val clientTrackingInterceptor: ClientT
 
 @Configuration
 class ClientTrackingInterceptor : HandlerInterceptor {
-  override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
+  override fun preHandle(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    handler: Any,
+  ): Boolean {
     val (user, clientId) = findUserAndClient(request)
     user?.let { Span.current().setAttribute("username", user) }
     clientId?.let { Span.current().setAttribute("clientId", clientId) }

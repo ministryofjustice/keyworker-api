@@ -10,5 +10,5 @@ enum class ComplexityOfNeedLevel {
   LOW,
 
   @JsonProperty("medium")
-  MEDIUM
+  MEDIUM,
 }
