@@ -8,15 +8,15 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     const val USERNAME = "Another"
   }
 
-  val STAFF_DETAILS = getWiremockResponse(PRISON_ID, "staff-location-role-list")
-  val CASE_NOTE_USAGE = getWiremockResponse("case-note-usage")
+  val sTAFFDETAILS = getWiremockResponse(PRISON_ID, "staff-location-role-list")
+  val cASENOTEUSAGE = getWiremockResponse("case-note-usage")
 
   @Disabled
   fun `keyworker search - decorated with defaults after migration`() {
     migrated(PRISON_ID)
 
-    prisonMockServer.stubKeyworkerSearch(PRISON_ID, USERNAME, STAFF_DETAILS, 4)
-    prisonMockServer.stubCaseNoteUsage(CASE_NOTE_USAGE)
+    prisonMockServer.stubKeyworkerSearch(PRISON_ID, USERNAME, sTAFFDETAILS, 4)
+    prisonMockServer.stubCaseNoteUsage(cASENOTEUSAGE)
 
     webTestClient
       .get()

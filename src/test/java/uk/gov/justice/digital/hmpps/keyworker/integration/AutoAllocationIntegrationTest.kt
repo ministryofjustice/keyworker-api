@@ -14,24 +14,24 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
     const val KEYWORKER_ID_2 = 1002L
   }
 
-  val OFFENDERS_AT_LOCATION: String = getWiremockResponse(PRISON_ID, "offenders-at-location")
-  val KEYWORKER_LIST = getWiremockResponse(PRISON_ID, "keyworker-list")
-  val COMPLEX_OFFENDER_UNALLOC10 = getWiremockResponse("UNALLOC10-complexity-high")
-  val COMPLEX_OFFENDER_UNALLOC1 = getWiremockResponse("UNALLOC1-complexity-high")
+  val oFFENDERSATLOCATION: String = getWiremockResponse(PRISON_ID, "offenders-at-location")
+  val kEYWORKERLIST = getWiremockResponse(PRISON_ID, "keyworker-list")
+  val cOMPLEXOFFENDERUNALLOC10 = getWiremockResponse("UNALLOC10-complexity-high")
+  val cOMPLEXOFFENDERUNALLOC1 = getWiremockResponse("UNALLOC1-complexity-high")
 
   @BeforeEach
   @Test
   fun beforeEach() {
     migratedFoAutoAllocation(PRISON_ID)
-    prisonMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
-    prisonMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, KEYWORKER_LIST)
+    prisonMockServer.stubOffendersAtLocationForAutoAllocation(oFFENDERSATLOCATION)
+    prisonMockServer.stubAvailableKeyworkersForAutoAllocation(PRISON_ID, kEYWORKERLIST)
 
     oAuthMockServer.stubGrantToken()
   }
 
   @Test
   fun `Allocation service reports ok`() {
-    complexityOfNeedMockServer.stubComplexOffenders(COMPLEX_OFFENDER_UNALLOC10)
+    complexityOfNeedMockServer.stubComplexOffenders(cOMPLEXOFFENDERUNALLOC10)
 
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_2, 1)
@@ -110,7 +110,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
 
   @Test
   fun `should return a list of unallocated offenders ignoring offenders with high complexity of need`() {
-    complexityOfNeedMockServer.stubComplexOffenders(COMPLEX_OFFENDER_UNALLOC1)
+    complexityOfNeedMockServer.stubComplexOffenders(cOMPLEXOFFENDERUNALLOC1)
 
     webTestClient
       .get()
