@@ -15,7 +15,7 @@ class DomainEventListenerTest {
 
   lateinit var domainEventListener: DomainEventListener
 
-  val COMPLEXITY_CHANGE_EVENT = this::class.java.getResource("complexity-of-need-change-to-high.json").readText()
+  private val cOMPLEXITYCHANGEEVENT = this::class.java.getResource("complexity-of-need-change-to-high.json").readText()
 
   @BeforeEach
   fun setUp() {
@@ -24,8 +24,10 @@ class DomainEventListenerTest {
 
   @Test
   fun `should delegate complexity of need changes to the service`() {
-    domainEventListener.eventListener(COMPLEXITY_CHANGE_EVENT)
+    domainEventListener.eventListener(cOMPLEXITYCHANGEEVENT)
 
-    verify(complexityOfNeedEventProcessor).onComplexityChange("{\"eventType\": \"complexity-of-need.level.changed\", \"offenderNo\":  \"A12345\",  \"level\":  \"high\"}")
+    verify(
+      complexityOfNeedEventProcessor,
+    ).onComplexityChange("{\"eventType\": \"complexity-of-need.level.changed\", \"offenderNo\":  \"A12345\",  \"level\":  \"high\"}")
   }
 }

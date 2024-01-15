@@ -29,42 +29,42 @@ import java.util.stream.Collectors
 @RequestMapping(value = ["key-worker-stats"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class KeyworkerStatsController(
   private val keyworkerStatsService: KeyworkerStatsService,
-  private val prisonSupportedService: PrisonSupportedService
+  private val prisonSupportedService: PrisonSupportedService,
 ) {
   @Operation(
     description = "Statistic for key workers and the prisoners that they support",
-    summary = "getStatsForStaff"
+    summary = "getStatsForStaff",
   )
   @ApiResponses(
     value =
-    [
-      ApiResponse(
-        responseCode = "200",
-        description = "OK"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Invalid request",
-        content =
-        [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class)
-          )
-        ]
-      ),
-      ApiResponse(
-        responseCode = "500",
-        description = "Unrecoverable error occurred whilst processing request.",
-        content =
-        [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class)
-          )
-        ]
-      )
-    ]
+      [
+        ApiResponse(
+          responseCode = "200",
+          description = "OK",
+        ),
+        ApiResponse(
+          responseCode = "400",
+          description = "Invalid request",
+          content =
+            [
+              Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = ErrorResponse::class),
+              ),
+            ],
+        ),
+        ApiResponse(
+          responseCode = "500",
+          description = "Unrecoverable error occurred whilst processing request.",
+          content =
+            [
+              Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = ErrorResponse::class),
+              ),
+            ],
+        ),
+      ],
   )
   @GetMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun getStatsForStaff(
@@ -77,79 +77,79 @@ class KeyworkerStatsController(
     @Parameter(description = "Calculate stats for staff on or after this date (in YYYY-MM-DD format).")
     @RequestParam(value = "fromDate")
     @DateTimeFormat(
-      iso = DateTimeFormat.ISO.DATE
+      iso = DateTimeFormat.ISO.DATE,
     )
     fromDate: LocalDate?,
     @Parameter(description = "Calculate stats for staff on or before this date (in YYYY-MM-DD format).")
     @RequestParam(value = "toDate")
     @DateTimeFormat(
-      iso = DateTimeFormat.ISO.DATE
+      iso = DateTimeFormat.ISO.DATE,
     )
-    toDate: LocalDate?
+    toDate: LocalDate?,
   ): KeyworkerStatsDto = keyworkerStatsService.getStatsForStaff(staffId, prisonId, fromDate, toDate)
 
   @Operation(description = "Get Key Worker stats for any prison.", summary = "getAllPrisonStats")
   @ApiResponses(
     value =
-    [
-      ApiResponse(
-        responseCode = "200",
-        description = "OK"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Invalid request.",
-        content =
-        [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class)
-          )
-        ]
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "Requested resource not found.",
-        content =
-        [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class)
-          )
-        ]
-      ),
-      ApiResponse(
-        responseCode = "500",
-        description = "Unrecoverable error occurred whilst processing request.",
-        content =
-        [
-          Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = ErrorResponse::class)
-          )
-        ]
-      )
-    ]
+      [
+        ApiResponse(
+          responseCode = "200",
+          description = "OK",
+        ),
+        ApiResponse(
+          responseCode = "400",
+          description = "Invalid request.",
+          content =
+            [
+              Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = ErrorResponse::class),
+              ),
+            ],
+        ),
+        ApiResponse(
+          responseCode = "404",
+          description = "Requested resource not found.",
+          content =
+            [
+              Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = ErrorResponse::class),
+              ),
+            ],
+        ),
+        ApiResponse(
+          responseCode = "500",
+          description = "Unrecoverable error occurred whilst processing request.",
+          content =
+            [
+              Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = ErrorResponse::class),
+              ),
+            ],
+        ),
+      ],
   )
   @GetMapping
   fun getPrisonStats(
     @Parameter(description = "List of prisonIds", example = "prisonId=MDI&prisonId=LEI")
     @RequestParam(
-      value = "prisonId"
+      value = "prisonId",
     )
     prisonIdList: List<String>?,
     @Parameter(description = "Start Date of Stats, optional, will choose one month before toDate (in YYYY-MM-DD format)")
     @RequestParam(
-      value = "fromDate"
+      value = "fromDate",
     )
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     fromDate: LocalDate?,
     @Parameter(description = "End Date of Stats (inclusive), optional, will choose yesterday if not provided (in YYYY-MM-DD format)")
     @RequestParam(
-      value = "toDate"
+      value = "toDate",
     )
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    toDate: LocalDate?
+    toDate: LocalDate?,
   ): KeyworkerStatSummary {
     val prisonIds: MutableList<String> = ArrayList()
     if (prisonIdList == null || prisonIdList.isEmpty()) {

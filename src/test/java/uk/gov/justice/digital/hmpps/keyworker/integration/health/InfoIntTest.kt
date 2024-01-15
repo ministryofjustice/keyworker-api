@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter.ISO_DATE
 import java.util.function.Consumer
 
 class InfoIntTest : IntegrationTest
-() {
+  () {
   @Test
   fun `Info page contains git information`() {
     webTestClient.get().uri("/info")
@@ -29,7 +29,7 @@ class InfoIntTest : IntegrationTest
       .expectBody().jsonPath("build.version").value(
         Consumer<String> {
           assertThat(it).startsWith(LocalDateTime.now().format(ISO_DATE))
-        }
+        },
       )
   }
 
@@ -37,19 +37,19 @@ class InfoIntTest : IntegrationTest
   fun `Info page still works when items in ehcache`() {
     migratedFoAutoAllocation(PRISON_ID)
     prisonMockServer.stubOffendersAtLocationForAutoAllocation(
-      getWiremockResponse(PRISON_ID, "offenders-at-location")
+      getWiremockResponse(PRISON_ID, "offenders-at-location"),
     )
     prisonMockServer.stubKeyworkerRoles(
       PRISON_ID,
       KEYWORKER_ID_1,
-      getWiremockResponse(PRISON_ID, "staff-location-role-list")
+      getWiremockResponse(PRISON_ID, "staff-location-role-list"),
     )
     addKeyworkerAllocation(PRISON_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
     prisonMockServer.stubOffendersAllocationHistory(getWiremockResponse(PRISON_ID, "offenders-history"))
     prisonMockServer.stubPrisonerStatus(
       NON_MIGRATED_ALLOCATION_OFFENDER_ID,
-      getWiremockResponse("prisoners_information_A1234AA")
+      getWiremockResponse("prisoners_information_A1234AA"),
     )
 
     webTestClient.get()
@@ -66,7 +66,10 @@ class InfoIntTest : IntegrationTest
       }
   }
 
-  fun addKeyworkerAllocation(prisonId: String, offenderId: String) {
+  fun addKeyworkerAllocation(
+    prisonId: String,
+    offenderId: String,
+  ) {
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
 
     webTestClient.post()
@@ -78,8 +81,8 @@ class InfoIntTest : IntegrationTest
           "staffId" to KEYWORKER_ID_1,
           "prisonId" to PRISON_ID,
           "allocationType" to "M",
-          "allocationReason" to "MANUAL"
-        )
+          "allocationReason" to "MANUAL",
+        ),
       )
       .exchange()
       .expectStatus().is2xxSuccessful

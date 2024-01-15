@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 class ReconciliationBatchService(
   private val reconciliationService: ReconciliationService,
   private val prisonSupportedService: PrisonSupportedService,
-  private val defaultRetryTemplate: RetryTemplate
+  private val defaultRetryTemplate: RetryTemplate,
 ) {
   val log: Logger = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -41,7 +41,7 @@ class ReconciliationBatchService(
     return defaultRetryTemplate.execute(
       RetryCallback<ReconciliationService.ReconMetrics, RuntimeException> {
         reconciliationService.reconcileKeyWorkerAllocations(prisonId)
-      }
+      },
     )
   }
 }

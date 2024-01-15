@@ -13,7 +13,7 @@ data class ComplexOffender(
   val sourceUser: String? = null,
   val sourceSystem: String? = null,
   val notes: String? = null,
-  val createdTimeStamp: LocalDateTime? = null
+  val createdTimeStamp: LocalDateTime? = null,
 )
 
 @Service

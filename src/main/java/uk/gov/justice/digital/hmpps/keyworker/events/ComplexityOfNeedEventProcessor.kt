@@ -18,7 +18,7 @@ data class ComplexityOfNeedChange(
   override val eventOccurred: LocalDateTime,
   val offenderNo: String,
   val level: String,
-  val active: Boolean?
+  val active: Boolean?,
 ) : DomainEvent
 
 @Service
@@ -26,9 +26,8 @@ class ComplexityOfNeedEventProcessor(
   private val keyworkerService: KeyworkerService,
   private val telemetryClient: TelemetryClient,
   @Qualifier("gson") private val gson: Gson,
-  @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String?
+  @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String?,
 ) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -54,9 +53,9 @@ class ComplexityOfNeedEventProcessor(
       "complexity-of-need-change",
       mapOf(
         "offenderNo" to event.offenderNo,
-        "level-changed-to" to complexityLevel.toString()
+        "level-changed-to" to complexityLevel.toString(),
       ),
-      null
+      null,
     )
     if (complexityLevel != ComplexityOfNeedLevel.HIGH) return
 

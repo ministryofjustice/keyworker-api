@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 
 class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
-
   @BeforeEach
   fun setup() {
     subPing(200)

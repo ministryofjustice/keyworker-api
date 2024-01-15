@@ -20,12 +20,12 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext
 class WebClientConfiguration(
   @Value("\${prison.api.uri.root}") private val prisonApiRootUri: String,
   @Value("\${prison.uri.root}") private val healthRootUri: String,
-  @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String
+  @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
 ) {
   @Bean
   fun authorizedClientManager(
     clientRegistrationRepository: ClientRegistrationRepository?,
-    oAuth2AuthorizedClientService: OAuth2AuthorizedClientService?
+    oAuth2AuthorizedClientService: OAuth2AuthorizedClientService?,
   ): OAuth2AuthorizedClientManager {
     val authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build()
     val authorizedClientManager =
@@ -35,7 +35,10 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun oauth2WebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient {
+  fun oauth2WebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager?,
+    builder: WebClient.Builder,
+  ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("prison-api")
     return builder.baseUrl(prisonApiRootUri)
@@ -44,7 +47,10 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun complexityOfNeedWebClient(authorizedClientManager: OAuth2AuthorizedClientManager?, builder: WebClient.Builder): WebClient {
+  fun complexityOfNeedWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager?,
+    builder: WebClient.Builder,
+  ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("prison-api")
 
@@ -79,9 +85,10 @@ class WebClientConfiguration(
 
   private fun addAuthHeaderFilterFunction(): ExchangeFilterFunction {
     return ExchangeFilterFunction { request: ClientRequest?, next: ExchangeFunction ->
-      val filtered = ClientRequest.from(request)
-        .header(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken())
-        .build()
+      val filtered =
+        ClientRequest.from(request)
+          .header(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken())
+          .build()
       next.exchange(filtered)
     }
   }

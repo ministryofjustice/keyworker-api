@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 
 @ExtendWith(MockitoExtension::class)
 class ComplexityOfNeedServiceTest {
-
   companion object {
     const val OFFENDER_NO = "A12345"
     const val OFFENDER_NO_1 = "A12345"
@@ -67,8 +66,8 @@ class ComplexityOfNeedServiceTest {
   fun `should make a complexity of need reuqest for enabled prisons`() {
     whenever(complexityOfNeedGateway.getOffendersWithMeasuredComplexityOfNeed(any())).thenReturn(
       listOf(
-        ComplexOffender(OFFENDER_NO_1, ComplexityOfNeedLevel.LOW)
-      )
+        ComplexOffender(OFFENDER_NO_1, ComplexityOfNeedLevel.LOW),
+      ),
     )
     complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1))
 
@@ -80,8 +79,8 @@ class ComplexityOfNeedServiceTest {
     whenever(complexityOfNeedGateway.getOffendersWithMeasuredComplexityOfNeed(any())).thenReturn(
       listOf(
         ComplexOffender(OFFENDER_NO_1, ComplexityOfNeedLevel.HIGH),
-        ComplexOffender(OFFENDER_NO_2, ComplexityOfNeedLevel.LOW)
-      )
+        ComplexOffender(OFFENDER_NO_2, ComplexityOfNeedLevel.LOW),
+      ),
     )
 
     val complexOffenders =

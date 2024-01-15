@@ -24,7 +24,6 @@ import java.time.format.DateTimeFormatter
 @AutoConfigureWebTestClient
 @WithMockUser
 class KeyworkerStatsControllerTest {
-
   @Autowired
   private lateinit var webTestClient: WebTestClient
 
@@ -40,7 +39,7 @@ class KeyworkerStatsControllerTest {
     val prisonId = "456"
 
     whenever(
-      keyworkerStatsService.getStatsForStaff(123L, "456", null, null)
+      keyworkerStatsService.getStatsForStaff(123L, "456", null, null),
     ).thenReturn(KeyworkerStatsDto())
 
     webTestClient.get()
@@ -59,7 +58,7 @@ class KeyworkerStatsControllerTest {
     val toDate = LocalDate.now()
 
     whenever(
-      keyworkerStatsService.getStatsForStaff(123L, "456", null, toDate)
+      keyworkerStatsService.getStatsForStaff(123L, "456", null, toDate),
     ).thenReturn(KeyworkerStatsDto())
 
     webTestClient.get()
@@ -78,7 +77,7 @@ class KeyworkerStatsControllerTest {
     val fromDate = LocalDate.now()
 
     whenever(
-      keyworkerStatsService.getStatsForStaff(123L, "456", fromDate, null)
+      keyworkerStatsService.getStatsForStaff(123L, "456", fromDate, null),
     ).thenReturn(KeyworkerStatsDto())
 
     webTestClient.get()
@@ -96,16 +95,16 @@ class KeyworkerStatsControllerTest {
     val toDate = LocalDate.now()
 
     whenever(
-      keyworkerStatsService.getPrisonStats(listOf("MDI"), fromDate, toDate)
+      keyworkerStatsService.getPrisonStats(listOf("MDI"), fromDate, toDate),
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()
       .uri(
         "/key-worker-stats?prisonId=MDI&fromDate=${fromDate.format(DateTimeFormatter.ISO_DATE)}&toDate=${
-        toDate.format(
-          DateTimeFormatter.ISO_DATE
-        )
-        }"
+          toDate.format(
+            DateTimeFormatter.ISO_DATE,
+          )
+        }",
       )
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
@@ -117,11 +116,11 @@ class KeyworkerStatsControllerTest {
   @Test
   fun `get stats when missing dates and prisonIds`() {
     whenever(
-      prisonSupportedService.migratedPrisons
+      prisonSupportedService.migratedPrisons,
     ).thenReturn(emptyList())
 
     whenever(
-      keyworkerStatsService.getPrisonStats(emptyList(), null, null)
+      keyworkerStatsService.getPrisonStats(emptyList(), null, null),
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()
@@ -136,11 +135,11 @@ class KeyworkerStatsControllerTest {
   @Test
   fun `get stats when missing dates and prisonIds and one migrated prison`() {
     whenever(
-      prisonSupportedService.migratedPrisons
+      prisonSupportedService.migratedPrisons,
     ).thenReturn(listOf(Prison.builder().prisonId("MDI").build()))
 
     whenever(
-      keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null)
+      keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null),
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()
@@ -155,7 +154,7 @@ class KeyworkerStatsControllerTest {
   @Test
   fun `get stats when missing dates`() {
     whenever(
-      keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null)
+      keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null),
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()
@@ -172,7 +171,7 @@ class KeyworkerStatsControllerTest {
     val toDate = LocalDate.now()
 
     whenever(
-      keyworkerStatsService.getPrisonStats(listOf("MDI"), null, toDate)
+      keyworkerStatsService.getPrisonStats(listOf("MDI"), null, toDate),
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()
@@ -189,7 +188,7 @@ class KeyworkerStatsControllerTest {
     val fromDate = LocalDate.now()
 
     whenever(
-      keyworkerStatsService.getPrisonStats(listOf("MDI"), fromDate, null)
+      keyworkerStatsService.getPrisonStats(listOf("MDI"), fromDate, null),
     ).thenReturn(KeyworkerStatSummary())
 
     webTestClient.get()

@@ -31,11 +31,12 @@ class ReconciliationBatchServiceTest {
 
   @Test
   fun testReconcileKeyWorkerAllocations_callsServices() {
-    val prisons = listOf(
-      MDI,
-      LEI,
-      LPI
-    )
+    val prisons =
+      listOf(
+        MDI,
+        LEI,
+        LPI,
+      )
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     whenever(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
       .thenReturn(ReconMetrics(MDI.prisonId, 10, 0))
@@ -68,9 +69,10 @@ class ReconciliationBatchServiceTest {
 
   @Test
   fun testReconcileKeyWorkerAllocations_retriesOnReconcileAllocationsError() {
-    val prisons = listOf(
-      MDI
-    )
+    val prisons =
+      listOf(
+        MDI,
+      )
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     whenever(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))
       .thenThrow(RuntimeException("Error"))
@@ -87,9 +89,10 @@ class ReconciliationBatchServiceTest {
 
   @Test
   fun testReconcileKeyWorkerAllocations_raisesProcessingErrorOnReconcileAllocationsError() {
-    val prisons = listOf(
-      MDI
-    )
+    val prisons =
+      listOf(
+        MDI,
+      )
     val testException = RuntimeException("Error")
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     whenever(reconciliationService.reconcileKeyWorkerAllocations(MDI.prisonId))

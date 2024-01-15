@@ -12,23 +12,23 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     const val NO_HISTORY_OFFENDER_ID = "UNALLOC2"
   }
 
-  val OFFENDERS_HISTORY: String = getWiremockResponse(PRISON_ID, "offenders-history")
-  val OFFENDERS_AT_LOCATION: String = getWiremockResponse(PRISON_ID, "offenders-at-location")
-  val STAFF_LOCATION_ROLE_LIST = getWiremockResponse(PRISON_ID, "staff-location-role-list")
+  val oFFENDERSHISTORY: String = getWiremockResponse(PRISON_ID, "offenders-history")
+  val oFFENDERSATLOCATION: String = getWiremockResponse(PRISON_ID, "offenders-at-location")
+  val sTAFFLOCATIONROLELIST = getWiremockResponse(PRISON_ID, "staff-location-role-list")
 
   @BeforeEach
   @Test
   fun beforeEach() {
     migratedFoAutoAllocation(PRISON_ID)
-    prisonMockServer.stubOffendersAtLocationForAutoAllocation(OFFENDERS_AT_LOCATION)
-    prisonMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, STAFF_LOCATION_ROLE_LIST)
+    prisonMockServer.stubOffendersAtLocationForAutoAllocation(oFFENDERSATLOCATION)
+    prisonMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, sTAFFLOCATIONROLELIST)
   }
 
   @Test
   fun `Allocation history for offender reports ok`() {
     addKeyworkerAllocation(PRISON_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
-    prisonMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
     prisonMockServer.stubPrisonerStatus(NON_MIGRATED_ALLOCATION_OFFENDER_ID, getWiremockResponse("prisoners_information_A1234AA"))
 
     webTestClient.get()
@@ -43,7 +43,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   @Test
   fun `Allocation history summary reports ok`() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
-    prisonMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient.post()
       .uri("/key-worker/allocation-history/summary")
@@ -64,7 +64,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   @Test
   fun `Allocation history summary validates offender nos provided`() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
-    prisonMockServer.stubOffendersAllocationHistory(OFFENDERS_HISTORY)
+    prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient.post()
       .uri("/key-worker/allocation-history/summary")
@@ -82,7 +82,10 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
   }
 
-  fun addKeyworkerAllocation(prisonId: String, offenderId: String) {
+  fun addKeyworkerAllocation(
+    prisonId: String,
+    offenderId: String,
+  ) {
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
 
     webTestClient.post()
@@ -94,8 +97,8 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
           "staffId" to KEYWORKER_ID_1,
           "prisonId" to PRISON_ID,
           "allocationType" to "M",
-          "allocationReason" to "MANUAL"
-        )
+          "allocationReason" to "MANUAL",
+        ),
       )
       .exchange()
       .expectStatus().is2xxSuccessful

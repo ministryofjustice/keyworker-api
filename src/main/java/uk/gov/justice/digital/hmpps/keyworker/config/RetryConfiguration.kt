@@ -10,7 +10,6 @@ import org.springframework.retry.support.RetryTemplate
 @Configuration
 @EnableRetry
 class RetryConfiguration {
-
   @Bean
   fun defaultRetryTemplate(): RetryTemplate {
     val retryTemplate = RetryTemplate()

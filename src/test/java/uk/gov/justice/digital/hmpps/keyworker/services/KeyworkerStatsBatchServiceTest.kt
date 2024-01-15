@@ -33,11 +33,12 @@ class KeyworkerStatsBatchServiceTest {
 
   @Test
   fun testGenerateStatsCall_callsServices() {
-    val prisons = listOf(
-      MDI,
-      LEI,
-      LPI
-    )
+    val prisons =
+      listOf(
+        MDI,
+        LEI,
+        LPI,
+      )
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     val now = LocalDate.now()
     val mdiStats = PrisonKeyWorkerStatistic.builder().prisonId(MDI.prisonId).snapshotDate(now).build()
@@ -52,8 +53,8 @@ class KeyworkerStatsBatchServiceTest {
     verify(prisonSupportedService).migratedPrisons
     verify(keyworkerStatsService, times(3)).generatePrisonStats(
       isA(
-        String::class.java
-      )
+        String::class.java,
+      ),
     )
     verify(keyworkerStatsService, never())
       .raiseStatsProcessingError(anyString(), any())
@@ -73,9 +74,10 @@ class KeyworkerStatsBatchServiceTest {
 
   @Test
   fun testGenerateStatsCall_retriesOnGenerateStatsError() {
-    val prisons = listOf(
-      MDI
-    )
+    val prisons =
+      listOf(
+        MDI,
+      )
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     whenever(keyworkerStatsService.generatePrisonStats(MDI.prisonId))
       .thenThrow(NullPointerException::class.java)
@@ -86,8 +88,8 @@ class KeyworkerStatsBatchServiceTest {
     verify(prisonSupportedService).migratedPrisons
     verify(keyworkerStatsService, times(2)).generatePrisonStats(
       isA(
-        String::class.java
-      )
+        String::class.java,
+      ),
     )
     verify(keyworkerStatsService, never())
       .raiseStatsProcessingError(anyString(), any())
@@ -95,24 +97,25 @@ class KeyworkerStatsBatchServiceTest {
 
   @Test
   fun testGenerateStatsCall_raisesProcessingErrorOnGenerateStatsError() {
-    val prisons = listOf(
-      MDI,
-      LEI,
-      LPI
-    )
+    val prisons =
+      listOf(
+        MDI,
+        LEI,
+        LPI,
+      )
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     whenever(keyworkerStatsService.generatePrisonStats(MDI.prisonId)).thenThrow(
-      NullPointerException::class.java
+      NullPointerException::class.java,
     )
     whenever(keyworkerStatsService.generatePrisonStats(LEI.prisonId)).thenReturn(
       PrisonKeyWorkerStatistic.builder().prisonId(
-        LEI.prisonId
-      ).build()
+        LEI.prisonId,
+      ).build(),
     )
     whenever(keyworkerStatsService.generatePrisonStats(LPI.prisonId)).thenReturn(
       PrisonKeyWorkerStatistic.builder().prisonId(
-        LPI.prisonId
-      ).build()
+        LPI.prisonId,
+      ).build(),
     )
 
     batchService.generatePrisonStats()
@@ -120,14 +123,14 @@ class KeyworkerStatsBatchServiceTest {
     verify(prisonSupportedService).migratedPrisons
     verify(keyworkerStatsService, times(5)).generatePrisonStats(
       isA(
-        String::class.java
-      )
+        String::class.java,
+      ),
     )
     verify(keyworkerStatsService).raiseStatsProcessingError(
       eq(MDI.prisonId),
       isA(
-        Exception::class.java
-      )
+        Exception::class.java,
+      ),
     )
   }
 

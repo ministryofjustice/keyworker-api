@@ -18,7 +18,10 @@ class ApplicationInsightsConfiguration {
     return TelemetryClient()
   }
 
-  fun TelemetryClient.trackEvent(name: String, properties: Map<String, String>) = this.trackEvent(name, properties, null)
+  fun TelemetryClient.trackEvent(
+    name: String,
+    properties: Map<String, String>,
+  ) = this.trackEvent(name, properties, null)
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

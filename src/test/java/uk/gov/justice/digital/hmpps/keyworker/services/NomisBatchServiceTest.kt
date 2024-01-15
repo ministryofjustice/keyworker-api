@@ -36,12 +36,12 @@ class NomisBatchServiceTest {
   fun enableNomis_makesPrisonApiCalls() {
     val prisons = listOf(MDI, LEI, LPI)
     whenever(nomisService.allPrisons).thenReturn(prisons)
-    val MDIResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
-    whenever(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId))).thenReturn(MDIResponse)
-    val LEIResponse = CaseloadUpdate.builder().caseload(LEI.prisonId).numUsersEnabled(0).build()
-    whenever(nomisService.enableNewNomisForCaseload(eq(LEI.prisonId))).thenReturn(LEIResponse)
-    val LPIResponse = CaseloadUpdate.builder().caseload(LPI.prisonId).numUsersEnabled(14).build()
-    whenever(nomisService.enableNewNomisForCaseload(eq(LPI.prisonId))).thenReturn(LPIResponse)
+    val mdiResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
+    whenever(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId))).thenReturn(mdiResponse)
+    val leiResponse = CaseloadUpdate.builder().caseload(LEI.prisonId).numUsersEnabled(0).build()
+    whenever(nomisService.enableNewNomisForCaseload(eq(LEI.prisonId))).thenReturn(leiResponse)
+    val lpiResponse = CaseloadUpdate.builder().caseload(LPI.prisonId).numUsersEnabled(14).build()
+    whenever(nomisService.enableNewNomisForCaseload(eq(LPI.prisonId))).thenReturn(lpiResponse)
 
     batchService.enableNomis()
 
@@ -52,9 +52,9 @@ class NomisBatchServiceTest {
     verify(telemetryClient, times(3)).trackEvent(
       eq("ApiUsersEnabled"),
       isA(
-        Map::class.java
+        Map::class.java,
       ) as MutableMap<String, String>?,
-      isNull()
+      isNull(),
     )
   }
 
@@ -69,9 +69,9 @@ class NomisBatchServiceTest {
     verify(telemetryClient, times(0)).trackEvent(
       anyString(),
       any(
-        Map::class.java
+        Map::class.java,
       ) as MutableMap<String, String>?,
-      isNull()
+      isNull(),
     )
   }
 
@@ -79,10 +79,10 @@ class NomisBatchServiceTest {
   fun testEnabledNewNomisCamelRoute_RetriesOnEnablePrisonsError() {
     val prisons = listOf(MDI)
     whenever(nomisService.allPrisons).thenReturn(prisons)
-    val MDIResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
+    val mdiResponse = CaseloadUpdate.builder().caseload(MDI.prisonId).numUsersEnabled(2).build()
     whenever(nomisService.enableNewNomisForCaseload(eq(MDI.prisonId)))
       .thenThrow(RuntimeException("Error"))
-      .thenReturn(MDIResponse)
+      .thenReturn(mdiResponse)
 
     batchService.enableNomis()
 
@@ -91,9 +91,9 @@ class NomisBatchServiceTest {
     verify(telemetryClient, times(1)).trackEvent(
       eq("ApiUsersEnabled"),
       any(
-        Map::class.java
+        Map::class.java,
       ) as MutableMap<String, String>?,
-      isNull()
+      isNull(),
     )
   }
 

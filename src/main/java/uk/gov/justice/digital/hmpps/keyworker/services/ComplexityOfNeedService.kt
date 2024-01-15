@@ -11,18 +11,22 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 class ComplexityOfNeedService(
   private val complexityOfNeedGateway: ComplexityOfNeedGateway,
   @Value("\${prisons.with.offenders.that.have.complex.needs}") val prisonsWithOffenderComplexityNeeds: Set<String>,
-  val telemetryClient: TelemetryClient
+  val telemetryClient: TelemetryClient,
 ) : ComplexityOfNeed {
-  override fun removeOffendersWithHighComplexityOfNeed(prisonId: String, offenders: Set<String>): Set<String> {
+  override fun removeOffendersWithHighComplexityOfNeed(
+    prisonId: String,
+    offenders: Set<String>,
+  ): Set<String> {
     if (!prisonsWithOffenderComplexityNeeds.contains(prisonId)) return offenders
 
-    val complexOffenders = complexityOfNeedGateway
-      .getOffendersWithMeasuredComplexityOfNeed(offenders)
-      .filter {
-        it.level.equals(ComplexityOfNeedLevel.HIGH)
-      }.map {
-        it.offenderNo
-      }.toSet()
+    val complexOffenders =
+      complexityOfNeedGateway
+        .getOffendersWithMeasuredComplexityOfNeed(offenders)
+        .filter {
+          it.level.equals(ComplexityOfNeedLevel.HIGH)
+        }.map {
+          it.offenderNo
+        }.toSet()
 
     return offenders.filter {
       !complexOffenders.contains(it)
