@@ -13,12 +13,19 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
+import uk.gov.justice.digital.hmpps.keyworker.services.NoContentFoundException;
 
 @org.springframework.web.bind.annotation.RestControllerAdvice(
         basePackageClasses = KeyworkerServiceController.class
 )
 @Slf4j
 public class ControllerAdvice {
+
+    @ExceptionHandler(NoContentFoundException.class)
+    public ResponseEntity noContentFoundException(final NoContentFoundException e) {
+        return ResponseEntity.noContent().build();
+    }
+
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<byte[]> handleException(final WebClientResponseException e) {
