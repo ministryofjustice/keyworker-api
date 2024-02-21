@@ -29,7 +29,7 @@ class SubjectAccessRequestService(
     }))
 
     if(toDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-      it.assignedDateTime.toLocalDate().isBefore(toDate.minusDays(1))
+      it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
     }))
 
     return objectMapper.readTree(objectMapper.writeValueAsString(records))
