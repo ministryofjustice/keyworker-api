@@ -20,18 +20,27 @@ class SubjectAccessRequestService(
 
     if (records.isEmpty()) throw NoContentFoundException()
 
-    if(fromDate != null && toDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-      it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1)) && it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
-    }))
+    val filteredRecords = if (fromDate != null && toDate != null) {
+      objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
+        it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1)) && it.assignedDateTime.toLocalDate()
+          .isBefore(toDate.plusDays(1))
+      }))
 
-    if(fromDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-      it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1))
-    }))
+    } else if (fromDate != null) {
+      objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
+        it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1))
+      }))
 
-    if(toDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-      it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
-    }))
+    } else if (toDate != null) {
+      objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
+        it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
+      }))
+    } else {
+      objectMapper.readTree(objectMapper.writeValueAsString(records))
+    }
 
-    return objectMapper.readTree(objectMapper.writeValueAsString(records))
+    if (filteredRecords.isEmpty) throw NoContentFoundException()
+
+    return objectMapper.readTree(objectMapper.writeValueAsString(filteredRecords))
   }
 }

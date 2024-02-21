@@ -97,6 +97,35 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .jsonPath("$.content").isNotEmpty
   }
 
+
+  @Test
+  fun `sar has no content with date range filter`() {
+    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
+
+    webTestClient.get()
+      .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}&toDate=1999-01-01")
+      .headers(setHeaders())
+      .exchange()
+      .expectStatus().isNoContent
+  }
+
+  @Test
+  fun `sar has content with date range filter`() {
+    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
+
+    webTestClient.get()
+      .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}&fromDate=1999-01-01")
+      .headers(setHeaders())
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .consumeWith(System.out::println)
+      .jsonPath("$.content").isNotEmpty
+  }
+
+
   @Test
   fun `sar has no content`() {
     webTestClient.get()
