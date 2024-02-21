@@ -20,15 +20,15 @@ class SubjectAccessRequestService(
 
     if (records.isEmpty()) throw NoContentFoundException()
 
-    if(fromDate != null && toDate != null)   return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
+    if(fromDate != null && toDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
       it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1)) && it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
     }))
 
-    if(fromDate != null)   return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
+    if(fromDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
       it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1))
     }))
 
-    if(toDate != null)   return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
+    if(toDate != null)  return objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
       it.assignedDateTime.toLocalDate().isBefore(toDate.minusDays(1))
     }))
 
