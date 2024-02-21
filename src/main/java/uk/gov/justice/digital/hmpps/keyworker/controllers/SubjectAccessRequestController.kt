@@ -59,10 +59,11 @@ class SubjectAccessRequestController(
     toDate: LocalDate? = null,
   ): SuccessResponse =
     SuccessResponse(
-      content = subjectAccessRequestService.getSubjectAccessRequest(
-        prn = prn,
-        fromDate = fromDate,
-        toDate = toDate,
-      ),
+      content =
+        subjectAccessRequestService.getSubjectAccessRequest(
+          prn = prn,
+          fromDate = fromDate,
+          toDate = toDate,
+        ),
     )
 }

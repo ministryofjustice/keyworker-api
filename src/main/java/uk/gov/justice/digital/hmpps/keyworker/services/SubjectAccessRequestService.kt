@@ -15,29 +15,45 @@ class SubjectAccessRequestService(
   val offenderKeyworkerRepository: OffenderKeyworkerRepository,
   val objectMapper: ObjectMapper,
 ) {
-  fun getSubjectAccessRequest(prn: String, fromDate: LocalDate?, toDate: LocalDate?): JsonNode {
+  fun getSubjectAccessRequest(
+    prn: String,
+    fromDate: LocalDate?,
+    toDate: LocalDate?,
+  ): JsonNode {
     val records = offenderKeyworkerRepository.findByOffenderNo(prn)
 
     if (records.isEmpty()) throw NoContentFoundException()
 
-    val filteredRecords = if (fromDate != null && toDate != null) {
-      objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-        it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1)) && it.assignedDateTime.toLocalDate()
-          .isBefore(toDate.plusDays(1))
-      }))
-
-    } else if (fromDate != null) {
-      objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-        it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1))
-      }))
-
-    } else if (toDate != null) {
-      objectMapper.readTree(objectMapper.writeValueAsString(records.filter {
-        it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
-      }))
-    } else {
-      objectMapper.readTree(objectMapper.writeValueAsString(records))
-    }
+    val filteredRecords =
+      if (fromDate != null && toDate != null) {
+        objectMapper.readTree(
+          objectMapper.writeValueAsString(
+            records.filter {
+              it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1)) &&
+                it.assignedDateTime.toLocalDate()
+                  .isBefore(toDate.plusDays(1))
+            },
+          ),
+        )
+      } else if (fromDate != null) {
+        objectMapper.readTree(
+          objectMapper.writeValueAsString(
+            records.filter {
+              it.assignedDateTime.toLocalDate().isAfter(fromDate.minusDays(1))
+            },
+          ),
+        )
+      } else if (toDate != null) {
+        objectMapper.readTree(
+          objectMapper.writeValueAsString(
+            records.filter {
+              it.assignedDateTime.toLocalDate().isBefore(toDate.plusDays(1))
+            },
+          ),
+        )
+      } else {
+        objectMapper.readTree(objectMapper.writeValueAsString(records))
+      }
 
     if (filteredRecords.isEmpty) throw NoContentFoundException()
 
