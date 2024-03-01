@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
   kotlin("plugin.spring") version "1.9.22"
   kotlin("plugin.jpa") version "1.9.22"
 }
@@ -35,12 +35,12 @@ dependencies {
   implementation("com.google.code.gson:gson")
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.35.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.1")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.33.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:postgresql")
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.20")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.21")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:$spockVersion") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
@@ -49,12 +49,12 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.17.0")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.17.0")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.17.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.18.1")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.18.1")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.18.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.4")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.7")
   testImplementation("io.jsonwebtoken:jjwt:0.12.5")
   testImplementation("org.springframework.security:spring-security-test")
 }
