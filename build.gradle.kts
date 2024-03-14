@@ -21,7 +21,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
   implementation("org.springframework:spring-jms")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.2.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl")
