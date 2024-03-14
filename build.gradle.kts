@@ -71,13 +71,16 @@ dependencyCheck {
   suppressionFiles.add("suppressions.xml")
 }
 
+java {
+  toolchain.languageVersion.set(JavaLanguageVersion.of(18))
+}
+
 tasks {
-  compileKotlin {
+  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
       jvmTarget = "18"
     }
   }
-
   test {
     jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
   }
