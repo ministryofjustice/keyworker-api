@@ -33,7 +33,7 @@ generic-service:
     host: app-hostname.local
     tlsSecretName: keyworker-api-cert
     annotations:
-      nginx.ingress.kubernetes.io/configuration-snippet: |
+      nginx.ingress.kubernetes.io/server-snippet: |
         server_tokens off;
         location /queue-admin/retry-all-dlqs {
           deny all;
