@@ -89,7 +89,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
     webTestClient.get()
       .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}")
-      .headers(setHeaders())
+      .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -104,7 +104,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
     webTestClient.get()
       .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}&toDate=1999-01-01")
-      .headers(setHeaders())
+      .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus().isNoContent
   }
@@ -116,7 +116,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
     webTestClient.get()
       .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}&fromDate=1999-01-01")
-      .headers(setHeaders())
+      .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus().isOk
       .expectBody()
@@ -128,7 +128,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   fun `sar has no content`() {
     webTestClient.get()
       .uri("/subject-access-request?prn=A12345")
-      .headers(setHeaders())
+      .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus().isNoContent
   }

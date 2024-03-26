@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotNull
 import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -19,6 +20,7 @@ data class SuccessResponse(
 
 @Tag(name = "subject-access-request")
 @RestController
+@PreAuthorize("hasRole('SAR_DATA_ACCESS')")
 class SubjectAccessRequestController(
   private val subjectAccessRequestService: SubjectAccessRequestService,
 ) {
