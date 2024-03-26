@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.validation.constraints.NotNull
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -51,7 +50,7 @@ class SubjectAccessRequestController(
   @GetMapping("/subject-access-request")
   fun subjectAccessRequest(
     @RequestParam("prn", required = false)
-    prn: String ? = null,
+    prn: String? = null,
     @RequestParam("crn", required = false)
     crn: String? = null,
     @RequestParam(name = "fromDate", required = false)
