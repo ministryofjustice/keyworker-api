@@ -9,6 +9,8 @@ import java.time.LocalDate
 
 class NoContentFoundException : RuntimeException()
 
+class MissingPRN : RuntimeException()
+
 @Service
 @Transactional(readOnly = true)
 class SubjectAccessRequestService(

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatusCode
 
 class KeyworkerServiceIntegrationTest : IntegrationTest() {
   companion object {
@@ -80,6 +81,18 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
       .expectStatus().is2xxSuccessful
+  }
+
+  @Test
+  fun `sar returns 209 if no prn set`() {
+    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
+
+    webTestClient.get()
+      .uri("/subject-access-request")
+      .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
+      .exchange()
+      .expectStatus().isEqualTo(HttpStatusCode.valueOf(209))
   }
 
   @Test
