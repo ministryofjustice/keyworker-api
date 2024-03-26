@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
+import uk.gov.justice.digital.hmpps.keyworker.services.MissingPRN;
 import uk.gov.justice.digital.hmpps.keyworker.services.NoContentFoundException;
 
 @org.springframework.web.bind.annotation.RestControllerAdvice(
@@ -20,6 +21,12 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NoContentFoundException;
 )
 @Slf4j
 public class ControllerAdvice {
+
+
+    @ExceptionHandler(MissingPRN.class)
+    public ResponseEntity missingPRNException(final MissingPRN e) {
+        return ResponseEntity.status(209).build();
+    }
 
     @ExceptionHandler(NoContentFoundException.class)
     public ResponseEntity noContentFoundException(final NoContentFoundException e) {

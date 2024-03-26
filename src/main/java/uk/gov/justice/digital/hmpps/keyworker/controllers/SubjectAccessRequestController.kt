@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.validation.constraints.NotNull
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.keyworker.services.MissingPRN
 import uk.gov.justice.digital.hmpps.keyworker.services.SubjectAccessRequestService
 import java.time.LocalDate
 
@@ -49,8 +49,8 @@ class SubjectAccessRequestController(
   )
   @GetMapping("/subject-access-request")
   fun subjectAccessRequest(
-    @RequestParam("prn", required = true)
-    prn: @NotNull String,
+    @RequestParam("prn", required = false)
+    prn: String? = null,
     @RequestParam("crn", required = false)
     crn: String? = null,
     @RequestParam(name = "fromDate", required = false)
@@ -63,7 +63,7 @@ class SubjectAccessRequestController(
     SuccessResponse(
       content =
         subjectAccessRequestService.getSubjectAccessRequest(
-          prn = prn,
+          prn = prn ?: throw MissingPRN(),
           fromDate = fromDate,
           toDate = toDate,
         ),
