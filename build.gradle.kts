@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.5"
   kotlin("plugin.spring") version "1.9.23"
   kotlin("plugin.jpa") version "1.9.23"
 }
@@ -28,7 +28,7 @@ dependencies {
   implementation("com.sun.xml.bind:jaxb-core")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
-  implementation("io.swagger:swagger-annotations:1.6.13")
+  implementation("io.swagger:swagger-annotations:1.6.14")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0")
   implementation("org.apache.commons:commons-text:1.11.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -49,9 +49,9 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.18.1")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.18.1")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.18.1")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.19.0")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.19.0")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.19.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.7")
