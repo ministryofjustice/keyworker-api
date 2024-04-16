@@ -4,3 +4,10 @@ spring:
       resourceserver:
         jwt:
           public-key-location: classpath:local-public-key.pub
+
+prison:
+  uri:
+    root: http://localhost:8081
+auth:
+  uri:
+    root: http://localhost:9090/auth

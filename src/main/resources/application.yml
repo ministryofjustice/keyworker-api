@@ -55,6 +55,12 @@ spring:
     group:
       test:
         - "dev"
+        -
+      dev-local:
+        - "dev"
+        - "postgres"
+        - "local"
+        - "localstack"
 
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
 prisonapi:
@@ -100,13 +106,5 @@ management:
   info:
     env:
       enabled: true
-
-role-migration:
-  rolesToMatch:
-    - KW_ADMIN
-    - KEY_WORK
-  rolesToMigrate:
-
-  rolesToAssign:
 
 api.health-timeout-ms: 1000
