@@ -55,7 +55,7 @@ spring:
     group:
       test:
         - "dev"
-        -
+
       dev-local:
         - "dev"
         - "postgres"
