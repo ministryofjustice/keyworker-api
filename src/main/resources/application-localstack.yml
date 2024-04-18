@@ -2,15 +2,15 @@ hmpps.sqs:
   provider: localstack
   queues:
     offenderevents:
-      queueName: keyworker_api_queue
-      dlqName: keyworker_api_dlq
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
       subscribeTopicId: keyworkerevents
     complexityofneed:
-      queueName: complexity_of_need_sqs
-      dlqName: complexity_of_need_sqs_dlq
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
       subscribeTopicId: complexityevents
   topics:
     keyworkerevents:
-      arn: arn:aws:sns:eu-west-2:000000000000:offender_events
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
     complexityevents:
-      arn: arn:aws:sns:eu-west-2:000000000000:complexity_of_need
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
