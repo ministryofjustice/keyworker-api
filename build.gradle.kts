@@ -3,7 +3,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.5"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.6"
   kotlin("plugin.spring") version "1.9.23"
   kotlin("plugin.jpa") version "1.9.23"
 }
@@ -25,21 +25,21 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
   implementation("org.springframework:spring-jms")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.3")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl")
   implementation("com.sun.xml.bind:jaxb-core")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
-  implementation("io.swagger:swagger-annotations:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0")
-  implementation("org.apache.commons:commons-text:1.11.0")
+  implementation("io.swagger:swagger-annotations:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+  implementation("org.apache.commons:commons-text:1.12.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
   implementation("com.google.guava:guava:32.1.3-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.36.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.2.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.37.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.3.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
@@ -53,9 +53,9 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.18.1")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.18.1")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.18.1")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.20.0")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.20.0")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.20.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.7")
