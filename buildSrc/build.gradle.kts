@@ -5,7 +5,7 @@ version = "1.0-SNAPSHOT"
 description = "Custom gradle tasks"
 
 plugins {
-  kotlin("jvm") version "1.9.23"
+  kotlin("jvm") version "1.9.24"
 }
 
 repositories {
