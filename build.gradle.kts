@@ -4,8 +4,8 @@ import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.0"
-  kotlin("plugin.spring") version "1.9.24"
-  kotlin("plugin.jpa") version "1.9.24"
+  kotlin("plugin.spring") version "2.0.0"
+  kotlin("plugin.jpa") version "2.0.0"
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
@@ -43,6 +43,7 @@ dependencies {
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("org.hsqldb:hsqldb")
   implementation("org.flywaydb:flyway-core")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:postgresql")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.21")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
