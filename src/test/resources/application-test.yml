@@ -41,6 +41,13 @@ spring:
       resourceserver:
         jwt:
           public-key-location: classpath:local-public-key.pub
+  jpa:
+    open-in-view: false
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.H2Dialect
 
 api.health-timeout-ms: 400
 
