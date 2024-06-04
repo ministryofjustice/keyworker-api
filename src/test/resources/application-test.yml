@@ -31,7 +31,7 @@ complexity_of_need_uri: http://localhost:10000
 
 spring:
   datasource:
-    url: "jdbc:hsqldb:mem:keyworker-db;sql.syntax_pgs=true;shutdown=false"
+    url: 'jdbc:h2:mem:keyworker-api-db;MODE=PostgreSQL'
   flyway:
     enabled: true
     cleanDisabled: false
@@ -41,6 +41,13 @@ spring:
       resourceserver:
         jwt:
           public-key-location: classpath:local-public-key.pub
+  jpa:
+    open-in-view: false
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.H2Dialect
 
 api.health-timeout-ms: 400
 
