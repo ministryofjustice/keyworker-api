@@ -41,18 +41,12 @@ abstract class CloudPlatformTask : DefaultTask() {
 
   @get:Internal
   val namespace: String by lazy {
-    val namespacePrefix: String = namespacePrefix
-      ?: userInput.askQuestion("Enter namespace prefix", null)
-      ?: throw IllegalArgumentException("Set task property `namespacePrefix` or enter a namespace prefix")
-
-    val environment: Environment = environment
-      ?: userInput.selectOption(
-        "Choose environment",
-        environments,
-        null,
-      )
-      ?: throw IllegalArgumentException("Provide `--environment $environments` command line argument or choose option")
-
+    val namespacePrefix = namespacePrefix ?: throw IllegalArgumentException("Set task property `namespacePrefix`")
+    val environment = environment
+      ?: userInput.askUser { userQuestions ->
+        userQuestions.selectOption("Choose environment", environments, Environment.dev)
+      }
+        .get()
     "$namespacePrefix-$environment"
   }
 
