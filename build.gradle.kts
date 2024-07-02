@@ -3,7 +3,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.1"
   kotlin("plugin.spring") version "2.0.0"
   kotlin("plugin.jpa") version "2.0.0"
 }
@@ -33,19 +33,19 @@ dependencies {
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
   implementation("io.swagger:swagger-annotations:1.6.14")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
   implementation("org.apache.commons:commons-text:1.12.0")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.google.code.gson:gson")
   implementation("com.google.guava:guava:32.1.3-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.38.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.39.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.5.0")
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.2.224")
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:postgresql")
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.21")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.22")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:$spockVersion") { // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
@@ -54,13 +54,13 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.21.0")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.21.0")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.21.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.22.0")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.22.0")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.22.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.2.7")
-  testImplementation("io.jsonwebtoken:jjwt:0.12.5")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:3.3.0")
+  testImplementation("io.jsonwebtoken:jjwt:0.12.6")
   testImplementation("org.springframework.security:spring-security-test")
 }
 
