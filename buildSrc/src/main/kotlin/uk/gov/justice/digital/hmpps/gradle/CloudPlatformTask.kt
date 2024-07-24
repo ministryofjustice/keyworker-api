@@ -39,6 +39,7 @@ abstract class CloudPlatformTask : DefaultTask() {
     project.serviceOf<UserInputHandler>()
   }
 
+
   @get:Internal
   val namespace: String by lazy {
     val namespacePrefix = namespacePrefix ?: throw IllegalArgumentException("Set task property `namespacePrefix`")
