@@ -9,7 +9,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
-import org.gradle.configurationcache.extensions.serviceOf
+import org.gradle.internal.extensions.core.serviceOf
 import java.io.IOException
 import java.security.SecureRandom
 import kotlin.io.encoding.Base64
