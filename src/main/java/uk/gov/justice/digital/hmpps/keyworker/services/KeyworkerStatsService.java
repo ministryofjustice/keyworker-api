@@ -130,10 +130,8 @@ public class KeyworkerStatsService {
     }
 
     @Transactional
-    public PrisonKeyWorkerStatistic generatePrisonStats(final String prisonId) {
+    public PrisonKeyWorkerStatistic generatePrisonStats(final String prisonId, LocalDate snapshotDate) {
         Validate.notNull(prisonId, "prisonId");
-
-        final var snapshotDate = LocalDate.now().minusDays(1);
 
         var dailyStat = statisticRepository.findOneByPrisonIdAndSnapshotDate(prisonId, snapshotDate);
 
