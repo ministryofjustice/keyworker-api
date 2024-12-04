@@ -23,5 +23,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPOST http://keyworker-api/batch/generate-stats?snapshotDate=2024-11-15
+                - curl --retry 2 -XPOST http://keyworker-api/batch/generate-stats?snapshotDate=2024-11-16
           restartPolicy: Never
