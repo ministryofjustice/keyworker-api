@@ -369,7 +369,7 @@ class KeyworkerStatsServiceTest {
         when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, new HashSet<>(offenderNos)))
             .thenReturn(offenderNos.stream().skip(1).collect(Collectors.toSet()));
 
-        final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
+        final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID, LocalDate.now().minusDays(1));
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
         assertThat(statsResult.getNumberKeyWorkerSessions()).isEqualTo(4);
@@ -393,7 +393,7 @@ class KeyworkerStatsServiceTest {
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate)))
                 .thenReturn(Collections.emptyList());
 
-        final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID);
+        final var statsResult = service.generatePrisonStats(TEST_AGENCY_ID, LocalDate.now().minusDays(1));
 
         assertThat(statsResult.getTotalNumPrisoners()).isEqualTo(3);
         assertThat(statsResult.getNumberKeyWorkerSessions()).isEqualTo(4);

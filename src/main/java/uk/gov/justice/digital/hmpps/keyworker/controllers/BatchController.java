@@ -8,9 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
@@ -18,6 +21,8 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsBatchServic
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisBatchService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationBatchService;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Tag(name = "batch")
@@ -66,7 +71,6 @@ public class BatchController {
             summary = "runBatchPrisonStats",
             security = { @SecurityRequirement(name = "SYSTEM_USER") },
             hidden = true)
-
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "Invalid request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))} ),
@@ -74,10 +78,18 @@ public class BatchController {
             @ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
 
     @PostMapping(path = "/generate-stats")
-    public void runBatchPrisonStats() {
-        log.info("Starting: Daily Prison Statistics");
-        keyworkerStatsBatchService.generatePrisonStats();
-        log.info("Complete: Daily Prison Statistics");
+    public void runBatchPrisonStats(
+        @RequestParam(value = "snapshotDate", required = false)
+        @DateTimeFormat(iso = ISO.DATE)
+        LocalDate snapshotDate
+    )
+    {
+        if(snapshotDate == null) {
+            snapshotDate = LocalDate.now().minusDays(1);
+        }
+        log.info("Starting: Daily Prison Statistics: {}", snapshotDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        keyworkerStatsBatchService.generatePrisonStats(snapshotDate);
+        log.info("Complete: Daily Prison Statistics: {}", snapshotDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
     @Operation(
