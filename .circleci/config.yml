@@ -3,6 +3,11 @@ version: 2.1
 orbs:
   hmpps: ministryofjustice/hmpps@9
 
+parameters:
+  non-prod-slack-channel:
+    type: string
+    default: move-and-improve-alerts-non-prod
+
 jobs:
   build:
     executor:
@@ -78,6 +83,7 @@ workflows:
           name: deploy_prod
           env: "prod"
           slack_notification: true
+          slack_channel_name: move-and-improve-alerts
           context:
             - hmpps-common-vars
             - keyworker-api-prod
@@ -94,15 +100,19 @@ workflows:
                 - main
     jobs:
       - hmpps/gradle_owasp_dependency_check:
+          slack_channel: << pipeline.parameters.non-prod-slack-channel >>
           context:
             - hmpps-common-vars
       - hmpps/trivy_latest_scan:
+          slack_channel: << pipeline.parameters.non-prod-slack-channel >>
           context:
             - hmpps-common-vars
-     # - hmpps/veracode_pipeline_scan:
-     #     context:
-     #       - veracode-credentials
-     #       - hmpps-common-vars
+      - hmpps/veracode_pipeline_scan:
+          jdk_tag: "21.0"
+          slack_channel: << pipeline.parameters.non-prod-slack-channel >>
+          context:
+            - veracode-credentials
+            - hmpps-common-vars
   security-weekly:
     triggers:
       - schedule:
@@ -113,6 +123,7 @@ workflows:
                 - main
     jobs:
       - hmpps/veracode_policy_scan:
+          slack_channel: << pipeline.parameters.non-prod-slack-channel >>
           context:
             - veracode-credentials
             - hmpps-common-vars
