@@ -15,3 +15,8 @@ generic-service:
    host: keyworker-api-dev.prison.service.justice.gov.uk
 
  allowlist: false
+
+generic-prometheus-alerts:
+ alertSeverity: hmpps-alerts-api-non-prod
+ rdsAlertsDatabases:
+  cloud-platform-a75ed0cca96e6c72: 'Keyworker API'
