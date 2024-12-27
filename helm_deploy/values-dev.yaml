@@ -2,7 +2,6 @@
 # Declare variables to be passed into your templates.
 
 generic-service:
- replicaCount: 2
 
  env:
   PRISON_URI_ROOT: "https://prison-api-dev.prison.service.justice.gov.uk"

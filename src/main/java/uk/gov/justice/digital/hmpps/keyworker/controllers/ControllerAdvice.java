@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
@@ -13,26 +14,10 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.services.MissingPRN;
-import uk.gov.justice.digital.hmpps.keyworker.services.NoContentFoundException;
 
-@org.springframework.web.bind.annotation.RestControllerAdvice(
-        basePackageClasses = KeyworkerServiceController.class
-)
+@RestControllerAdvice(basePackageClasses = KeyworkerServiceController.class)
 @Slf4j
 public class ControllerAdvice {
-
-
-    @ExceptionHandler(MissingPRN.class)
-    public ResponseEntity missingPRNException(final MissingPRN e) {
-        return ResponseEntity.status(209).build();
-    }
-
-    @ExceptionHandler(NoContentFoundException.class)
-    public ResponseEntity noContentFoundException(final NoContentFoundException e) {
-        return ResponseEntity.noContent().build();
-    }
-
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<byte[]> handleException(final WebClientResponseException e) {
