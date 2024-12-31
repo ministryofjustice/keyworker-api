@@ -272,17 +272,6 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<Prison> getAllPrisons() {
-        log.info("Getting all prisons");
-
-        final var prisonListResponse = restCallHelper.getEntity(URI_GET_ALL_PRISONS, queryParamsOf(), uriVariablesOf(), PRISON_LIST, true);
-        return prisonListResponse.getBody() != null ?
-                prisonListResponse.getBody().stream()
-                        .map(p -> Prison.builder().prisonId(p.getAgencyId()).build())
-                        .collect(Collectors.toList()) : Collections.emptyList();
-    }
-
-    @Override
     public boolean isPrison(final String prisonId) {
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         final var queryParams = queryParamsOf("activeOnly", "false", "agencyType", "INST");
