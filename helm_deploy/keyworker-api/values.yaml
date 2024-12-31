@@ -42,10 +42,6 @@ generic-service:
           deny all;
           return 401;
         }
-        location /batch/add-users-to-new-nomis {
-          deny all;
-          return 401;
-        }
         location /batch/key-worker-recon {
           deny all;
           return 401;
