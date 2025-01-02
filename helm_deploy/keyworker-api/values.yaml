@@ -14,7 +14,7 @@ generic-service:
     port: 8080
 
   env:
-    JAVA_OPTS: "-Xmx1024m"
+    JDK_JAVA_OPTIONS: "-Xmx512m -XX:+UseG1GC"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "sqs"
     SERVER_CONNECTION_TIMEOUT: "180000"
@@ -22,11 +22,14 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     HMPPS_SQS_USE_WEB_TOKEN: "true"
 
+  replicaCount: 2
   resources:
-    limits:
-      memory: 2Gi
     requests:
-      memory: 512Mi
+      cpu: 128m
+      memory: 1024Mi
+    limits:
+      cpu: 2048m
+      memory: 1280Mi
 
   ingress:
     enabled: true
@@ -36,10 +39,6 @@ generic-service:
       nginx.ingress.kubernetes.io/server-snippet: |
         server_tokens off;
         location /queue-admin/retry-all-dlqs {
-          deny all;
-          return 401;
-        }
-        location /batch/add-users-to-new-nomis {
           deny all;
           return 401;
         }

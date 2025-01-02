@@ -11,9 +11,14 @@ parameters:
 jobs:
   build:
     executor:
-      name: hmpps/localstack
+      name: hmpps/java_localstack_postgres_with_db_name
       jdk_tag: "21.0"
-      localstack_tag: "3.0"
+      localstack_tag: "3"
+      services: "sqs,sns"
+      postgres_tag: "16"
+      postgres_db: "keyworker-api-db"
+      postgres_username: "admin"
+      postgres_password: "admin_password"
     steps:
       - checkout
       - restore_cache:

@@ -1,5 +1,4 @@
 generic-service:
-  replicaCount: 2
 
   env:
     PRISON_URI_ROOT: "https://prison-api-preprod.prison.service.justice.gov.uk"

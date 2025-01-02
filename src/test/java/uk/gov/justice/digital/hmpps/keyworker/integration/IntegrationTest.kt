@@ -14,11 +14,16 @@ import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
+import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer
+import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer.setLocalStackProperties
+import uk.gov.justice.hmpps.casenotes.config.container.PostgresContainer
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -62,6 +67,23 @@ abstract class IntegrationTest {
       oAuthMockServer.stop()
       prisonMockServer.stop()
       complexityOfNeedMockServer.stop()
+    }
+
+    private val pgContainer = PostgresContainer.instance
+    private val localStackContainer = LocalStackContainer.instance
+
+    @JvmStatic
+    @DynamicPropertySource
+    fun properties(registry: DynamicPropertyRegistry) {
+      pgContainer?.run {
+        registry.add("spring.datasource.url", pgContainer::getJdbcUrl)
+        registry.add("spring.datasource.username", pgContainer::getUsername)
+        registry.add("spring.datasource.password", pgContainer::getPassword)
+      }
+
+      System.setProperty("aws.region", "eu-west-2")
+
+      localStackContainer?.also { setLocalStackProperties(it, registry) }
     }
   }
 

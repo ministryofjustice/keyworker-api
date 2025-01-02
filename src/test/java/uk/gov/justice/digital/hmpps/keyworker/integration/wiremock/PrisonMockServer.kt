@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.matching
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page
+import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 
 class PrisonMockServer : WireMockServer(9999) {
   fun stubAllocationHistory(
@@ -142,6 +144,21 @@ class PrisonMockServer : WireMockServer(9999) {
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(json),
+        ),
+    )
+  }
+
+  fun stubKeyworkerDetails(
+    staffId: Long,
+    staffSummary: StaffSummary,
+  ) {
+    stubFor(
+      WireMock.get(WireMock.urlEqualTo("/api/staff/$staffId"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.OK.value())
+            .withBody(jacksonObjectMapper().writeValueAsString(staffSummary)),
         ),
     )
   }

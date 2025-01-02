@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsBatchService;
-import uk.gov.justice.digital.hmpps.keyworker.services.NomisBatchService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationBatchService;
 
 import java.time.LocalDate;
@@ -37,33 +36,12 @@ public class BatchController {
 
     private final KeyworkerStatsBatchService keyworkerStatsBatchService;
 
-    private final NomisBatchService nomisBatchService;
-
     private final ReconciliationBatchService reconciliationBatchService;
 
-    public BatchController(KeyworkerBatchService keyworkerBatchService, KeyworkerStatsBatchService keyworkerStatsBatchService, NomisBatchService nomisBatchService, ReconciliationBatchService reconciliationBatchService) {
+    public BatchController(KeyworkerBatchService keyworkerBatchService, KeyworkerStatsBatchService keyworkerStatsBatchService, ReconciliationBatchService reconciliationBatchService) {
         this.keyworkerBatchService = keyworkerBatchService;
         this.keyworkerStatsBatchService = keyworkerStatsBatchService;
-        this.nomisBatchService = nomisBatchService;
         this.reconciliationBatchService = reconciliationBatchService;
-    }
-
-    @Operation(
-        description = "Enable Users access to New Nomis prison by prison batch process, Can only be run with SYSTEM_USER role",
-        summary = "runEnableNewNomisBatch",
-        security = { @SecurityRequirement( name = "SYSTEM_USER") },
-            hidden = true)
-
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request.",
-                content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
-
-    @PostMapping(path = "/add-users-to-new-nomis")
-    public void runEnableNewNomisBatch() {
-        log.info("Starting: Checking for new users and enabling user access to API");
-        nomisBatchService.enableNomis();
-        log.info("Complete: Checking for new Users and Enabling User access to API");
     }
 
     @Operation(

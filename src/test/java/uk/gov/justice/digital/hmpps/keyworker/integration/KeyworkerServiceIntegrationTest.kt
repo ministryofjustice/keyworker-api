@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatusCode
+import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 
 class KeyworkerServiceIntegrationTest : IntegrationTest() {
   companion object {
@@ -23,6 +24,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     migratedFoAutoAllocation(PRISON_ID)
     prisonMockServer.stubOffendersAtLocationForAutoAllocation(oFFENDERSATLOCATION)
     prisonMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, sTAFFLOCATIONROLELIST)
+    prisonMockServer.stubKeyworkerDetails(KEYWORKER_ID_1, StaffSummary(KEYWORKER_ID_1, "John", "Smith"))
   }
 
   @Test
