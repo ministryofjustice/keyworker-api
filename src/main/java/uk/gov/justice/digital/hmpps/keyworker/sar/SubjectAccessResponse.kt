@@ -12,6 +12,8 @@ data class SarKeyWorker(
   val allocationReason: String,
   val deallocationReason: String?,
   val keyworker: StaffMember,
-)
+) {
+  val activeAllocation: Boolean = allocationExpiredAt == null
+}
 
 data class StaffMember(val firstName: String, val lastName: String)
