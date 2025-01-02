@@ -26,7 +26,7 @@ class SubjectAccessRequest(
     val result =
       kws.asSequence()
         .map { it.forSarReport { id -> requireNotNull(staffMap[id]) } }
-        .sortedByDescending { it.assignedAt }
+        .sortedByDescending { it.allocatedAt }
         .toList()
     return if (result.isEmpty()) null else SubjectAccessResponse(prn, result)
   }

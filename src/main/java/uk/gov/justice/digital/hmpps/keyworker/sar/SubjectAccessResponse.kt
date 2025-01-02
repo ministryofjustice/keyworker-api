@@ -5,8 +5,8 @@ import java.time.LocalDateTime
 data class SubjectAccessResponse(val prn: String, val content: List<SarKeyWorker>)
 
 data class SarKeyWorker(
-  val assignedAt: LocalDateTime,
-  val expiredAt: LocalDateTime?,
+  val allocatedAt: LocalDateTime,
+  val allocationExpiredAt: LocalDateTime?,
   val prisonCode: String,
   val allocationType: String,
   val allocationReason: String,
