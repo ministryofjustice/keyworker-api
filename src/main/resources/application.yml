@@ -44,8 +44,8 @@ spring:
         registration:
           default:
             provider: hmpps-auth
-            client-id: ${clientId}
-            client-secret: ${clientSecret}
+            client-id: ${client.id}
+            client-secret: ${client.secret}
             authorization-grant-type: client_credentials
             scope: read
         provider:
@@ -67,8 +67,9 @@ spring:
         - "localstack"
 
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
-clientId: omicadmin
-clientSecret: clientsecret
+client:
+  id: omicadmin
+  secret: clientsecret
 
 sentry:
   exception-resolver-order: -2147483647
