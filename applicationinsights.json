@@ -7,11 +7,50 @@
   },
   "instrumentation": {
     "logging": {
-      "level": "DEBUG"
+      "level": "WARN"
     }
   },
   "selfDiagnostics": {
     "destination": "console"
+  },
+  "sampling": {
+    "percentage": 100
+  },
+  "preview": {
+    "sampling": {
+      "overrides": [
+        {
+          "telemetryType": "request",
+          "attributes": [
+            {
+              "key": "http.url",
+              "value": "https?://[^/]+/health/?.*",
+              "matchType": "regexp"
+            }
+          ],
+          "percentage": 0
+        },
+        {
+          "telemetryType": "request",
+          "attributes": [
+            {
+              "key": "http.url",
+              "value": "https?://[^/]+/info/?.*",
+              "matchType": "regexp"
+            }
+          ],
+          "percentage": 0
+        },
+        {
+          "telemetryType": "dependency",
+          "attributes": [
+            {
+              "key": "db.operation"
+            }
+          ],
+          "percentage": 0
+        }
+      ]
+    }
   }
 }
-
