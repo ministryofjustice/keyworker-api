@@ -1,6 +1,7 @@
 generic-service:
 
   env:
+    SENTRY_ENVIRONMENT: preprod
     PRISON_URI_ROOT: "https://prison-api-preprod.prison.service.justice.gov.uk"
     AUTH_URI_ROOT: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"

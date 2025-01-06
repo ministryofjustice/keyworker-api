@@ -42,10 +42,10 @@ spring:
     oauth2:
       client:
         registration:
-          prison-api:
+          default:
             provider: hmpps-auth
-            client-id: ${prisonapi.client.clientId}
-            client-secret: ${prisonapi.client.clientSecret}
+            client-id: ${clientId}
+            client-secret: ${clientSecret}
             authorization-grant-type: client_credentials
             scope: read
         provider:
@@ -67,10 +67,11 @@ spring:
         - "localstack"
 
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
-prisonapi:
-  client:
-    clientId: omicadmin
-    clientSecret: clientsecret
+clientId: omicadmin
+clientSecret: clientsecret
+
+sentry:
+  exception-resolver-order: -2147483647
 
 server:
   port: 8080

@@ -21,6 +21,8 @@ generic-service:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     HMPPS_SQS_USE_WEB_TOKEN: "true"
+    SENTRY_TRACES_SAMPLE_RATE: '0.05'
+    SENTRY_IGNORED_EXCEPTIONS_FOR_TYPE: "org.apache.catalina.connector.ClientAbortException,org.springframework.web.servlet.resource.NoResourceFoundException,org.springframework.web.context.request.async.AsyncRequestNotUsableException"
 
   replicaCount: 2
   resources:
@@ -58,8 +60,10 @@ generic-service:
   namespace_secrets:
     keyworker-api:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
-      PRISONAPI_CLIENT_CLIENTID: "PRISONAPI_CLIENT_CLIENTID"
-      PRISONAPI_CLIENT_CLIENTSECRET: "PRISONAPI_CLIENT_CLIENTSECRET"
+      CLIENT_ID: CLIENT_ID
+      CLIENT_SECRET: CLIENT_SECRET
+      SENTRY_DSN: SENTRY_DSN
+      SENTRY_AUTH_TOKEN: SENTRY_AUTH_TOKEN
     dps-rds-instance-output:
       SPRING_DATASOURCE_USERNAME: "database_username"
       SPRING_DATASOURCE_PASSWORD: "database_password"

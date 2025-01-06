@@ -40,7 +40,7 @@ class WebClientConfiguration(
     builder: WebClient.Builder,
   ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("prison-api")
+    oauth2Client.setDefaultClientRegistrationId("default")
     return builder.baseUrl(prisonApiRootUri)
       .apply(oauth2Client.oauth2Configuration())
       .build()
@@ -52,7 +52,7 @@ class WebClientConfiguration(
     builder: WebClient.Builder,
   ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("prison-api")
+    oauth2Client.setDefaultClientRegistrationId("default")
 
     return builder.baseUrl("$complexityOfNeedUri/v1")
       .apply(oauth2Client.oauth2Configuration())
