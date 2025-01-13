@@ -16,8 +16,8 @@ class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
       .expectStatus().is2xxSuccessful
       .expectBody()
       .jsonPath("$.status").isEqualTo("UP")
-      .jsonPath("$.components.complexityofneed-health.status").isEqualTo("UP")
-      .jsonPath("$.components.complexityofneed-health.details.dlqStatus").isEqualTo("UP")
+      .jsonPath("$.components.domaineventsqueue-health.status").isEqualTo("UP")
+      .jsonPath("$.components.domaineventsqueue-health.details.dlqStatus").isEqualTo("UP")
   }
 
   @Test

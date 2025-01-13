@@ -15,15 +15,15 @@ hmpps.sqs:
       queueName: keyworker_api_queue
       dlqName: keyworker_api_dlq
       subscribeTopicId: keyworkerevents
-    complexityofneed:
-      queueName: complexity_of_need_sqs
-      dlqName: complexity_of_need_sqs_dlq
-      subscribeTopicId: complexityevents
+    domaineventsqueue:
+      queueName: domain_events_queue
+      dlqName: domain_events_dlq
+      subscribeTopicId: domaineventstopic
   topics:
     keyworkerevents:
       arn: arn:aws:sns:eu-west-2:000000000000:offender_events
-    complexityevents:
-      arn: arn:aws:sns:eu-west-2:000000000000:complexity_of_need
+    domaineventstopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:domain_events_topic
 
 manage-users.api.uri.root: http://localhost:9998
 prison.uri.root: http://localhost:9999

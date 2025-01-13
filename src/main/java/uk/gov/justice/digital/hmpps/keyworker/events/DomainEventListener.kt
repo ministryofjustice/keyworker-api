@@ -17,7 +17,7 @@ class DomainEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener("complexityofneed", factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener("domaineventsqueue", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-complexity-event-queue", kind = SpanKind.SERVER)
   fun eventListener(requestJson: String) {
     val (message, messageAttributes) = objectMapper.readValue<Message>(requestJson)

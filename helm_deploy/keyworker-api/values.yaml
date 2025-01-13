@@ -73,10 +73,12 @@ generic-service:
       HMPPS_SQS_QUEUES_OFFENDEREVENTS_QUEUE_NAME: "sqs_kw_name"
     kw-sqs-dl-instance-output:
       HMPPS_SQS_QUEUES_OFFENDEREVENTS_DLQ_NAME: "sqs_kw_name"
-    kw-sqs-complexity-of-need-instance-output:
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_QUEUE_NAME: "sqs_kw_name"
-    kw-sqs-complexity-of-need-dl-instance-output:
-      HMPPS_SQS_QUEUES_COMPLEXITYOFNEED_DLQ_NAME: "sqs_kw_name"
+    hmpps-domain-events-topic:
+      HMPPS_SQS_TOPICS_DOMAINEVENTS_ARN: "topic_arn"
+    domain-events-queue-secret:
+      HMPPS_SQS_QUEUES_DOMAINEVENTSQUEUE_QUEUE_NAME: "queue_name"
+    domain-events-dlq-secret:
+      HMPPS_SQS_QUEUES_DOMAINEVENTSQUEUE_DLQ_NAME: "queue_name"
 
   allowlist:
     groups:
