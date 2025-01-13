@@ -17,18 +17,39 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.keyworker.events.DomainEvent
+import uk.gov.justice.digital.hmpps.keyworker.events.DomainEventListener
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ManageUsersMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
+import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.services.MergeInformation
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.casenotes.config.container.PostgresContainer
+import uk.gov.justice.hmpps.sqs.HmppsQueue
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingQueueException
+import uk.gov.justice.hmpps.sqs.MissingTopicException
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
+import uk.gov.justice.hmpps.sqs.publish
+import java.time.LocalDateTime
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTest {
+  @Autowired
+  protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
+
   @Autowired
   lateinit var flyway: Flyway
 
@@ -43,6 +64,29 @@ abstract class IntegrationTest {
     // Resolves an issue where Wiremock keeps previous sockets open from other tests causing connection resets
     System.setProperty("http.keepAlive", "false")
   }
+
+  @Autowired
+  internal lateinit var hmppsQueueService: HmppsQueueService
+
+  val domainEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("domaineventstopic") ?: throw MissingTopicException("domain events topic not found")
+  }
+
+  val domainEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("domaineventsqueue") ?: throw MissingQueueException("domain events queue not found")
+  }
+
+  internal fun publishEventToTopic(event: Any) {
+    val eventType =
+      when (event) {
+        is DomainEvent -> event.eventType
+        is MergeInformation -> DomainEventListener.PRISONER_MERGED
+        else -> throw IllegalArgumentException("Unknown event $event")
+      }
+    domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
+  }
+
+  internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl).get()
 
   companion object {
     @JvmField
@@ -193,4 +237,30 @@ abstract class IntegrationTest {
   internal fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
 
   internal fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this).readText()
+
+  internal fun givenOffenderKeyWorker(
+    prisonNumber: String = prisonNumber(),
+    staffId: Long = newId(),
+    assignedAt: LocalDateTime = LocalDateTime.now(),
+    allocationType: AllocationType = AllocationType.AUTO,
+    allocationReason: AllocationReason = AllocationReason.AUTO,
+    userId: String = newId().toString(),
+    expiredAt: LocalDateTime? = null,
+    deallocationReason: DeallocationReason? = null,
+    active: Boolean = true,
+    prisonCode: String = "MDI",
+  ) = offenderKeyworkerRepository.save(
+    OffenderKeyworker().apply {
+      offenderNo = prisonNumber
+      this.staffId = staffId
+      assignedDateTime = assignedAt
+      this.allocationType = allocationType
+      this.allocationReason = allocationReason
+      this.userId = userId
+      expiryDateTime = expiredAt
+      this.deallocationReason = deallocationReason
+      isActive = active
+      prisonId = prisonCode
+    },
+  )
 }

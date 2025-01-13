@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
+import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 @ExtendWith(MockitoExtension::class)
@@ -13,13 +14,16 @@ class DomainEventListenerTest {
   @Mock
   lateinit var complexityOfNeedEventProcessor: ComplexityOfNeedEventProcessor
 
+  @Mock
+  lateinit var mergePrisonNumbers: MergePrisonNumbers
+
   lateinit var domainEventListener: DomainEventListener
 
   private val cOMPLEXITYCHANGEEVENT = this::class.java.getResource("complexity-of-need-change-to-high.json").readText()
 
   @BeforeEach
   fun setUp() {
-    domainEventListener = DomainEventListener(complexityOfNeedEventProcessor, objectMapper)
+    domainEventListener = DomainEventListener(complexityOfNeedEventProcessor, mergePrisonNumbers, objectMapper)
   }
 
   @Test

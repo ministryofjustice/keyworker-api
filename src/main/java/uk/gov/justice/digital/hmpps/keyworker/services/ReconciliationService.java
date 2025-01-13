@@ -138,16 +138,6 @@ public class ReconciliationService {
         telemetryClient.trackException(exception, logMap, null);
     }
 
-    public void checkForMergeAndDeallocate(final Long bookingId) {
-        log.debug("Check for merged booking for ID {}", bookingId);
-        nomisService.getIdentifiersByBookingId(bookingId).stream()
-                .filter(id -> "MERGED".equals(id.getType()))
-                .forEach(id -> nomisService.getBooking(bookingId)
-                        .ifPresent(booking -> offenderKeyworkerRepository.findByOffenderNo(id.getValue())
-                                .forEach(offenderKeyWorker -> mergeOffenders(id.getValue(), booking.getOffenderNo(), offenderKeyWorker, new ReconMetrics(offenderKeyWorker.getPrisonId(), 0, 0)
-                                ))));
-    }
-
     public void checkMovementAndDeallocate(final OffenderEvent movement) {
         log.debug("Check for Transfer/Release and Deallocate for booking {} seq {}", movement.getBookingId(), movement.getMovementSeq());
 
