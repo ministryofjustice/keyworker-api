@@ -44,7 +44,7 @@ class OffenderEventListener(
     val movementReasonCode: String?,
     val directionCode: String?,
     val escortCode: String?,
-    val fromAgencyLocationId: String,
+    val fromAgencyLocationId: String?,
     val toAgencyLocationId: String,
   )
 }

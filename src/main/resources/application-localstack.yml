@@ -5,12 +5,12 @@ hmpps.sqs:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: keyworkerevents
-    complexityofneed:
+    domaineventsqueue:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
-      subscribeTopicId: complexityevents
+      subscribeTopicId: domaineventstopic
   topics:
     keyworkerevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
-    complexityevents:
+    domaineventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
