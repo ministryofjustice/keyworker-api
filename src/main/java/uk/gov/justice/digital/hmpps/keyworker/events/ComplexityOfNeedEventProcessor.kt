@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
@@ -13,7 +13,6 @@ import java.util.Locale
 
 data class ComplexityOfNeedChange(
   override val eventType: String,
-  override val version: String,
   override val apiEndpoint: String,
   override val eventOccurred: LocalDateTime,
   val offenderNo: String,
@@ -25,7 +24,7 @@ data class ComplexityOfNeedChange(
 class ComplexityOfNeedEventProcessor(
   private val keyworkerService: KeyworkerService,
   private val telemetryClient: TelemetryClient,
-  @Qualifier("gson") private val gson: Gson,
+  private val objectMapper: ObjectMapper,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String?,
 ) {
   companion object {
@@ -38,7 +37,7 @@ class ComplexityOfNeedEventProcessor(
       return
     }
 
-    val event = gson.fromJson(message, ComplexityOfNeedChange::class.java)
+    val event = objectMapper.readValue<ComplexityOfNeedChange>(message)
 
     event.active?.let {
       if (!it) {

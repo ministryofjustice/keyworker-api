@@ -14,7 +14,7 @@ import java.time.Duration
 
 @Service
 class StaffDetailProvider(
-  @Qualifier("oauth2WebClient") private val prisonApi: WebClient,
+  @Qualifier("prisonApiWebClient") private val prisonApi: WebClient,
 ) {
   fun findStaffSummariesFromIds(ids: Set<Long>): List<StaffSummary> {
     return Flux.fromIterable(ids).flatMap({ id ->

@@ -18,6 +18,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ManageUsersMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
@@ -53,12 +54,16 @@ abstract class IntegrationTest {
     @JvmField
     internal val oAuthMockServer = OAuthMockServer()
 
+    @JvmField
+    internal val manageUsersMockServer = ManageUsersMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
       oAuthMockServer.start()
       prisonMockServer.start()
       complexityOfNeedMockServer.start()
+      manageUsersMockServer.start()
     }
 
     @AfterAll
@@ -67,6 +72,7 @@ abstract class IntegrationTest {
       oAuthMockServer.stop()
       prisonMockServer.stop()
       complexityOfNeedMockServer.stop()
+      manageUsersMockServer.stop()
     }
 
     private val pgContainer = PostgresContainer.instance
@@ -93,6 +99,7 @@ abstract class IntegrationTest {
     prisonMockServer.resetAll()
     complexityOfNeedMockServer.resetAll()
     oAuthMockServer.stubGrantToken()
+    manageUsersMockServer.resetAll()
   }
 
   @AfterEach

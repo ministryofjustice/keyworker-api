@@ -3,6 +3,7 @@ generic-service:
   env:
     SENTRY_ENVIRONMENT: prod
     PRISON_URI_ROOT: "https://prison-api.prison.service.justice.gov.uk"
+    MANAGE_USERS_API_URI_ROOT: "https://manage-users-api.hmpps.service.justice.gov.uk"
     AUTH_URI_ROOT: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
     COMPLEXITY_OF_NEED_URI: https://complexity-of-need.hmpps.service.justice.gov.uk

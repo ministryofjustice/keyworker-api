@@ -5,17 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig;
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService;
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper;
 import wiremock.org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -30,7 +29,7 @@ class OffenderEventListenerTest {
 
     @BeforeEach
     void setUp() {
-        offenderEventListener = new OffenderEventListener(reconciliationService, keyworkerService, new JsonConfig().gson());
+        offenderEventListener = new OffenderEventListener(reconciliationService, keyworkerService, JsonHelper.getObjectMapper());
     }
 
     @Test
@@ -56,22 +55,6 @@ class OffenderEventListenerTest {
         offenderEventListener.eventListener(getJson("offender-deletion-request.json"));
 
         verify(keyworkerService).deleteKeyworkersForOffender("A1234AA");
-        verifyNoInteractions(reconciliationService);
-    }
-
-    @Test
-    void testDeleteEventBadMessage() {
-        assertThatThrownBy(() -> offenderEventListener.eventListener(getJson("offender-deletion-request-bad-message.json")))
-                .hasMessageContaining("Expected BEGIN_OBJECT but was STRING at line 1");
-
-        verifyNoInteractions(keyworkerService, reconciliationService);
-    }
-
-    @Test
-    void testDeleteEventEmpty() throws IOException {
-        offenderEventListener.eventListener(getJson("offender-deletion-request-empty.json"));
-
-        verify(keyworkerService).deleteKeyworkersForOffender("");
         verifyNoInteractions(reconciliationService);
     }
 

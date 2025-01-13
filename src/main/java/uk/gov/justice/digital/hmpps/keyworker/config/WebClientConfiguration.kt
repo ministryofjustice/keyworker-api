@@ -1,9 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.config
 
+import io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS
+import io.netty.channel.ChannelOption.SO_KEEPALIVE
+import io.netty.channel.epoll.EpollChannelOption
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder
@@ -14,13 +18,19 @@ import org.springframework.web.reactive.function.client.ClientRequest
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.ExchangeFunction
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClient.Builder
+import reactor.netty.http.client.HttpClient
+import reactor.netty.http.client.HttpClient.create
 import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext
+import java.time.Duration
 
 @Configuration
 class WebClientConfiguration(
   @Value("\${prison.api.uri.root}") private val prisonApiRootUri: String,
+  @Value("\${manage-users.api.uri.root}") private val manageUsersApiRootUri: String,
   @Value("\${prison.uri.root}") private val healthRootUri: String,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
+  @Value("\${api.timeout:2s}") val timeout: Duration,
 ) {
   @Bean
   fun authorizedClientManager(
@@ -35,15 +45,39 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun oauth2WebClient(
-    authorizedClientManager: OAuth2AuthorizedClientManager?,
-    builder: WebClient.Builder,
+  fun prisonApiWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonApiRootUri)
+
+  @Bean
+  fun manageUsersApiWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, manageUsersApiRootUri)
+
+  private fun getOAuthWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+    rootUri: String,
   ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("default")
-    return builder.baseUrl(prisonApiRootUri)
+    return builder.baseUrl(rootUri)
+      .clientConnector(clientConnector())
       .apply(oauth2Client.oauth2Configuration())
       .build()
+  }
+
+  private fun clientConnector(consumer: ((HttpClient) -> Unit)? = null): ReactorClientHttpConnector {
+    val client =
+      create().responseTimeout(timeout)
+        .option(CONNECT_TIMEOUT_MILLIS, 1000)
+        .option(SO_KEEPALIVE, true)
+        // this will show a warning on apple (arm) architecture but will work on linux x86 container
+        .option(EpollChannelOption.TCP_KEEPINTVL, 60)
+    consumer?.also { it.invoke(client) }
+    return ReactorClientHttpConnector(client)
   }
 
   @Bean

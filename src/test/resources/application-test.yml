@@ -25,6 +25,7 @@ hmpps.sqs:
     complexityevents:
       arn: arn:aws:sns:eu-west-2:000000000000:complexity_of_need
 
+manage-users.api.uri.root: http://localhost:9998
 prison.uri.root: http://localhost:9999
 auth.uri.root: http://localhost:8090/auth
 complexity_of_need_uri: http://localhost:10000
@@ -49,7 +50,6 @@ spring:
     generate-ddl: false
     hibernate:
       ddl-auto: none
-    database-platform: org.hibernate.dialect.H2Dialect
 
 api.health-timeout-ms: 400
 

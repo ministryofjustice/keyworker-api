@@ -212,4 +212,21 @@ class PrisonMockServer : WireMockServer(9999) {
         ),
     )
   }
+
+  fun stubStaffIsKeyworker(
+    staffId: String,
+    prisonCode: String,
+    isKeyworker: Boolean,
+    status: HttpStatus = HttpStatus.OK,
+  ) {
+    stubFor(
+      WireMock.get(WireMock.urlPathMatching("/api/staff/$staffId/$prisonCode/roles/KW"))
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(status.value())
+            .withBody(isKeyworker.toString()),
+        ),
+    )
+  }
 }

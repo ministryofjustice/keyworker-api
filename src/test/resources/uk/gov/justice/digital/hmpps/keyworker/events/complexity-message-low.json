@@ -1,5 +1,7 @@
 {
   "eventType": "complexity-of-need.level.changed",
   "offenderNo": "A12345",
-  "level": "low"
+  "level": "low",
+  "apiEndpoint": "",
+  "eventOccurred": "1970-01-01T00:00:00"
 }

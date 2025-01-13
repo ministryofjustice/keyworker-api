@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 class OffenderEventListener(
   private val reconciliationService: ReconciliationService,
   private val keyworkerService: KeyworkerService,
-  @Qualifier("gson") private val gson: Gson,
+  private val objectMapper: ObjectMapper,
 ) {
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -24,10 +24,10 @@ class OffenderEventListener(
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-offender-event-queue", kind = SpanKind.SERVER)
   fun eventListener(requestJson: String) {
-    val (message, messageAttributes) = gson.fromJson(requestJson, Message::class.java)
-    val eventType = messageAttributes.eventType.Value
+    val (message, messageAttributes) = objectMapper.readValue<Message>(requestJson)
+    val eventType = messageAttributes.eventType.value
     log.info("Processing message of type {}", eventType)
-    val event = gson.fromJson(message, OffenderEvent::class.java)
+    val event = objectMapper.readValue<OffenderEvent>(message)
     when (eventType) {
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
       "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event.bookingId)
