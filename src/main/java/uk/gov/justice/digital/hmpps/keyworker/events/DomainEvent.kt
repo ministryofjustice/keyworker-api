@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 interface DomainEvent {
   val eventType: String
-  val version: String
   val apiEndpoint: String
   val eventOccurred: LocalDateTime
 }

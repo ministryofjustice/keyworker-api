@@ -71,9 +71,6 @@ client:
   id: omicadmin
   secret: clientsecret
 
-sentry:
-  exception-resolver-order: -2147483647
-
 server:
   port: 8080
   servlet:

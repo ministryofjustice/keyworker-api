@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,10 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RestResponsePage;
-import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -38,7 +34,7 @@ public class RestCallHelper {
 
     @Autowired
     public RestCallHelper(@Qualifier(value = "webClient") final WebClient webClient,
-                          @Qualifier(value = "oauth2WebClient") final WebClient oauth2WebClient) {
+                          @Qualifier(value = "prisonApiWebClient") final WebClient oauth2WebClient) {
         this.webClient = webClient;
         this.oauth2WebClient = oauth2WebClient;
     }

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
-import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 @ExtendWith(MockitoExtension::class)
 class DomainEventListenerTest {
@@ -19,7 +19,7 @@ class DomainEventListenerTest {
 
   @BeforeEach
   fun setUp() {
-    domainEventListener = DomainEventListener(complexityOfNeedEventProcessor, JsonConfig().gson())
+    domainEventListener = DomainEventListener(complexityOfNeedEventProcessor, objectMapper)
   }
 
   @Test

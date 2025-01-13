@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.events
 
-import com.google.gson.Gson
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.Test
@@ -14,8 +13,8 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.keyworker.config.JsonConfig
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 @ExtendWith(MockitoExtension::class)
 class ComplexityOfNeedEventProcessorTest {
@@ -28,7 +27,6 @@ class ComplexityOfNeedEventProcessorTest {
   lateinit var complexityOfNeedEventProcessor: ComplexityOfNeedEventProcessor
 
   companion object {
-    val gson: Gson = JsonConfig().gson()
     const val OFFENDER_NO = "A12345"
   }
 
@@ -40,7 +38,7 @@ class ComplexityOfNeedEventProcessorTest {
   @Test
   fun `should not deallocate offenders that do not have high complexity of needs`() {
     complexityOfNeedEventProcessor =
-      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
+      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, objectMapper, "http://local")
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGELOW)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
@@ -49,7 +47,7 @@ class ComplexityOfNeedEventProcessorTest {
   @Test
   fun `should deallocate offenders that have high complexity of needs`() {
     complexityOfNeedEventProcessor =
-      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
+      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, objectMapper, "http://local")
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEHIGH)
 
     verify(keyworkerService, times(1)).deallocate(OFFENDER_NO)
@@ -58,7 +56,7 @@ class ComplexityOfNeedEventProcessorTest {
   @Test
   fun `should raise a telemetry event`() {
     complexityOfNeedEventProcessor =
-      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
+      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, objectMapper, "http://local")
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEMEDIUM)
 
     verify(telemetryClient, Mockito.times(1)).trackEvent(
@@ -70,7 +68,7 @@ class ComplexityOfNeedEventProcessorTest {
 
   @Test
   fun `should do nothing when there is no complexity url`() {
-    complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "")
+    complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, objectMapper, "")
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEHIGH)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
@@ -79,7 +77,10 @@ class ComplexityOfNeedEventProcessorTest {
 
   @Test
   fun `should do nothing when record is not active`() {
-    complexityOfNeedEventProcessor = ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
+    complexityOfNeedEventProcessor =
+      ComplexityOfNeedEventProcessor(
+        keyworkerService, telemetryClient, objectMapper, "http://local",
+      )
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEINACTIVE)
 
     verify(keyworkerService, never()).deallocate(OFFENDER_NO)
@@ -91,7 +92,7 @@ class ComplexityOfNeedEventProcessorTest {
     whenever(keyworkerService.deallocate(OFFENDER_NO)).thenThrow(EntityNotFoundException::class.java)
 
     complexityOfNeedEventProcessor =
-      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, gson, "http://local")
+      ComplexityOfNeedEventProcessor(keyworkerService, telemetryClient, objectMapper, "http://local")
 
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEHIGH)
   }
