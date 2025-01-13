@@ -22,14 +22,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class OffenderEventListenerTest {
     @Mock
     private ReconciliationService reconciliationService;
-    @Mock
-    private KeyworkerService keyworkerService;
 
     private OffenderEventListener offenderEventListener;
 
     @BeforeEach
     void setUp() {
-        offenderEventListener = new OffenderEventListener(reconciliationService, keyworkerService, JsonHelper.getObjectMapper());
+        offenderEventListener = new OffenderEventListener(reconciliationService, JsonHelper.getObjectMapper());
     }
 
     @Test
@@ -37,7 +35,6 @@ class OffenderEventListenerTest {
         offenderEventListener.eventListener(getJson("booking-number-changed.json"));
 
         verify(reconciliationService).checkForMergeAndDeallocate(100001L);
-        verifyNoInteractions(keyworkerService);
     }
 
     @Test
@@ -47,15 +44,6 @@ class OffenderEventListenerTest {
         final var movement = new OffenderEvent(100001L, 3L, "A1234AA", LocalDateTime.of(2020, 02, 29, 12, 34,56), "ADM", "ADM", "IN", "POL", "CRTTRN", "MDI");
 
         verify(reconciliationService).checkMovementAndDeallocate(movement);
-        verifyNoInteractions(keyworkerService);
-    }
-
-    @Test
-    void testDeleteEvent() throws IOException {
-        offenderEventListener.eventListener(getJson("offender-deletion-request.json"));
-
-        verify(keyworkerService).deleteKeyworkersForOffender("A1234AA");
-        verifyNoInteractions(reconciliationService);
     }
 
     private String getJson(final String filename) throws IOException {

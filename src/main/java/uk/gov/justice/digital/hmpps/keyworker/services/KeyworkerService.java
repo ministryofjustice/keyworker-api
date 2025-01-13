@@ -495,14 +495,6 @@ public class KeyworkerService {
         return new Page<>(keyworkers, response.getHeaders());
     }
 
-    @Transactional
-    public void deleteKeyworkersForOffender(final String offenderNo) {
-        Preconditions.checkState(StringUtils.isNotBlank(offenderNo), "Found blank offender id");
-        final var count = repository.deleteByOffenderNo(offenderNo);
-        log.info("Deleted {} case notes for offender identifier {}", count, offenderNo);
-        telemetryClient.trackEvent("OffenderDelete", Map.of("offenderNo", offenderNo, "count", String.valueOf(count)), null);
-    }
-
     private void populateWithAllocations(final List<KeyworkerDto> convertedKeyworkerDtoList, final String prisonId) {
         final var staffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
 

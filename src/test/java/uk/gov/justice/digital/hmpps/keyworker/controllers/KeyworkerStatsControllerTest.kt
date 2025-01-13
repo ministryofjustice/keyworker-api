@@ -6,10 +6,10 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto
@@ -27,10 +27,10 @@ class KeyworkerStatsControllerTest {
   @Autowired
   private lateinit var webTestClient: WebTestClient
 
-  @MockBean
+  @MockitoBean
   lateinit var keyworkerStatsService: KeyworkerStatsService
 
-  @MockBean
+  @MockitoBean
   lateinit var prisonSupportedService: PrisonSupportedService
 
   @Test

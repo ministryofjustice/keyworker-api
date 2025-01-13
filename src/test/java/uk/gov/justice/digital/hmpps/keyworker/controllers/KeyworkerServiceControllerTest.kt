@@ -9,11 +9,11 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto
@@ -37,16 +37,16 @@ class KeyworkerServiceControllerTest() {
   @Autowired
   private lateinit var webTestClient: WebTestClient
 
-  @MockBean
+  @MockitoBean
   private lateinit var keyworkerService: KeyworkerService
 
-  @MockBean
+  @MockitoBean
   private lateinit var keyworkerMigrationService: KeyworkerMigrationService
 
-  @MockBean
+  @MockitoBean
   private lateinit var keyworkerAutoAllocationService: KeyworkerAutoAllocationService
 
-  @MockBean
+  @MockitoBean
   private lateinit var prisonSupportedService: PrisonSupportedService
 
   @ParameterizedTest

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
@@ -36,16 +36,16 @@ class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     @Autowired
     private KeyworkerMigrationService service;
 
-    @MockBean
+    @MockitoBean
     private NomisService nomisService;
 
-    @MockBean
+    @MockitoBean
     private PrisonSupportedRepository prisonSupportedRepository;
 
-    @MockBean
+    @MockitoBean
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
 
-    @MockBean
+    @MockitoBean
     private PrisonSupportedService prisonSupportedService;
 
     @BeforeEach
