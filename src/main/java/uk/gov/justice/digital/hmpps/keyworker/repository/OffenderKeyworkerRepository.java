@@ -44,4 +44,6 @@ public interface OffenderKeyworkerRepository extends CrudRepository<OffenderKeyw
     @Query("update OffenderKeyworker ok set ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.AUTO where ok.prisonId = :prisonId and ok.allocationType = uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL")
     Integer confirmProvisionals(@Param("prisonId") String prisonId);
 
+    Integer countByActiveAndOffenderNo(boolean isActive, String prisonNumber);
+
 }

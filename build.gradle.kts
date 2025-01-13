@@ -51,6 +51,9 @@ dependencies {
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok")
+
+  testImplementation("org.awaitility:awaitility:4.2.2")
+  testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy

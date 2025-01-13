@@ -31,13 +31,6 @@ class OffenderEventListenerTest {
     }
 
     @Test
-    void testBookingNumberChanged() throws IOException {
-        offenderEventListener.eventListener(getJson("booking-number-changed.json"));
-
-        verify(reconciliationService).checkForMergeAndDeallocate(100001L);
-    }
-
-    @Test
     void testExternalMovementRecordInserted() throws IOException {
         offenderEventListener.eventListener(getJson("external-movement-record-inserted.json"));
 

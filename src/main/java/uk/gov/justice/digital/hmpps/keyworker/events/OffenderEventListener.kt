@@ -28,7 +28,6 @@ class OffenderEventListener(
     val event = objectMapper.readValue<OffenderEvent>(message)
     when (eventType) {
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
-      "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event.bookingId)
     }
   }
 
