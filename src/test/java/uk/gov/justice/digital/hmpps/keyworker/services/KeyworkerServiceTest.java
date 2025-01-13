@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +23,9 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
@@ -87,28 +86,28 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Autowired
     private KeyworkerService service;
 
-    @MockBean
+    @MockitoBean
     private AuthenticationFacade authenticationFacade;
 
-    @MockBean
+    @MockitoBean
     private OffenderKeyworkerRepository repository;
 
-    @MockBean
+    @MockitoBean
     private KeyworkerRepository keyworkerRepository;
 
-    @MockBean
+    @MockitoBean
     private KeyworkerAllocationProcessor processor;
 
-    @MockBean
+    @MockitoBean
     private PrisonSupportedService prisonSupportedService;
 
-    @MockBean
+    @MockitoBean
     private NomisService nomisService;
 
-    @MockBean
+    @MockitoBean
     private ComplexityOfNeedService complexityOfNeedService;
 
-    @MockBean
+    @MockitoBean
     private TelemetryClient telemetryClient;
 
     @BeforeEach
@@ -1487,24 +1486,6 @@ class KeyworkerServiceTest extends AbstractServiceTest {
             TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
 
         verify(repository, never()).findByStaffIdAndPrisonIdAndActive(any(), any(), anyBoolean());
-    }
-
-    @Test
-    void testDeleteKeyworkersForOffender() {
-        when(repository.deleteByOffenderNo(anyString())).thenReturn(3);
-        service.deleteKeyworkersForOffender("12345");
-        verify(repository).deleteByOffenderNo("12345");
-        verify(telemetryClient).trackEvent("OffenderDelete", Map.of("offenderNo", "12345", "count", "3"), null);
-    }
-
-    @Test
-    void testDeleteKeyworkersForOffender_null() {
-        assertThatThrownBy(() -> service.deleteKeyworkersForOffender(null)).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void testDeleteKeyworkersForOffender_blank() {
-        assertThatThrownBy(() -> service.deleteKeyworkersForOffender("   ")).isInstanceOf(IllegalStateException.class);
     }
 
     private OffenderKeyworker getTestOffenderKeyworker(final String offenderNo, final long staffId) {

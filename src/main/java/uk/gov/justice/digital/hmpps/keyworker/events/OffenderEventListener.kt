@@ -7,14 +7,12 @@ import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
 import java.time.LocalDateTime
 
 @Service
 class OffenderEventListener(
   private val reconciliationService: ReconciliationService,
-  private val keyworkerService: KeyworkerService,
   private val objectMapper: ObjectMapper,
 ) {
   companion object {
@@ -31,7 +29,6 @@ class OffenderEventListener(
     when (eventType) {
       "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
       "BOOKING_NUMBER-CHANGED" -> reconciliationService.checkForMergeAndDeallocate(event.bookingId)
-      "DATA_COMPLIANCE_DELETE-OFFENDER" -> keyworkerService.deleteKeyworkersForOffender(event.offenderIdDisplay)
     }
   }
 

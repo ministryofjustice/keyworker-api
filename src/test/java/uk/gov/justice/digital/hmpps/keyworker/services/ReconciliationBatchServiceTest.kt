@@ -10,8 +10,8 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import uk.gov.justice.digital.hmpps.keyworker.config.RetryConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison
@@ -23,10 +23,10 @@ class ReconciliationBatchServiceTest {
   @Autowired
   private lateinit var batchService: ReconciliationBatchService
 
-  @MockBean
+  @MockitoBean
   private lateinit var reconciliationService: ReconciliationService
 
-  @MockBean
+  @MockitoBean
   private lateinit var prisonSupportedService: PrisonSupportedService
 
   @Test
