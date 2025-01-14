@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.client
+package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException

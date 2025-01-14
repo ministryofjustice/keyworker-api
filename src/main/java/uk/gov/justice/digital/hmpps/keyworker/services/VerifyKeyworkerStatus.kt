@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.client.ManageUsersClient
-import uk.gov.justice.digital.hmpps.keyworker.client.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 
 @Service
 class VerifyKeyworkerStatus(
