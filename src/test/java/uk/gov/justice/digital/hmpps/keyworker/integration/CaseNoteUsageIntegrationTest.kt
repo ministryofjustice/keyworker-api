@@ -24,19 +24,21 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
 
   @Test
   fun `usage by author`() {
-    val noteUsage = listOf(
-      UsageByAuthorIdResponse("-4", "KA", "KS", 6, latestNote(6)),
-      UsageByAuthorIdResponse("-5", "KA", "KS", 3, latestNote(3)),
-    )
+    val noteUsage =
+      listOf(
+        UsageByAuthorIdResponse("-4", "KA", "KS", 6, latestNote(6)),
+        UsageByAuthorIdResponse("-5", "KA", "KS", 3, latestNote(3)),
+      )
 
-    val request = UsageByAuthorIdRequest(
-      authorIds = setOf("-4", "-5"),
-      typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KS")))
-    )
+    val request =
+      UsageByAuthorIdRequest(
+        authorIds = setOf("-4", "-5"),
+        typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KS"))),
+      )
 
     caseNotesMockServer.stubUsageByStaffIds(
       request = request,
-      response = NoteUsageResponse(content = noteUsage.groupBy { it.authorId }.toMap())
+      response = NoteUsageResponse(content = noteUsage.groupBy { it.authorId }.toMap()),
     )
 
     val usage = nomisService.getCaseNoteUsage(listOf(-4, -5), "KA", "KS", null, null, 0)
@@ -52,19 +54,21 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
   fun `usage by prison number`() {
     val pn1 = prisonNumber()
     val pn2 = prisonNumber()
-    val noteUsage = listOf(
-      UsageByPersonIdentifierResponse(pn1, "KA", "KE", 5, latestNote(5)),
-      UsageByPersonIdentifierResponse(pn2, "KA", "KE", 2, latestNote(2)),
-    )
+    val noteUsage =
+      listOf(
+        UsageByPersonIdentifierResponse(pn1, "KA", "KE", 5, latestNote(5)),
+        UsageByPersonIdentifierResponse(pn2, "KA", "KE", 2, latestNote(2)),
+      )
 
-    val request = UsageByPersonIdentifierRequest(
-      personIdentifiers = setOf(pn1, pn2),
-      typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KE")))
-    )
+    val request =
+      UsageByPersonIdentifierRequest(
+        personIdentifiers = setOf(pn1, pn2),
+        typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KE"))),
+      )
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
       request = request,
-      response = NoteUsageResponse(content = noteUsage.groupBy { it.personIdentifier }.toMap())
+      response = NoteUsageResponse(content = noteUsage.groupBy { it.personIdentifier }.toMap()),
     )
 
     val usage = nomisService.getCaseNoteUsageForPrisoners(listOf(pn1, pn2), null, "KA", "KE", null, null)
@@ -81,20 +85,22 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
     val pn1 = prisonNumber()
     val pn2 = prisonNumber()
     val staffId = 126758381L
-    val noteUsage = listOf(
-      UsageByPersonIdentifierResponse(pn1, "KA", "KE", 2, latestNote(2)),
-      UsageByPersonIdentifierResponse(pn2, "KA", "KE", 1, latestNote(1)),
-    )
+    val noteUsage =
+      listOf(
+        UsageByPersonIdentifierResponse(pn1, "KA", "KE", 2, latestNote(2)),
+        UsageByPersonIdentifierResponse(pn2, "KA", "KE", 1, latestNote(1)),
+      )
 
-    val request = UsageByPersonIdentifierRequest(
-      personIdentifiers = setOf(pn1, pn2),
-      typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KE"))),
-      authorIds = setOf("$staffId")
-    )
+    val request =
+      UsageByPersonIdentifierRequest(
+        personIdentifiers = setOf(pn1, pn2),
+        typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KE"))),
+        authorIds = setOf("$staffId"),
+      )
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
       request = request,
-      response = NoteUsageResponse(content = noteUsage.groupBy { it.personIdentifier }.toMap())
+      response = NoteUsageResponse(content = noteUsage.groupBy { it.personIdentifier }.toMap()),
     )
 
     val usage = nomisService.getCaseNoteUsageForPrisoners(listOf(pn1, pn2), staffId, "KA", "KE", null, null)

@@ -34,7 +34,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
   ): StubMapping {
     return stubFor(
       post("/case-notes/staff-usage")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(request),true, true))
+        .withRequestBody(equalToJson(objectMapper.writeValueAsString(request), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
