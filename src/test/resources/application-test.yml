@@ -25,6 +25,7 @@ hmpps.sqs:
     domaineventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:domain_events_topic
 
+case-notes.api.uri.root: http://localhost:9997
 manage-users.api.uri.root: http://localhost:9998
 prison.uri.root: http://localhost:9999
 auth.uri.root: http://localhost:8090/auth

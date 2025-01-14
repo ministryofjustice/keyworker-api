@@ -28,6 +28,7 @@ import java.time.Duration
 class WebClientConfiguration(
   @Value("\${prison.api.uri.root}") private val prisonApiRootUri: String,
   @Value("\${manage-users.api.uri.root}") private val manageUsersApiRootUri: String,
+  @Value("\${case-notes.api.uri.root}") private val caseNotesApiRootUri: String,
   @Value("\${prison.uri.root}") private val healthRootUri: String,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
   @Value("\${api.timeout:2s}") val timeout: Duration,
@@ -55,6 +56,12 @@ class WebClientConfiguration(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, manageUsersApiRootUri)
+
+  @Bean
+  fun caseNotesApiWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, caseNotesApiRootUri)
 
   private fun getOAuthWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
@@ -94,7 +101,7 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun webClient(builder: WebClient.Builder): WebClient {
+  fun webClient(builder: Builder): WebClient {
     return builder
       .baseUrl(prisonApiRootUri)
       .filter(addAuthHeaderFilterFunction())
@@ -102,7 +109,7 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun healthWebClient(builder: WebClient.Builder): WebClient {
+  fun healthWebClient(builder: Builder): WebClient {
     return builder
       .baseUrl(healthRootUri)
       .filter(addAuthHeaderFilterFunction())
@@ -110,7 +117,7 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun complexityOfNeedHealthWebClient(builder: WebClient.Builder): WebClient {
+  fun complexityOfNeedHealthWebClient(builder: Builder): WebClient {
     return builder
       .baseUrl("$complexityOfNeedUri/ping")
       .filter(addAuthHeaderFilterFunction())

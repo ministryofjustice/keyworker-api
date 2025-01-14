@@ -1,13 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersRequest;
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageRequest;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
@@ -30,14 +21,28 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderBooking;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonContactDetailDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RestResponsePage;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffUser;
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient;
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.TypeSubTypeRequest;
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest;
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.queryParamsOf;
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.uriVariablesOf;
 
@@ -46,75 +51,119 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.
 public class NomisServiceImpl implements NomisService {
 
     private static final ParameterizedTypeReference<List<OffenderKeyworkerDto>> PARAM_TYPE_REF_OFFENDER_KEY_WORKER =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<List<StaffLocationRoleDto>> PRISON_STAFF_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<RestResponsePage<OffenderLocationDto>> OFFENDER_LOCATION_DTO_LIST =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<List<PrisonerDetail>> PRISONER_DETAIL_LIST =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
-    private static final ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>> CASE_NOTE_USAGE_PRISONERS_DTO_LIST =
-            new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>>
+        CASE_NOTE_USAGE_PRISONERS_DTO_LIST =
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<List<KeyworkerAllocationDetailsDto>> LEGACY_KEYWORKER_ALLOCATIONS =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
     private static final ParameterizedTypeReference<List<AllocationHistoryDto>> ALLOCATION_HISTORY =
-            new ParameterizedTypeReference<>() {};
+        new ParameterizedTypeReference<>() {
+        };
 
-    private static final ParameterizedTypeReference<List<PrisonContactDetailDto>> PRISON_LIST = new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<PrisonerIdentifier>> PRISONER_ID_LIST =
+        new ParameterizedTypeReference<>() {
+        };
 
-    private static final ParameterizedTypeReference<List<PrisonerIdentifier>> PRISONER_ID_LIST = new ParameterizedTypeReference<>() {};
-
-    private static final ParameterizedTypeReference<List<BookingIdentifier>> BOOKING_IDENTIFIER_LIST = new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<BookingIdentifier>> BOOKING_IDENTIFIER_LIST =
+        new ParameterizedTypeReference<>() {
+        };
 
     private final RestCallHelper restCallHelper;
+    private final CaseNotesApiClient caseNotesApiClient;
 
-    public NomisServiceImpl(final RestCallHelper restCallHelper) {
+    public NomisServiceImpl(final RestCallHelper restCallHelper, final CaseNotesApiClient caseNotesApiClient) {
         this.restCallHelper = restCallHelper;
+        this.caseNotesApiClient = caseNotesApiClient;
     }
 
     @Override
     public Optional<OffenderLocationDto> getOffenderForPrison(final String prisonId, final String offenderNo) {
         log.info("Getting offender in prison {} offender No {}", prisonId, offenderNo);
         final var queryParams = queryParamsOf("prisonId", prisonId, "offenderNo", offenderNo);
-        final var body = restCallHelper.getEntity(URI_ACTIVE_OFFENDERS_BY_PRISON, queryParams, uriVariablesOf(), OFFENDER_LOCATION_DTO_LIST, false).getBody();
+        final var body = restCallHelper.getEntity(
+            URI_ACTIVE_OFFENDERS_BY_PRISON,
+            queryParams,
+            uriVariablesOf(),
+            OFFENDER_LOCATION_DTO_LIST,
+            false
+        ).getBody();
         return body != null ? body.getContent().stream().findFirst() : Optional.empty();
     }
 
     @Override
-    public List<OffenderLocationDto> getOffendersAtLocation(final String prisonId, final String sortFields, final SortOrder sortOrder, final boolean admin) {
+    public List<OffenderLocationDto> getOffendersAtLocation(
+        final String prisonId,
+        final String sortFields,
+        final SortOrder sortOrder,
+        final boolean admin
+    ) {
         log.info("Getting offenders in prison {}", prisonId);
         final var queryParams = queryParamsOf("prisonId", prisonId, "page", "0", "size", "4000");
         if (StringUtils.isNotBlank(sortFields)) {
             queryParams.putAll(queryParamsOf("sort", sortFields + "," + sortOrder.name()));
         }
 
-        return restCallHelper.getPageWithSorting(URI_ACTIVE_OFFENDERS_BY_PRISON, queryParams, OFFENDER_LOCATION_DTO_LIST, admin).getContent();
+        return restCallHelper.getPageWithSorting(
+            URI_ACTIVE_OFFENDERS_BY_PRISON,
+            queryParams,
+            OFFENDER_LOCATION_DTO_LIST,
+            admin
+        ).getContent();
     }
 
     @Override
     public Optional<PrisonerDetail> getPrisonerDetail(final String offenderNo, final boolean admin) {
         log.debug("Getting prisoner details for NOMIS No {}", offenderNo);
         final var uriVariables = uriVariablesOf("offenderNo", offenderNo);
-        final var prisonerDetail = restCallHelper.getEntity(URI_PRISONER_LOOKUP + "/{offenderNo}", queryParamsOf(), uriVariables, PRISONER_DETAIL_LIST, admin).getBody();
+        final var prisonerDetail = restCallHelper.getEntity(
+            URI_PRISONER_LOOKUP + "/{offenderNo}",
+            queryParamsOf(),
+            uriVariables,
+            PRISONER_DETAIL_LIST,
+            admin
+        ).getBody();
         return Optional.ofNullable(prisonerDetail.isEmpty() ? null : prisonerDetail.get(0));
     }
 
     @Override
     public List<PrisonerDetail> getPrisonerDetails(final List<String> offenderNos, final boolean admin) {
         final var payload = new PrisonerDetailLookup(offenderNos);
-        return restCallHelper.postWithLimit(URI_PRISONER_LOOKUP, queryParamsOf(), uriVariablesOf(), payload, PRISONER_DETAIL_LIST, offenderNos.size(), admin);
+        return restCallHelper.postWithLimit(
+            URI_PRISONER_LOOKUP,
+            queryParamsOf(),
+            uriVariablesOf(),
+            payload,
+            PRISONER_DETAIL_LIST,
+            offenderNos.size(),
+            admin
+        );
     }
 
     @Data
@@ -124,14 +173,26 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(final String prisonId, final Optional<String> nameFilter, final PagingAndSortingDto pagingAndSorting, final boolean admin) {
+    public ResponseEntity<List<StaffLocationRoleDto>> getActiveStaffKeyWorkersForPrison(
+        final String prisonId,
+        final Optional<String> nameFilter,
+        final PagingAndSortingDto pagingAndSorting,
+        final boolean admin
+    ) {
         log.info("Getting KW Staff in prison {}", prisonId);
 
         final var queryParams = queryParamsOf();
         nameFilter.ifPresent(filter -> queryParams.add("nameFilter", filter));
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
 
-        return restCallHelper.getEntityWithPagingAndSorting(GET_STAFF_IN_SPECIFIC_PRISON, queryParams, uriVariables, pagingAndSorting, PRISON_STAFF_LOCATION_DTO_LIST, admin);
+        return restCallHelper.getEntityWithPagingAndSorting(
+            GET_STAFF_IN_SPECIFIC_PRISON,
+            queryParams,
+            uriVariables,
+            pagingAndSorting,
+            PRISON_STAFF_LOCATION_DTO_LIST,
+            admin
+        );
     }
 
     @Override
@@ -142,7 +203,8 @@ public class NomisServiceImpl implements NomisService {
         log.debug("About to retrieve keyworker from prison-api using uri {}", uri);
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         final var queryParams = queryParamsOf("staffId", String.valueOf(staffId), "activeOnly", "false");
-        final var staff = restCallHelper.getEntity(uri, queryParams, uriVariables, PRISON_STAFF_LOCATION_DTO_LIST, false).getBody();
+        final var staff =
+            restCallHelper.getEntity(uri, queryParams, uriVariables, PRISON_STAFF_LOCATION_DTO_LIST, false).getBody();
         final var staffLocationRoleDto = Optional.ofNullable(staff.isEmpty() ? null : staff.get(0));
         log.debug("Result: {}", staffLocationRoleDto);
         return staffLocationRoleDto;
@@ -160,7 +222,13 @@ public class NomisServiceImpl implements NomisService {
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId) {
         log.info("Getting available KW in prison {}", prisonId);
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
-        return restCallHelper.getEntity(URI_AVAILABLE_KEYWORKERS, queryParamsOf(), uriVariables, KEYWORKER_DTO_LIST, true).getBody();
+        return restCallHelper.getEntity(
+            URI_AVAILABLE_KEYWORKERS,
+            queryParamsOf(),
+            uriVariables,
+            KEYWORKER_DTO_LIST,
+            true
+        ).getBody();
     }
 
     @Override
@@ -172,14 +240,29 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<OffenderKeyworkerDto> getOffenderKeyWorkerPage(final String prisonId, final long offset, final long limit) {
+    public List<OffenderKeyworkerDto> getOffenderKeyWorkerPage(
+        final String prisonId,
+        final long offset,
+        final long limit
+    ) {
         // Just 1 call on 4 july 2023 ! A migration for FEI (fosse way) !
-        log.info("Retrieving allocation history for agency [{}] using offset [{}] and limit [{}].", prisonId, offset, limit);
+        log.info(
+            "Retrieving allocation history for agency [{}] using offset [{}] and limit [{}].",
+            prisonId,
+            offset,
+            limit
+        );
 
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
         final var pagingAndSorting = PagingAndSortingDto.builder().pageOffset(offset).pageLimit(limit).build();
 
-        return restCallHelper.getEntityWithPaging(URI_KEY_WORKER_GET_ALLOCATION_HISTORY, queryParamsOf(), uriVariables, pagingAndSorting, PARAM_TYPE_REF_OFFENDER_KEY_WORKER).getBody();
+        return restCallHelper.getEntityWithPaging(
+            URI_KEY_WORKER_GET_ALLOCATION_HISTORY,
+            queryParamsOf(),
+            uriVariables,
+            pagingAndSorting,
+            PARAM_TYPE_REF_OFFENDER_KEY_WORKER
+        ).getBody();
     }
 
     @Override
@@ -202,50 +285,138 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<CaseNoteUsageDto> getCaseNoteUsage(final List<Long> staffIds, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate, final Integer numMonths) {
-        log.info("Getting case note details of type {} sub type {}, from {}, to {} for {} months", caseNoteType, caseNoteSubType, fromDate, toDate, numMonths);
+    public List<CaseNoteUsageDto> getCaseNoteUsage(
+        final List<Long> staffIds,
+        final String caseNoteType,
+        final String caseNoteSubType,
+        final LocalDate fromDate,
+        final LocalDate toDate,
+        final Integer numMonths
+    ) {
 
-        final var body = CaseNoteUsageRequest.builder()
-                .staffIds(staffIds)
-                .type(caseNoteType)
-                .subType(caseNoteSubType)
-                .fromDate(fromDate)
-                .toDate(toDate)
-                .numMonths(numMonths)
-                .build();
+        final Set<String> subtypes = new HashSet<>();
+        if (caseNoteSubType != null && !caseNoteSubType.isEmpty()) {
+            subtypes.add(caseNoteSubType);
+        }
+        final var typeSubType = new TypeSubTypeRequest(caseNoteType, subtypes);
+        LocalDateTime from = null;
+        if (fromDate != null) {
+            from = fromDate.atStartOfDay();
+        }
+        LocalDateTime to = null;
+        if (toDate != null) {
+            to = toDate.plusDays(1).atStartOfDay();
+        }
+        final var request = new UsageByAuthorIdRequest(
+            staffIds.stream().map(Object::toString).collect(Collectors.toSet()),
+            Set.of(typeSubType),
+            from,
+            to
+        );
 
-        return restCallHelper.post(CASE_NOTE_USAGE, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_DTO_LIST, true);
+        return caseNotesApiClient.getUsageByStaffIds(request).getContent().values().stream()
+            .flatMap(p -> p.stream()
+                .map(usage -> {
+                    LocalDate latestDate = null;
+                    if (usage.getLatestNote() != null) {
+                        latestDate = usage.getLatestNote().getOccurredAt().toLocalDate();
+                    }
+                    return new CaseNoteUsageDto(
+                        Long.parseLong(usage.getAuthorId()),
+                        usage.getType(),
+                        usage.getSubType(),
+                        usage.getCount(),
+                        latestDate
+                    );
+                })
+            ).toList();
     }
 
     @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(final List<String> offenderNos, final Long staffId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate) {
-        log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(
+        final List<String> offenderNos,
+        final Long staffId,
+        final String caseNoteType,
+        final String caseNoteSubType,
+        final LocalDate fromDate,
+        final LocalDate toDate
+    ) {
 
-        final var body = CaseNoteUsagePrisonersRequest.builder()
-                .offenderNos(offenderNos)
-                .staffId(staffId)
-                .type(caseNoteType)
-                .subType(caseNoteSubType)
-                .fromDate(fromDate)
-                .toDate(toDate)
-                .build();
+        final Set<String> subtypes = new HashSet<>();
+        if (caseNoteSubType != null && !caseNoteSubType.isEmpty()) {
+            subtypes.add(caseNoteSubType);
+        }
+        final var typeSubType = new TypeSubTypeRequest(caseNoteType, subtypes);
+        final Set<String> staffIds = new HashSet<>();
+        if (staffId != null) {
+            staffIds.add(staffId.toString());
+        }
+        LocalDateTime from = null;
+        if (fromDate != null) {
+            from = fromDate.atStartOfDay();
+        }
+        LocalDateTime to = null;
+        if (toDate != null) {
+            to = toDate.plusDays(1).atStartOfDay();
+        }
+        final var request = new UsageByPersonIdentifierRequest(
+            new HashSet<>(offenderNos),
+            Set.of(typeSubType),
+            from,
+            to,
+            staffIds
+        );
 
-        return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, true);
+        return caseNotesApiClient.getUsageByPersonIdentifier(request).getContent().values().stream()
+            .flatMap(p -> p.stream()
+                .map(usage -> {
+                    LocalDate latestDate = null;
+                    if (usage.getLatestNote() != null) {
+                        latestDate = usage.getLatestNote().getOccurredAt().toLocalDate();
+                    }
+                    return new CaseNoteUsagePrisonersDto(
+                        usage.getPersonIdentifier(),
+                        usage.getType(),
+                        usage.getSubType(),
+                        usage.getCount(),
+                        latestDate
+                    );
+                })
+            ).toList();
     }
 
     @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate) {
-        log.info("Getting case note details for prisoner list of type {} sub type {}, from {}, to {}", caseNoteType, caseNoteSubType, fromDate, toDate);
+    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(
+        final String prisonId,
+        final String caseNoteType,
+        final String caseNoteSubType,
+        final LocalDate fromDate,
+        final LocalDate toDate
+    ) {
+        log.info(
+            "Getting case note details for prisoner list of type {} sub type {}, from {}, to {}",
+            caseNoteType,
+            caseNoteSubType,
+            fromDate,
+            toDate
+        );
 
         final var body = CaseNoteUsagePrisonersRequest.builder()
-                .agencyId(prisonId)
-                .type(caseNoteType)
-                .subType(caseNoteSubType)
-                .fromDate(fromDate)
-                .toDate(toDate)
-                .build();
+            .agencyId(prisonId)
+            .type(caseNoteType)
+            .subType(caseNoteSubType)
+            .fromDate(fromDate)
+            .toDate(toDate)
+            .build();
 
-        return restCallHelper.post(CASE_NOTE_USAGE_FOR_PRISONERS, queryParamsOf(), uriVariablesOf(), body, CASE_NOTE_USAGE_PRISONERS_DTO_LIST, true);
+        return restCallHelper.post(
+            CASE_NOTE_USAGE_FOR_PRISONERS,
+            queryParamsOf(),
+            uriVariablesOf(),
+            body,
+            CASE_NOTE_USAGE_PRISONERS_DTO_LIST,
+            true
+        );
     }
 
     @Override
@@ -253,22 +424,46 @@ public class NomisServiceImpl implements NomisService {
         log.info("Getting Legacy Key worker allocations for {} agencyId by staff IDs", agencyId);
 
         final var uriVariables = uriVariablesOf("agencyId", agencyId);
-        return restCallHelper.post(URI_CURRENT_ALLOCATIONS, queryParamsOf(), uriVariables, staffIds, LEGACY_KEYWORKER_ALLOCATIONS, true);
+        return restCallHelper.post(
+            URI_CURRENT_ALLOCATIONS,
+            queryParamsOf(),
+            uriVariables,
+            staffIds,
+            LEGACY_KEYWORKER_ALLOCATIONS,
+            true
+        );
     }
 
     @Override
-    public List<KeyworkerAllocationDetailsDto> getCurrentAllocationsByOffenderNos(final List<String> offenderNos, final String agencyId) {
+    public List<KeyworkerAllocationDetailsDto> getCurrentAllocationsByOffenderNos(
+        final List<String> offenderNos,
+        final String agencyId
+    ) {
         log.info("Getting Legacy Key worker allocations for {} agencyId by offender Nos", agencyId);
 
         final var uriVariables = uriVariablesOf("agencyId", agencyId);
-        return restCallHelper.post(URI_CURRENT_ALLOCATIONS_BY_OFFENDERS, queryParamsOf(), uriVariables, offenderNos, LEGACY_KEYWORKER_ALLOCATIONS, true);
+        return restCallHelper.post(
+            URI_CURRENT_ALLOCATIONS_BY_OFFENDERS,
+            queryParamsOf(),
+            uriVariables,
+            offenderNos,
+            LEGACY_KEYWORKER_ALLOCATIONS,
+            true
+        );
     }
 
     @Override
     public List<AllocationHistoryDto> getAllocationHistoryByOffenderNos(final List<String> offenderNos) {
         log.info("Getting Key worker allocations for offender Nos {}", offenderNos);
 
-        return restCallHelper.post(URI_OFFENDERS_ALLOCATION_HISTORY, queryParamsOf(), uriVariablesOf(), offenderNos, ALLOCATION_HISTORY, true);
+        return restCallHelper.post(
+            URI_OFFENDERS_ALLOCATION_HISTORY,
+            queryParamsOf(),
+            uriVariablesOf(),
+            offenderNos,
+            ALLOCATION_HISTORY,
+            true
+        );
     }
 
     @Override
@@ -280,7 +475,7 @@ public class NomisServiceImpl implements NomisService {
             final var result = restCallHelper.getObject(URI_GET_AGENCY, queryParams, uriVariables, Map.class, true);
             isAPrison.set(result.get("agencyId") != null);
         } catch (final WebClientResponseException e) {
-           isAPrison.set(false);
+            isAPrison.set(false);
         }
         return isAPrison.get();
 
@@ -289,19 +484,32 @@ public class NomisServiceImpl implements NomisService {
     @Override
     public CaseloadUpdate enableNewNomisForCaseload(final String caseload) {
         final var uriVariables = uriVariablesOf("caseload", caseload);
-        return restCallHelper.put(URI_ENABLE_USERS_WITH_CASELOAD, queryParamsOf(), uriVariables, CaseloadUpdate.class, true);
+        return restCallHelper.put(
+            URI_ENABLE_USERS_WITH_CASELOAD,
+            queryParamsOf(),
+            uriVariables,
+            CaseloadUpdate.class,
+            true
+        );
     }
 
     @Override
     public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value) {
         final var uriVariables = uriVariablesOf("type", type, "value", value);
-        return restCallHelper.getEntity(URI_IDENTIFIERS, queryParamsOf(), uriVariables, PRISONER_ID_LIST, true).getBody();
+        return restCallHelper.getEntity(URI_IDENTIFIERS, queryParamsOf(), uriVariables, PRISONER_ID_LIST, true)
+            .getBody();
     }
 
     @Override
     public List<BookingIdentifier> getIdentifiersByBookingId(final Long bookingId) {
         final var uriVariables = uriVariablesOf("bookingId", String.valueOf(bookingId));
-        return restCallHelper.getEntity(BOOKING_IDENTIFIERS, queryParamsOf(), uriVariables, BOOKING_IDENTIFIER_LIST, true).getBody();
+        return restCallHelper.getEntity(
+            BOOKING_IDENTIFIERS,
+            queryParamsOf(),
+            uriVariables,
+            BOOKING_IDENTIFIER_LIST,
+            true
+        ).getBody();
     }
 
     @Override
@@ -310,7 +518,13 @@ public class NomisServiceImpl implements NomisService {
         final var queryParams = queryParamsOf("basicInfo", "true");
         final var booking = new AtomicReference<Optional<OffenderBooking>>();
         try {
-            booking.set(Optional.ofNullable(restCallHelper.getObject(BOOKING_DETAILS, queryParams, uriVariables, OffenderBooking.class, true)));
+            booking.set(Optional.ofNullable(restCallHelper.getObject(
+                BOOKING_DETAILS,
+                queryParams,
+                uriVariables,
+                OffenderBooking.class,
+                true
+            )));
         } catch (final WebClientResponseException e) {
             booking.set(Optional.empty());
         }

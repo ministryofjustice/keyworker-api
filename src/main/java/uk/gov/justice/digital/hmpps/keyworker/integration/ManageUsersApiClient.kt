@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.client
+package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
