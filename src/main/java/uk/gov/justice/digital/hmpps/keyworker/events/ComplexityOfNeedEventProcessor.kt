@@ -8,17 +8,14 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
-import java.time.LocalDateTime
 import java.util.Locale
 
+// This event doesn't currently follow the domain event schema
 data class ComplexityOfNeedChange(
-  override val eventType: String,
-  override val apiEndpoint: String,
-  override val eventOccurred: LocalDateTime,
   val offenderNo: String,
   val level: String,
   val active: Boolean?,
-) : DomainEvent
+)
 
 @Service
 class ComplexityOfNeedEventProcessor(
