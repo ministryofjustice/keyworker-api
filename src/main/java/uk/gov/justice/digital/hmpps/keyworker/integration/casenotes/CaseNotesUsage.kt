@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import java.time.LocalDateTime
-import java.util.UUID
 
 data class UsageByPersonIdentifierRequest(
   val personIdentifiers: Set<String>,
@@ -36,6 +35,6 @@ data class UsageByAuthorIdResponse(
 
 data class TypeSubTypeRequest(val type: String, val subTypes: Set<String> = setOf())
 
-data class LatestNote(val id: UUID, val occurredAt: LocalDateTime)
+data class LatestNote(val occurredAt: LocalDateTime)
 
 data class NoteUsageResponse<T>(val content: Map<String, List<T>>)
