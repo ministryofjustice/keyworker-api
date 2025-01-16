@@ -981,7 +981,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
             .thenReturn(1);
 
-        when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), isNull(), isNull()))
+        when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(), any()))
             .thenReturn(Arrays.asList(
                 CaseNoteUsageDto.builder()
                     .staffId(-5L)
