@@ -1,20 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import com.google.common.base.Preconditions;
 import com.microsoft.applicationinsights.TelemetryClient;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RegExUtils;
@@ -54,7 +43,20 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
+import static java.time.LocalDate.now;
 import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE;
 
 @Service
@@ -528,7 +530,13 @@ public class KeyworkerService {
     }
 
     private Map<Long, Integer> getCaseNoteUsageByStaffId(final List<Long> activeStaffIds) {
-        final var caseNoteUsage = nomisService.getCaseNoteUsage(activeStaffIds, KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, null, null, 1);
+        final var caseNoteUsage = nomisService.getCaseNoteUsage(
+            activeStaffIds,
+            KEYWORKER_CASENOTE_TYPE,
+            KEYWORKER_SESSION_SUB_TYPE,
+            now().minusMonths(1),
+            now()
+        );
 
         return caseNoteUsage.stream()
             .collect(Collectors.groupingBy(CaseNoteUsageDto::getStaffId,

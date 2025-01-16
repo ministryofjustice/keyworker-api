@@ -290,8 +290,7 @@ public class NomisServiceImpl implements NomisService {
         final String caseNoteType,
         final String caseNoteSubType,
         final LocalDate fromDate,
-        final LocalDate toDate,
-        final Integer numMonths
+        final LocalDate toDate
     ) {
 
         final Set<String> subtypes = new HashSet<>();
