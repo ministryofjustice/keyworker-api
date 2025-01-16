@@ -23,6 +23,7 @@ import reactor.netty.http.client.HttpClient
 import reactor.netty.http.client.HttpClient.create
 import uk.gov.justice.digital.hmpps.keyworker.utils.UserContext
 import java.time.Duration
+import java.time.Duration.ofSeconds
 
 @Configuration
 class WebClientConfiguration(
@@ -49,7 +50,7 @@ class WebClientConfiguration(
   fun prisonApiWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
-  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonApiRootUri)
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonApiRootUri, ofSeconds(60))
 
   @Bean
   fun manageUsersApiWebClient(
@@ -67,16 +68,20 @@ class WebClientConfiguration(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
     rootUri: String,
+    timeout: Duration = ofSeconds(2),
   ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("default")
     return builder.baseUrl(rootUri)
-      .clientConnector(clientConnector())
+      .clientConnector(clientConnector(timeout))
       .apply(oauth2Client.oauth2Configuration())
       .build()
   }
 
-  private fun clientConnector(consumer: ((HttpClient) -> Unit)? = null): ReactorClientHttpConnector {
+  private fun clientConnector(
+    timeout: Duration,
+    consumer: ((HttpClient) -> Unit)? = null,
+  ): ReactorClientHttpConnector {
     val client =
       create().responseTimeout(timeout)
         .option(CONNECT_TIMEOUT_MILLIS, 1000)
@@ -90,7 +95,7 @@ class WebClientConfiguration(
   @Bean
   fun complexityOfNeedWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager?,
-    builder: WebClient.Builder,
+    builder: Builder,
   ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("default")
