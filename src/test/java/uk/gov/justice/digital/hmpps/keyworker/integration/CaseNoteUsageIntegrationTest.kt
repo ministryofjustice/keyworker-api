@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
 
 class CaseNoteUsageIntegrationTest : IntegrationTest() {
   @Autowired
@@ -112,5 +111,5 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
     )
   }
 
-  private fun latestNote(daysAgo: Long) = LatestNote(UUID.randomUUID(), LocalDateTime.now().minusDays(daysAgo))
+  private fun latestNote(daysAgo: Long) = LatestNote(LocalDateTime.now().minusDays(daysAgo))
 }
