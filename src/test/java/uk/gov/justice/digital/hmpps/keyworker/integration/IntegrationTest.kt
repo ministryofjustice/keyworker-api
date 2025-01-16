@@ -18,6 +18,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
+import uk.gov.justice.digital.hmpps.keyworker.events.DomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.events.DomainEventListener
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
@@ -29,7 +30,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.services.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -81,7 +81,7 @@ abstract class IntegrationTest {
     val eventType =
       when (event) {
         is ComplexityOfNeedChange -> DomainEventListener.COMPLEXITY_OF_NEED_CHANGED
-        is MergeInformation -> DomainEventListener.PRISONER_MERGED
+        is DomainEvent<*> -> event.eventType
         else -> throw IllegalArgumentException("Unknown event $event")
       }
     domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
