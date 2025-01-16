@@ -6,10 +6,14 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.springframework.data.repository.findByIdOrNull
+import uk.gov.justice.digital.hmpps.keyworker.events.DomainEvent
+import uk.gov.justice.digital.hmpps.keyworker.events.DomainEventListener
+import uk.gov.justice.digital.hmpps.keyworker.events.PersonReference
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.services.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import java.time.ZonedDateTime
 
 class MergePrisonerIntTest : IntegrationTest() {
   @Test
@@ -17,7 +21,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val oldNoms = prisonNumber()
     val newNoms = prisonNumber()
 
-    publishEventToTopic(MergeInformation(newNoms, oldNoms))
+    publishEventToTopic(mergeEvent(newNoms, oldNoms))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
   }
@@ -27,7 +31,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val okw = givenOffenderKeyWorker()
     val newNoms = prisonNumber()
 
-    publishEventToTopic(MergeInformation(newNoms, okw.offenderNo))
+    publishEventToTopic(mergeEvent(newNoms, okw.offenderNo))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
@@ -41,7 +45,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val okw = givenOffenderKeyWorker(staffId = staffId)
     val nkw = givenOffenderKeyWorker(staffId = staffId)
 
-    publishEventToTopic(MergeInformation(nkw.offenderNo, okw.offenderNo))
+    publishEventToTopic(mergeEvent(nkw.offenderNo, okw.offenderNo))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
@@ -50,4 +54,17 @@ class MergePrisonerIntTest : IntegrationTest() {
     assertThat(merged.isActive).isFalse()
     assertThat(merged.deallocationReason).isEqualTo(DeallocationReason.MERGED)
   }
+
+  private fun mergeEvent(
+    newNoms: String,
+    oldNoms: String,
+  ): DomainEvent<MergeInformation> =
+    DomainEvent(
+      ZonedDateTime.now(),
+      DomainEventListener.PRISONER_MERGED,
+      null,
+      "A prisoner was merged",
+      MergeInformation(newNoms, oldNoms),
+      PersonReference.withIdentifier(newNoms),
+    )
 }
