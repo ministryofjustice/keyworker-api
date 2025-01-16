@@ -12,12 +12,13 @@ import java.time.LocalDateTime
 import java.util.Locale
 
 data class ComplexityOfNeedChange(
-  override val eventType: String,
   override val apiEndpoint: String,
   override val eventOccurred: LocalDateTime,
   val offenderNo: String,
   val level: String,
   val active: Boolean?,
+  // set in code as the event type is actually missing
+  override val eventType: String = "complexity-of-need.level.changed",
 ) : DomainEvent
 
 @Service
