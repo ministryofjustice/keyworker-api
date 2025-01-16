@@ -1,7 +1,7 @@
 # keyworker-api
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/ministryofjustice/keyworker-api/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/ministryofjustice/keyworker-api/tree/main)
-[![codecov](https://codecov.io/github/ministryofjustice/keyworker-api/graph/badge.svg?token=Dl9EO7vO5Y)](https://codecov.io/github/ministryofjustice/keyworker-api)
+[![codecov](https://codecov.io/github/ministryofjustice/keyworker-api/branch/main/graph/badge.svg?token=Dl9EO7vO5Y)](https://codecov.io/github/ministryofjustice/keyworker-api)
 [![Docker Repository on Quay](https://quay.io/repository/hmpps/keyworker-api/status)](https://quay.io/repository/hmpps/keyworker-api)
 [![API docs](https://img.shields.io/badge/API_docs-view-85EA2D.svg?logo=swagger)](https://keyworker-api-dev.prison.service.justice.gov.uk/swagger-ui/index.html)
 
