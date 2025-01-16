@@ -40,7 +40,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
       response = NoteUsageResponse(content = noteUsage.groupBy { it.authorId }.toMap()),
     )
 
-    val usage = nomisService.getCaseNoteUsage(listOf(-4, -5), "KA", "KS", null, null, 0)
+    val usage = nomisService.getCaseNoteUsage(listOf(-4, -5), "KA", "KS", null, null)
 
     assertThat(usage.size).isEqualTo(2)
     assertThat(usage).containsExactlyInAnyOrder(
