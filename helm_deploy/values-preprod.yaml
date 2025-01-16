@@ -21,6 +21,7 @@ generic-prometheus-alerts:
   alertSeverity: hmpps-alerts-api-non-prod
   rdsAlertsDatabases:
     cloud-platform-09feaed978653e19: 'Keyworker API'
+  rdsAlertsConnectionThreshold: 100
   sqsOldestAlertQueueNames:
     - "hmpps-move-and-improve-preprod-keyworker_domain_events_queue"
   sqsAlertsOldestThreshold: 10
