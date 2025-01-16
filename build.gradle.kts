@@ -6,6 +6,7 @@ plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.2"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
+  jacoco
 }
 
 // DO NOT UPDATE - BREAKS CAMEL / GROOVY
@@ -110,4 +111,16 @@ tasks {
 
 tasks.withType<Jar> {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Jacoco code coverage
+tasks.named("test") {
+  finalizedBy("jacocoTestReport")
+}
+
+tasks.named<JacocoReport>("jacocoTestReport") {
+  reports {
+    html.required.set(true)
+    xml.required.set(true)
+  }
 }
