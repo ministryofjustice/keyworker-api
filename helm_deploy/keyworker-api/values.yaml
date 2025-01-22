@@ -83,3 +83,7 @@ generic-service:
   allowlist:
     groups:
       - internal
+
+  retryDlqCronjob:
+    enabled: true
+    retryDlqSchedule: "0 * * * *"
