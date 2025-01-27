@@ -4,8 +4,8 @@ import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.2"
-  kotlin("plugin.spring") version "2.0.21"
-  kotlin("plugin.jpa") version "2.0.21"
+  kotlin("plugin.spring") version "2.1.10"
+  kotlin("plugin.jpa") version "2.1.10"
   jacoco
 }
 
@@ -33,13 +33,13 @@ dependencies {
   implementation("com.sun.xml.bind:jaxb-core")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
-  implementation("io.swagger:swagger-annotations:1.6.14")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
+  implementation("io.swagger:swagger-annotations:1.6.15")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
   implementation("org.apache.commons:commons-text:1.13.0")
   implementation("com.google.guava:guava:32.1.3-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.45.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.11.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.20.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.46.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.12.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.21.0")
 
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.3.232")
@@ -58,9 +58,9 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.27.0")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.27.0")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.27.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.28.1")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.28.1")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.28.1")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.0")
