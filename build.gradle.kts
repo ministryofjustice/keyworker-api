@@ -39,7 +39,7 @@ dependencies {
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.45.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.11.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.20.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.1.0")
 
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.3.232")
