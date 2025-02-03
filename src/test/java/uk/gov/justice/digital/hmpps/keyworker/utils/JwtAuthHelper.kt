@@ -38,7 +38,8 @@ class JwtAuthHelper {
     val claims = mutableMapOf<String, Any?>("user_name" to subject, "client_id" to clientId, "user_id" to userId)
     roles?.let { claims["authorities"] = roles }
     scope?.let { claims["scope"] = scope }
-    return Jwts.builder()
+    return Jwts
+      .builder()
       .setId(jwtId)
       .setSubject(subject)
       .addClaims(claims)

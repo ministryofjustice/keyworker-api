@@ -13,7 +13,9 @@ import java.io.IOException
 
 @Component
 @Order(1)
-class UserMdcFilter(private val userSecurityUtils: UserSecurityUtils) : Filter {
+class UserMdcFilter(
+  private val userSecurityUtils: UserSecurityUtils,
+) : Filter {
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(
     request: ServletRequest,

@@ -24,7 +24,8 @@ class SubjectAccessRequest(
         it.staffId to StaffMember(it.firstName, it.lastName)
       }
     val result =
-      kws.asSequence()
+      kws
+        .asSequence()
         .map { it.forSarReport { id -> requireNotNull(staffMap[id]) } }
         .sortedByDescending { it.allocatedAt }
         .toList()

@@ -45,11 +45,10 @@ class KeyworkerStatsBatchService(
   private fun generatePrisonStatsWithRetry(
     prisonId: String,
     snapshotDate: LocalDate,
-  ): PrisonKeyWorkerStatistic {
-    return defaultRetryTemplate.execute(
+  ): PrisonKeyWorkerStatistic =
+    defaultRetryTemplate.execute(
       RetryCallback<PrisonKeyWorkerStatistic, RuntimeException> {
         keyworkerStatsService.generatePrisonStats(prisonId, snapshotDate)
       },
     )
-  }
 }

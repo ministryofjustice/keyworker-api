@@ -12,8 +12,8 @@ import java.util.UUID
 class ManageUsersClient(
   @Qualifier("manageUsersApiWebClient") private val webClient: WebClient,
 ) {
-  fun getUserDetails(username: String): UserDetails? {
-    return webClient
+  fun getUserDetails(username: String): UserDetails? =
+    webClient
       .get()
       .uri("/users/{username}", username)
       .exchangeToMono { res ->
@@ -22,10 +22,8 @@ class ManageUsersClient(
           HttpStatus.OK -> res.bodyToMono<UserDetails>()
           else -> res.createError()
         }
-      }
-      .retryRequestOnTransientException()
+      }.retryRequestOnTransientException()
       .block()
-  }
 }
 
 data class UserDetails(

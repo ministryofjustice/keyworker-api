@@ -33,7 +33,7 @@ import java.util.Optional
 @ActiveProfiles("test")
 @AutoConfigureWebTestClient
 @WithMockUser
-class KeyworkerServiceControllerTest() {
+class KeyworkerServiceControllerTest {
   @Autowired
   private lateinit var webTestClient: WebTestClient
 
@@ -55,11 +55,13 @@ class KeyworkerServiceControllerTest() {
     whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
       .thenReturn(Optional.of(BasicKeyworkerDto.builder().build()))
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("$pathPrefix/offender/A1234AA")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
   }
@@ -70,11 +72,13 @@ class KeyworkerServiceControllerTest() {
     whenever(keyworkerService.getCurrentKeyworkerForPrisoner("A1234AA"))
       .thenThrow(WebClientResponseException.create(404, "Not Found", HttpHeaders.EMPTY, null, null, null))
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("$pathPrefix/offender/A1234AA")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isNotFound
+      .expectStatus()
+      .isNotFound
 
     verify(keyworkerService).getCurrentKeyworkerForPrisoner("A1234AA")
   }
@@ -86,11 +90,13 @@ class KeyworkerServiceControllerTest() {
     val page = Page<KeyworkerAllocationDetailsDto>(emptyList(), defaultHttpHeaders())
     whenever(keyworkerService.getAllocations(any(), any())).thenReturn(page)
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker/$prisonId/allocations")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     val expectedFilterDto =
       AllocationsFilterDto

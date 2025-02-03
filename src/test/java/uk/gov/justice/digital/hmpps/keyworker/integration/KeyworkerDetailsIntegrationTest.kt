@@ -22,16 +22,25 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
       .uri("/key-worker/$STAFF_ID/prison/$PRISON_ID")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
       .expectBody()
-      .jsonPath("$.agencyId").isEqualTo("LEI")
-      .jsonPath("$.autoAllocationAllowed").isEqualTo(true) // no current record in database - default
-      .jsonPath("$.status").isEqualTo("ACTIVE") // no current record in database - default
-      .jsonPath("$.capacity").isEqualTo(6) // no current record in database - default
-      .jsonPath("$.numberAllocated").isEqualTo(3) // after migration -5 has 3 active allocations
-      .jsonPath("$.firstName").isEqualTo("Another")
-      .jsonPath("$.lastName").isEqualTo("CUser")
-      .jsonPath("$.activeDate").doesNotExist()
+      .jsonPath("$.agencyId")
+      .isEqualTo("LEI")
+      .jsonPath("$.autoAllocationAllowed")
+      .isEqualTo(true) // no current record in database - default
+      .jsonPath("$.status")
+      .isEqualTo("ACTIVE") // no current record in database - default
+      .jsonPath("$.capacity")
+      .isEqualTo(6) // no current record in database - default
+      .jsonPath("$.numberAllocated")
+      .isEqualTo(3) // after migration -5 has 3 active allocations
+      .jsonPath("$.firstName")
+      .isEqualTo("Another")
+      .jsonPath("$.lastName")
+      .isEqualTo("CUser")
+      .jsonPath("$.activeDate")
+      .doesNotExist()
   }
 
   @Test
@@ -47,13 +56,18 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
       .uri("/key-worker/$STAFF_ID/prison/$PRISON_ID")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful()
+      .expectStatus()
+      .is2xxSuccessful()
       .expectBody()
       .jsonPath(
         "$.agencyId",
-      ).doesNotExist() // basic details do not return agency id - we are only retreiving these details to enable displaying of keyworker name
-      .jsonPath("$.numberAllocated").doesNotExist() // unable to determine allocations without agencyId
-      .jsonPath("$.firstName").isEqualTo("Another")
-      .jsonPath("$.lastName").isEqualTo("CUser")
+      ).doesNotExist()
+      // basic details do not return agency id - retrieving these details to enable displaying of keyworker name
+      .jsonPath("$.numberAllocated")
+      .doesNotExist() // unable to determine allocations without agencyId
+      .jsonPath("$.firstName")
+      .isEqualTo("Another")
+      .jsonPath("$.lastName")
+      .isEqualTo("CUser")
   }
 }

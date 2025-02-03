@@ -172,22 +172,24 @@ abstract class IntegrationTest {
     }
   }
 
-  fun getForEntity(url: String): WebTestClient.ResponseSpec {
-    return webTestClient.get()
+  fun getForEntity(url: String): WebTestClient.ResponseSpec =
+    webTestClient
+      .get()
       .uri(url)
       .exchange()
-  }
 
   fun migratedFoAutoAllocation(prisonId: String) {
     prisonMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "auto-allocation"))
     prisonMockServer.stubAccessCodeListForKeyRole(prisonId)
     prisonMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
 
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true&capacity=6,9&frequency=2")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
   }
 
   fun migrated(prisonId: String) {
@@ -195,11 +197,13 @@ abstract class IntegrationTest {
     prisonMockServer.stubAccessCodeListForKeyRole(prisonId)
     prisonMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
 
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
   }
 
   fun setKeyworkerCapacity(
@@ -207,12 +211,14 @@ abstract class IntegrationTest {
     keyworkerId: Long,
     capacity: Int,
   ) {
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/$keyworkerId/prison/$prisonId")
       .headers(setOmicAdminHeaders())
       .bodyValue(mapOf("capacity" to capacity, "status" to "ACTIVE"))
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
   }
 
   fun subPing(status: Int) {
@@ -228,7 +234,8 @@ abstract class IntegrationTest {
   ) {
     mock.stubFor(
       WireMock.get(url).willReturn(
-        WireMock.aResponse()
+        WireMock
+          .aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "{\"status\":\"UP\"}" else "some error")
           .withStatus(status),

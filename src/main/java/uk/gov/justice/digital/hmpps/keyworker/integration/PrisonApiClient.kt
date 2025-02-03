@@ -15,8 +15,8 @@ class PrisonApiClient(
     staffId: String,
     prisonCode: String,
     role: String,
-  ): Boolean? {
-    return webClient
+  ): Boolean? =
+    webClient
       .get()
       .uri("/staff/{staffId}/{prisonCode}/roles/{role}", staffId, prisonCode, role)
       .exchangeToMono { res ->
@@ -26,8 +26,6 @@ class PrisonApiClient(
           HttpStatus.OK -> res.bodyToMono<Boolean>()
           else -> res.createError()
         }
-      }
-      .retryRequestOnTransientException()
+      }.retryRequestOnTransientException()
       .block()
-  }
 }

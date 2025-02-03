@@ -72,7 +72,8 @@ class WebClientConfiguration(
   ): WebClient {
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("default")
-    return builder.baseUrl(rootUri)
+    return builder
+      .baseUrl(rootUri)
       .clientConnector(clientConnector(timeout))
       .apply(oauth2Client.oauth2Configuration())
       .build()
@@ -83,7 +84,8 @@ class WebClientConfiguration(
     consumer: ((HttpClient) -> Unit)? = null,
   ): ReactorClientHttpConnector {
     val client =
-      create().responseTimeout(timeout)
+      create()
+        .responseTimeout(timeout)
         .option(CONNECT_TIMEOUT_MILLIS, 1000)
         .option(SO_KEEPALIVE, true)
         // this will show a warning on apple (arm) architecture but will work on linux x86 container
@@ -100,42 +102,40 @@ class WebClientConfiguration(
     val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
     oauth2Client.setDefaultClientRegistrationId("default")
 
-    return builder.baseUrl("$complexityOfNeedUri/v1")
+    return builder
+      .baseUrl("$complexityOfNeedUri/v1")
       .apply(oauth2Client.oauth2Configuration())
       .build()
   }
 
   @Bean
-  fun webClient(builder: Builder): WebClient {
-    return builder
+  fun webClient(builder: Builder): WebClient =
+    builder
       .baseUrl(prisonApiRootUri)
       .filter(addAuthHeaderFilterFunction())
       .build()
-  }
 
   @Bean
-  fun healthWebClient(builder: Builder): WebClient {
-    return builder
+  fun healthWebClient(builder: Builder): WebClient =
+    builder
       .baseUrl(healthRootUri)
       .filter(addAuthHeaderFilterFunction())
       .build()
-  }
 
   @Bean
-  fun complexityOfNeedHealthWebClient(builder: Builder): WebClient {
-    return builder
+  fun complexityOfNeedHealthWebClient(builder: Builder): WebClient =
+    builder
       .baseUrl("$complexityOfNeedUri/ping")
       .filter(addAuthHeaderFilterFunction())
       .build()
-  }
 
-  private fun addAuthHeaderFilterFunction(): ExchangeFilterFunction {
-    return ExchangeFilterFunction { request: ClientRequest?, next: ExchangeFunction ->
+  private fun addAuthHeaderFilterFunction(): ExchangeFilterFunction =
+    ExchangeFilterFunction { request: ClientRequest?, next: ExchangeFunction ->
       val filtered =
-        ClientRequest.from(request)
+        ClientRequest
+          .from(request)
           .header(HttpHeaders.AUTHORIZATION, UserContext.getAuthToken())
           .build()
       next.exchange(filtered)
     }
-  }
 }

@@ -16,10 +16,11 @@ class ComplexityOfNeedApiHealth(
   private val complexityOfNeedHealthWebClient: WebClient,
   @Value("\${api.health-timeout-ms}") private val timeout: Duration,
 ) : HealthIndicator {
-  override fun health(): Health {
-    return try {
+  override fun health(): Health =
+    try {
       val responseEntity: ResponseEntity<String> =
-        complexityOfNeedHealthWebClient.get()
+        complexityOfNeedHealthWebClient
+          .get()
           .retrieve()
           .toEntity(String::class.java)
           .block(timeout)
@@ -29,5 +30,4 @@ class ComplexityOfNeedApiHealth(
     } catch (e: Exception) {
       Health.down(e).build()
     }
-  }
 }

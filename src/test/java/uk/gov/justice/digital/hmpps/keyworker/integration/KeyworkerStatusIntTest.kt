@@ -8,8 +8,12 @@ import uk.gov.justice.digital.hmpps.keyworker.services.UsernameKeyworker
 class KeyworkerStatusIntTest : IntegrationTest() {
   @Test
   fun `401 unauthorised`() {
-    webTestClient.get().uri(KEYWORKER_STATUS_URL, "prisonCode", "username").exchange()
-      .expectStatus().isUnauthorized
+    webTestClient
+      .get()
+      .uri(KEYWORKER_STATUS_URL, "prisonCode", "username")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
   }
 
   @Test
@@ -40,8 +44,12 @@ class KeyworkerStatusIntTest : IntegrationTest() {
     manageUsersMockServer.stubGetUserDetails(username, userId, "Mr Smith")
     prisonMockServer.stubStaffIsKeyworker(userId, DEFAULT_PRISON_CODE, true)
     val res =
-      getKeyworkerStatusSpec(username).expectStatus().isOk
-        .expectBody(UsernameKeyworker::class.java).returnResult().responseBody
+      getKeyworkerStatusSpec(username)
+        .expectStatus()
+        .isOk
+        .expectBody(UsernameKeyworker::class.java)
+        .returnResult()
+        .responseBody
     assertThat(res?.isKeyworker).isTrue()
   }
 
@@ -52,8 +60,12 @@ class KeyworkerStatusIntTest : IntegrationTest() {
     manageUsersMockServer.stubGetUserDetails(username, userId, "Mrs Smith")
     prisonMockServer.stubStaffIsKeyworker(userId, DEFAULT_PRISON_CODE, false)
     val res =
-      getKeyworkerStatusSpec(username).expectStatus().isOk
-        .expectBody(UsernameKeyworker::class.java).returnResult().responseBody
+      getKeyworkerStatusSpec(username)
+        .expectStatus()
+        .isOk
+        .expectBody(UsernameKeyworker::class.java)
+        .returnResult()
+        .responseBody
     assertThat(res?.isKeyworker).isFalse()
   }
 
@@ -61,7 +73,9 @@ class KeyworkerStatusIntTest : IntegrationTest() {
     username: String,
     prisonCode: String = DEFAULT_PRISON_CODE,
     role: String? = "ROLE_KEY_WORKER__RO",
-  ) = webTestClient.get().uri(KEYWORKER_STATUS_URL, prisonCode, username)
+  ) = webTestClient
+    .get()
+    .uri(KEYWORKER_STATUS_URL, prisonCode, username)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .exchange()
 

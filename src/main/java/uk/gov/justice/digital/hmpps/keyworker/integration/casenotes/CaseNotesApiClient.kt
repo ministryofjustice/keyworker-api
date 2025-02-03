@@ -13,8 +13,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransien
 class CaseNotesApiClient(
   @Qualifier("caseNotesApiWebClient") private val webClient: WebClient,
 ) {
-  fun getUsageByPersonIdentifier(usage: UsageByPersonIdentifierRequest): NoteUsageResponse<UsageByPersonIdentifierResponse>? {
-    return webClient
+  fun getUsageByPersonIdentifier(usage: UsageByPersonIdentifierRequest): NoteUsageResponse<UsageByPersonIdentifierResponse>? =
+    webClient
       .post()
       .uri("/case-notes/usage")
       .bodyValue(usage)
@@ -24,13 +24,11 @@ class CaseNotesApiClient(
           HttpStatus.OK -> res.bodyToMono<NoteUsageResponse<UsageByPersonIdentifierResponse>>()
           else -> res.createError()
         }
-      }
-      .retryRequestOnTransientException()
+      }.retryRequestOnTransientException()
       .block()
-  }
 
-  fun getUsageByStaffIds(usage: UsageByAuthorIdRequest): NoteUsageResponse<UsageByAuthorIdResponse>? {
-    return webClient
+  fun getUsageByStaffIds(usage: UsageByAuthorIdRequest): NoteUsageResponse<UsageByAuthorIdResponse>? =
+    webClient
       .post()
       .uri("/case-notes/staff-usage")
       .body(fromValue(usage))
@@ -40,8 +38,6 @@ class CaseNotesApiClient(
           HttpStatus.OK -> res.bodyToMono<NoteUsageResponse<UsageByAuthorIdResponse>>()
           else -> res.createError()
         }
-      }
-      .retryRequestOnTransientException()
+      }.retryRequestOnTransientException()
       .block()
-  }
 }

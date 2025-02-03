@@ -28,9 +28,10 @@ class ComplexityOfNeedService(
           it.offenderNo
         }.toSet()
 
-    return offenders.filter {
-      !complexOffenders.contains(it)
-    }.toSet()
+    return offenders
+      .filter {
+        !complexOffenders.contains(it)
+      }.toSet()
   }
 
   override fun isComplexPrison(prisonId: String): Boolean = prisonsWithOffenderComplexityNeeds.contains(prisonId)

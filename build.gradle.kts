@@ -48,7 +48,8 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.23")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
-  testImplementation("org.spockframework:spock-core:$spockVersion") { // Upgrade breaks groovy
+  testImplementation("org.spockframework:spock-core:$spockVersion") {
+    // Upgrade breaks groovy
     exclude("org.codehaus.groovy")
   }
   testCompileOnly("org.projectlombok:lombok")

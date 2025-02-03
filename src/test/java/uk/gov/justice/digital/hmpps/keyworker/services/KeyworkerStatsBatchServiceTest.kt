@@ -41,11 +41,26 @@ class KeyworkerStatsBatchServiceTest {
       )
     whenever(prisonSupportedService.migratedPrisons).thenReturn(prisons)
     val now = LocalDate.now()
-    val mdiStats = PrisonKeyWorkerStatistic.builder().prisonId(MDI.prisonId).snapshotDate(now).build()
+    val mdiStats =
+      PrisonKeyWorkerStatistic
+        .builder()
+        .prisonId(MDI.prisonId)
+        .snapshotDate(now)
+        .build()
     whenever(keyworkerStatsService.generatePrisonStats(MDI.prisonId, now)).thenReturn(mdiStats)
-    val leiStats = PrisonKeyWorkerStatistic.builder().prisonId(LEI.prisonId).snapshotDate(now).build()
+    val leiStats =
+      PrisonKeyWorkerStatistic
+        .builder()
+        .prisonId(LEI.prisonId)
+        .snapshotDate(now)
+        .build()
     whenever(keyworkerStatsService.generatePrisonStats(LEI.prisonId, now)).thenReturn(leiStats)
-    val lpiStats = PrisonKeyWorkerStatistic.builder().prisonId(LPI.prisonId).snapshotDate(now).build()
+    val lpiStats =
+      PrisonKeyWorkerStatistic
+        .builder()
+        .prisonId(LPI.prisonId)
+        .snapshotDate(now)
+        .build()
     whenever(keyworkerStatsService.generatePrisonStats(LPI.prisonId, now)).thenReturn(lpiStats)
 
     batchService.generatePrisonStats(snapshotDate = now)
@@ -112,14 +127,18 @@ class KeyworkerStatsBatchServiceTest {
       NullPointerException::class.java,
     )
     whenever(keyworkerStatsService.generatePrisonStats(LEI.prisonId, now)).thenReturn(
-      PrisonKeyWorkerStatistic.builder().prisonId(
-        LEI.prisonId,
-      ).build(),
+      PrisonKeyWorkerStatistic
+        .builder()
+        .prisonId(
+          LEI.prisonId,
+        ).build(),
     )
     whenever(keyworkerStatsService.generatePrisonStats(LPI.prisonId, now)).thenReturn(
-      PrisonKeyWorkerStatistic.builder().prisonId(
-        LPI.prisonId,
-      ).build(),
+      PrisonKeyWorkerStatistic
+        .builder()
+        .prisonId(
+          LPI.prisonId,
+        ).build(),
     )
 
     batchService.generatePrisonStats(now)

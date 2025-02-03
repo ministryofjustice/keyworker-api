@@ -14,9 +14,11 @@ class PrisonMockServer : WireMockServer(9999) {
     json: String,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/key-worker/$prisonId/allocationHistory"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/key-worker/$prisonId/allocationHistory"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(json),
@@ -26,9 +28,11 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubOffendersAllocationHistory(json: String) {
     stubFor(
-      WireMock.post(WireMock.urlPathEqualTo("/api/key-worker/offenders/allocationHistory"))
+      WireMock
+        .post(WireMock.urlPathEqualTo("/api/key-worker/offenders/allocationHistory"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(json),
@@ -41,9 +45,11 @@ class PrisonMockServer : WireMockServer(9999) {
     roleCode: String? = "KEY_WORK",
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(201)
             .withBody("[]"),
@@ -56,9 +62,11 @@ class PrisonMockServer : WireMockServer(9999) {
     roleCode: String? = "KW_ADMIN",
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(201)
             .withBody("[]"),
@@ -71,9 +79,11 @@ class PrisonMockServer : WireMockServer(9999) {
     json: String,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/key-worker/$prisonId/available"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/key-worker/$prisonId/available"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(201)
             .withBody(json),
@@ -83,9 +93,11 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubOffendersAtLocationForAutoAllocation(json: String) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/bookings/v2"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/bookings/v2"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(201)
             .withBody(json),
@@ -95,9 +107,11 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubHealthOKResponse() {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/health/ping"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/health/ping"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody("""{"status":"UP","HttpStatus":200}"""),
@@ -107,11 +121,14 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubHealthDependencyTimeoutResponse() {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/health/ping"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/health/ping"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.OK.value()).withFixedDelay(1000)
+            .withStatus(HttpStatus.OK.value())
+            .withFixedDelay(1000)
             .withBody("""{"status":"UP","HttpStatus":200}"""),
         ),
     )
@@ -123,9 +140,11 @@ class PrisonMockServer : WireMockServer(9999) {
     json: String,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlEqualTo("/api/staff/roles/$prisonId/role/KW?staffId=$staffId&activeOnly=false"))
+      WireMock
+        .get(WireMock.urlEqualTo("/api/staff/roles/$prisonId/role/KW?staffId=$staffId&activeOnly=false"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(json),
@@ -138,9 +157,11 @@ class PrisonMockServer : WireMockServer(9999) {
     json: String,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlEqualTo("/api/staff/$staffId"))
+      WireMock
+        .get(WireMock.urlEqualTo("/api/staff/$staffId"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(json),
@@ -153,9 +174,11 @@ class PrisonMockServer : WireMockServer(9999) {
     staffSummary: StaffSummary,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlEqualTo("/api/staff/$staffId"))
+      WireMock
+        .get(WireMock.urlEqualTo("/api/staff/$staffId"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(jacksonObjectMapper().writeValueAsString(staffSummary)),
@@ -171,11 +194,13 @@ class PrisonMockServer : WireMockServer(9999) {
     status: String? = "ACTIVE",
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonId/role/KW"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonId/role/KW"))
         .withQueryParam("nameFilter", matching(username))
         .withQueryParam("statusFilter", matching(status))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(json)
@@ -188,9 +213,11 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubCaseNoteUsage(json: String) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/case-notes/staff-usage"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/case-notes/staff-usage"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(json),
@@ -203,9 +230,11 @@ class PrisonMockServer : WireMockServer(9999) {
     json: String,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/api/prisoners/$offenderNo"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/prisoners/$offenderNo"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(json),
@@ -220,9 +249,11 @@ class PrisonMockServer : WireMockServer(9999) {
     status: HttpStatus = HttpStatus.OK,
   ) {
     stubFor(
-      WireMock.get(WireMock.urlPathMatching("/api/staff/$staffId/$prisonCode/roles/KW"))
+      WireMock
+        .get(WireMock.urlPathMatching("/api/staff/$staffId/$prisonCode/roles/KW"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(status.value())
             .withBody(isKeyworker.toString()),

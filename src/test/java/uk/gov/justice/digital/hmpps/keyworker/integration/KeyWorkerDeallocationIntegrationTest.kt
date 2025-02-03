@@ -18,7 +18,8 @@ class KeyWorkerDeallocationIntegrationTest : IntegrationTest() {
       .uri("/key-worker/deallocate/$OFFENDER_NO_1")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
   }
 
   @Test
@@ -30,7 +31,8 @@ class KeyWorkerDeallocationIntegrationTest : IntegrationTest() {
       .uri("/key-worker/deallocate/$OFFENDER_NO_2")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().isNotFound
+      .expectStatus()
+      .isNotFound
   }
 
   @Test
@@ -42,6 +44,7 @@ class KeyWorkerDeallocationIntegrationTest : IntegrationTest() {
       .uri("/key-worker/deallocate/$OFFENDER_NO_1")
       .headers(setHeaders())
       .exchange()
-      .expectStatus().isForbidden
+      .expectStatus()
+      .isForbidden
   }
 }

@@ -10,9 +10,11 @@ import org.springframework.http.HttpStatus
 class OAuthMockServer : WireMockServer(8090) {
   fun stubGrantToken() {
     stubFor(
-      WireMock.post(WireMock.urlEqualTo("/auth/oauth/token"))
+      WireMock
+        .post(WireMock.urlEqualTo("/auth/oauth/token"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeaders(HttpHeaders(HttpHeader("Content-Type", "application/json")))
             .withBody(jacksonObjectMapper().writeValueAsString(mapOf("access_token" to "ABCDE", "token_type" to "bearer"))),
         ),
@@ -21,9 +23,11 @@ class OAuthMockServer : WireMockServer(8090) {
 
   fun stubHealthOKResponse() {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/health/ping"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/health/ping"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody("""{"status":"UP","HttpStatus":200}"""),

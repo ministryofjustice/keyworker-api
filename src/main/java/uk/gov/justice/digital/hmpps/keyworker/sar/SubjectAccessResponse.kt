@@ -2,7 +2,10 @@ package uk.gov.justice.digital.hmpps.keyworker.sar
 
 import java.time.LocalDateTime
 
-data class SubjectAccessResponse(val prn: String, val content: List<SarKeyWorker>)
+data class SubjectAccessResponse(
+  val prn: String,
+  val content: List<SarKeyWorker>,
+)
 
 data class SarKeyWorker(
   val allocatedAt: LocalDateTime,
@@ -16,4 +19,7 @@ data class SarKeyWorker(
   val activeAllocation: Boolean = allocationExpiredAt == null
 }
 
-data class StaffMember(val firstName: String, val lastName: String)
+data class StaffMember(
+  val firstName: String,
+  val lastName: String,
+)

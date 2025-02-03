@@ -23,8 +23,7 @@ class RequestLogFilter
   @Autowired
   constructor(
     @Value("\${logging.uris.exclude.regex}") excludeUris: String,
-  ) :
-  OncePerRequestFilter() {
+  ) : OncePerRequestFilter() {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")
     private val excludeUriRegex: Pattern = Pattern.compile(excludeUris)
 

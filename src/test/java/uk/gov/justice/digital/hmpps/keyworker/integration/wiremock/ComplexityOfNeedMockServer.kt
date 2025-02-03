@@ -7,9 +7,11 @@ import org.springframework.http.HttpStatus
 class ComplexityOfNeedMockServer : WireMockServer(10000) {
   fun stubComplexOffenders(json: String) {
     stubFor(
-      WireMock.post(WireMock.urlPathEqualTo("/v1/complexity-of-need/multiple/offender-no"))
+      WireMock
+        .post(WireMock.urlPathEqualTo("/v1/complexity-of-need/multiple/offender-no"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(json),
@@ -19,9 +21,11 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
 
   fun stubHealthOKResponse() {
     stubFor(
-      WireMock.get(WireMock.urlPathEqualTo("/ping"))
+      WireMock
+        .get(WireMock.urlPathEqualTo("/ping"))
         .willReturn(
-          WireMock.aResponse()
+          WireMock
+            .aResponse()
             .withHeader("Content-Type", "test/plain")
             .withStatus(HttpStatus.OK.value())
             .withBody("Everything is fine."),

@@ -15,18 +15,27 @@ class AvailableKeyworkersIntegrationTest : IntegrationTest() {
 
     migratedFoAutoAllocation(PRISON_ID)
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker/$PRISON_ID/available")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
       .expectBody()
-      .jsonPath("$.length()").isEqualTo(4)
-      .jsonPath("$[0].agencyId").isEqualTo(PRISON_ID)
-      .jsonPath("$[0].autoAllocationAllowed").isEqualTo(true) // no current record in database - default
-      .jsonPath("$[0].status").isEqualTo("ACTIVE") // no current record in database - default
-      .jsonPath("$[0].capacity").isEqualTo(6) // no current record in database - default
-      .jsonPath("$[0].firstName").isEqualTo("HPA") // no allocations migrated for this user
-      .jsonPath("$[0].lastName").isEqualTo("AUser")
+      .jsonPath("$.length()")
+      .isEqualTo(4)
+      .jsonPath("$[0].agencyId")
+      .isEqualTo(PRISON_ID)
+      .jsonPath("$[0].autoAllocationAllowed")
+      .isEqualTo(true) // no current record in database - default
+      .jsonPath("$[0].status")
+      .isEqualTo("ACTIVE") // no current record in database - default
+      .jsonPath("$[0].capacity")
+      .isEqualTo(6) // no current record in database - default
+      .jsonPath("$[0].firstName")
+      .isEqualTo("HPA") // no allocations migrated for this user
+      .jsonPath("$[0].lastName")
+      .isEqualTo("AUser")
   }
 }

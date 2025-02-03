@@ -9,7 +9,9 @@ import java.time.LocalDateTime
 
 @Transactional
 @Service
-class MergePrisonNumbers(private val okr: OffenderKeyworkerRepository) {
+class MergePrisonNumbers(
+  private val okr: OffenderKeyworkerRepository,
+) {
   fun merge(mergeInformation: MergeInformation) {
     okr.findByOffenderNo(mergeInformation.removedNomsNumber).forEach { okw ->
       if (okw.isActive && okr.countByActiveAndOffenderNo(true, mergeInformation.nomsNumber) > 0) {
