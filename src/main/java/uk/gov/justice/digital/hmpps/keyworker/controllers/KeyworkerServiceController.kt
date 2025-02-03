@@ -1022,7 +1022,11 @@ class KeyworkerServiceController(
     prisonId: String,
   ): Prison {
     val prisonDetail = prisonSupportedService.getPrisonDetail(prisonId)
-    return prisonDetail ?: Prison.builder().prisonId(prisonId).supported(false).build()
+    return prisonDetail ?: Prison
+      .builder()
+      .prisonId(prisonId)
+      .supported(false)
+      .build()
   }
 
   @Operation(
@@ -1145,9 +1149,7 @@ class KeyworkerServiceController(
       defaultValue = "1",
     )
     frequency: Int,
-  ): Prison {
-    return updateAndMigrate(prisonId, migrate, true, capacity, frequency)
-  }
+  ): Prison = updateAndMigrate(prisonId, migrate, true, capacity, frequency)
 
   private fun updateAndMigrate(
     prisonId: String,

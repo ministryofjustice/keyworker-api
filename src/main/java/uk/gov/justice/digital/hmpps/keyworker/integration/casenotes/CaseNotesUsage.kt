@@ -33,8 +33,15 @@ data class UsageByAuthorIdResponse(
   val latestNote: LatestNote? = null,
 )
 
-data class TypeSubTypeRequest(val type: String, val subTypes: Set<String> = setOf())
+data class TypeSubTypeRequest(
+  val type: String,
+  val subTypes: Set<String> = setOf(),
+)
 
-data class LatestNote(val occurredAt: LocalDateTime)
+data class LatestNote(
+  val occurredAt: LocalDateTime,
+)
 
-data class NoteUsageResponse<T>(val content: Map<String, List<T>>)
+data class NoteUsageResponse<T>(
+  val content: Map<String, List<T>>,
+)

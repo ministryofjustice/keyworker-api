@@ -17,7 +17,9 @@ import java.text.ParseException
 
 @Configuration
 @ConditionalOnExpression("T(org.apache.commons.lang3.StringUtils).isNotBlank('\${applicationinsights.connection.string:}')")
-class ClientTrackingConfiguration(private val clientTrackingInterceptor: ClientTrackingInterceptor) : WebMvcConfigurer {
+class ClientTrackingConfiguration(
+  private val clientTrackingInterceptor: ClientTrackingInterceptor,
+) : WebMvcConfigurer {
   override fun addInterceptors(registry: InterceptorRegistry) {
     registry.addInterceptor(clientTrackingInterceptor).addPathPatterns("/**").order(Ordered.HIGHEST_PRECEDENCE)
   }
@@ -37,7 +39,8 @@ class ClientTrackingInterceptor : HandlerInterceptor {
   }
 
   private fun findUserAndClient(req: HttpServletRequest): Pair<String?, String?> =
-    req.getHeader(HttpHeaders.AUTHORIZATION)
+    req
+      .getHeader(HttpHeaders.AUTHORIZATION)
       ?.takeIf { it.startsWith("Bearer ") }
       ?.let { getClaimsFromJWT(it) }
       ?.let { it.getClaim("user_name") as String? to it.getClaim("client_id") as String? }

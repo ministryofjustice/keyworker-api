@@ -7,7 +7,9 @@ data class Message(
   @JsonProperty("MessageAttributes") val messageAttributes: MessageAttributes,
 )
 
-data class MessageAttributes(val eventType: Attribute)
+data class MessageAttributes(
+  val eventType: Attribute,
+)
 
 data class Attribute(
   @JsonProperty("Value") val value: String,

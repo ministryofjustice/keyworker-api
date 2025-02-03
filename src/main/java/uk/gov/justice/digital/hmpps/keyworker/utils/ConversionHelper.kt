@@ -22,7 +22,8 @@ object ConversionHelper {
 
   fun convertOffenderKeyworkerDto2Model(dto: OffenderKeyworkerDto): OffenderKeyworker {
     Validate.notNull(dto)
-    return OffenderKeyworker.builder()
+    return OffenderKeyworker
+      .builder()
       .offenderNo(dto.offenderNo)
       .staffId(dto.staffId)
       .prisonId(dto.agencyId)
@@ -40,7 +41,8 @@ object ConversionHelper {
 
   private fun convertOffenderKeyworkerModel2Dto(model: OffenderKeyworker): OffenderKeyworkerDto {
     Validate.notNull(model)
-    return OffenderKeyworkerDto.builder()
+    return OffenderKeyworkerDto
+      .builder()
       .offenderKeyworkerId(model.offenderKeyworkerId)
       .offenderNo(model.offenderNo)
       .staffId(model.staffId)
@@ -56,7 +58,8 @@ object ConversionHelper {
     newAllocation: KeyworkerAllocationDto,
     userId: String?,
   ): OffenderKeyworker =
-    OffenderKeyworker.builder()
+    OffenderKeyworker
+      .builder()
       .offenderNo(newAllocation.offenderNo)
       .staffId(newAllocation.staffId)
       .prisonId(newAllocation.prisonId)
@@ -69,7 +72,8 @@ object ConversionHelper {
 
   fun convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(model: OffenderKeyworker): KeyworkerAllocationDetailsDto {
     Validate.notNull(model)
-    return KeyworkerAllocationDetailsDto.builder()
+    return KeyworkerAllocationDetailsDto
+      .builder()
       .offenderNo(model.offenderNo)
       .staffId(model.staffId)
       .agencyId(model.prisonId) // TODO: remove
@@ -81,7 +85,8 @@ object ConversionHelper {
 
   fun getKeyworkerDto(dto: StaffLocationRoleDto?): KeyworkerDto? =
     if (dto != null) {
-      KeyworkerDto.builder()
+      KeyworkerDto
+        .builder()
         .firstName(dto.firstName)
         .lastName(dto.lastName)
         .email(dto.email)
@@ -98,7 +103,8 @@ object ConversionHelper {
 
   fun getOffenderKeyworker(model: KeyworkerAllocationDetailsDto): OffenderKeyworker {
     Validate.notNull(model)
-    return OffenderKeyworker.builder()
+    return OffenderKeyworker
+      .builder()
       .offenderNo(model.offenderNo)
       .staffId(model.staffId)
       .prisonId(model.agencyId)

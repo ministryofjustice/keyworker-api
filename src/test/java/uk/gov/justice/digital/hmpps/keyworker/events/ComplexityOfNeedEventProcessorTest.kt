@@ -79,7 +79,10 @@ class ComplexityOfNeedEventProcessorTest {
   fun `should do nothing when record is not active`() {
     complexityOfNeedEventProcessor =
       ComplexityOfNeedEventProcessor(
-        keyworkerService, telemetryClient, objectMapper, "http://local",
+        keyworkerService,
+        telemetryClient,
+        objectMapper,
+        "http://local",
       )
     complexityOfNeedEventProcessor.onComplexityChange(cOMPLEXITYMESSAGEINACTIVE)
 

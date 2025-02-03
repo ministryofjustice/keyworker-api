@@ -37,11 +37,10 @@ class ReconciliationBatchService(
     }
   }
 
-  private fun reconcileKeyWorkersWithRetry(prisonId: String): ReconciliationService.ReconMetrics {
-    return defaultRetryTemplate.execute(
+  private fun reconcileKeyWorkersWithRetry(prisonId: String): ReconciliationService.ReconMetrics =
+    defaultRetryTemplate.execute(
       RetryCallback<ReconciliationService.ReconMetrics, RuntimeException> {
         reconciliationService.reconcileKeyWorkerAllocations(prisonId)
       },
     )
-  }
 }

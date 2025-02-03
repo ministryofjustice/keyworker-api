@@ -42,11 +42,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getStatsForStaff(123L, "456", null, null),
     ).thenReturn(KeyworkerStatsDto())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats/$staffId/prison/$prisonId")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getStatsForStaff(123L, "456", null, null)
   }
@@ -61,11 +63,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getStatsForStaff(123L, "456", null, toDate),
     ).thenReturn(KeyworkerStatsDto())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats/$staffId/prison/$prisonId?toDate=${toDate.format(DateTimeFormatter.ISO_DATE)}")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getStatsForStaff(123L, "456", null, toDate)
   }
@@ -80,11 +84,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getStatsForStaff(123L, "456", fromDate, null),
     ).thenReturn(KeyworkerStatsDto())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats/$staffId/prison/$prisonId?fromDate=${fromDate.format(DateTimeFormatter.ISO_DATE)}")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getStatsForStaff(123L, "456", fromDate, null)
   }
@@ -98,17 +104,18 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getPrisonStats(listOf("MDI"), fromDate, toDate),
     ).thenReturn(KeyworkerStatSummary())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri(
         "/key-worker-stats?prisonId=MDI&fromDate=${fromDate.format(DateTimeFormatter.ISO_DATE)}&toDate=${
           toDate.format(
             DateTimeFormatter.ISO_DATE,
           )
         }",
-      )
-      .accept(MediaType.APPLICATION_JSON)
+      ).accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getPrisonStats(listOf("MDI"), fromDate, toDate)
   }
@@ -123,11 +130,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getPrisonStats(emptyList(), null, null),
     ).thenReturn(KeyworkerStatSummary())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getPrisonStats(emptyList(), null, null)
   }
@@ -142,11 +151,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null),
     ).thenReturn(KeyworkerStatSummary())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getPrisonStats(listOf("MDI"), null, null)
   }
@@ -157,11 +168,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getPrisonStats(listOf("MDI"), null, null),
     ).thenReturn(KeyworkerStatSummary())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats?prisonId=MDI")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getPrisonStats(listOf("MDI"), null, null)
   }
@@ -174,11 +187,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getPrisonStats(listOf("MDI"), null, toDate),
     ).thenReturn(KeyworkerStatSummary())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats?prisonId=MDI&toDate=${toDate.format(DateTimeFormatter.ISO_DATE)}")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getPrisonStats(listOf("MDI"), null, toDate)
   }
@@ -191,11 +206,13 @@ class KeyworkerStatsControllerTest {
       keyworkerStatsService.getPrisonStats(listOf("MDI"), fromDate, null),
     ).thenReturn(KeyworkerStatSummary())
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker-stats?prisonId=MDI&fromDate=${fromDate.format(DateTimeFormatter.ISO_DATE)}")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
 
     verify(keyworkerStatsService).getPrisonStats(listOf("MDI"), fromDate, null)
   }

@@ -32,8 +32,7 @@ class ManageUsersMockServer : WireMockServer(9998) {
                   uuid = UUID.randomUUID(),
                 ),
               ),
-            )
-            .withStatus(200),
+            ).withStatus(200),
         ),
     )
 

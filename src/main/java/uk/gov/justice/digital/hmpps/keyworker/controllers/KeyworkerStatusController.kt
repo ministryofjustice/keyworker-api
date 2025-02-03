@@ -17,7 +17,9 @@ import uk.gov.justice.digital.hmpps.keyworker.services.VerifyKeyworkerStatus
 
 @RestController
 @RequestMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-class KeyworkerStatusController(private val verify: VerifyKeyworkerStatus) {
+class KeyworkerStatusController(
+  private val verify: VerifyKeyworkerStatus,
+) {
   @Operation(description = "To determine if a user is a keyworker")
   @ApiResponses(
     value =

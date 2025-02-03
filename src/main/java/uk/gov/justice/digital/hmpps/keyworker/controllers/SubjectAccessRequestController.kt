@@ -24,7 +24,9 @@ import java.time.LocalDate
 @Tag(name = "Subject Access Request")
 @PreAuthorize("hasRole('SAR_DATA_ACCESS')")
 @RequestMapping("/subject-access-request", produces = [MediaType.APPLICATION_JSON_VALUE])
-class SubjectAccessRequestController(private val sar: SubjectAccessRequest) {
+class SubjectAccessRequestController(
+  private val sar: SubjectAccessRequest,
+) {
   @GetMapping
   @Operation(
     summary = "Provides content for a prisoner to satisfy the needs of a subject access request on their behalf",
@@ -77,10 +79,9 @@ class SubjectAccessRequestController(private val sar: SubjectAccessRequest) {
     @Parameter(description = "Optional parameter denoting maximum date of event occurrence which should be returned in the response")
     @RequestParam(value = "toDate")
     toDate: LocalDate?,
-  ): ResponseEntity<SubjectAccessResponse> {
-    return prn?.let {
+  ): ResponseEntity<SubjectAccessResponse> =
+    prn?.let {
       sar.getSarContent(prn, fromDate, toDate)?.let { ResponseEntity.ok(it) }
         ?: ResponseEntity.status(HttpStatus.NO_CONTENT).build()
     } ?: ResponseEntity.status(209).build()
-  }
 }

@@ -34,11 +34,13 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
     prisonMockServer.stubPrisonerStatus(NON_MIGRATED_ALLOCATION_OFFENDER_ID, getWiremockResponse("prisoners_information_A1234AA"))
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker/allocation-history/$NON_MIGRATED_ALLOCATION_OFFENDER_ID")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
       .expectBody()
       .json("keyworker-service-controller-allocation-history.json".readFile())
   }
@@ -48,20 +50,29 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/allocation-history/summary")
       .bodyValue(listOf(MIGRATED_ALLOCATION_OFFENDER_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID, NO_HISTORY_OFFENDER_ID))
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
       .expectBody()
-      .jsonPath("$.length()").isEqualTo(3)
-      .jsonPath("$[0].offenderNo").isEqualTo(MIGRATED_ALLOCATION_OFFENDER_ID)
-      .jsonPath("$[0].hasHistory").isEqualTo("true")
-      .jsonPath("$[1].offenderNo").isEqualTo(NON_MIGRATED_ALLOCATION_OFFENDER_ID)
-      .jsonPath("$[1].hasHistory").isEqualTo("true")
-      .jsonPath("$[2].offenderNo").isEqualTo(NO_HISTORY_OFFENDER_ID)
-      .jsonPath("$[2].hasHistory").isEqualTo("false")
+      .jsonPath("$.length()")
+      .isEqualTo(3)
+      .jsonPath("$[0].offenderNo")
+      .isEqualTo(MIGRATED_ALLOCATION_OFFENDER_ID)
+      .jsonPath("$[0].hasHistory")
+      .isEqualTo("true")
+      .jsonPath("$[1].offenderNo")
+      .isEqualTo(NON_MIGRATED_ALLOCATION_OFFENDER_ID)
+      .jsonPath("$[1].hasHistory")
+      .isEqualTo("true")
+      .jsonPath("$[2].offenderNo")
+      .isEqualTo(NO_HISTORY_OFFENDER_ID)
+      .jsonPath("$[2].hasHistory")
+      .isEqualTo("false")
   }
 
   @Test
@@ -69,20 +80,24 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/allocation-history/summary")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is5xxServerError
+      .expectStatus()
+      .is5xxServerError
   }
 
   @Test
   fun `Enable manual allocation accepts multiple capacities`() {
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/enable/MDI/manual?migrate=false&capacity=6,7&frequency=1")
       .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
   }
 
   @Test
@@ -90,11 +105,13 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/subject-access-request")
       .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
-      .expectStatus().isEqualTo(HttpStatusCode.valueOf(209))
+      .expectStatus()
+      .isEqualTo(HttpStatusCode.valueOf(209))
   }
 
   @Test
@@ -102,14 +119,17 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}")
       .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
       .expectBody()
       .consumeWith(System.out::println)
-      .jsonPath("$.content").isNotEmpty
+      .jsonPath("$.content")
+      .isNotEmpty
   }
 
   @Test
@@ -117,11 +137,13 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}&toDate=1999-01-01")
       .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
-      .expectStatus().isNoContent
+      .expectStatus()
+      .isNoContent
   }
 
   @Test
@@ -129,23 +151,28 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/subject-access-request?prn=${MIGRATED_ALLOCATION_OFFENDER_ID}&fromDate=1999-01-01")
       .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
-      .expectStatus().isOk
+      .expectStatus()
+      .isOk
       .expectBody()
       .consumeWith(System.out::println)
-      .jsonPath("$.content").isNotEmpty
+      .jsonPath("$.content")
+      .isNotEmpty
   }
 
   @Test
   fun `sar has no content`() {
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/subject-access-request?prn=A12345")
       .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
-      .expectStatus().isNoContent
+      .expectStatus()
+      .isNoContent
   }
 
   fun addKeyworkerAllocation(
@@ -154,7 +181,8 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   ) {
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
 
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/allocate")
       .headers(setOmicAdminHeaders())
       .bodyValue(
@@ -165,8 +193,8 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
           "allocationType" to "M",
           "allocationReason" to "MANUAL",
         ),
-      )
-      .exchange()
-      .expectStatus().is2xxSuccessful
+      ).exchange()
+      .expectStatus()
+      .is2xxSuccessful
   }
 }

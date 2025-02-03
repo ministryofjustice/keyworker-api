@@ -12,23 +12,30 @@ class APIHealthIntegrationTest : IntegrationTest() {
     oAuthMockServer.stubHealthOKResponse()
     complexityOfNeedMockServer.stubHealthOKResponse()
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/health")
       .exchange()
-      .expectStatus().is2xxSuccessful
-      .expectBody().json("{\"status\":\"UP\"}")
+      .expectStatus()
+      .is2xxSuccessful
+      .expectBody()
+      .json("{\"status\":\"UP\"}")
   }
 
   @Test
   fun `Health page dependency timeout`() {
     prisonMockServer.stubHealthDependencyTimeoutResponse()
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/health")
       .exchange()
-      .expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+      .expectStatus()
+      .isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
       .expectBody()
-      .jsonPath("$.components.prisonApiHealth.status").isEqualTo("DOWN")
-      .jsonPath("$.components.prisonApiHealth.details.error").value<String> { assertThat(it).contains("Timeout") }
+      .jsonPath("$.components.prisonApiHealth.status")
+      .isEqualTo("DOWN")
+      .jsonPath("$.components.prisonApiHealth.details.error")
+      .value<String> { assertThat(it).contains("Timeout") }
   }
 }

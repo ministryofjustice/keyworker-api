@@ -23,4 +23,7 @@ class VerifyKeyworkerStatus(
   }
 }
 
-data class UsernameKeyworker(val username: String, val isKeyworker: Boolean)
+data class UsernameKeyworker(
+  val username: String,
+  val isKeyworker: Boolean,
+)

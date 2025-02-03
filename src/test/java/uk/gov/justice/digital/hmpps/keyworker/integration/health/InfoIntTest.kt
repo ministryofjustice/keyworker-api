@@ -11,22 +11,31 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter.ISO_DATE
 import java.util.function.Consumer
 
-class InfoIntTest : IntegrationTest
-  () {
+class InfoIntTest : IntegrationTest() {
   @Test
   fun `Info page contains git information`() {
-    webTestClient.get().uri("/info")
+    webTestClient
+      .get()
+      .uri("/info")
       .exchange()
-      .expectStatus().isOk
-      .expectBody().jsonPath("git.commit.id").isNotEmpty
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("git.commit.id")
+      .isNotEmpty
   }
 
   @Test
   fun `Info page reports version`() {
-    webTestClient.get().uri("/info")
+    webTestClient
+      .get()
+      .uri("/info")
       .exchange()
-      .expectStatus().isOk
-      .expectBody().jsonPath("build.version").value(
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("build.version")
+      .value(
         Consumer<String> {
           assertThat(it).startsWith(LocalDateTime.now().format(ISO_DATE))
         },
@@ -52,16 +61,23 @@ class InfoIntTest : IntegrationTest
       getWiremockResponse("prisoners_information_A1234AA"),
     )
 
-    webTestClient.get()
+    webTestClient
+      .get()
       .uri("/key-worker/allocation-history/$NON_MIGRATED_ALLOCATION_OFFENDER_ID")
       .headers(setOmicAdminHeaders())
       .exchange()
-      .expectStatus().is2xxSuccessful
+      .expectStatus()
+      .is2xxSuccessful
 
-    webTestClient.get().uri("/info")
+    webTestClient
+      .get()
+      .uri("/info")
       .exchange()
-      .expectStatus().isOk
-      .expectBody().jsonPath("build.version").value<String> {
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("build.version")
+      .value<String> {
         assertThat(it).startsWith(LocalDateTime.now().format(ISO_DATE))
       }
   }
@@ -72,7 +88,8 @@ class InfoIntTest : IntegrationTest
   ) {
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
 
-    webTestClient.post()
+    webTestClient
+      .post()
       .uri("/key-worker/allocate")
       .headers(setOmicAdminHeaders())
       .bodyValue(
@@ -83,8 +100,8 @@ class InfoIntTest : IntegrationTest
           "allocationType" to "M",
           "allocationReason" to "MANUAL",
         ),
-      )
-      .exchange()
-      .expectStatus().is2xxSuccessful
+      ).exchange()
+      .expectStatus()
+      .is2xxSuccessful
   }
 }

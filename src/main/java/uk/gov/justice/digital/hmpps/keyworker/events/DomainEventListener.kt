@@ -49,7 +49,9 @@ data class DomainEvent<T : AdditionalInformation>(
 
 interface AdditionalInformation
 
-data class PersonReference(val identifiers: Set<Identifier> = setOf()) {
+data class PersonReference(
+  val identifiers: Set<Identifier> = setOf(),
+) {
   operator fun get(key: String) = identifiers.find { it.type == key }?.value
 
   fun findNomsNumber() = get(NOMS_NUMBER_TYPE)
@@ -60,5 +62,8 @@ data class PersonReference(val identifiers: Set<Identifier> = setOf()) {
     fun withIdentifier(prisonNumber: String) = PersonReference(setOf(Identifier(NOMS_NUMBER_TYPE, prisonNumber)))
   }
 
-  data class Identifier(val type: String, val value: String)
+  data class Identifier(
+    val type: String,
+    val value: String,
+  )
 }

@@ -31,8 +31,8 @@ class CaseNotesMockServer : WireMockServer(9997) {
   fun stubUsageByStaffIds(
     request: UsageByAuthorIdRequest,
     response: NoteUsageResponse<UsageByAuthorIdResponse>,
-  ): StubMapping {
-    return stubFor(
+  ): StubMapping =
+    stubFor(
       post("/case-notes/staff-usage")
         .withRequestBody(equalToJson(objectMapper.writeValueAsString(request), true, true))
         .willReturn(
@@ -42,5 +42,4 @@ class CaseNotesMockServer : WireMockServer(9997) {
             .withStatus(200),
         ),
     )
-  }
 }

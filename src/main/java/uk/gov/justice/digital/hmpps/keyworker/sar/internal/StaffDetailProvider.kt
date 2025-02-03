@@ -16,14 +16,19 @@ import java.time.Duration
 class StaffDetailProvider(
   @Qualifier("prisonApiWebClient") private val prisonApi: WebClient,
 ) {
-  fun findStaffSummariesFromIds(ids: Set<Long>): List<StaffSummary> {
-    return Flux.fromIterable(ids).flatMap({ id ->
-      prisonApi.get().uri(STAFF_BY_ID_URL, id).retrieve()
-        .bodyToMono<StaffSummary>()
-        .retryOnTransientException()
-    }, 10)
-      .collectList().block() ?: emptyList()
-  }
+  fun findStaffSummariesFromIds(ids: Set<Long>): List<StaffSummary> =
+    Flux
+      .fromIterable(ids)
+      .flatMap({ id ->
+        prisonApi
+          .get()
+          .uri(STAFF_BY_ID_URL, id)
+          .retrieve()
+          .bodyToMono<StaffSummary>()
+          .retryOnTransientException()
+      }, 10)
+      .collectList()
+      .block() ?: emptyList()
 
   companion object {
     const val STAFF_BY_ID_URL = "/staff/{staffId}"
@@ -32,7 +37,8 @@ class StaffDetailProvider(
 
 fun <T> Mono<T>.retryOnTransientException(): Mono<T> =
   retryWhen(
-    Retry.backoff(3, Duration.ofMillis(200))
+    Retry
+      .backoff(3, Duration.ofMillis(200))
       .filter {
         it is WebClientRequestException || (it is WebClientResponseException && it.statusCode.is5xxServerError)
       }.onRetryExhaustedThrow { _, signal ->
