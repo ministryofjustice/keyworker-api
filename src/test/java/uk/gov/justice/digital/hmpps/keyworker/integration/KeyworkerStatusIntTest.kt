@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.services.UsernameKeyworker
 
 class KeyworkerStatusIntTest : IntegrationTest() {
@@ -72,7 +73,7 @@ class KeyworkerStatusIntTest : IntegrationTest() {
   private fun getKeyworkerStatusSpec(
     username: String,
     prisonCode: String = DEFAULT_PRISON_CODE,
-    role: String? = "ROLE_KEY_WORKER__RO",
+    role: String? = Roles.KEYWORKER_RO,
   ) = webTestClient
     .get()
     .uri(KEYWORKER_STATUS_URL, prisonCode, username)

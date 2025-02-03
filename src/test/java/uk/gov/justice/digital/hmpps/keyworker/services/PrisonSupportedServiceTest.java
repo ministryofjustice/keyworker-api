@@ -38,7 +38,7 @@ class PrisonSupportedServiceTest {
 
     @BeforeEach
     void setUp() {
-        prisonSupportedService = new PrisonSupportedService(repository, complexityOfNeedService);
+        prisonSupportedService = new PrisonSupportedService(repository);
         ReflectionTestUtils.setField(prisonSupportedService, "capacityTiers", List.of(6,9));
     }
 
@@ -116,12 +116,14 @@ class PrisonSupportedServiceTest {
     void testGetMigratedPrisons() {
         final var agencyWithHighComplexity = "MDI";
         final var agencyWithoutHighComplexity = "LEI";
-        when(complexityOfNeedService.isComplexPrison(agencyWithHighComplexity)).thenReturn(true);
-        when(complexityOfNeedService.isComplexPrison(agencyWithoutHighComplexity)).thenReturn(false);
         when(repository.findAllByMigratedEquals(true)).thenReturn(
             List.of(
-                PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true).capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1).build(),
-                PrisonSupported.builder().prisonId(agencyWithoutHighComplexity).autoAllocate(true).migrated(true).capacityTier1(2).capacityTier2(5).kwSessionFrequencyInWeeks(4).build()
+                PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true)
+                    .capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1)
+                    .hasPrisonersWithHighComplexityNeeds(true).build(),
+                PrisonSupported.builder().prisonId(agencyWithoutHighComplexity).autoAllocate(true).migrated(true)
+                    .capacityTier1(2).capacityTier2(5).kwSessionFrequencyInWeeks(4)
+                    .hasPrisonersWithHighComplexityNeeds(false).build()
             )
         );
 
@@ -146,9 +148,17 @@ class PrisonSupportedServiceTest {
     @Test
     void getPrisonDetail() {
         final var agencyWithHighComplexity = "MDI";
-        when(complexityOfNeedService.isComplexPrison(agencyWithHighComplexity)).thenReturn(true);
         when(repository.findById(agencyWithHighComplexity))
-            .thenReturn(Optional.of(PrisonSupported.builder().prisonId(agencyWithHighComplexity).autoAllocate(true).migrated(true).capacityTier1(5).capacityTier2(7).kwSessionFrequencyInWeeks(1).build()));
+            .thenReturn(Optional.of(
+                PrisonSupported.builder().prisonId(agencyWithHighComplexity)
+                    .autoAllocate(true)
+                    .migrated(true)
+                    .capacityTier1(5)
+                    .capacityTier2(7)
+                    .kwSessionFrequencyInWeeks(1)
+                    .hasPrisonersWithHighComplexityNeeds(true)
+                    .build()
+            ));
 
         final var prison = prisonSupportedService.getPrisonDetail(agencyWithHighComplexity);
         assertThat(prison.isMigrated()).isTrue();
@@ -166,7 +176,7 @@ class PrisonSupportedServiceTest {
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true);
 
         final var kwaArg = ArgumentCaptor.forClass(PrisonSupported.class);
-        verify(repository).save(kwaArg.capture());//any(PrisonSupported.class));
+        verify(repository).save(kwaArg.capture());
         final var prison = kwaArg.getValue();
         assertThat(prison.getCapacityTier1()).isEqualTo(6);
         assertThat(prison.getCapacityTier2()).isEqualTo(9);

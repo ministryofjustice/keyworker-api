@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import uk.gov.justice.digital.hmpps.gradle.PortForwardRDSTask
 import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
@@ -83,10 +84,6 @@ dependencyCheck {
   suppressionFiles.add("suppressions.xml")
 }
 
-java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-}
-
 tasks {
   register<PortForwardRDSTask>("portForwardRDS") {
     namespacePrefix = "keyworker-api"
@@ -101,8 +98,8 @@ tasks {
   }
 
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-      jvmTarget = "21"
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_21
     }
   }
   test {
