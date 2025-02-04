@@ -45,4 +45,15 @@ public class PrisonSupported {
 
     @Column(name = "KW_SESSION_FREQ_WEEKS", nullable = false)
     private int kwSessionFrequencyInWeeks;
+
+    @Column(name = "has_prisoners_with_high_complexity_needs", nullable = false)
+    private boolean hasPrisonersWithHighComplexityNeeds;
+
+    public boolean isMigrated() {
+        return migrated;
+    }
+
+    public boolean hasPrisonersWithHighComplexityNeeds() {
+        return hasPrisonersWithHighComplexityNeeds;
+    }
 }

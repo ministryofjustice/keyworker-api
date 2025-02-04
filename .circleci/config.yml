@@ -71,21 +71,25 @@ workflows:
             - build
             - helm_lint
             - build_docker
-      - request-preprod-approval:
-          type: approval
-          requires:
-            - deploy_dev
+
       - hmpps/deploy_env:
           name: deploy_preprod
           env: "preprod"
           context:
             - hmpps-common-vars
             - keyworker-api-preprod
+          filters:
+            branches:
+              only:
+                - main
           requires:
-            - request-preprod-approval
+            - build
+            - helm_lint
+            - build_docker
       - request-prod-approval:
           type: approval
           requires:
+            - deploy_dev
             - deploy_preprod
       - hmpps/deploy_env:
           name: deploy_prod

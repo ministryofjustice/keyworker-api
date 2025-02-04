@@ -5,6 +5,4 @@ interface ComplexityOfNeed {
     prisonId: String,
     offenders: Set<String>,
   ): Set<String>
-
-  fun isComplexPrison(prisonId: String): Boolean
 }

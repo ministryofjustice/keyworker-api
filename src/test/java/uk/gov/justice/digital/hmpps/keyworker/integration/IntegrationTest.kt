@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -50,6 +51,9 @@ import java.time.LocalDateTime
 abstract class IntegrationTest {
   @Autowired
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
+
+  @Autowired
+  protected lateinit var prisonSupportedRepository: PrisonSupportedRepository
 
   @Autowired
   lateinit var flyway: Flyway

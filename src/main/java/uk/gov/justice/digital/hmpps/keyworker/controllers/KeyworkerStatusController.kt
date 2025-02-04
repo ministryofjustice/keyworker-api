@@ -47,7 +47,7 @@ class KeyworkerStatusController(
         ),
       ],
   )
-  @PreAuthorize("hasAnyRole('ROLE_KEY_WORKER__RO')")
+  @PreAuthorize("hasAnyRole('${Roles.KEYWORKER_RO}')")
   @GetMapping(path = ["/prisons/{prisonCode}/key-workers/{username}/status"])
   fun userIsKeyworker(
     @PathVariable prisonCode: String,
