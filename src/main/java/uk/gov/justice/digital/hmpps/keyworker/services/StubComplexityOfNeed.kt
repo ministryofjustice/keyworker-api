@@ -10,6 +10,4 @@ class StubComplexityOfNeed : ComplexityOfNeed {
     prisonId: String,
     offenders: Set<String>,
   ): Set<String> = offenders
-
-  override fun isComplexPrison(prisonId: String): Boolean = false
 }
