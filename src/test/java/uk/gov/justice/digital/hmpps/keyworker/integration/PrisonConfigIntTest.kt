@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported
 
 class PrisonConfigIntTest : IntegrationTest() {
