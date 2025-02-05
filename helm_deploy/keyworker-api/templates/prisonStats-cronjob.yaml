@@ -5,11 +5,11 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
-  schedule: "5 0 * * *"
+  schedule: {{ .Values.schedule.prison_stats }}
   concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 2
   startingDeadlineSeconds: 600
-  successfulJobsHistoryLimit: 5
+  successfulJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:

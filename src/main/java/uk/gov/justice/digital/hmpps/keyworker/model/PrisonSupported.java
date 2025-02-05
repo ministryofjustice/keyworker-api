@@ -56,4 +56,20 @@ public class PrisonSupported {
     public boolean hasPrisonersWithHighComplexityNeeds() {
         return hasPrisonersWithHighComplexityNeeds;
     }
+
+    public boolean isAutoAllocate() {
+        return autoAllocate;
+    }
+
+    public int getCapacityTier1() {
+        return capacityTier1;
+    }
+
+    public int getCapacityTier2() {
+        return capacityTier2;
+    }
+
+    public int getKwSessionFrequencyInWeeks() {
+        return kwSessionFrequencyInWeeks;
+    }
 }
