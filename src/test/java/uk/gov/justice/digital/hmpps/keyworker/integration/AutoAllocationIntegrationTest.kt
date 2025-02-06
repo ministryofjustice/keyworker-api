@@ -17,7 +17,6 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
 
   val oFFENDERSATLOCATION: String = getWiremockResponse(PRISON_ID, "offenders-at-location")
   val kEYWORKERLIST = getWiremockResponse(PRISON_ID, "keyworker-list")
-  val cOMPLEXOFFENDERUNALLOC10 = getWiremockResponse("UNALLOC10-complexity-high")
   val cOMPLEXOFFENDERUNALLOC1 = getWiremockResponse("UNALLOC1-complexity-high")
 
   @BeforeEach
@@ -32,8 +31,6 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
 
   @Test
   fun `Allocation service reports ok`() {
-    complexityOfNeedMockServer.stubComplexOffenders(cOMPLEXOFFENDERUNALLOC10)
-
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
     setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_2, 1)
 
@@ -128,9 +125,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
   }
 
   @Test
-  fun `should return a list of unallocated offenders`() {
-    complexityOfNeedMockServer.stubComplexOffenders("[]")
-
+  fun `should return a list of unallocated offenders for non-complex prisoners`() {
     webTestClient
       .get()
       .uri("/key-worker/$PRISON_ID/offenders/unallocated")
@@ -146,7 +141,6 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
   fun `should return a list of unallocated offenders ignoring offenders with high complexity of need`() {
     val prisonSupported = checkNotNull(prisonSupportedRepository.findByIdOrNull("AGI"))
     prisonSupported.isMigrated = true
-    prisonSupported.migratedDateTime = LocalDateTime.now()
     prisonSupportedRepository.save(prisonSupported)
 
     complexityOfNeedMockServer.stubComplexOffenders(cOMPLEXOFFENDERUNALLOC1)
