@@ -54,6 +54,4 @@ spring:
 
 api.health-timeout-ms: 400
 
-prisons.with.offenders.that.have.complex.needs: LEI,MDI
-
 logging.level.org.springframework.security.oauth2: DEBUG

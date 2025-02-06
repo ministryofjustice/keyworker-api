@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported
 
 class PrisonConfigIntTest : IntegrationTest() {
@@ -13,7 +13,7 @@ class PrisonConfigIntTest : IntegrationTest() {
   @MethodSource("prisonConfigArgs")
   fun `200 ok - prison config is returned appropriately`(
     prisonCode: String,
-    status: PrisonKeyworkerStatus,
+    status: PrisonKeyworkerConfiguration,
   ) {
     givenConfiguredPrisons()
 
@@ -29,34 +29,35 @@ class PrisonConfigIntTest : IntegrationTest() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(PrisonKeyworkerStatus::class.java)
+      .expectBody(PrisonKeyworkerConfiguration::class.java)
       .returnResult()
       .responseBody!!
 
   private fun givenConfiguredPrisons() =
     prisonSupportedRepository.saveAll(
       listOf(
-        prisonConfig("ZEZE", false, false),
-        prisonConfig("ZEON", false, true),
-        prisonConfig("ONZE", true, false),
-        prisonConfig("ONON", true, true),
+        prisonConfig("ZEZE", false, false, false),
+        prisonConfig("ZEON", false, false, true),
+        prisonConfig("ONZE", true, true, false),
+        prisonConfig("ONON", true, true, true),
       ),
     )
 
   private fun prisonConfig(
     code: String,
     migrated: Boolean,
+    autoAllocate: Boolean,
     hasPrisonersWithComplexNeeds: Boolean,
-  ) = PrisonSupported(code, migrated, false, null, 6, 9, 1, hasPrisonersWithComplexNeeds)
+  ) = PrisonSupported(code, migrated, autoAllocate, null, 6, 9, 1, hasPrisonersWithComplexNeeds)
 
   companion object {
     @JvmStatic
     fun prisonConfigArgs() =
       listOf(
-        Arguments.of("ZEZE", PrisonKeyworkerStatus(false, false)),
-        Arguments.of("ZEON", PrisonKeyworkerStatus(false, true)),
-        Arguments.of("ONZE", PrisonKeyworkerStatus(true, false)),
-        Arguments.of("ONON", PrisonKeyworkerStatus(true, true)),
+        Arguments.of("ZEZE", PrisonKeyworkerConfiguration(false, false, false, 6, 9, 1)),
+        Arguments.of("ZEON", PrisonKeyworkerConfiguration(false, true, false, 6, 9, 1)),
+        Arguments.of("ONZE", PrisonKeyworkerConfiguration(true, false, true, 6, 9, 1)),
+        Arguments.of("ONON", PrisonKeyworkerConfiguration(true, true, true, 6, 9, 1)),
       )
   }
 }
