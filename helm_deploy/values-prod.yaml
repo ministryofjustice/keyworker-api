@@ -45,4 +45,4 @@ generic-prometheus-alerts:
   applicationCronJobStatusFailedWindowMinutes: 15
 
 schedule:
-  prison_stats: "0 5 * * *"
+  prison_stats: "5 0 * * *"
