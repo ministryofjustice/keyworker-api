@@ -15,18 +15,19 @@ class SentryConfig {
     }
 
   @Bean
-  fun transactionSampling() = SentryOptions.TracesSamplerCallback { context ->
-    context.customSamplingContext?.let {
-      val request = it["request"] as HttpServletRequest
-      when (request.method) {
-        "GET" if (matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", request.requestURI)) -> {
-          0.0025
-        }
+  fun transactionSampling() =
+    SentryOptions.TracesSamplerCallback { context ->
+      context.customSamplingContext?.let {
+        val request = it["request"] as HttpServletRequest
+        when (request.method) {
+          "GET" if (matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", request.requestURI)) -> {
+            0.0025
+          }
 
-        else -> {
-          0.05
+          else -> {
+            0.05
+          }
         }
       }
     }
-  }
 }
