@@ -27,7 +27,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
   implementation("org.springframework:spring-jms")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.3.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.3.1")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl")
@@ -40,7 +40,7 @@ dependencies {
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.47.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.12.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.1.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.2.0")
 
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.3.232")
