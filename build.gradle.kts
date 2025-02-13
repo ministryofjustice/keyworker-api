@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
 import uk.gov.justice.digital.hmpps.gradle.PortForwardRDSTask
 import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
@@ -99,7 +99,8 @@ tasks {
 
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
-      jvmTarget = JvmTarget.JVM_21
+      jvmTarget = JVM_21
+      freeCompilerArgs.add("-Xwhen-guards")
     }
   }
   test {
