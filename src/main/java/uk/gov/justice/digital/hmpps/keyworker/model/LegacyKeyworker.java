@@ -21,7 +21,7 @@ import org.hibernate.type.YesNoConverter;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"staffId"})
-public class Keyworker {
+public class LegacyKeyworker {
 
     @Id()
     @Column(name = "STAFF_ID", nullable = false)

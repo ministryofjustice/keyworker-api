@@ -4,9 +4,9 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 @Transactional
 @Slf4j
 public class KeyworkerBatchService {
-    private final KeyworkerRepository keyworkerRepository;
+    private final LegacyKeyworkerRepository keyworkerRepository;
     private TelemetryClient telemetryClient;
 
-    public KeyworkerBatchService(final KeyworkerRepository keyworkerRepository,
+    public KeyworkerBatchService(final LegacyKeyworkerRepository keyworkerRepository,
                                  final TelemetryClient telemetryClient) {
         this.keyworkerRepository = keyworkerRepository;
         this.telemetryClient = telemetryClient;
@@ -58,7 +58,7 @@ public class KeyworkerBatchService {
             kw.setAutoAllocationFlag(true);
         });
 
-        return returningKeyworkers.stream().map(Keyworker::getStaffId).collect(Collectors.toList());
+        return returningKeyworkers.stream().map(LegacyKeyworker::getStaffId).collect(Collectors.toList());
     }
 
     private void logUpdateStatusEventToAzure(final List keyworkers) {

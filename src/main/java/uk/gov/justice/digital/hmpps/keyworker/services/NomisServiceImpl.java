@@ -70,10 +70,6 @@ public class NomisServiceImpl implements NomisService {
         new ParameterizedTypeReference<>() {
         };
 
-    private static final ParameterizedTypeReference<List<CaseNoteUsageDto>> CASE_NOTE_USAGE_DTO_LIST =
-        new ParameterizedTypeReference<>() {
-        };
-
     private static final ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>>
         CASE_NOTE_USAGE_PRISONERS_DTO_LIST =
         new ParameterizedTypeReference<>() {
