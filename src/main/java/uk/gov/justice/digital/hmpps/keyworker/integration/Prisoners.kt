@@ -14,6 +14,8 @@ data class Prisoners(
 
   @JsonIgnore
   val size = map.keys.size
+
+  fun isEmpty() = map.keys.isEmpty()
 }
 
 data class Prisoner(
