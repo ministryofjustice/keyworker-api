@@ -140,4 +140,13 @@ public class PagingAndSortingDto {
             return "PagingAndSortingDto.PagingAndSortingDtoBuilder(pageOffset=" + this.pageOffset + ", pageLimit=" + this.pageLimit + ", sortFields=" + this.sortFields + ", sortOrder=" + this.sortOrder + ")";
         }
     }
+
+    public static PagingAndSortingDto activeStaffKeyWorkersPagingAndSorting() {
+        return PagingAndSortingDto.builder()
+            .pageLimit(3000L)
+            .pageOffset(0L)
+            .sortFields("staffId")
+            .sortOrder(SortOrder.ASC)
+            .build();
+    }
 }

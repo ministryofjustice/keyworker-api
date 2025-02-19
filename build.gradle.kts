@@ -41,6 +41,7 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-api:1.47.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.13.1")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.2.0")
+  implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
 
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.3.232")

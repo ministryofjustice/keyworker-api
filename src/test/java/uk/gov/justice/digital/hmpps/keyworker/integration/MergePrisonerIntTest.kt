@@ -6,14 +6,13 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.springframework.data.repository.findByIdOrNull
-import uk.gov.justice.digital.hmpps.keyworker.events.DomainEvent
-import uk.gov.justice.digital.hmpps.keyworker.events.DomainEventListener
-import uk.gov.justice.digital.hmpps.keyworker.events.PersonReference
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformation
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.services.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
-import java.time.ZonedDateTime
 
 class MergePrisonerIntTest : IntegrationTest() {
   @Test
@@ -58,13 +57,11 @@ class MergePrisonerIntTest : IntegrationTest() {
   private fun mergeEvent(
     newNoms: String,
     oldNoms: String,
-  ): DomainEvent<MergeInformation> =
-    DomainEvent(
-      ZonedDateTime.now(),
-      DomainEventListener.PRISONER_MERGED,
-      null,
-      "A prisoner was merged",
+  ): HmppsDomainEvent<MergeInformation> =
+    HmppsDomainEvent(
+      EventType.PrisonMerged.name,
       MergeInformation(newNoms, oldNoms),
       PersonReference.withIdentifier(newNoms),
+      description = "A prisoner was merged",
     )
 }

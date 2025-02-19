@@ -16,11 +16,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
-import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
@@ -63,7 +63,7 @@ class KeyworkerStatsServiceTest {
     private PrisonKeyWorkerStatisticRepository statisticRepository;
 
     @Mock
-    private KeyworkerRepository keyworkerRepository;
+    private LegacyKeyworkerRepository keyworkerRepository;
 
     @Mock
     private PrisonSupportedService prisonSupportedService;
@@ -703,8 +703,8 @@ class KeyworkerStatsServiceTest {
         when(nomisService.getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true)))
                 .thenReturn(new ResponseEntity<>(staffLocationRoleDtos, HttpStatus.OK));
 
-        lenient().when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build()));
-        lenient().when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(Keyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build()));
+        lenient().when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(LegacyKeyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build()));
+        lenient().when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(LegacyKeyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build()));
 
         when(nomisService.getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),

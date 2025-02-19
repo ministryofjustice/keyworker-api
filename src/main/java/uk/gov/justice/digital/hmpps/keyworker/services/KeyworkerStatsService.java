@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatSummary;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStatsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
@@ -19,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
-import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
@@ -46,6 +45,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
 import static java.util.stream.Collectors.averagingDouble;
 import static java.util.stream.Collectors.averagingLong;
+import static uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_CASENOTE_TYPE;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_ENTRY_SUB_TYPE;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_SESSION_SUB_TYPE;
@@ -58,7 +58,7 @@ public class KeyworkerStatsService {
 
     private final NomisService nomisService;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
-    private final KeyworkerRepository keyworkerRepository;
+    private final LegacyKeyworkerRepository keyworkerRepository;
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
     private final TelemetryClient telemetryClient;
@@ -69,7 +69,7 @@ public class KeyworkerStatsService {
     public KeyworkerStatsService(final NomisService nomisService, final PrisonSupportedService prisonSupportedService,
                                  final OffenderKeyworkerRepository offenderKeyworkerRepository,
                                  final PrisonKeyWorkerStatisticRepository statisticRepository,
-                                 final KeyworkerRepository keyworkerRepository,
+                                 final LegacyKeyworkerRepository keyworkerRepository,
                                  final TelemetryClient telemetryClient,
                                  final ComplexityOfNeed complexityOfNeedService) {
         this.nomisService = nomisService;
@@ -153,12 +153,7 @@ public class KeyworkerStatsService {
             final var allocatedKeyWorkers = offenderKeyworkerRepository.findByActiveAndPrisonIdAndOffenderNoInAndAllocationTypeIsNot(true, prisonId, offenderNos, AllocationType.PROVISIONAL);
             log.info("There are currently {} allocated key workers to prisoners in {}", allocatedKeyWorkers.size(), prisonId);
 
-            final var pagingAndSorting = PagingAndSortingDto.builder()
-                    .pageLimit(3000L)
-                    .pageOffset(0L)
-                    .sortFields("staffId")
-                    .sortOrder(SortOrder.ASC)
-                    .build();
+            final var pagingAndSorting = activeStaffKeyWorkersPagingAndSorting();
             final var activeKeyWorkers = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, Optional.empty(), pagingAndSorting, true);
 
             // remove key workers not active

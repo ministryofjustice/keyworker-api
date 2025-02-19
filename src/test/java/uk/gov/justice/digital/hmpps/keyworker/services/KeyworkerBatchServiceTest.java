@@ -7,9 +7,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -25,7 +25,7 @@ class KeyworkerBatchServiceTest {
     private KeyworkerBatchService batchService;
 
     @Mock
-    private KeyworkerRepository keyworkerRepository;
+    private LegacyKeyworkerRepository keyworkerRepository;
     @Mock
     private TelemetryClient telemetryClient;
 
@@ -40,7 +40,7 @@ class KeyworkerBatchServiceTest {
         final var DATE_14_JAN_2018 = LocalDate.of(2018, Month.JANUARY, 14);
         final var today = LocalDate.now();
 
-        final var keyworker_backFromLeave = new Keyworker(2L, 6, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, Boolean.TRUE, DATE_14_JAN_2018);
+        final var keyworker_backFromLeave = new LegacyKeyworker(2L, 6, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, Boolean.TRUE, DATE_14_JAN_2018);
 
         when(keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1))).thenReturn(Collections.singletonList(keyworker_backFromLeave));
 

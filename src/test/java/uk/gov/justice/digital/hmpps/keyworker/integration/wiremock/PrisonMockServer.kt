@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.matching
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.dto.Page
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 class PrisonMockServer : WireMockServer(9999) {
   fun stubAllocationHistory(
@@ -188,39 +188,17 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubKeyworkerSearch(
     prisonId: String,
-    username: String,
-    json: String,
-    totalRecords: Int? = 1,
-    status: String? = "ACTIVE",
+    response: List<StaffLocationRoleDto>,
   ) {
     stubFor(
       WireMock
         .get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonId/role/KW"))
-        .withQueryParam("nameFilter", matching(username))
-        .withQueryParam("statusFilter", matching(status))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(json)
-            .withHeader(Page.HEADER_PAGE_LIMIT, "50")
-            .withHeader(Page.HEADER_PAGE_OFFSET, "0")
-            .withHeader(Page.HEADER_TOTAL_RECORDS, totalRecords.toString()),
-        ),
-    )
-  }
-
-  fun stubCaseNoteUsage(json: String) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/case-notes/staff-usage"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.OK.value())
-            .withBody(json),
+            .withBody(objectMapper.writeValueAsString(response)),
         ),
     )
   }
