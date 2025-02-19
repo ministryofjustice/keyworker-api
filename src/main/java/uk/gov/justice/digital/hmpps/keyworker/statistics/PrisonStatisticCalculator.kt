@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.statistics
 
+import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisti
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.countActiveKeyworkers
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS
 import java.util.Optional
 
@@ -33,6 +34,7 @@ class PrisonStatisticCalculator(
   private val caseNotesApi: CaseNotesApiClient,
   private val nomisService: NomisService,
   private val keyworkerRepository: KeyworkerRepository,
+  private val telemetryClient: TelemetryClient,
 ) {
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
     with(info.additionalInformation) {
@@ -42,6 +44,16 @@ class PrisonStatisticCalculator(
 
       val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode)
       val prisoners = prisonerSearch.findAllPrisoners(prisonCode)
+
+      if (prisoners.isEmpty()) {
+        telemetryClient.trackEvent(
+          "EmptyPrison",
+          mapOf("prisonCode" to prisonCode, "date" to ISO_LOCAL_DATE.format(date)),
+          null,
+        )
+        return
+      }
+
       val prisonersWithComplexNeeds =
         if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {
           complexityOfNeed.getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
@@ -49,6 +61,20 @@ class PrisonStatisticCalculator(
           emptyList()
         }
       val eligiblePrisoners = (prisoners.personIdentifiers() - prisonersWithComplexNeeds.map { it.offenderNo }).toSet()
+
+      if (eligiblePrisoners.isEmpty()) {
+        telemetryClient.trackEvent(
+          "NoEligiblePrisoners",
+          mapOf(
+            "prisonCode" to prisonCode,
+            "date" to ISO_LOCAL_DATE.format(date),
+            "totalPrisoners" to prisoners.size.toString(),
+            "withComplexNeeds" to prisonersWithComplexNeeds.size.toString(),
+          ),
+          null,
+        )
+        return
+      }
 
       val activeAllocations = keyworkerAllocationRepository.countActiveAllocations(prisonCode, eligiblePrisoners)
       val newAllocations =
@@ -126,8 +152,6 @@ class PeopleSummaries(
   val averageDaysToAllocation = if (allocationDays.isEmpty()) null else allocationDays.average().toInt()
   val averageDaysToSession = if (sessionDays.isEmpty()) null else sessionDays.average().toInt()
 }
-
-infix fun Prisoners.only(identifiers: Set<String>) = Prisoners(content.filter { it.prisonerNumber in identifiers })
 
 data class PersonSummary(
   val personIdentifier: String,
