@@ -18,7 +18,6 @@ class PrisonerSearchClient(
       .get()
       .uri {
         it.path("/prisoner-search/prison/{prisonCode}")
-        it.queryParam("include-restricted-patients", true)
         it.queryParam("size", Int.MAX_VALUE)
         it.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

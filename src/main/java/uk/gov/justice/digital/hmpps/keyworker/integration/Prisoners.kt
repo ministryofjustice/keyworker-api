@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDate
 
 data class Prisoners(
@@ -11,7 +12,8 @@ data class Prisoners(
 
   fun findByPersonIdentifier(personIdentifier: String) = map[personIdentifier]
 
-  val size = map.size
+  @JsonIgnore
+  val size = map.keys.size
 }
 
 data class Prisoner(
