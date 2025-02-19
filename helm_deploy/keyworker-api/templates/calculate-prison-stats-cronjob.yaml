@@ -23,5 +23,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPOST http://prison-statistics/calculate
+                - curl --retry 2 -XPOST http://keyworker-api/prison-statistics/calculate
           restartPolicy: Never

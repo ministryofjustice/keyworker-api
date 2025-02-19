@@ -20,7 +20,6 @@ class PrisonApiClient(
       .get()
       .uri("/staff/{staffId}/{prisonCode}/roles/{role}", staffId, prisonCode, role)
       .exchangeToMono { res ->
-        println("*** -> " + res.request().uri)
         when (res.statusCode()) {
           HttpStatus.NOT_FOUND -> Mono.empty()
           HttpStatus.OK -> res.bodyToMono<Boolean>()
