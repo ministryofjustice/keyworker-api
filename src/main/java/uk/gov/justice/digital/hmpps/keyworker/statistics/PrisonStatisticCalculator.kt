@@ -57,11 +57,16 @@ class PrisonStatisticCalculator(
           .associateBy { it.personIdentifier }
 
       val cnSummary = caseNotesApi.getUsageByPersonIdentifier(keyworkerTypes(eligiblePrisoners, date)).summary()
+      val peopleWithSessions = cnSummary.personIdentifiersWithSessions()
       val previousSessions =
-        caseNotesApi
-          .getUsageByPersonIdentifier(
-            sessionTypes(cnSummary.personIdentifiersWithSessions(), date.minusMonths(6), date.minusDays(1)),
-          ).summary()
+        if (peopleWithSessions.isNotEmpty()) {
+          caseNotesApi
+            .getUsageByPersonIdentifier(
+              sessionTypes(peopleWithSessions, date.minusMonths(6), date.minusDays(1)),
+            ).summary()
+        } else {
+          null
+        }
 
       val activeKeyworkers =
         nomisService
@@ -78,7 +83,7 @@ class PrisonStatisticCalculator(
           eligiblePrisoners,
           { prisoners.findByPersonIdentifier(it)?.receptionDate },
           { newAllocations[it]?.assignedAt?.toLocalDate() },
-          { pi -> cnSummary.findSessionDate(pi).takeIf { previousSessions.findSessionDate(pi) == null } },
+          { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
         )
 
       statisticRepository.save(

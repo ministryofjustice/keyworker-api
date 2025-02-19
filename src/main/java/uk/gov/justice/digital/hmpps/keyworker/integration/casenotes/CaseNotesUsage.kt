@@ -90,7 +90,7 @@ data class CaseNoteSummary(
     totalEntries = grouped[KW_TYPE to ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
   }
 
-  fun findSessionDate(personIdentifier: String) =
+  fun findSessionDate(personIdentifier: String): LocalDate? =
     data[personIdentifier]
       ?.find { it.subType == SESSION_SUBTYPE }
       ?.latestNote
