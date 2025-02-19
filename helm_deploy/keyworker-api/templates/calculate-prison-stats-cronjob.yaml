@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "app.fullname" . }}-prison-stats-v2
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule.prison_stats }}
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            cron-job-name: prison-stats-cronjob
+        spec:
+          containers:
+            - name: prison-stats
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              args:
+                - /bin/sh
+                - -c
+                - curl --retry 2 -XPOST http://keyworker-api/prison-statistics/calculate
+          restartPolicy: Never

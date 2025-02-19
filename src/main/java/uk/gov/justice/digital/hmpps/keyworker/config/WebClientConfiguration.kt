@@ -32,6 +32,7 @@ class WebClientConfiguration(
   @Value("\${case-notes.api.uri.root}") private val caseNotesApiRootUri: String,
   @Value("\${prison.uri.root}") private val healthRootUri: String,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
+  @Value("\${prisoner-search.api.uri.root}") private val prisonerSearchApiRootUri: String,
   @Value("\${api.timeout:2s}") val timeout: Duration,
 ) {
   @Bean
@@ -63,6 +64,12 @@ class WebClientConfiguration(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, caseNotesApiRootUri)
+
+  @Bean
+  fun prisonerSearchWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonerSearchApiRootUri)
 
   private fun getOAuthWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
@@ -96,17 +103,9 @@ class WebClientConfiguration(
 
   @Bean
   fun complexityOfNeedWebClient(
-    authorizedClientManager: OAuth2AuthorizedClientManager?,
+    authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
-  ): WebClient {
-    val oauth2Client = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("default")
-
-    return builder
-      .baseUrl("$complexityOfNeedUri/v1")
-      .apply(oauth2Client.oauth2Configuration())
-      .build()
-  }
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, "$complexityOfNeedUri/v1")
 
   @Bean
   fun webClient(builder: Builder): WebClient =
@@ -130,7 +129,7 @@ class WebClientConfiguration(
       .build()
 
   private fun addAuthHeaderFilterFunction(): ExchangeFilterFunction =
-    ExchangeFilterFunction { request: ClientRequest?, next: ExchangeFunction ->
+    ExchangeFilterFunction { request: ClientRequest, next: ExchangeFunction ->
       val filtered =
         ClientRequest
           .from(request)

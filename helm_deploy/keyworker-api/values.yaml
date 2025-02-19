@@ -56,6 +56,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /prison-statistics/calculate {
+          deny all;
+          return 401;
+        }
 
   namespace_secrets:
     keyworker-api:

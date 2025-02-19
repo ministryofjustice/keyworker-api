@@ -18,19 +18,28 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
-import uk.gov.justice.digital.hmpps.keyworker.events.DomainEvent
-import uk.gov.justice.digital.hmpps.keyworker.events.DomainEventListener
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ManageUsersMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearchMockServer
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.Keyworker
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocation
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -50,10 +59,22 @@ import java.time.LocalDateTime
 @ActiveProfiles("test")
 abstract class IntegrationTest {
   @Autowired
+  private lateinit var keyworkerRepository: KeyworkerRepository
+
+  @Autowired
+  private lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
+
+  @Autowired
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
 
   @Autowired
   protected lateinit var prisonSupportedRepository: PrisonSupportedRepository
+
+  @Autowired
+  protected lateinit var prisonConfigRepository: PrisonConfigRepository
+
+  @Autowired
+  protected lateinit var prisonStatisticRepository: PrisonStatisticRepository
 
   @Autowired
   lateinit var flyway: Flyway
@@ -84,8 +105,8 @@ abstract class IntegrationTest {
   internal fun publishEventToTopic(event: Any) {
     val eventType =
       when (event) {
-        is ComplexityOfNeedChange -> DomainEventListener.COMPLEXITY_OF_NEED_CHANGED
-        is DomainEvent<*> -> event.eventType
+        is ComplexityOfNeedChange -> EventType.ComplexityOfNeedChanged.name
+        is HmppsDomainEvent<*> -> event.eventType
         else -> throw IllegalArgumentException("Unknown event $event")
       }
     domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
@@ -109,6 +130,9 @@ abstract class IntegrationTest {
     @JvmField
     internal val caseNotesMockServer = CaseNotesMockServer()
 
+    @JvmField
+    internal val prisonerSearchMockServer = PrisonerSearchMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -117,6 +141,7 @@ abstract class IntegrationTest {
       complexityOfNeedMockServer.start()
       manageUsersMockServer.start()
       caseNotesMockServer.start()
+      prisonerSearchMockServer.start()
     }
 
     @AfterAll
@@ -127,6 +152,7 @@ abstract class IntegrationTest {
       complexityOfNeedMockServer.stop()
       manageUsersMockServer.stop()
       caseNotesMockServer.stop()
+      prisonerSearchMockServer.stop()
     }
 
     private val pgContainer = PostgresContainer.instance
@@ -155,6 +181,7 @@ abstract class IntegrationTest {
     oAuthMockServer.stubGrantToken()
     manageUsersMockServer.resetAll()
     caseNotesMockServer.resetAll()
+    prisonerSearchMockServer.resetAll()
   }
 
   @AfterEach
@@ -254,7 +281,29 @@ abstract class IntegrationTest {
 
   internal fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
 
-  internal fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this).readText()
+  internal fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
+
+  internal fun prisonConfig(
+    code: String,
+    migrated: Boolean = false,
+    migratedDateTime: LocalDateTime? = null,
+    autoAllocate: Boolean = false,
+    capacityTier1: Int = 6,
+    capacityTier2: Int? = 9,
+    kwSessionFrequencyInWeeks: Int = 1,
+    hasPrisonersWithHighComplexityNeeds: Boolean = false,
+  ) = PrisonConfig(
+    code,
+    migrated,
+    migratedDateTime,
+    autoAllocate,
+    capacityTier1,
+    capacityTier2,
+    kwSessionFrequencyInWeeks,
+    hasPrisonersWithHighComplexityNeeds,
+  )
+
+  internal fun givenPrisonConfig(prisonConfig: PrisonConfig) = prisonConfigRepository.save(prisonConfig)
 
   internal fun givenOffenderKeyWorker(
     prisonNumber: String = prisonNumber(),
@@ -281,4 +330,40 @@ abstract class IntegrationTest {
       prisonId = prisonCode
     },
   )
+
+  protected fun keyworker(
+    status: KeyworkerStatus,
+    staffId: Long = newId(),
+    capacity: Int = 6,
+  ) = Keyworker(status, capacity, staffId)
+
+  protected fun givenKeyworker(keyworker: Keyworker) = keyworkerRepository.save(keyworker)
+
+  protected fun keyworkerAllocation(
+    personIdentifier: String,
+    prisonCode: String,
+    staffId: Long = newId(),
+    assignedAt: LocalDateTime = LocalDateTime.now().minusDays(1),
+    active: Boolean = true,
+    allocationReason: AllocationReason = AllocationReason.AUTO,
+    allocationType: AllocationType = AllocationType.AUTO,
+    userId: String? = "T357",
+    expiryDateTime: LocalDateTime? = null,
+    deallocationReason: DeallocationReason? = null,
+    id: Long = newId(),
+  ) = KeyworkerAllocation(
+    personIdentifier,
+    prisonCode,
+    staffId,
+    assignedAt,
+    active,
+    allocationReason,
+    allocationType,
+    userId,
+    expiryDateTime,
+    deallocationReason,
+    id,
+  )
+
+  protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation) = keyworkerAllocationRepository.save(allocation)
 }

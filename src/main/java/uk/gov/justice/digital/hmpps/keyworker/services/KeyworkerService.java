@@ -36,10 +36,10 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.Keyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.KeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
@@ -71,7 +71,7 @@ public class KeyworkerService {
 
     private final AuthenticationFacade authenticationFacade;
     private final OffenderKeyworkerRepository repository;
-    private final KeyworkerRepository keyworkerRepository;
+    private final LegacyKeyworkerRepository keyworkerRepository;
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
@@ -599,7 +599,7 @@ public class KeyworkerService {
                     keyworker.setAutoAllocationFlag(true);
                 }
             },
-            () -> keyworkerRepository.save(Keyworker.builder()
+            () -> keyworkerRepository.save(LegacyKeyworker.builder()
                 .staffId(staffId)
                 .capacity(keyworkerUpdateDto.getCapacity())
                 .status(keyworkerUpdateDto.getStatus())
