@@ -4,21 +4,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum KeyworkerStatus {
-    ACTIVE("ACT"),
-    UNAVAILABLE_ANNUAL_LEAVE("UAL"),
-    UNAVAILABLE_LONG_TERM_ABSENCE("ULT"),
-    UNAVAILABLE_NO_PRISONER_CONTACT("UNP"),
-    INACTIVE("INA");
+    ACTIVE("ACT", "Active"),
+    UNAVAILABLE_ANNUAL_LEAVE("UAL", "Unavailable - annual leave"),
+    UNAVAILABLE_LONG_TERM_ABSENCE("ULT", "Unavailable - long term absence"),
+    UNAVAILABLE_NO_PRISONER_CONTACT("UNP", "Unavailable - no prisoner contact"),
+    INACTIVE("INA", "Inactive");
 
     private final String statusCode;
+    private final String description;
 
-    KeyworkerStatus(final String statusCode) {
+    KeyworkerStatus(final String statusCode, final String description) {
         this.statusCode = statusCode;
+        this.description = description;
     }
 
     public String getStatusCode() {
         return statusCode;
     }
+
+    public String getDescription() { return description; }
 
     @Override
     public String toString() {

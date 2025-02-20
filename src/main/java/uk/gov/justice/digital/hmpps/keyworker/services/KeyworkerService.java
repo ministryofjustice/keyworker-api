@@ -76,7 +76,6 @@ public class KeyworkerService {
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
     private final ComplexityOfNeed complexityOfNeedService;
-    private final TelemetryClient telemetryClient;
 
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {
 
