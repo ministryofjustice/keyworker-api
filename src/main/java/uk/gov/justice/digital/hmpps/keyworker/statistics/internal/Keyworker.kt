@@ -5,7 +5,9 @@ import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.type.YesNoConverter
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatusConvertor
 
@@ -16,15 +18,40 @@ class Keyworker(
   @Convert(converter = KeyworkerStatusConvertor::class)
   val status: KeyworkerStatus,
   val capacity: Int,
+  @Column(name = "auto_allocation_flag")
+  @Convert(converter = YesNoConverter::class)
+  val autoAllocation: Boolean,
   @Id @Column(name = "staff_id")
   val staffId: Long,
 )
 
 interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
-  fun countAllByStaffIdInAndStatus(
+  fun findAllByStaffIdInAndStatusIn(
     staffIds: Set<Long>,
-    status: KeyworkerStatus,
-  ): Int
+    status: Set<KeyworkerStatus>,
+  ): List<Keyworker>
+
+  @Query(
+    """
+        with counts as (select kwa.staffId as id, count(kwa) as count
+                        from KeyworkerAllocation kwa
+                        where kwa.active = true and kwa.allocationType <> 'P'
+                        and kwa.staffId in :staffIds
+                        group by kwa.staffId
+        )
+        select ac.id as staffId, ac.count as allocationCount, kw as keyworker from counts ac
+        full outer join Keyworker kw on ac.id = kw.staffId
+        where kw.staffId in :staffIds
+        """,
+  )
+  fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
 }
 
-fun KeyworkerRepository.countActiveKeyworkers(staffIds: Set<Long>) = countAllByStaffIdInAndStatus(staffIds, KeyworkerStatus.ACTIVE)
+fun KeyworkerRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
+  findAllByStaffIdInAndStatusIn(staffIds, KeyworkerStatus.entries.filter { it != KeyworkerStatus.ACTIVE }.toSet())
+
+interface KeyworkerWithAllocationCount {
+  val staffId: Long
+  val keyworker: Keyworker?
+  val allocationCount: Int?
+}

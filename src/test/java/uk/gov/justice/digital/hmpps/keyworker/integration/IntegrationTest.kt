@@ -335,9 +335,10 @@ abstract class IntegrationTest {
     status: KeyworkerStatus,
     staffId: Long = newId(),
     capacity: Int = 6,
-  ) = Keyworker(status, capacity, staffId)
+    autoAllocation: Boolean = true,
+  ) = Keyworker(status, capacity, autoAllocation, staffId)
 
-  protected fun givenKeyworker(keyworker: Keyworker) = keyworkerRepository.save(keyworker)
+  protected fun givenKeyworker(keyworker: Keyworker): Keyworker = keyworkerRepository.save(keyworker)
 
   protected fun keyworkerAllocation(
     personIdentifier: String,
@@ -365,5 +366,6 @@ abstract class IntegrationTest {
     id,
   )
 
-  protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation) = keyworkerAllocationRepository.save(allocation)
+  protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation): KeyworkerAllocation =
+    keyworkerAllocationRepository.save(allocation)
 }
