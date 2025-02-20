@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><database name="keyworker-api-db" schema="public" type="PostgreSQL - 16.7 (Debian 16.7-1.pgdg120+1)">
+   <sequences>
+      <sequence increment="1" name="batch_history_batch_id_seq" startValue="1"/>
+      <sequence increment="1" name="keyworker_stats_keyworker_stats_id_seq" startValue="1"/>
+      <sequence increment="1" name="offender_key_worker_offender_keyworker_id_seq" startValue="1"/>
+   </sequences>
+   <tables>
+      <table name="batch_history" remarks="Records the results of batch runs" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('batch_history_batch_id_seq'::regclass)" digits="0" id="0" name="batch_id" nullable="false" remarks="Primary key ID" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="name" nullable="false" remarks="Name of batch process" size="40" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="last_run" nullable="false" remarks="Timestamp of when last run successfully" size="29" type="timestamp" typeCode="93"/>
+         <primaryKey column="batch_id" sequenceNumberInPK="1"/>
+         <index name="batch_history_pk" unique="true">
+            <column ascending="true" name="batch_id"/>
+         </index>
+      </table>
+      <table name="key_worker" remarks="Stores Key worker basic details, including status and capacity." schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="staff_id" nullable="false" remarks="The unique staff identifier for Key worker in core OMS" size="19" type="int8" typeCode="-5">
+            <child column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="offender_key_worker"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="status" nullable="false" remarks="Current status of Key worker" size="12" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="capacity" nullable="false" remarks="Standard number of offenders that can be allocated to Key worker" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="'Y'::bpchar" digits="0" id="3" name="auto_allocation_flag" nullable="false" remarks="Y - include in auto allocation pool, N - exclude from auto allocation pool" size="1" type="bpchar" typeCode="1"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="active_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
+         <primaryKey column="staff_id" sequenceNumberInPK="1"/>
+         <index name="key_worker_pk" unique="true">
+            <column ascending="true" name="staff_id"/>
+         </index>
+      </table>
+      <table name="keyworker_stats" remarks="Records the results of each statistic snapshot" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('keyworker_stats_keyworker_stats_id_seq'::regclass)" digits="0" id="0" name="keyworker_stats_id" nullable="false" remarks="Primary key ID" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_id" nullable="false" remarks="Prison ID" size="6" type="varchar" typeCode="12">
+            <parent column="prison_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_supported"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="snapshot_date" nullable="false" remarks="Timestamp of date for which stats apply" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="num_prisoners_assigned_kw" nullable="false" remarks="Number of prisoner who have been assigned a Key worker" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="total_num_prisoners" nullable="false" remarks="Total number of prisoners in the prison on this date" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="num_kw_sessions" nullable="true" remarks="Number of Key worker case note sessions" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="num_kw_entries" nullable="true" remarks="Number of Key worker case note entries" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="num_active_keyworkers" nullable="true" remarks="Number of active keyworkers" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="recpt_to_alloc_days" nullable="true" remarks="Number of days (avg) between reception and allocation of a keyworker" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="recpt_to_kw_session_days" nullable="true" remarks="Number of days (avg) between reception and first Key worker session" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="total_num_eligible_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="keyworker_stats_id" sequenceNumberInPK="1"/>
+         <index name="keyworker_stats_pk" unique="true">
+            <column ascending="true" name="keyworker_stats_id"/>
+         </index>
+         <index name="keyworker_stats_idx1" unique="true">
+            <column ascending="true" name="prison_id"/>
+            <column ascending="true" name="snapshot_date"/>
+         </index>
+         <index name="keyworker_stats_idx2" unique="false">
+            <column ascending="true" name="snapshot_date"/>
+         </index>
+      </table>
+      <table name="offender_key_worker" remarks="Records the Key Worker assignment history of offenders on remand or serving custodial sentences held within an establishment." schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('offender_key_worker_offender_keyworker_id_seq'::regclass)" digits="0" id="0" name="offender_keyworker_id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="offender_no" nullable="false" remarks="The Related Offender No" size="10" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="staff_id" nullable="false" remarks="The Related Key Worker Staff Id" size="19" type="int8" typeCode="-5">
+            <parent column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="key_worker"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="3" name="assigned_date_time" nullable="false" remarks="Assigned Date and Time" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="active_flag" nullable="false" remarks="Assignment Active Flag" size="1" type="bpchar" typeCode="1"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="alloc_reason" nullable="false" remarks="Reason for allocation" size="12" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="alloc_type" nullable="false" remarks="Type of allocation, M for manual, A for auto, P for provisional" size="1" type="bpchar" typeCode="1"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="user_id" nullable="false" remarks="Assigned by User Id" size="32" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="prison_id" nullable="false" remarks="Prison Id" size="6" type="varchar" typeCode="12">
+            <parent column="prison_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_supported"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="9" name="expiry_date_time" nullable="true" remarks="Expiry Date and Time of Assignment" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="dealloc_reason" nullable="true" remarks="Reason for de-allocation" size="40" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="11" name="create_datetime" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="create_user_id" nullable="false" remarks="" size="32" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="13" name="modify_datetime" nullable="true" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="14" name="modify_user_id" nullable="true" remarks="" size="32" type="varchar" typeCode="12"/>
+         <primaryKey column="offender_keyworker_id" sequenceNumberInPK="1"/>
+         <index name="offender_key_worker_pk" unique="true">
+            <column ascending="true" name="offender_keyworker_id"/>
+         </index>
+         <index name="offender_key_worker_ai_idx" unique="false">
+            <column ascending="true" name="prison_id"/>
+         </index>
+         <index name="offender_key_worker_on_idx" unique="false">
+            <column ascending="true" name="offender_no"/>
+         </index>
+         <index name="offender_key_worker_si_idx" unique="false">
+            <column ascending="true" name="staff_id"/>
+         </index>
+         <index name="offender_keyworker_unique" unique="true">
+            <column ascending="true" name="offender_no"/>
+            <column ascending="true" name="staff_id"/>
+            <column ascending="true" name="assigned_date_time"/>
+         </index>
+         <checkConstraint constraint="((alloc_type = ANY (ARRAY['A'::bpchar, 'M'::bpchar, 'P'::bpchar])))" name="offender_key_worker_c1"/>
+      </table>
+      <table name="prison_statistic" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="date" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="total_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="eligible_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="assigned_keyworker" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="active_keyworkers" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="keyworker_sessions" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="keyworker_entries" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="average_reception_to_allocation_days" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="average_reception_to_session_days" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="prison_statistic_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_prison_code_date" unique="true">
+            <column ascending="true" name="prison_code"/>
+            <column ascending="true" name="date"/>
+         </index>
+      </table>
+      <table name="prison_supported" remarks="Records the prisons have can be supported by this service and which have been migrated" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_id" nullable="false" remarks="Prison ID (NOMIS column is Agency ID)" size="6" type="varchar" typeCode="12">
+            <child column="prison_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_stats"/>
+            <child column="prison_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="offender_key_worker"/>
+         </column>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="1" name="auto_allocate" nullable="false" remarks="Indicates that the prisons supports auto allocation" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="2" name="migrated" nullable="false" remarks="Indicates if the prison keyworker data has been migrated" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="3" name="migrated_date_time" nullable="true" remarks="Migrated Date and Time" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="capacity_tier_1" nullable="false" remarks="Default capacity for keyworkers at this prison" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="capacity_tier_2" nullable="true" remarks="Default extended capacity for keyworkers at this prison" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="kw_session_freq_weeks" nullable="false" remarks="Key worker session frequency for the prison" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="7" name="has_prisoners_with_high_complexity_needs" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <primaryKey column="prison_id" sequenceNumberInPK="1"/>
+         <index name="prison_pk" unique="true">
+            <column ascending="true" name="prison_id"/>
+         </index>
+      </table>
+   </tables>
+</database>
