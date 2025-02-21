@@ -28,4 +28,10 @@ interface PrisonStatisticRepository : JpaRepository<PrisonStatistic, UUID> {
     prisonCode: String,
     date: LocalDate,
   ): PrisonStatistic?
+
+  fun findAllByPrisonCodeAndDateBetween(
+    prisonCode: String,
+    from: LocalDate,
+    to: LocalDate,
+  ): List<PrisonStatistic>
 }
