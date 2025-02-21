@@ -143,6 +143,6 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     }
 
   companion object {
-    const val SEARCH_URL = "/search/prisons/{prisonCode}/key-workers"
+    const val SEARCH_URL = "/search/prisons/{prisonCode}/keyworkers"
   }
 }
