@@ -27,7 +27,7 @@ import kotlin.collections.toList
 import kotlin.jvm.java
 import kotlin.text.trimMargin
 
-const val ALLOCATE_KEY_WORKERS = "Allocation Keyworkers"
+const val ALLOCATE_KEY_WORKERS = "Allocate Keyworkers"
 
 @Configuration
 class OpenApiConfiguration(
