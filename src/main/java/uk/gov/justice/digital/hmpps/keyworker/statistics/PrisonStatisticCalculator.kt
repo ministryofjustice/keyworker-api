@@ -4,6 +4,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
+import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -18,7 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepos
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.countActiveKeyworkers
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.getNonActiveKeyworkers
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS
@@ -56,7 +57,9 @@ class PrisonStatisticCalculator(
 
       val prisonersWithComplexNeeds =
         if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {
-          complexityOfNeed.getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
+          complexityOfNeed
+            .getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
+            .filter { it.level == HIGH }
         } else {
           emptyList()
         }
@@ -102,7 +105,15 @@ class PrisonStatisticCalculator(
             activeStaffKeyWorkersPagingAndSorting(),
             true,
           )?.body
-          ?.let { keyworkerRepository.countActiveKeyworkers(it.map { it.staffId }.toSet()) } ?: 0
+          ?.let {
+            val keyworkerIds = it.map { it.staffId }.toSet()
+            val nonActiveIds =
+              keyworkerRepository
+                .getNonActiveKeyworkers(keyworkerIds)
+                .map { it.staffId }
+                .toSet()
+            (keyworkerIds - nonActiveIds).size
+          } ?: 0
 
       val summaries =
         PeopleSummaries(

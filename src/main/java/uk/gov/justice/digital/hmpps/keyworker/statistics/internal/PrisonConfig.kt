@@ -27,7 +27,11 @@ class PrisonConfig(
   val kwSessionFrequencyInWeeks: Int,
   @Column(name = "has_prisoners_with_high_complexity_needs")
   val hasPrisonersWithHighComplexityNeeds: Boolean,
-)
+) {
+  companion object {
+    fun default(code: String) = PrisonConfig(code, true, LocalDateTime.now(), true, 6, 9, 1, false)
+  }
+}
 
 interface PrisonConfigRepository : JpaRepository<PrisonConfig, String> {
   fun findAllByMigratedIsTrue(): List<PrisonConfig>

@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAlloc
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
@@ -53,6 +54,7 @@ import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.publish
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -305,6 +307,32 @@ abstract class IntegrationTest {
 
   internal fun givenPrisonConfig(prisonConfig: PrisonConfig) = prisonConfigRepository.save(prisonConfig)
 
+  internal fun prisonStat(
+    prisonCode: String,
+    date: LocalDate,
+    totalPrisoners: Int,
+    eligiblePrisoners: Int,
+    assignedKeyworker: Int,
+    activeKeyworkers: Int,
+    keyworkerSessions: Int,
+    keyworkerEntries: Int,
+    averageReceptionToAllocationDays: Int?,
+    averageReceptionToSessionDays: Int?,
+  ) = PrisonStatistic(
+    prisonCode,
+    date,
+    totalPrisoners,
+    eligiblePrisoners,
+    assignedKeyworker,
+    activeKeyworkers,
+    keyworkerSessions,
+    keyworkerEntries,
+    averageReceptionToAllocationDays,
+    averageReceptionToSessionDays,
+  )
+
+  fun givenPrisonStatistic(prisonStatistic: PrisonStatistic) = prisonStatisticRepository.save(prisonStatistic)
+
   internal fun givenOffenderKeyWorker(
     prisonNumber: String = prisonNumber(),
     staffId: Long = newId(),
@@ -335,9 +363,10 @@ abstract class IntegrationTest {
     status: KeyworkerStatus,
     staffId: Long = newId(),
     capacity: Int = 6,
-  ) = Keyworker(status, capacity, staffId)
+    autoAllocation: Boolean = true,
+  ) = Keyworker(status, capacity, autoAllocation, staffId)
 
-  protected fun givenKeyworker(keyworker: Keyworker) = keyworkerRepository.save(keyworker)
+  protected fun givenKeyworker(keyworker: Keyworker): Keyworker = keyworkerRepository.save(keyworker)
 
   protected fun keyworkerAllocation(
     personIdentifier: String,
@@ -365,5 +394,6 @@ abstract class IntegrationTest {
     id,
   )
 
-  protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation) = keyworkerAllocationRepository.save(allocation)
+  protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation): KeyworkerAllocation =
+    keyworkerAllocationRepository.save(allocation)
 }

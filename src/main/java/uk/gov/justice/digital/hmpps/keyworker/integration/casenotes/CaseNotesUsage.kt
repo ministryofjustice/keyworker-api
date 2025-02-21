@@ -53,7 +53,17 @@ data class UsageByAuthorIdRequest(
   val typeSubTypes: Set<TypeSubTypeRequest>,
   val occurredFrom: LocalDateTime? = null,
   val occurredTo: LocalDateTime? = null,
-)
+) {
+  companion object {
+    fun forLastMonth(authorIds: Set<String>) =
+      UsageByAuthorIdRequest(
+        authorIds,
+        setOf(TypeSubTypeRequest(KW_TYPE, setOf(SESSION_SUBTYPE))),
+        LocalDate.now().atStartOfDay().minusMonths(1),
+        LocalDate.now().atStartOfDay(),
+      )
+  }
+}
 
 data class UsageByAuthorIdResponse(
   val authorId: String,
