@@ -66,6 +66,9 @@ spring:
         - "local"
         - "localstack"
 
+springdoc:
+  paths-to-exclude: "/queue-admin/**"
+
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
 client:
   id: omicadmin

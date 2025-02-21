@@ -7,12 +7,13 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
 import java.time.LocalDate
 
-@Tag(name = "Allocate Keyworkers")
+@Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
 @RequestMapping(value = ["/prisons/{prisonCode}/keyworker"])
 class PrisonController(
