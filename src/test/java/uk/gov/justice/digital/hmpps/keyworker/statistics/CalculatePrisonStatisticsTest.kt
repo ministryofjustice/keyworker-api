@@ -231,7 +231,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   private fun Set<String>.withComplexNeeds() =
     mapIndexedNotNull { index, pi ->
       if (index % 5 == 0) {
-        ComplexOffender(pi, ComplexityOfNeedLevel.MEDIUM)
+        ComplexOffender(pi, ComplexityOfNeedLevel.HIGH)
       } else {
         null
       }
