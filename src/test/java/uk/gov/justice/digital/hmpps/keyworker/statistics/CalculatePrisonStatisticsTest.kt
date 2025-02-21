@@ -91,7 +91,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.keyworkerSessions).isEqualTo(40)
     assertThat(stats.keyworkerEntries).isEqualTo(9)
 
-    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(30)
+    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(22)
     assertThat(stats.averageReceptionToSessionDays).isEqualTo(24)
   }
 
@@ -164,7 +164,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.keyworkerSessions).isEqualTo(32)
     assertThat(stats.keyworkerEntries).isEqualTo(7)
 
-    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(28)
+    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(19)
     assertThat(stats.averageReceptionToSessionDays).isEqualTo(25)
   }
 
@@ -231,7 +231,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   private fun Set<String>.withComplexNeeds() =
     mapIndexedNotNull { index, pi ->
       if (index % 5 == 0) {
-        ComplexOffender(pi, ComplexityOfNeedLevel.MEDIUM)
+        ComplexOffender(pi, ComplexityOfNeedLevel.HIGH)
       } else {
         null
       }

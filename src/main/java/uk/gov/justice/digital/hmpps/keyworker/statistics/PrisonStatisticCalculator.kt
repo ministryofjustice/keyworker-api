@@ -4,6 +4,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
+import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -56,7 +57,9 @@ class PrisonStatisticCalculator(
 
       val prisonersWithComplexNeeds =
         if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {
-          complexityOfNeed.getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
+          complexityOfNeed
+            .getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
+            .filter { it.level == HIGH }
         } else {
           emptyList()
         }
