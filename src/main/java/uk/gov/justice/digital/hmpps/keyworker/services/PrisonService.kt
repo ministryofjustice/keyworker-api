@@ -59,7 +59,8 @@ class PrisonService(
             with(it.value) {
               percentage(
                 totalSessions(),
-                projectedSessions(averageEligiblePrisoners(), start(), end(), prisonConfig.kwSessionFrequencyInWeeks) ?: 0,
+                projectedSessions(averageEligiblePrisoners(), start(), end(), prisonConfig.kwSessionFrequencyInWeeks)
+                  ?: 0,
               )
             },
           )
@@ -97,30 +98,30 @@ private fun PrisonConfig?.keyworkerStatus(): PrisonKeyworkerConfiguration =
     )
   } ?: NOT_CONFIGURED
 
-private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary =
-  let {
-    val from = start()
-    val to = end()
-    val eligible = averageEligiblePrisoners()
-    val assignedKeyworker = map { it.assignedKeyworker }.average().toInt()
-    val sessions = totalSessions()
-    val projectedSessions = projectedSessions(eligible, from, to, sessionFrequency)
-    StatSummary(
-      from,
-      to,
-      map { it.totalPrisoners }.average().toInt(),
-      eligible,
-      assignedKeyworker,
-      map { it.activeKeyworkers }.average().toInt(),
-      sessions,
-      sumOf { it.keyworkerEntries },
-      mapNotNull { it.averageReceptionToAllocationDays }.average().toInt(),
-      mapNotNull { it.averageReceptionToSessionDays }.average().toInt(),
-      projectedSessions,
-      percentage(assignedKeyworker, eligible),
-      percentage(sessions, projectedSessions ?: 0),
-    )
-  }
+private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
+  if (isEmpty()) return null
+  val from = start()
+  val to = end()
+  val eligible = averageEligiblePrisoners()
+  val assignedKeyworker = map { it.assignedKeyworker }.average().toInt()
+  val sessions = totalSessions()
+  val projectedSessions = projectedSessions(eligible, from, to, sessionFrequency)
+  return StatSummary(
+    from,
+    to,
+    map { it.totalPrisoners }.average().toInt(),
+    eligible,
+    assignedKeyworker,
+    map { it.activeKeyworkers }.average().toInt(),
+    sessions,
+    sumOf { it.keyworkerEntries },
+    mapNotNull { it.averageReceptionToAllocationDays }.average().toInt(),
+    mapNotNull { it.averageReceptionToSessionDays }.average().toInt(),
+    projectedSessions,
+    percentage(assignedKeyworker, eligible),
+    percentage(sessions, projectedSessions ?: 0),
+  )
+}
 
 private fun List<PrisonStatistic>.start() = minOf { it.date }
 

@@ -70,7 +70,6 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
                      from offender_key_worker ka
                      where ka.prison_id = :prisonCode
                        and ka.assigned_date_time between :from and :to
-                       and ka.alloc_type <> 'P'
     )
     select na.id, na.personIdentifier, na.assignedAt
     from allocations na
