@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
@@ -142,8 +141,6 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
         .lastName("Last Name $it")
         .build()
     }
-
-  private fun KeyworkerSearchResponse.getById(id: Long): KeyworkerSummary? = content.find { it.staffId == id }
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/key-workers"

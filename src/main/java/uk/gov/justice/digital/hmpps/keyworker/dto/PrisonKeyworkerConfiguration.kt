@@ -5,7 +5,7 @@ data class PrisonKeyworkerConfiguration(
   val hasPrisonersWithHighComplexityNeeds: Boolean,
   val allowAutoAllocate: Boolean,
   val capacityTier1: Int,
-  val capacityTier2: Int,
+  val capacityTier2: Int?,
   val kwSessionFrequencyInWeeks: Int,
 ) {
   companion object {
