@@ -100,6 +100,18 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     prisonCode: String,
     personIdentifiers: Set<String>,
   ): Int
+
+  @Query(
+    """
+      select kwa from KeyworkerAllocation kwa
+      where kwa.staffId = :staffId and kwa.prisonCode = :prisonCode
+      and kwa.active = true and kwa.allocationType <> 'P'
+    """,
+  )
+  fun findActiveForPrisonStaff(
+    prisonCode: String,
+    staffId: Long,
+  ): List<KeyworkerAllocation>
 }
 
 interface NewAllocation {

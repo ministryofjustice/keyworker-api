@@ -171,7 +171,7 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubKeyworkerDetails(
     staffId: Long,
-    staffSummary: StaffSummary,
+    staffSummary: StaffSummary = StaffSummary(staffId, "First", "Last"),
   ) {
     stubFor(
       WireMock

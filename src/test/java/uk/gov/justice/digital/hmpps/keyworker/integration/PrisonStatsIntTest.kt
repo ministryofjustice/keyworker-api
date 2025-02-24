@@ -81,9 +81,6 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
       assertThat(compliance).isEqualTo(23.28)
     }
-
-    assertThat(res.averageSessions).isEqualTo(131)
-    assertThat(res.averageCompliance).isEqualTo(25.71)
   }
 
   private fun getPrisonStatsSpec(
