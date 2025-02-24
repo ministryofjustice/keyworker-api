@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +29,10 @@ public enum KeyworkerStatus {
     @Override
     public String toString() {
         return statusCode;
+    }
+
+    public CodedDescription codedDescription() {
+        return new CodedDescription(statusCode, description);
     }
 
     // Reverse lookup

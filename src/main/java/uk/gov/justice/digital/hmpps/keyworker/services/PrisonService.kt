@@ -25,7 +25,7 @@ class PrisonService(
   private val prisonConfig: PrisonConfigRepository,
   private val statistics: PrisonStatisticRepository,
 ) {
-  fun getPrisonKeyworkerStatus(prisonCode: String) = prisonConfig.findByIdOrNull(prisonCode).keyworkerStatus()
+  fun getPrisonKeyworkerConfig(prisonCode: String) = prisonConfig.findByIdOrNull(prisonCode).prisonConfig()
 
   fun getPrisonStats(
     prisonCode: String,
@@ -86,7 +86,7 @@ class PrisonService(
   }
 }
 
-private fun PrisonConfig?.keyworkerStatus(): PrisonKeyworkerConfiguration =
+private fun PrisonConfig?.prisonConfig(): PrisonKeyworkerConfiguration =
   this?.let {
     PrisonKeyworkerConfiguration(
       it.migrated,

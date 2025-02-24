@@ -276,16 +276,16 @@ abstract class IntegrationTest {
     )
   }
 
-  internal fun getWiremockResponse(
+  protected fun getWiremockResponse(
     prisonId: String,
     fileName: String,
   ) = "/wiremock-stub-responses/$prisonId/$fileName.json".readFile()
 
-  internal fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
+  protected fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
 
-  internal fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
+  protected fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
 
-  internal fun prisonConfig(
+  protected fun prisonConfig(
     code: String,
     migrated: Boolean = false,
     migratedDateTime: LocalDateTime? = null,
@@ -305,9 +305,9 @@ abstract class IntegrationTest {
     hasPrisonersWithHighComplexityNeeds,
   )
 
-  internal fun givenPrisonConfig(prisonConfig: PrisonConfig) = prisonConfigRepository.save(prisonConfig)
+  protected fun givenPrisonConfig(prisonConfig: PrisonConfig): PrisonConfig = prisonConfigRepository.save(prisonConfig)
 
-  internal fun prisonStat(
+  protected fun prisonStat(
     prisonCode: String,
     date: LocalDate,
     totalPrisoners: Int,
@@ -331,9 +331,7 @@ abstract class IntegrationTest {
     averageReceptionToSessionDays,
   )
 
-  fun givenPrisonStatistic(prisonStatistic: PrisonStatistic) = prisonStatisticRepository.save(prisonStatistic)
-
-  internal fun givenOffenderKeyWorker(
+  protected fun givenOffenderKeyWorker(
     prisonNumber: String = prisonNumber(),
     staffId: Long = newId(),
     assignedAt: LocalDateTime = LocalDateTime.now(),

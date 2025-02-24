@@ -26,11 +26,6 @@ class Keyworker(
 )
 
 interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
-  fun findAllByStaffIdInAndStatusIn(
-    staffIds: Set<Long>,
-    status: Set<KeyworkerStatus>,
-  ): List<Keyworker>
-
   @Query(
     """
         with counts as (select kwa.staffId as id, count(kwa) as count
@@ -46,9 +41,6 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
   )
   fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
 }
-
-fun KeyworkerRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
-  findAllByStaffIdInAndStatusIn(staffIds, KeyworkerStatus.entries.filter { it != KeyworkerStatus.ACTIVE }.toSet())
 
 interface KeyworkerWithAllocationCount {
   val staffId: Long

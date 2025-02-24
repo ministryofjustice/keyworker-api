@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSummary
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.forLastMonth
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerWithAllocationCount
@@ -69,7 +67,7 @@ class KeyworkerSearch(
         staffId,
         firstName,
         lastName,
-        kwa?.keyworker?.status?.codedDescription() ?: ACTIVE.codedDescription(),
+        (kwa?.keyworker?.status ?: ACTIVE).codedDescription(),
         kwa?.keyworker?.capacity ?: prisonConfig.capacityTier1,
         kwa?.allocationCount ?: 0,
         kwa?.keyworker?.autoAllocation ?: prisonConfig.autoAllocate,
@@ -79,6 +77,4 @@ class KeyworkerSearch(
       null
     }
   }
-
-  fun KeyworkerStatus.codedDescription(): CodedDescription = CodedDescription(statusCode, description)
 }

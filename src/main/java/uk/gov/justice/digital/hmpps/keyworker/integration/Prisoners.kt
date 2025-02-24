@@ -20,5 +20,10 @@ data class Prisoners(
 
 data class Prisoner(
   val prisonerNumber: String,
+  val firstName: String,
+  val lastName: String,
   val receptionDate: LocalDate,
+  val releaseDate: LocalDate?,
+  val prisonId: String,
+  val prisonName: String,
 )

@@ -40,6 +40,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     val keyworkers =
       (0..10).map { index -> givenKeyworker(keyworker(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
+    val additionalKeyworkers =
+      (0..5).map { index -> givenKeyworker(keyworker(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     val prisoners = prisoners()
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     prisoners.personIdentifiers().forEachIndexed { index, pi ->
@@ -86,7 +88,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(32)
-    assertThat(stats.activeKeyworkers).isEqualTo(keyworkers.filter { it.status == ACTIVE }.size)
+    assertThat(stats.activeKeyworkers).isEqualTo((keyworkers + additionalKeyworkers).filter { it.status == ACTIVE }.size)
 
     assertThat(stats.keyworkerSessions).isEqualTo(40)
     assertThat(stats.keyworkerEntries).isEqualTo(9)
@@ -168,7 +170,20 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.averageReceptionToSessionDays).isEqualTo(25)
   }
 
-  private fun prisoners(count: Int = 100) = Prisoners((0..count).map { index -> Prisoner(prisonNumber(), now().minusDays(index / 2 + 1L)) })
+  private fun prisoners(count: Int = 100) =
+    Prisoners(
+      (0..count).map { index ->
+        Prisoner(
+          prisonNumber(),
+          "First",
+          "Last",
+          now().minusDays(index / 2 + 1L),
+          now().plusDays(index * 2 + 2L),
+          "DEF",
+          "Default Prison",
+        )
+      },
+    )
 
   private fun noteUsageResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> =
     NoteUsageResponse(
