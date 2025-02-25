@@ -26,5 +26,5 @@ data class Prisoner(
   val releaseDate: LocalDate?,
   val prisonId: String,
   val prisonName: String,
-  val csra: String,
+  val csra: String?,
 )
