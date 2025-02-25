@@ -14,10 +14,12 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSumm
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.transferTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
@@ -66,6 +68,10 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     caseNotesMockServer.stubUsageByPersonIdentifier(
       sessionTypes(peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
       previousSessionsResponse(peopleWithSessions),
+    )
+    caseNotesMockServer.stubUsageByPersonIdentifier(
+      transferTypes(prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.minusDays(1)),
+      transferResponse(prisoners.personIdentifiers()),
     )
 
     webTestClient
@@ -140,6 +146,10 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       sessionTypes(peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
       previousSessionsResponse(peopleWithSessions),
     )
+    caseNotesMockServer.stubUsageByPersonIdentifier(
+      transferTypes(eligiblePrisoners, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      NoteUsageResponse(emptyMap()),
+    )
 
     webTestClient
       .post()
@@ -181,6 +191,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           now().plusDays(index * 2 + 2L),
           "DEF",
           "Default Prison",
+          "STANDARD",
         )
       },
     )
@@ -230,6 +241,27 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
                   SESSION_SUBTYPE,
                   3 * index / personIdentifiers.size,
                   LatestNote(LocalDateTime.now().minusDays(7)),
+                ),
+              )
+            }
+          }
+        }.flatten()
+        .groupBy { it.personIdentifier },
+    )
+
+  private fun transferResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> =
+    NoteUsageResponse(
+      personIdentifiers
+        .mapIndexed { index, pi ->
+          buildSet<UsageByPersonIdentifierResponse> {
+            if (index % 4 == 0) {
+              add(
+                UsageByPersonIdentifierResponse(
+                  pi,
+                  KW_TYPE,
+                  TRANSFER_SUBTYPE,
+                  1,
+                  LatestNote(LocalDateTime.now().minusDays(index / 2 + 1L)),
                 ),
               )
             }

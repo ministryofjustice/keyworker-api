@@ -4,4 +4,5 @@ data class StaffSummary(
   val staffId: Long,
   val firstName: String,
   val lastName: String,
+  val scheduleType: String,
 )

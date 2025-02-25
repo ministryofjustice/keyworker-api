@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_SUBTYPE
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -18,12 +19,14 @@ data class UsageByPersonIdentifierRequest(
       personIdentifiers: Set<String>,
       from: LocalDate,
       to: LocalDate = from.plusDays(1),
+      authorIds: Set<String> = setOf(),
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(KW_TYPE, setOf(ENTRY_SUBTYPE, SESSION_SUBTYPE))),
         occurredFrom = from.atStartOfDay(),
         occurredTo = to.atStartOfDay(),
+        authorIds = authorIds,
       )
 
     fun sessionTypes(
@@ -34,6 +37,18 @@ data class UsageByPersonIdentifierRequest(
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(KW_TYPE, setOf(SESSION_SUBTYPE))),
+        occurredFrom = from.atStartOfDay(),
+        occurredTo = to.atStartOfDay(),
+      )
+
+    fun transferTypes(
+      personIdentifiers: Set<String>,
+      from: LocalDate,
+      to: LocalDate,
+    ): UsageByPersonIdentifierRequest =
+      UsageByPersonIdentifierRequest(
+        personIdentifiers,
+        setOf(TypeSubTypeRequest(KW_TYPE, setOf(TRANSFER_SUBTYPE))),
         occurredFrom = from.atStartOfDay(),
         occurredTo = to.atStartOfDay(),
       )
@@ -107,6 +122,13 @@ data class CaseNoteSummary(
       ?.occurredAt
       ?.toLocalDate()
 
+  fun findTransferDate(personIdentifier: String): LocalDate? =
+    data[personIdentifier]
+      ?.find { it.subType == TRANSFER_SUBTYPE }
+      ?.latestNote
+      ?.occurredAt
+      ?.toLocalDate()
+
   fun personIdentifiersWithSessions() =
     data.values
       .flatten()
@@ -118,5 +140,6 @@ data class CaseNoteSummary(
     const val KW_TYPE = "KA"
     const val SESSION_SUBTYPE = "KS"
     const val ENTRY_SUBTYPE = "KE"
+    const val TRANSFER_SUBTYPE = "TRANSFER"
   }
 }

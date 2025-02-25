@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.Keyworker
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
 
@@ -95,7 +94,6 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    println(objectMapper.writeValueAsString(response))
     assertThat(response.content.map { it.status.code }.toSet()).containsOnly(ACTIVE.statusCode)
 
     assertThat(response.content[0].staffId).isEqualTo(staffIds[0])

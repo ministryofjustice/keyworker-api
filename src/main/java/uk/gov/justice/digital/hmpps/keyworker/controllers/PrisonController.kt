@@ -13,13 +13,15 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonStatsService
 import java.time.LocalDate
 
 @Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
-@RequestMapping(value = ["/prisons/{prisonCode}/keyworker", "/prisons/{prisonCode}/keyworkers"])
+@RequestMapping(value = ["/prisons/{prisonCode}/keyworkers", "/prisons/{prisonCode}/keyworker"])
 class PrisonController(
   private val prisonService: PrisonService,
+  private val statsService: PrisonStatsService,
   private val keyworkerDetails: GetKeyworkerDetails,
 ) {
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
@@ -34,7 +36,7 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
     @RequestParam to: LocalDate,
-  ): PrisonStats = prisonService.getPrisonStats(prisonCode, from, to)
+  ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to)
 
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping("/{staffId}")
