@@ -40,6 +40,15 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
         """,
   )
   fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
+
+  @Query(
+    """
+     select distinct k from Keyworker k
+     join KeyworkerAllocation ka on ka.active = true and ka.staffId = k.staffId
+     where ka.prisonCode = :prisonCode
+    """,
+  )
+  fun findAllKeyworkersForPrison(prisonCode: String): List<Keyworker>
 }
 
 interface KeyworkerWithAllocationCount {

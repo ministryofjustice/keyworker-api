@@ -52,7 +52,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           keyworkerAllocation(
             pi,
             prisonCode,
-            keyworkers.filter { it.status == ACTIVE }.random().staffId,
+            (keyworkers + additionalKeyworkers).filter { it.status == ACTIVE }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
             allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
           ),
@@ -94,7 +94,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(32)
-    assertThat(stats.activeKeyworkers).isEqualTo((keyworkers + additionalKeyworkers).filter { it.status == ACTIVE }.size)
+    assertThat(stats.activeKeyworkers).isEqualTo(14)
 
     assertThat(stats.keyworkerSessions).isEqualTo(40)
     assertThat(stats.keyworkerEntries).isEqualTo(9)
@@ -171,7 +171,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(25)
-    assertThat(stats.activeKeyworkers).isEqualTo(keyworkers.filter { it.status == ACTIVE }.size)
+    assertThat(stats.activeKeyworkers).isEqualTo(11)
 
     assertThat(stats.keyworkerSessions).isEqualTo(32)
     assertThat(stats.keyworkerEntries).isEqualTo(7)
