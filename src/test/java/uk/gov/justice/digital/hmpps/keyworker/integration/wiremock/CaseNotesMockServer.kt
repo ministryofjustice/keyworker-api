@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest

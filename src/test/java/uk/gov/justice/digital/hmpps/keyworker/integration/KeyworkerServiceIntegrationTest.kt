@@ -24,7 +24,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     migratedFoAutoAllocation(PRISON_ID)
     prisonMockServer.stubOffendersAtLocationForAutoAllocation(oFFENDERSATLOCATION)
     prisonMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, sTAFFLOCATIONROLELIST)
-    prisonMockServer.stubKeyworkerDetails(KEYWORKER_ID_1, StaffSummary(KEYWORKER_ID_1, "John", "Smith"))
+    prisonMockServer.stubKeyworkerDetails(KEYWORKER_ID_1, StaffSummary(KEYWORKER_ID_1, "John", "Smith", "FT"))
   }
 
   @Test

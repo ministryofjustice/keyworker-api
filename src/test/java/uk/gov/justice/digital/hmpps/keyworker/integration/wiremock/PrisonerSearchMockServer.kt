@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
@@ -38,12 +39,13 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
           LocalDate.now().plusDays(90),
           "DEF",
           "Default Prison",
+          "STANDARD",
         )
       },
   ): StubMapping =
     stubFor(
       post(urlPathEqualTo("/prisoner-search/prisoner-numbers"))
-        //    .withRequestBody(equalToJson(objectMapper.writeValueAsString(prisonNumbers), true, true))
+        .withRequestBody(equalToJson(objectMapper.writeValueAsString(prisonNumbers), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

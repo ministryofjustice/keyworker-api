@@ -50,7 +50,6 @@ class PrisonStatsIntTest : IntegrationTest() {
         .returnResult()
         .responseBody
 
-    println(res)
     assertThat(res!!).isNotNull()
     with(res.current) {
       assertThat(this!!).isNotNull()

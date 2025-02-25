@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.transferTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
@@ -97,6 +98,12 @@ class PrisonStatisticCalculator(
           null
         }
 
+      val transferSummary =
+        caseNotesApi
+          .getUsageByPersonIdentifier(
+            transferTypes(eligiblePrisoners, date.minusMonths(6), date.minusDays(1)),
+          ).summary()
+
       val activeKeyworkers =
         nomisService
           .getActiveStaffKeyWorkersForPrison(
@@ -118,7 +125,23 @@ class PrisonStatisticCalculator(
       val summaries =
         PeopleSummaries(
           eligiblePrisoners,
-          { prisoners.findByPersonIdentifier(it)?.receptionDate },
+          {
+            val transferDate = transferSummary.findTransferDate(it)
+            val receptionDate = prisoners.findByPersonIdentifier(it)?.receptionDate
+            if (transferDate != receptionDate) {
+              telemetryClient.trackEvent(
+                "ReceptionDateNotMatched",
+                listOfNotNull(
+                  "personIdentifier" to it,
+                  "prisonCode" to prisonCode,
+                  receptionDate?.let { "receptionDate" to ISO_LOCAL_DATE.format(it) },
+                  transferDate?.let { "transferDate" to ISO_LOCAL_DATE.format(it) },
+                ).toMap(),
+                mapOf(),
+              )
+            }
+            receptionDate
+          },
           { newAllocations[it]?.assignedAt?.toLocalDate() },
           { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
         )

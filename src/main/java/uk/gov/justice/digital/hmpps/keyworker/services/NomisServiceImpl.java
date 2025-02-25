@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Agency;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
@@ -477,18 +478,6 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public CaseloadUpdate enableNewNomisForCaseload(final String caseload) {
-        final var uriVariables = uriVariablesOf("caseload", caseload);
-        return restCallHelper.put(
-            URI_ENABLE_USERS_WITH_CASELOAD,
-            queryParamsOf(),
-            uriVariables,
-            CaseloadUpdate.class,
-            true
-        );
-    }
-
-    @Override
     public List<PrisonerIdentifier> getIdentifierByTypeAndValue(final String type, final String value) {
         final var uriVariables = uriVariablesOf("type", type, "value", value);
         return restCallHelper.getEntity(URI_IDENTIFIERS, queryParamsOf(), uriVariables, PRISONER_ID_LIST, true)
@@ -496,33 +485,9 @@ public class NomisServiceImpl implements NomisService {
     }
 
     @Override
-    public List<BookingIdentifier> getIdentifiersByBookingId(final Long bookingId) {
-        final var uriVariables = uriVariablesOf("bookingId", String.valueOf(bookingId));
-        return restCallHelper.getEntity(
-            BOOKING_IDENTIFIERS,
-            queryParamsOf(),
-            uriVariables,
-            BOOKING_IDENTIFIER_LIST,
-            true
-        ).getBody();
-    }
-
-    @Override
-    public Optional<OffenderBooking> getBooking(final Long bookingId) {
-        final var uriVariables = uriVariablesOf("bookingId", String.valueOf(bookingId));
-        final var queryParams = queryParamsOf("basicInfo", "true");
-        final var booking = new AtomicReference<Optional<OffenderBooking>>();
-        try {
-            booking.set(Optional.ofNullable(restCallHelper.getObject(
-                BOOKING_DETAILS,
-                queryParams,
-                uriVariables,
-                OffenderBooking.class,
-                true
-            )));
-        } catch (final WebClientResponseException e) {
-            booking.set(Optional.empty());
-        }
-        return booking.get();
+    public Agency getAgency(String agencyId) {
+        final var queryParams = queryParamsOf("activeOnly", "false", "agencyType", "INST");
+        final var uriVariables = uriVariablesOf("agencyId", agencyId);
+       return restCallHelper.getObject(URI_GET_AGENCY, queryParams, uriVariables, Agency.class, true);
     }
 }

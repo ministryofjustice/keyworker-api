@@ -1,15 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import org.springframework.http.ResponseEntity;
+import uk.gov.justice.digital.hmpps.keyworker.dto.Agency;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderBooking;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
@@ -37,10 +35,7 @@ public interface NomisService {
     String URI_CURRENT_ALLOCATIONS_BY_OFFENDERS = "/key-worker/{agencyId}/current-allocations/offenders";
     String URI_OFFENDERS_ALLOCATION_HISTORY = "/key-worker/offenders/allocationHistory";
     String URI_GET_AGENCY = "/agencies/{agencyId}";
-    String URI_ENABLE_USERS_WITH_CASELOAD = "/users/add/default/{caseload}";
     String URI_IDENTIFIERS = "/identifiers/{type}/{value}";
-    String BOOKING_DETAILS = "/bookings/{bookingId}";
-    String BOOKING_IDENTIFIERS = "/bookings/{bookingId}/identifiers";
     String GET_KEY_WORKER = "/bookings/offenderNo/{offenderNo}/key-worker";
 
     Optional<OffenderLocationDto> getOffenderForPrison(String prisonId, String offenderNo);
@@ -79,11 +74,7 @@ public interface NomisService {
 
     boolean isPrison(String prisonId);
 
-    CaseloadUpdate enableNewNomisForCaseload(String caseload);
-
     List<PrisonerIdentifier> getIdentifierByTypeAndValue(String type, String value);
 
-    List<BookingIdentifier> getIdentifiersByBookingId(Long bookingId);
-
-    Optional<OffenderBooking> getBooking(Long bookingId);
+    Agency getAgency(String agencyId);
 }
