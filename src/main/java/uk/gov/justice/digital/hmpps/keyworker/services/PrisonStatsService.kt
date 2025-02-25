@@ -63,16 +63,13 @@ class PrisonStatsService(
         }.sortedBy { it.date }
 
     val averageCompliance =
-      if (complianceTimeline.isEmpty()) {
-        null
-      } else {
-        complianceTimeline
-          .mapNotNull { it.value }
-          .average()
-          .toBigDecimal()
-          .setScale(2, HALF_EVEN)
-          .toDouble()
-      }
+      complianceTimeline
+        .mapNotNull { it.value }
+        .average()
+        .takeIf { !it.isNaN() }
+        ?.toBigDecimal()
+        ?.setScale(2, HALF_EVEN)
+        ?.toDouble()
 
     return PrisonStats(
       prisonCode,
