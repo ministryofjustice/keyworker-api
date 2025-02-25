@@ -30,7 +30,7 @@ data class Prisoner(
   val prisonNumber: String,
   val firstName: String,
   val lastName: String,
-  val csra: String,
+  val csra: String?,
 )
 
 data class LatestKeyworkerSession(
