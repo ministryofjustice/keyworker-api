@@ -115,7 +115,7 @@ class PrisonStatisticCalculator(
           ?.let { nomisKeyworkers ->
             val dpsKeyworkers =
               keyworkerRepository
-                .findAllKeyworkersForPrison(prisonCode)
+                .findAllByStaffIdIn(nomisKeyworkers.map { it.staffId }.toSet())
                 .associate { it.staffId to it.status }
                 .toMutableMap()
             nomisKeyworkers.forEach { dpsKeyworkers.putIfAbsent(it.staffId, KeyworkerStatus.ACTIVE) }

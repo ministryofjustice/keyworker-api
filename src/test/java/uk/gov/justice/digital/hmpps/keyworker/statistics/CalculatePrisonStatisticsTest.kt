@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSumm
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
@@ -94,7 +94,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(32)
-    assertThat(stats.activeKeyworkers).isEqualTo(14)
+    assertThat(stats.activeKeyworkers).isEqualTo(6)
 
     assertThat(stats.keyworkerSessions).isEqualTo(40)
     assertThat(stats.keyworkerEntries).isEqualTo(9)
@@ -171,7 +171,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(25)
-    assertThat(stats.activeKeyworkers).isEqualTo(11)
+    assertThat(stats.activeKeyworkers).isEqualTo(6)
 
     assertThat(stats.keyworkerSessions).isEqualTo(32)
     assertThat(stats.keyworkerEntries).isEqualTo(7)
@@ -259,7 +259,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
-                  TRANSFER_SUBTYPE,
+                  TRANSFER_TYPE,
                   1,
                   LatestNote(LocalDateTime.now().minusDays(index / 2 + 1L)),
                 ),

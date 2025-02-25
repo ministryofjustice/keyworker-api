@@ -9,7 +9,7 @@ data class PrisonStats(
   val sessionTimeline: List<WeeklyStatInt>,
   val averageSessions: Int,
   val complianceTimeline: List<WeeklyStatDbl>,
-  val averageCompliance: Double,
+  val averageCompliance: Double?,
 )
 
 data class StatSummary(
