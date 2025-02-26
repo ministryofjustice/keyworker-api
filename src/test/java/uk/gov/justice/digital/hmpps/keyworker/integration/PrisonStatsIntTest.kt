@@ -34,8 +34,8 @@ class PrisonStatsIntTest : IntegrationTest() {
           it % 10 + 80,
           it % 10 + 75,
           it % 10 + 1,
-          (it % 10 + 5) * 2,
-          (it % 10 + 3) * 2,
+          (it % 10 + 1) * 2,
+          (it % 10) * 2,
           if (it % 9 == 0) null else it % 10,
           if (it % 7 == 0) null else it % 20,
         )
@@ -57,13 +57,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(84)
       assertThat(prisonersAssignedKeyworker).isEqualTo(79)
       assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(582)
-      assertThat(keyworkerEntries).isEqualTo(458)
+      assertThat(keyworkerSessions).isEqualTo(334)
+      assertThat(keyworkerEntries).isEqualTo(272)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
       assertThat(avgReceptionToSessionDays).isEqualTo(8)
-      assertThat(projectedSessions).isEqualTo(2532)
+      assertThat(projectedSessions).isEqualTo(372)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(22.99)
+      assertThat(compliance).isEqualTo(89.78)
     }
 
     with(res.previous) {
@@ -72,13 +72,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(84)
       assertThat(prisonersAssignedKeyworker).isEqualTo(79)
       assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(570)
-      assertThat(keyworkerEntries).isEqualTo(450)
+      assertThat(keyworkerSessions).isEqualTo(330)
+      assertThat(keyworkerEntries).isEqualTo(270)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
       assertThat(avgReceptionToSessionDays).isEqualTo(10)
-      assertThat(projectedSessions).isEqualTo(2448)
+      assertThat(projectedSessions).isEqualTo(360)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(23.28)
+      assertThat(compliance).isEqualTo(91.67)
     }
   }
 

@@ -176,8 +176,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.keyworkerSessions).isEqualTo(32)
     assertThat(stats.keyworkerEntries).isEqualTo(7)
 
-    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(19)
-    assertThat(stats.averageReceptionToSessionDays).isEqualTo(25)
+    assertThat(stats.averageReceptionToAllocationDays).isNull()
+    assertThat(stats.averageReceptionToSessionDays).isNull()
   }
 
   private fun prisoners(count: Int = 100) =
@@ -254,12 +254,12 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       personIdentifiers
         .mapIndexed { index, pi ->
           buildSet<UsageByPersonIdentifierResponse> {
-            if (index % 4 == 0) {
+            if (index % 2 == 0) {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  KW_TYPE,
                   TRANSFER_TYPE,
+                  "NE1",
                   1,
                   LatestNote(LocalDateTime.now().minusDays(index / 2 + 1L)),
                 ),
