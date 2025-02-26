@@ -121,4 +121,4 @@ private fun List<PrisonStatistic>.projectedSessions(
   from: LocalDate,
   to: LocalDate,
   sessionFrequency: Int,
-) = if (eligible == 0) null else (eligible * (DAYS.between(from, to) + 1.0 / (sessionFrequency * 7.0))).roundToInt()
+) = if (eligible == 0) null else (eligible * ((DAYS.between(from, to) + 1.0) / (sessionFrequency * 7.0))).roundToInt()
