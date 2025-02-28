@@ -101,7 +101,7 @@ class PrisonStatisticCalculator(
       val transferSummary =
         caseNotesApi
           .getUsageByPersonIdentifier(
-            transferTypes(eligiblePrisoners, date.minusMonths(6), date.minusDays(1)),
+            transferTypes(eligiblePrisoners, date.minusMonths(6), date.plusDays(1)),
           ).summary()
 
       val activeKeyworkers =

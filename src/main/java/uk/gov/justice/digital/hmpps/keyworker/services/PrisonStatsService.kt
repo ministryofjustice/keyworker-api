@@ -55,16 +55,15 @@ class PrisonStatsService(
             with(it.value) {
               percentage(
                 totalSessions(),
-                projectedSessions(averageEligiblePrisoners(), start(), end(), prisonConfig.kwSessionFrequencyInWeeks)
-                  ?: 0,
-              )
+                projectedSessions(averageEligiblePrisoners(), start(), end(), prisonConfig.kwSessionFrequencyInWeeks),
+              ) ?: 0.00
             },
           )
         }.sortedBy { it.date }
 
     val averageCompliance =
       complianceTimeline
-        .mapNotNull { it.value }
+        .map { it.value }
         .average()
         .takeIf { !it.isNaN() }
         ?.toBigDecimal()
@@ -78,7 +77,7 @@ class PrisonStatsService(
       sessionTimeline,
       averageSessions,
       complianceTimeline,
-      averageCompliance,
+      averageCompliance ?: 0.0,
     )
   }
 }
@@ -104,7 +103,7 @@ private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
     mapNotNull { it.averageReceptionToSessionDays }.average().toInt(),
     projectedSessions,
     percentage(assignedKeyworker, eligible),
-    percentage(sessions, projectedSessions ?: 0),
+    percentage(sessions, projectedSessions) ?: 0.0,
   )
 }
 
@@ -121,4 +120,4 @@ private fun List<PrisonStatistic>.projectedSessions(
   from: LocalDate,
   to: LocalDate,
   sessionFrequency: Int,
-) = if (eligible == 0) null else (eligible * ((DAYS.between(from, to) + 1.0) / (sessionFrequency * 7.0))).roundToInt()
+) = if (eligible == 0) 0 else (eligible * ((DAYS.between(from, to) + 1.0) / (sessionFrequency * 7.0))).roundToInt()
