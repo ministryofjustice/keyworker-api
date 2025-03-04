@@ -16,7 +16,10 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEven
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.SessionInformation
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerSessionService
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
+import uk.gov.justice.digital.hmpps.keyworker.services.PersonSession
 import uk.gov.justice.digital.hmpps.keyworker.statistics.PrisonStatisticCalculator
 
 @Service
@@ -24,6 +27,7 @@ class DomainEventListener(
   private val complexityOfNeedEventProcessor: ComplexityOfNeedEventProcessor,
   private val mergePrisonNumbers: MergePrisonNumbers,
   private val prisonStats: PrisonStatisticCalculator,
+  private val sessions: KeyworkerSessionService,
   private val objectMapper: ObjectMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -44,7 +48,18 @@ class DomainEventListener(
         prisonStats.calculate(prisonStatsInfo)
       }
 
+      EventType.CaseNoteCreated -> sessions.new(getSessionInformation(notification))
+      EventType.CaseNoteUpdated -> sessions.update(getSessionInformation(notification))
+      EventType.CaseNoteDeleted -> sessions.delete(getSessionInformation(notification))
+      EventType.CaseNoteMoved -> sessions.move(getSessionInformation(notification))
+
       is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
     }
+  }
+
+  private fun getSessionInformation(notification: Notification<String>): PersonSession {
+    val message = objectMapper.readValue<HmppsDomainEvent<SessionInformation>>(notification.message)
+    val personIdentifier = checkNotNull(message.personReference.nomsNumber())
+    return PersonSession(personIdentifier, message.additionalInformation)
   }
 }

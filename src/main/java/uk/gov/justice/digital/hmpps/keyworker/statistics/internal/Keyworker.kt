@@ -34,7 +34,7 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
                         and kwa.staffId in :staffIds
                         group by kwa.staffId
         )
-        select ac.id as staffId, ac.count as allocationCount, kw as keyworker from counts ac
+        select coalesce(ac.id, kw.staffId) as staffId, ac.count as allocationCount, kw as keyworker from counts ac
         full outer join Keyworker kw on ac.id = kw.staffId
         where kw.staffId in :staffIds
         """,
