@@ -6,7 +6,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.SessionInformation
 
 @Service
-class KeyworkerSessionService(private val caseNoteApi: CaseNotesApiClient) {
+class KeyworkerSessionService(
+  private val caseNoteApi: CaseNotesApiClient,
+) {
   fun new(personSession: PersonSession) {
   }
 
@@ -23,4 +25,7 @@ class KeyworkerSessionService(private val caseNoteApi: CaseNotesApiClient) {
     caseNoteApi.getCaseNote(personSession.personIdentifier, personSession.sessionInfo.id)
 }
 
-data class PersonSession(val personIdentifier: String, val sessionInfo: SessionInformation)
+data class PersonSession(
+  val personIdentifier: String,
+  val sessionInfo: SessionInformation,
+)

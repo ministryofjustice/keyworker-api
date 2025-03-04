@@ -18,6 +18,7 @@ data class PersonReference(
   val identifiers: Set<Identifier> = setOf(),
 ) {
   operator fun get(key: String) = identifiers.find { it.type == key }?.value
+
   fun nomsNumber(): String? = get(NOMS_NUMBER_TYPE)
 
   companion object {

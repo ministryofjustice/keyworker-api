@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransientException
 import java.util.UUID
 
@@ -40,7 +39,10 @@ class CaseNotesApiClient(
       }.retryRequestOnTransientException()
       .block()!!
 
-  fun getCaseNote(personIdentifier: String, id: UUID): CaseNote =
+  fun getCaseNote(
+    personIdentifier: String,
+    id: UUID,
+  ): CaseNote =
     webClient
       .get()
       .uri("/case-notes/$personIdentifier/$id")
@@ -51,7 +53,8 @@ class CaseNotesApiClient(
         }
       }.retryRequestOnTransientException()
       .block()!!
-
 }
 
-data class CaseNote(val id: UUID)
+data class CaseNote(
+  val id: UUID,
+)
