@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.events
 
 import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.util.UUID
 
 data class HmppsDomainEvent<T : AdditionalInformation>(
   val eventType: String,
@@ -17,6 +18,7 @@ data class PersonReference(
   val identifiers: Set<Identifier> = setOf(),
 ) {
   operator fun get(key: String) = identifiers.find { it.type == key }?.value
+  fun nomsNumber(): String? = get(NOMS_NUMBER_TYPE)
 
   companion object {
     private const val NOMS_NUMBER_TYPE = "NOMS"
@@ -40,4 +42,12 @@ data class PrisonStatisticsInfo(
 data class MergeInformation(
   val nomsNumber: String,
   val removedNomsNumber: String,
+) : AdditionalInformation
+
+data class SessionInformation(
+  val id: UUID,
+  val type: String,
+  val subType: String,
+  val systemGenerated: Boolean,
+  val previousNomsNumber: String?,
 ) : AdditionalInformation

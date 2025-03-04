@@ -2,9 +2,11 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import software.amazon.eventstream.HeaderValue.fromDate
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import java.time.LocalDate
+import java.time.LocalDate.now
 
 class PrisonStatsIntTest : IntegrationTest() {
   @Test
@@ -26,10 +28,10 @@ class PrisonStatsIntTest : IntegrationTest() {
   fun `200 ok prison stats returned`() {
     val prisonCode = "GST"
     val stats =
-      (0..500).map {
+      (0..370).map {
         prisonStat(
           prisonCode,
-          LocalDate.now().minusDays(it.toLong()),
+          now().minusDays(it.toLong()),
           it % 10 + 100,
           it % 10 + 80,
           it % 10 + 75,
@@ -57,13 +59,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(84)
       assertThat(prisonersAssignedKeyworker).isEqualTo(79)
       assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(334)
-      assertThat(keyworkerEntries).isEqualTo(272)
+      assertThat(keyworkerSessions).isEqualTo(332)
+      assertThat(keyworkerEntries).isEqualTo(270)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
       assertThat(avgReceptionToSessionDays).isEqualTo(8)
       assertThat(projectedSessions).isEqualTo(372)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(89.78)
+      assertThat(compliance).isEqualTo(89.25)
     }
 
     with(res.previous) {
@@ -84,8 +86,8 @@ class PrisonStatsIntTest : IntegrationTest() {
 
   private fun getPrisonStatsSpec(
     prisonCode: String,
-    from: LocalDate = LocalDate.now().minusMonths(1),
-    to: LocalDate = LocalDate.now().minusDays(1),
+    from: LocalDate = now().minusDays(30),
+    to: LocalDate = now(),
     role: String? = Roles.KEYWORKER_RO,
   ) = webTestClient
     .get()

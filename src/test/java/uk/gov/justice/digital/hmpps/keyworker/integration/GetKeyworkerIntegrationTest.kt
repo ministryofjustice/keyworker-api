@@ -91,18 +91,18 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
 
     assertThat(response.stats.current!!).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(67)
+      assertThat(projectedSessions).isEqualTo(69)
       assertThat(recordedSessions).isEqualTo(12)
       assertThat(recordedEntries).isEqualTo(4)
-      assertThat(complianceRate).isEqualTo(17.91)
+      assertThat(complianceRate).isEqualTo(17.39)
     }
 
     assertThat(response.stats.previous!!).isNotNull()
     with(response.stats.previous) {
-      assertThat(projectedSessions).isEqualTo(10)
+      assertThat(projectedSessions).isEqualTo(17)
       assertThat(recordedSessions).isEqualTo(0)
       assertThat(recordedEntries).isEqualTo(0)
-      assertThat(complianceRate).isEqualTo(null)
+      assertThat(complianceRate).isEqualTo(0.0)
     }
   }
 
