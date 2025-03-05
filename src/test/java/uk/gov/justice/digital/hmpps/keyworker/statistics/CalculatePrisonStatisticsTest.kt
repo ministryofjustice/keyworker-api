@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSumm
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
@@ -52,7 +52,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           keyworkerAllocation(
             pi,
             prisonCode,
-            keyworkers.filter { it.status == ACTIVE }.random().staffId,
+            (keyworkers + additionalKeyworkers).filter { it.status == ACTIVE }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
             allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
           ),
@@ -70,7 +70,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       previousSessionsResponse(peopleWithSessions),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.minusDays(1)),
+      transferTypes(prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.plusDays(1)),
       transferResponse(prisoners.personIdentifiers()),
     )
 
@@ -94,7 +94,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(32)
-    assertThat(stats.activeKeyworkers).isEqualTo((keyworkers + additionalKeyworkers).filter { it.status == ACTIVE }.size)
+    assertThat(stats.activeKeyworkers).isEqualTo(6)
 
     assertThat(stats.keyworkerSessions).isEqualTo(40)
     assertThat(stats.keyworkerEntries).isEqualTo(9)
@@ -147,7 +147,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       previousSessionsResponse(peopleWithSessions),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(eligiblePrisoners, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      transferTypes(eligiblePrisoners, yesterday.minusMonths(6), yesterday.plusDays(1)),
       NoteUsageResponse(emptyMap()),
     )
 
@@ -171,13 +171,13 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
 
     assertThat(stats.assignedKeyworker).isEqualTo(25)
-    assertThat(stats.activeKeyworkers).isEqualTo(keyworkers.filter { it.status == ACTIVE }.size)
+    assertThat(stats.activeKeyworkers).isEqualTo(6)
 
     assertThat(stats.keyworkerSessions).isEqualTo(32)
     assertThat(stats.keyworkerEntries).isEqualTo(7)
 
-    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(19)
-    assertThat(stats.averageReceptionToSessionDays).isEqualTo(25)
+    assertThat(stats.averageReceptionToAllocationDays).isNull()
+    assertThat(stats.averageReceptionToSessionDays).isNull()
   }
 
   private fun prisoners(count: Int = 100) =
@@ -254,12 +254,12 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       personIdentifiers
         .mapIndexed { index, pi ->
           buildSet<UsageByPersonIdentifierResponse> {
-            if (index % 4 == 0) {
+            if (index % 2 == 0) {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  KW_TYPE,
-                  TRANSFER_SUBTYPE,
+                  TRANSFER_TYPE,
+                  "NE1",
                   1,
                   LatestNote(LocalDateTime.now().minusDays(index / 2 + 1L)),
                 ),

@@ -23,9 +23,9 @@ data class StatSummary(
   val keyworkerEntries: Int,
   val avgReceptionToAllocationDays: Int?,
   val avgReceptionToSessionDays: Int?,
-  val projectedSessions: Int?,
+  val projectedSessions: Int,
   val percentageWithKeyworker: Double?,
-  val compliance: Double?,
+  val compliance: Double,
 )
 
 data class WeeklyStatInt(
@@ -35,5 +35,5 @@ data class WeeklyStatInt(
 
 data class WeeklyStatDbl(
   val date: LocalDate,
-  val value: Double?,
+  val value: Double,
 )

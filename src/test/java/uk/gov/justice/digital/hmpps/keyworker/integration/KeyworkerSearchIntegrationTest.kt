@@ -47,10 +47,8 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val keyworkers: List<Keyworker> =
       staffIds.mapIndexedNotNull { index, staffId ->
         if (index % 5 == 0) {
-          println("Active by null staff id $staffId")
           null
         } else {
-          if (index % 3 == 0) println("Inactive by status staff id $staffId")
           givenKeyworker(keyworker(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
         }
       }

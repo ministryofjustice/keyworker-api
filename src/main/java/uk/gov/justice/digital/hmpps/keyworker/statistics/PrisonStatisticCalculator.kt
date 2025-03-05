@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexityOfNeedGateway
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocationRepository
@@ -21,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepos
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.getNonActiveKeyworkers
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS
@@ -101,7 +101,7 @@ class PrisonStatisticCalculator(
       val transferSummary =
         caseNotesApi
           .getUsageByPersonIdentifier(
-            transferTypes(eligiblePrisoners, date.minusMonths(6), date.minusDays(1)),
+            transferTypes(eligiblePrisoners, date.minusMonths(6), date.plusDays(1)),
           ).summary()
 
       val activeKeyworkers =
@@ -113,35 +113,19 @@ class PrisonStatisticCalculator(
             true,
           )?.body
           ?.let { nomisKeyworkers ->
-            val dpsKeyworkers =
+            val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
+            val nonActiveIds =
               keyworkerRepository
-                .findAll()
-                .associate { it.staffId to it.status }
-                .toMutableMap()
-            nomisKeyworkers.forEach { dpsKeyworkers.putIfAbsent(it.staffId, KeyworkerStatus.ACTIVE) }
-            dpsKeyworkers.count { it.value == KeyworkerStatus.ACTIVE }
+                .getNonActiveKeyworkers(keyworkerIds)
+                .map { it.staffId }
+                .toSet()
+            (keyworkerIds - nonActiveIds).size
           } ?: 0
 
       val summaries =
         PeopleSummaries(
           eligiblePrisoners,
-          {
-            val transferDate = transferSummary.findTransferDate(it)
-            val receptionDate = prisoners.findByPersonIdentifier(it)?.receptionDate
-            if (transferDate != receptionDate) {
-              telemetryClient.trackEvent(
-                "ReceptionDateNotMatched",
-                listOfNotNull(
-                  "personIdentifier" to it,
-                  "prisonCode" to prisonCode,
-                  receptionDate?.let { "receptionDate" to ISO_LOCAL_DATE.format(it) },
-                  transferDate?.let { "transferDate" to ISO_LOCAL_DATE.format(it) },
-                ).toMap(),
-                mapOf(),
-              )
-            }
-            receptionDate
-          },
+          { transferSummary.findTransferDate(it) },
           { newAllocations[it]?.assignedAt?.toLocalDate() },
           { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
         )
@@ -174,7 +158,7 @@ class PeopleSummaries(
     personIdentifiers.map {
       PersonSummary(
         it,
-        getReceptionDate(it).takeIf { LocalDate.now().minusMonths(6).isBefore(it) },
+        getReceptionDate(it),
         getAllocationDate(it),
         getSessionDate(it),
       )

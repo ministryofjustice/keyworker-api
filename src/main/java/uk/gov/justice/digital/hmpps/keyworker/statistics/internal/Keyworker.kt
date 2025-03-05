@@ -34,13 +34,21 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
                         and kwa.staffId in :staffIds
                         group by kwa.staffId
         )
-        select ac.id as staffId, ac.count as allocationCount, kw as keyworker from counts ac
+        select coalesce(ac.id, kw.staffId) as staffId, ac.count as allocationCount, kw as keyworker from counts ac
         full outer join Keyworker kw on ac.id = kw.staffId
         where kw.staffId in :staffIds
         """,
   )
   fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
+
+  fun findAllByStaffIdInAndStatusIn(
+    staffIds: Set<Long>,
+    status: Set<KeyworkerStatus>,
+  ): List<Keyworker>
 }
+
+fun KeyworkerRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
+  findAllByStaffIdInAndStatusIn(staffIds, KeyworkerStatus.entries.filter { it != KeyworkerStatus.ACTIVE }.toSet())
 
 interface KeyworkerWithAllocationCount {
   val staffId: Long

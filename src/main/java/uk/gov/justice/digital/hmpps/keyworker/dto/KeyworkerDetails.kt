@@ -30,7 +30,7 @@ data class Prisoner(
   val prisonNumber: String,
   val firstName: String,
   val lastName: String,
-  val csra: String,
+  val csra: String?,
 )
 
 data class LatestKeyworkerSession(
@@ -45,8 +45,8 @@ data class KeyworkerStats(
 data class KeyworkerSessionStats(
   val from: LocalDate,
   val to: LocalDate,
-  val projectedSessions: Int?,
+  val projectedSessions: Int,
   val recordedSessions: Int,
   val recordedEntries: Int,
-  val complianceRate: Double?,
+  val complianceRate: Double,
 )

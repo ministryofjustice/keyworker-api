@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import java.time.LocalDate
+import java.time.LocalDate.now
 
 class PrisonStatsIntTest : IntegrationTest() {
   @Test
@@ -26,16 +27,16 @@ class PrisonStatsIntTest : IntegrationTest() {
   fun `200 ok prison stats returned`() {
     val prisonCode = "GST"
     val stats =
-      (0..500).map {
+      (0..370).map {
         prisonStat(
           prisonCode,
-          LocalDate.now().minusDays(it.toLong()),
+          now().minusDays(it.toLong()),
           it % 10 + 100,
           it % 10 + 80,
           it % 10 + 75,
           it % 10 + 1,
-          (it % 10 + 5) * 2,
-          (it % 10 + 3) * 2,
+          (it % 10 + 1) * 2,
+          (it % 10) * 2,
           if (it % 9 == 0) null else it % 10,
           if (it % 7 == 0) null else it % 20,
         )
@@ -57,13 +58,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(84)
       assertThat(prisonersAssignedKeyworker).isEqualTo(79)
       assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(582)
-      assertThat(keyworkerEntries).isEqualTo(458)
+      assertThat(keyworkerSessions).isEqualTo(332)
+      assertThat(keyworkerEntries).isEqualTo(270)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
       assertThat(avgReceptionToSessionDays).isEqualTo(8)
-      assertThat(projectedSessions).isEqualTo(2532)
+      assertThat(projectedSessions).isEqualTo(372)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(22.99)
+      assertThat(compliance).isEqualTo(89.25)
     }
 
     with(res.previous) {
@@ -72,20 +73,20 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(84)
       assertThat(prisonersAssignedKeyworker).isEqualTo(79)
       assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(570)
-      assertThat(keyworkerEntries).isEqualTo(450)
+      assertThat(keyworkerSessions).isEqualTo(330)
+      assertThat(keyworkerEntries).isEqualTo(270)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
       assertThat(avgReceptionToSessionDays).isEqualTo(10)
-      assertThat(projectedSessions).isEqualTo(2448)
+      assertThat(projectedSessions).isEqualTo(360)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(23.28)
+      assertThat(compliance).isEqualTo(91.67)
     }
   }
 
   private fun getPrisonStatsSpec(
     prisonCode: String,
-    from: LocalDate = LocalDate.now().minusMonths(1),
-    to: LocalDate = LocalDate.now().minusDays(1),
+    from: LocalDate = now().minusDays(30),
+    to: LocalDate = now(),
     role: String? = Roles.KEYWORKER_RO,
   ) = webTestClient
     .get()

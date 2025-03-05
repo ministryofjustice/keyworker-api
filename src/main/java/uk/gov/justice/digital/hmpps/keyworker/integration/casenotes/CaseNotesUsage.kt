@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_TYPE
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -48,7 +48,7 @@ data class UsageByPersonIdentifierRequest(
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(TRANSFER_SUBTYPE))),
+        setOf(TypeSubTypeRequest(TRANSFER_TYPE, setOf())),
         occurredFrom = from.atStartOfDay(),
         occurredTo = to.atStartOfDay(),
       )
@@ -124,7 +124,7 @@ data class CaseNoteSummary(
 
   fun findTransferDate(personIdentifier: String): LocalDate? =
     data[personIdentifier]
-      ?.find { it.subType == TRANSFER_SUBTYPE }
+      ?.find { it.type == TRANSFER_TYPE }
       ?.latestNote
       ?.occurredAt
       ?.toLocalDate()
@@ -140,6 +140,6 @@ data class CaseNoteSummary(
     const val KW_TYPE = "KA"
     const val SESSION_SUBTYPE = "KS"
     const val ENTRY_SUBTYPE = "KE"
-    const val TRANSFER_SUBTYPE = "TRANSFER"
+    const val TRANSFER_TYPE = "TRANSFER"
   }
 }
