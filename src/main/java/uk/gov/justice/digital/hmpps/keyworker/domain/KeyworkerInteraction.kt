@@ -7,6 +7,7 @@ sealed interface KeyworkerInteraction {
   var occurredAt: LocalDateTime
   var personIdentifier: String
   val staffId: Long
+  val staffUsername: String
   val prisonCode: String
   val createdAt: LocalDateTime
   val id: UUID

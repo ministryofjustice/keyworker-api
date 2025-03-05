@@ -173,10 +173,22 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
       personIdentifier: String = prisonNumber(),
       occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
       staffId: Long = NomisIdGenerator.newId(),
+      staffUsername: String = NomisIdGenerator.username(),
       prisonCode: String = "LEI",
       createdAt: LocalDateTime = LocalDateTime.now(),
       id: UUID = IdGenerator.newUuid(),
-    ): CaseNote = CaseNote(id, type, subType, occurredAt, personIdentifier, staffId.toString(), prisonCode, createdAt)
+    ): CaseNote =
+      CaseNote(
+        id,
+        type,
+        subType,
+        occurredAt,
+        personIdentifier,
+        staffId.toString(),
+        staffUsername,
+        prisonCode,
+        createdAt,
+      )
 
     @JvmStatic
     fun caseNoteCreated() =
@@ -211,6 +223,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 private fun KeyworkerInteraction.verifyAgainst(note: CaseNote) {
   assertThat(prisonCode).isEqualTo(note.prisonCode)
   assertThat(staffId).isEqualTo(note.staffId.toLong())
+  assertThat(staffUsername).isEqualTo(note.staffUsername)
   assertThat(personIdentifier).isEqualTo(note.personIdentifier)
   assertThat(occurredAt.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(note.occurredAt.truncatedTo(ChronoUnit.SECONDS))
   assertThat(createdAt.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(note.createdAt.truncatedTo(ChronoUnit.SECONDS))

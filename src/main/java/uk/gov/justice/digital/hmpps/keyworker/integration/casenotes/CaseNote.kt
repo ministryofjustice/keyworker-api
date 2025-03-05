@@ -14,6 +14,8 @@ data class CaseNote(
   val personIdentifier: String,
   @JsonAlias("authorUserId")
   val staffId: String,
+  @JsonAlias("authorUsername")
+  val staffUsername: String,
   @JsonAlias("locationId")
   val prisonCode: String,
   @JsonAlias("creationDateTime")

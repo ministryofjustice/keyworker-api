@@ -83,7 +83,27 @@ data class PersonInformation(
 
 fun CaseNote.asKeyworkerInteraction() =
   when (subType) {
-    SESSION_SUBTYPE -> KeyworkerSession(occurredAt, personIdentifier, staffId.toLong(), prisonCode, createdAt, id)
-    ENTRY_SUBTYPE -> KeyworkerEntry(occurredAt, personIdentifier, staffId.toLong(), prisonCode, createdAt, id)
+    SESSION_SUBTYPE ->
+      KeyworkerSession(
+        occurredAt,
+        personIdentifier,
+        staffId.toLong(),
+        staffUsername,
+        prisonCode,
+        createdAt,
+        id,
+      )
+
+    ENTRY_SUBTYPE ->
+      KeyworkerEntry(
+        occurredAt,
+        personIdentifier,
+        staffId.toLong(),
+        staffUsername,
+        prisonCode,
+        createdAt,
+        id,
+      )
+
     else -> throw IllegalArgumentException("Unknown case note sub type")
   }

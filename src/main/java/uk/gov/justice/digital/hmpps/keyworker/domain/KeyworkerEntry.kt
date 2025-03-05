@@ -12,6 +12,7 @@ class KeyworkerEntry(
   override var occurredAt: LocalDateTime,
   override var personIdentifier: String,
   override val staffId: Long,
+  override val staffUsername: String,
   override val prisonCode: String,
   override val createdAt: LocalDateTime,
   @Id
