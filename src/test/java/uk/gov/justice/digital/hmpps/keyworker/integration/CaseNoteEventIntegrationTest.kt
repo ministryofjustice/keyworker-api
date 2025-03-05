@@ -4,11 +4,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.verify
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.findByIdOrNull
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
@@ -39,7 +42,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteCreated, caseNoteInfo(caseNote), caseNote.personIdentifier)
 
-    publishEventToTopic(event)
+    publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
@@ -59,7 +62,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     assertThat(existingInteraction).isNotNull()
     assertThat(existingInteraction!!.occurredAt).isEqualTo(existingOccurredAt)
 
-    publishEventToTopic(event)
+    publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
@@ -83,7 +86,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     assertThat(existingInteraction!!.personIdentifier).isNotEqualTo(caseNote.personIdentifier)
     assertThat(existingInteraction.personIdentifier).isEqualTo(event.additionalInformation.previousNomsNumber)
 
-    publishEventToTopic(event)
+    publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
@@ -101,12 +104,27 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     assertThat(existingInteraction).isNotNull()
     existingInteraction!!.verifyAgainst(caseNote)
 
-    publishEventToTopic(event)
+    publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
     assertThat(interaction).isNull()
+  }
+
+  @Test
+  fun `non keyworker case notes are ignored`() {
+    val caseNote = caseNote("OTHER", "ANY")
+    val event = caseNoteEvent(CaseNoteCreated, caseNoteInfo(caseNote), caseNote.personIdentifier)
+    publishEventToTopic(event, caseNote.snsAttributes())
+
+    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
+
+    verify(telemetryClient).trackEvent(
+      "CaseNoteNotOfInterest",
+      mapOf("name" to CaseNoteCreated.name, "type" to "ANY", "subType" to "OTHER"),
+      null,
+    )
   }
 
   private fun caseNoteInfo(
@@ -131,6 +149,22 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
       ENTRY_SUBTYPE -> keRepository
       else -> throw IllegalArgumentException("Unknown case note sub type")
     }
+
+  private fun CaseNote.snsAttributes(): Map<String, MessageAttributeValue> =
+    mapOf(
+      "type" to
+        MessageAttributeValue
+          .builder()
+          .dataType("String")
+          .stringValue(type)
+          .build(),
+      "subType" to
+        MessageAttributeValue
+          .builder()
+          .dataType("String")
+          .stringValue(subType)
+          .build(),
+    )
 
   companion object {
     private fun caseNote(
