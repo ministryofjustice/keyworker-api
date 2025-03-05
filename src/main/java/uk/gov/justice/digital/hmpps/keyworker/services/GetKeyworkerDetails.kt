@@ -123,10 +123,10 @@ class GetKeyworkerDetails(
       KeyworkerSessionStats(
         from,
         to,
-        projectedSessions,
+        projectedSessions ?: 0,
         cnSummary?.totalSessions ?: 0,
         cnSummary?.totalEntries ?: 0,
-        compliance,
+        compliance ?: 0.0,
       ),
       cnSummary,
     )

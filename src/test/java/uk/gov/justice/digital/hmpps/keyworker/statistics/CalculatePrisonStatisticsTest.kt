@@ -70,7 +70,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       previousSessionsResponse(peopleWithSessions),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.minusDays(1)),
+      transferTypes(prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.plusDays(1)),
       transferResponse(prisoners.personIdentifiers()),
     )
 
@@ -147,7 +147,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       previousSessionsResponse(peopleWithSessions),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(eligiblePrisoners, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      transferTypes(eligiblePrisoners, yesterday.minusMonths(6), yesterday.plusDays(1)),
       NoteUsageResponse(emptyMap()),
     )
 

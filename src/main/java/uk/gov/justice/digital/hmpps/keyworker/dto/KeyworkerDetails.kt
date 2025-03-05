@@ -45,8 +45,8 @@ data class KeyworkerStats(
 data class KeyworkerSessionStats(
   val from: LocalDate,
   val to: LocalDate,
-  val projectedSessions: Int?,
+  val projectedSessions: Int,
   val recordedSessions: Int,
   val recordedEntries: Int,
-  val complianceRate: Double?,
+  val complianceRate: Double,
 )

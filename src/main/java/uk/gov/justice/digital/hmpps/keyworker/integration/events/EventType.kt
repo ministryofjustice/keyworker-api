@@ -15,6 +15,22 @@ sealed interface EventType {
     override val name = "prison-offender-events.prisoner.merged"
   }
 
+  data object CaseNoteCreated : EventType {
+    override val name = "person.case-note.created"
+  }
+
+  data object CaseNoteUpdated : EventType {
+    override val name = "person.case-note.updated"
+  }
+
+  data object CaseNoteMoved : EventType {
+    override val name = "person.case-note.moved"
+  }
+
+  data object CaseNoteDeleted : EventType {
+    override val name = "person.case-note.deleted"
+  }
+
   data class Other(
     override val name: String,
   ) : EventType
