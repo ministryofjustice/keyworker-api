@@ -17,6 +17,11 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
@@ -86,6 +91,12 @@ abstract class IntegrationTest {
 
   @Autowired
   internal lateinit var jwtAuthHelper: JwtAuthHelper
+
+  @Autowired
+  internal lateinit var ksRepository: KeyworkerSessionRepository
+
+  @Autowired
+  internal lateinit var keRepository: KeyworkerEntryRepository
 
   init {
     SecurityContextHolder.getContext().authentication = TestingAuthenticationToken("user", "pw")
@@ -342,20 +353,21 @@ abstract class IntegrationTest {
     deallocationReason: DeallocationReason? = null,
     active: Boolean = true,
     prisonCode: String = "MDI",
-  ) = offenderKeyworkerRepository.save(
-    OffenderKeyworker().apply {
-      offenderNo = prisonNumber
-      this.staffId = staffId
-      assignedDateTime = assignedAt
-      this.allocationType = allocationType
-      this.allocationReason = allocationReason
-      this.userId = userId
-      expiryDateTime = expiredAt
-      this.deallocationReason = deallocationReason
-      isActive = active
-      prisonId = prisonCode
-    },
-  )
+  ): OffenderKeyworker =
+    offenderKeyworkerRepository.save(
+      OffenderKeyworker().apply {
+        offenderNo = prisonNumber
+        this.staffId = staffId
+        assignedDateTime = assignedAt
+        this.allocationType = allocationType
+        this.allocationReason = allocationReason
+        this.userId = userId
+        expiryDateTime = expiredAt
+        this.deallocationReason = deallocationReason
+        isActive = active
+        prisonId = prisonCode
+      },
+    )
 
   protected fun keyworker(
     status: KeyworkerStatus,
@@ -394,4 +406,10 @@ abstract class IntegrationTest {
 
   protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation): KeyworkerAllocation =
     keyworkerAllocationRepository.save(allocation)
+
+  protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
+    when (interaction) {
+      is KeyworkerSession -> ksRepository.save(interaction)
+      is KeyworkerEntry -> keRepository.save(interaction)
+    }
 }

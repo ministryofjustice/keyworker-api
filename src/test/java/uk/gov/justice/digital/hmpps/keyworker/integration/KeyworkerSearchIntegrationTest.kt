@@ -6,13 +6,12 @@ import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.forLastMonth
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.Keyworker
@@ -21,7 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumbe
 
 class KeyworkerSearchIntegrationTest : IntegrationTest() {
   @Test
-  fun `401 unathorised without a valid token`() {
+  fun `401 unauthorised without a valid token`() {
     webTestClient
       .post()
       .uri(SEARCH_URL, "NEP")
@@ -37,7 +36,7 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
   }
 
   @Test
-  fun `can find keyworkers and decorate with config and counts`() {
+  fun `can filter keyworkers and decorate with config and counts`() {
     val prisonCode = "FIND"
     givenPrisonConfig(prisonConfig(prisonCode))
 
@@ -112,9 +111,68 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content[6].numberOfKeyworkerSessions).isEqualTo(8)
   }
 
+  @Test
+  fun `can find all keyworkers with config and counts`() {
+    val prisonCode = "ALL"
+    givenPrisonConfig(prisonConfig(prisonCode))
+
+    val staffIds = (0..10).map { newId() }
+    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
+
+    val keyworkers: List<Keyworker> =
+      staffIds.mapIndexedNotNull { index, staffId ->
+        if (index % 5 == 0) {
+          null
+        } else {
+          givenKeyworker(keyworker(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+        }
+      }
+
+    keyworkers
+      .mapIndexed { index, kw ->
+        (0..index).map {
+          givenKeyworkerAllocation(
+            keyworkerAllocation(
+              prisonNumber(),
+              prisonCode,
+              kw.staffId,
+              allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
+            ),
+          )
+        }
+      }.flatten()
+
+    val noteUsage =
+      NoteUsageResponse(
+        staffIds
+          .mapIndexed { index, staffId ->
+            UsageByAuthorIdResponse(
+              staffId.toString(),
+              KW_TYPE,
+              SESSION_SUBTYPE,
+              index,
+            )
+          }.groupBy { it.authorId.toString() },
+      )
+    caseNotesMockServer.stubUsageByStaffIds(
+      request = forLastMonth(staffIds.map(Long::toString).toSet()),
+      response = noteUsage,
+    )
+
+    val response =
+      searchKeyworkerSpec(prisonCode, searchRequest(status = KeyworkerSearchRequest.Status.ALL))
+        .expectStatus()
+        .isOk
+        .expectBody(KeyworkerSearchResponse::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(response.content).hasSize(11)
+  }
+
   private fun searchRequest(
     query: String? = null,
-    status: KeyworkerStatus = ACTIVE,
+    status: KeyworkerSearchRequest.Status = KeyworkerSearchRequest.Status.ACTIVE,
   ) = KeyworkerSearchRequest(query, status)
 
   private fun searchKeyworkerSpec(
