@@ -2,5 +2,7 @@ prison_statistic
 batch_history
 offender_key_worker
 keyworker_stats
-key_worker
+keyworker_session
+keyworker_entry
 prison_supported
+key_worker

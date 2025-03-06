@@ -1,5 +1,7 @@
-prison_supported
 key_worker
+prison_supported
+keyworker_entry
+keyworker_session
 keyworker_stats
 offender_key_worker
 batch_history
