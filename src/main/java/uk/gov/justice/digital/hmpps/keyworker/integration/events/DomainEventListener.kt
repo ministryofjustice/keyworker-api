@@ -9,11 +9,17 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedEventProcessor
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CalculatePrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteCreated
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteDeleted
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteMoved
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteUpdated
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.ComplexityOfNeedChanged
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.MigrateCaseNotes
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Other
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.PrisonMerged
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
+import uk.gov.justice.digital.hmpps.keyworker.services.MigrateSessionsAndEntries
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonInformation
 import uk.gov.justice.digital.hmpps.keyworker.services.SessionAndEntryService
 import uk.gov.justice.digital.hmpps.keyworker.statistics.PrisonStatisticCalculator
@@ -24,6 +30,7 @@ class DomainEventListener(
   private val mergePrisonNumbers: MergePrisonNumbers,
   private val prisonStats: PrisonStatisticCalculator,
   private val sessionEntries: SessionAndEntryService,
+  private val migrate: MigrateSessionsAndEntries,
   private val objectMapper: ObjectMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -33,13 +40,13 @@ class DomainEventListener(
     val eventType = EventType.from(notification.eventType)
 
     when (eventType) {
-      EventType.ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
-      EventType.PrisonMerged -> {
+      ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
+      PrisonMerged -> {
         val domainEvent = objectMapper.readValue<HmppsDomainEvent<MergeInformation>>(notification.message)
         mergePrisonNumbers.merge(domainEvent.additionalInformation)
       }
 
-      EventType.CalculatePrisonStats -> {
+      CalculatePrisonStats -> {
         val prisonStatsInfo = objectMapper.readValue<HmppsDomainEvent<PrisonStatisticsInfo>>(notification.message)
         prisonStats.calculate(prisonStatsInfo)
       }
@@ -60,7 +67,12 @@ class DomainEventListener(
           null,
         )
 
-      is EventType.Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
+      MigrateCaseNotes ->
+        migrate.handle(
+          objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
+        )
+
+      is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
     }
   }
 

@@ -51,3 +51,5 @@ data class CaseNoteInformation(
   val subType: String,
   val previousNomsNumber: String?,
 ) : AdditionalInformation
+
+data object CaseNoteMigrationInformation : AdditionalInformation

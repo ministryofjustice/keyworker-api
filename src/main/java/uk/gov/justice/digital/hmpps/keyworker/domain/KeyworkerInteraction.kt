@@ -10,5 +10,7 @@ sealed interface KeyworkerInteraction {
   val staffUsername: String
   val prisonCode: String
   val createdAt: LocalDateTime
+  var textLength: Int
+  var amendmentCount: Int
   val id: UUID
 }

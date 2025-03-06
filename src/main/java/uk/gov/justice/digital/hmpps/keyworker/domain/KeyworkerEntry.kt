@@ -15,6 +15,8 @@ class KeyworkerEntry(
   override val staffUsername: String,
   override val prisonCode: String,
   override val createdAt: LocalDateTime,
+  override var textLength: Int,
+  override var amendmentCount: Int,
   @Id
   override val id: UUID,
 ) : KeyworkerInteraction {

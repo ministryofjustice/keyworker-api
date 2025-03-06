@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asKeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
 import java.util.UUID
 
@@ -80,30 +81,3 @@ data class PersonInformation(
   val personIdentifier: String,
   val info: CaseNoteInformation,
 )
-
-fun CaseNote.asKeyworkerInteraction() =
-  when (subType) {
-    SESSION_SUBTYPE ->
-      KeyworkerSession(
-        occurredAt,
-        personIdentifier,
-        staffId.toLong(),
-        staffUsername,
-        prisonCode,
-        createdAt,
-        id,
-      )
-
-    ENTRY_SUBTYPE ->
-      KeyworkerEntry(
-        occurredAt,
-        personIdentifier,
-        staffId.toLong(),
-        staffUsername,
-        prisonCode,
-        createdAt,
-        id,
-      )
-
-    else -> throw IllegalArgumentException("Unknown case note sub type")
-  }

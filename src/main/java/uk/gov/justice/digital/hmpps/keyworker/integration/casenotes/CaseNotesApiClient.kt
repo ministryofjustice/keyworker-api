@@ -57,4 +57,17 @@ class CaseNotesApiClient(
         }
       }.retryRequestOnTransientException()
       .block()!!
+
+  fun getAllKeyworkerCaseNotes(personIdentifier: String): CaseNotes =
+    webClient
+      .post()
+      .uri("/case-notes/$personIdentifier")
+      .bodyValue(SearchCaseNotes())
+      .exchangeToMono { res ->
+        when (res.statusCode()) {
+          HttpStatus.OK -> res.bodyToMono<CaseNotes>()
+          else -> res.createError()
+        }
+      }.retryRequestOnTransientException()
+      .block()!!
 }
