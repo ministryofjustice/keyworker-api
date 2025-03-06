@@ -31,13 +31,14 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
   @Test
   fun `can migrate sessions and entries that do not exist`() {
     val personIdentifier = prisonNumber()
-    val caseNotes = (0..20).map {
-      caseNote(
-        personIdentifier,
-        now().minusWeeks(it.toLong()),
-        if (it % 3 == 0) ENTRY_SUBTYPE else SESSION_SUBTYPE,
-      )
-    }
+    val caseNotes =
+      (0..20).map {
+        caseNote(
+          personIdentifier,
+          now().minusWeeks(it.toLong()),
+          if (it % 3 == 0) ENTRY_SUBTYPE else SESSION_SUBTYPE,
+        )
+      }
     caseNotesMockServer.stubGetKeyworkerCaseNotes(personIdentifier, CaseNotes(caseNotes))
 
     publishEventToTopic(migrateEvent(personIdentifier))
@@ -57,13 +58,14 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
   @Test
   fun `can migrate sessions and entries when some already exist`() {
     val personIdentifier = prisonNumber()
-    val caseNotes = (0..20).map {
-      caseNote(
-        personIdentifier,
-        now().minusWeeks(it.toLong()),
-        if (it % 3 == 0) ENTRY_SUBTYPE else SESSION_SUBTYPE,
-      )
-    }
+    val caseNotes =
+      (0..20).map {
+        caseNote(
+          personIdentifier,
+          now().minusWeeks(it.toLong()),
+          if (it % 3 == 0) ENTRY_SUBTYPE else SESSION_SUBTYPE,
+        )
+      }
     caseNotesMockServer.stubGetKeyworkerCaseNotes(personIdentifier, CaseNotes(caseNotes))
     givenKeyworkerInteraction(caseNotes[3].copy(occurredAt = now().minusWeeks(52)).asKeyworkerInteraction())
     givenKeyworkerInteraction(caseNotes[5].copy(occurredAt = now().minusWeeks(54)).asKeyworkerInteraction())
@@ -86,9 +88,7 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
     entries.forEach { entry -> entry.verifyAgainst(caseNotes.first { it.id == entry.id }) }
   }
 
-  private fun migrateEvent(
-    personIdentifier: String,
-  ): HmppsDomainEvent<CaseNoteMigrationInformation> =
+  private fun migrateEvent(personIdentifier: String): HmppsDomainEvent<CaseNoteMigrationInformation> =
     HmppsDomainEvent(
       EventType.MigrateCaseNotes.name,
       CaseNoteMigrationInformation,
@@ -135,6 +135,6 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
       prisonCode,
       createdAt,
       text,
-      amendments
+      amendments,
     )
 }

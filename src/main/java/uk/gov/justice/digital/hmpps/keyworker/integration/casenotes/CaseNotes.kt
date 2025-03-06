@@ -4,7 +4,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 
-data class CaseNotes(val content: List<CaseNote>)
+data class CaseNotes(
+  val content: List<CaseNote>,
+)
 
 data class SearchCaseNotes(
   val includeSensitive: Boolean = true,

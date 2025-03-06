@@ -58,7 +58,10 @@ class CaseNotesMockServer : WireMockServer(9997) {
         ),
     )
 
-  fun stubGetKeyworkerCaseNotes(personIdentifier: String, response: CaseNotes): StubMapping =
+  fun stubGetKeyworkerCaseNotes(
+    personIdentifier: String,
+    response: CaseNotes,
+  ): StubMapping =
     stubFor(
       post("/case-notes/$personIdentifier")
         .withRequestBody(equalToJson(objectMapper.writeValueAsString(SearchCaseNotes()), true, true))

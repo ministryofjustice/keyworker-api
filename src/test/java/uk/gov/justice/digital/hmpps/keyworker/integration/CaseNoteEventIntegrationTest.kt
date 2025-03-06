@@ -178,7 +178,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
       prisonCode: String = "LEI",
       createdAt: LocalDateTime = LocalDateTime.now(),
       text: String = "Some text entered about the interaction",
-      amendments: List<CaseNoteAmendment> = emptyList(),
+      amendments: List<CaseNoteAmendment> = listOf(CaseNoteAmendment("Amended text")),
       id: UUID = IdGenerator.newUuid(),
     ): CaseNote =
       CaseNote(
@@ -192,7 +192,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         prisonCode,
         createdAt,
         text,
-        amendments
+        amendments,
       )
 
     @JvmStatic

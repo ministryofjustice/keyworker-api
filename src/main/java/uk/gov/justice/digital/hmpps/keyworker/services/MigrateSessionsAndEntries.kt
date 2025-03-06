@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEven
 class MigrateSessionsAndEntries(
   private val caseNoteApi: CaseNotesApiClient,
   private val ksRepository: KeyworkerSessionRepository,
-  private val keRepository: KeyworkerEntryRepository
+  private val keRepository: KeyworkerEntryRepository,
 ) {
   fun handle(event: HmppsDomainEvent<CaseNoteMigrationInformation>) {
     event.personReference.nomsNumber()?.also {

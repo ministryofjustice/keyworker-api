@@ -27,7 +27,6 @@ data class CaseNote(
   val text: String,
   val amendments: List<CaseNoteAmendment>,
 ) {
-
   fun textLength() = amendments.sumOf { it.text.length } + text.length
 
   companion object {

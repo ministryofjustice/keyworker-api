@@ -67,9 +67,10 @@ class DomainEventListener(
           null,
         )
 
-      MigrateCaseNotes -> migrate.handle(
-        objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message)
-      )
+      MigrateCaseNotes ->
+        migrate.handle(
+          objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
+        )
 
       is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
     }

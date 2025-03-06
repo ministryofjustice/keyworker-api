@@ -17,10 +17,11 @@ class CaseNoteTest {
     val caseNote = caseNote(text = "A".repeat(100))
     assertThat(caseNote.textLength()).isEqualTo(100)
 
-    val withAmendments = caseNote(
-      text = "A".repeat(150),
-      amendments = listOf(CaseNoteAmendment("B".repeat(130)), CaseNoteAmendment("C".repeat(120)))
-    )
+    val withAmendments =
+      caseNote(
+        text = "A".repeat(150),
+        amendments = listOf(CaseNoteAmendment("B".repeat(130)), CaseNoteAmendment("C".repeat(120))),
+      )
     assertThat(withAmendments.textLength()).isEqualTo(400)
   }
 
@@ -48,6 +49,6 @@ class CaseNoteTest {
       prisonCode,
       createdAt,
       text,
-      amendments
+      amendments,
     )
 }
