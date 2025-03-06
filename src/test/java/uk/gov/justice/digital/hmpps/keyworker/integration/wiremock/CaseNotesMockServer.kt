@@ -63,7 +63,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
     response: CaseNotes,
   ): StubMapping =
     stubFor(
-      post("/case-notes/$personIdentifier")
+      post("/search/case-notes/$personIdentifier")
         .withRequestBody(equalToJson(objectMapper.writeValueAsString(SearchCaseNotes()), true, true))
         .willReturn(
           aResponse()

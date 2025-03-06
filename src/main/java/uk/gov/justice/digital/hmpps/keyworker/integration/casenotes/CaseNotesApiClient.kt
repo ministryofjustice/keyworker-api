@@ -61,7 +61,7 @@ class CaseNotesApiClient(
   fun getAllKeyworkerCaseNotes(personIdentifier: String): CaseNotes =
     webClient
       .post()
-      .uri("/case-notes/$personIdentifier")
+      .uri("/search/case-notes/$personIdentifier")
       .bodyValue(SearchCaseNotes())
       .exchangeToMono { res ->
         when (res.statusCode()) {
