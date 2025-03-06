@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.microsoft.applicationinsights.TelemetryClient
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -16,7 +17,14 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
@@ -87,6 +95,15 @@ abstract class IntegrationTest {
   @Autowired
   internal lateinit var jwtAuthHelper: JwtAuthHelper
 
+  @Autowired
+  internal lateinit var ksRepository: KeyworkerSessionRepository
+
+  @Autowired
+  internal lateinit var keRepository: KeyworkerEntryRepository
+
+  @MockitoBean
+  internal lateinit var telemetryClient: TelemetryClient
+
   init {
     SecurityContextHolder.getContext().authentication = TestingAuthenticationToken("user", "pw")
     // Resolves an issue where Wiremock keeps previous sockets open from other tests causing connection resets
@@ -104,14 +121,17 @@ abstract class IntegrationTest {
     hmppsQueueService.findByQueueId("domaineventsqueue") ?: throw MissingQueueException("domain events queue not found")
   }
 
-  internal fun publishEventToTopic(event: Any) {
+  internal fun publishEventToTopic(
+    event: Any,
+    snsAttributes: Map<String, MessageAttributeValue> = emptyMap(),
+  ) {
     val eventType =
       when (event) {
         is ComplexityOfNeedChange -> EventType.ComplexityOfNeedChanged.name
         is HmppsDomainEvent<*> -> event.eventType
         else -> throw IllegalArgumentException("Unknown event $event")
       }
-    domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
+    domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event), attributes = snsAttributes)
   }
 
   internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl).get()
@@ -342,20 +362,21 @@ abstract class IntegrationTest {
     deallocationReason: DeallocationReason? = null,
     active: Boolean = true,
     prisonCode: String = "MDI",
-  ) = offenderKeyworkerRepository.save(
-    OffenderKeyworker().apply {
-      offenderNo = prisonNumber
-      this.staffId = staffId
-      assignedDateTime = assignedAt
-      this.allocationType = allocationType
-      this.allocationReason = allocationReason
-      this.userId = userId
-      expiryDateTime = expiredAt
-      this.deallocationReason = deallocationReason
-      isActive = active
-      prisonId = prisonCode
-    },
-  )
+  ): OffenderKeyworker =
+    offenderKeyworkerRepository.save(
+      OffenderKeyworker().apply {
+        offenderNo = prisonNumber
+        this.staffId = staffId
+        assignedDateTime = assignedAt
+        this.allocationType = allocationType
+        this.allocationReason = allocationReason
+        this.userId = userId
+        expiryDateTime = expiredAt
+        this.deallocationReason = deallocationReason
+        isActive = active
+        prisonId = prisonCode
+      },
+    )
 
   protected fun keyworker(
     status: KeyworkerStatus,
@@ -394,4 +415,10 @@ abstract class IntegrationTest {
 
   protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation): KeyworkerAllocation =
     keyworkerAllocationRepository.save(allocation)
+
+  protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
+    when (interaction) {
+      is KeyworkerSession -> ksRepository.save(interaction)
+      is KeyworkerEntry -> keRepository.save(interaction)
+    }
 }

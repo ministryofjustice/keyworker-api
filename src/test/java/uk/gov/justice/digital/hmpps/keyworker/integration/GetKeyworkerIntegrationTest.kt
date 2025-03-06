@@ -7,9 +7,9 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 
 class GetKeyworkerIntegrationTest : IntegrationTest() {
   @Test
-  fun `401 unathorised without a valid token`() {
+  fun `401 unauthorised without a valid token`() {
     webTestClient
       .get()
       .uri(GET_KEYWORKER_DETAILS, "NEP", newId())

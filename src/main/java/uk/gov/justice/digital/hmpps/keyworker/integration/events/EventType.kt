@@ -41,6 +41,10 @@ sealed interface EventType {
         CalculatePrisonStats,
         ComplexityOfNeedChanged,
         PrisonMerged,
+        CaseNoteCreated,
+        CaseNoteUpdated,
+        CaseNoteMoved,
+        CaseNoteDeleted,
       )
 
     fun from(value: String): EventType = entries().firstOrNull { it.name.lowercase() == value.lowercase() } ?: Other(value)

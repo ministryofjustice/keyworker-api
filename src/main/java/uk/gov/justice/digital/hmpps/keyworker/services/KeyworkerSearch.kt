@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest.Status.ALL
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
@@ -11,6 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.forLastMonth
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.valueOf
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
@@ -42,16 +44,24 @@ class KeyworkerSearch(
     val keyworkerStaffIds = keyworkerStaff.map { it.staffId }.toSet()
     val sessions = caseNoteApi.getUsageByStaffIds(forLastMonth(keyworkerStaffIds.map(Long::toString).toSet()))
     val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
-    val keyworkerDetail = keyworkerRepository.findAllWithAllocationCount(keyworkerStaffIds).associateBy { it.staffId }
+    val keyworkerDetail =
+      if (keyworkerStaffIds.isEmpty()) {
+        emptyMap()
+      } else {
+        keyworkerRepository.findAllWithAllocationCount(keyworkerStaffIds).associateBy { it.staffId }
+      }
 
     return KeyworkerSearchResponse(
-      keyworkerStaff.mapNotNull {
-        it.searchResponse(
-          { staffId -> keyworkerDetail[staffId] },
-          prisonConfig,
-          { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
-        )
-      },
+      keyworkerStaff
+        .map {
+          it.searchResponse(
+            { staffId -> keyworkerDetail[staffId] },
+            prisonConfig,
+            { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
+          )
+        }.filter {
+          request.status == ALL || valueOf(request.status.name).statusCode == it.status.code
+        },
     )
   }
 
@@ -59,22 +69,18 @@ class KeyworkerSearch(
     keyworkerConfig: (Long) -> KeyworkerWithAllocationCount?,
     prisonConfig: PrisonConfig,
     keyworkerSessions: (Long) -> UsageByAuthorIdResponse?,
-  ): KeyworkerSummary? {
+  ): KeyworkerSummary {
     val kwa = keyworkerConfig(staffId)
     val status = kwa?.keyworker?.status
-    return if (status == null || status == ACTIVE) {
-      KeyworkerSummary(
-        staffId,
-        firstName,
-        lastName,
-        (kwa?.keyworker?.status ?: ACTIVE).codedDescription(),
-        kwa?.keyworker?.capacity ?: prisonConfig.capacityTier1,
-        kwa?.allocationCount ?: 0,
-        kwa?.keyworker?.autoAllocation ?: prisonConfig.autoAllocate,
-        keyworkerSessions(staffId)?.count ?: 0,
-      )
-    } else {
-      null
-    }
+    return KeyworkerSummary(
+      staffId,
+      firstName,
+      lastName,
+      (status ?: ACTIVE).codedDescription(),
+      kwa?.keyworker?.capacity ?: prisonConfig.capacityTier1,
+      kwa?.allocationCount ?: 0,
+      kwa?.keyworker?.autoAllocation ?: prisonConfig.autoAllocate,
+      keyworkerSessions(staffId)?.count ?: 0,
+    )
   }
 }
