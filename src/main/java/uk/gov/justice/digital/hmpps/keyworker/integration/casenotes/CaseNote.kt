@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 data class CaseNote(
+  @JsonAlias("caseNoteId")
   val id: UUID,
   val type: String,
   val subType: String,
