@@ -27,17 +27,21 @@ class CaseNotesApiClient(
       .block()!!
 
   fun getUsageByStaffIds(usage: UsageByAuthorIdRequest): NoteUsageResponse<UsageByAuthorIdResponse> =
-    webClient
-      .post()
-      .uri("/case-notes/staff-usage")
-      .body(fromValue(usage))
-      .exchangeToMono { res ->
-        when (res.statusCode()) {
-          HttpStatus.OK -> res.bodyToMono<NoteUsageResponse<UsageByAuthorIdResponse>>()
-          else -> res.createError()
-        }
-      }.retryRequestOnTransientException()
-      .block()!!
+    if (usage.authorIds.isEmpty()) {
+      NoteUsageResponse(emptyMap())
+    } else {
+      webClient
+        .post()
+        .uri("/case-notes/staff-usage")
+        .body(fromValue(usage))
+        .exchangeToMono { res ->
+          when (res.statusCode()) {
+            HttpStatus.OK -> res.bodyToMono<NoteUsageResponse<UsageByAuthorIdResponse>>()
+            else -> res.createError()
+          }
+        }.retryRequestOnTransientException()
+        .block()!!
+    }
 
   fun getCaseNote(
     personIdentifier: String,
@@ -53,8 +57,17 @@ class CaseNotesApiClient(
         }
       }.retryRequestOnTransientException()
       .block()!!
-}
 
-data class CaseNote(
-  val id: UUID,
-)
+  fun getAllKeyworkerCaseNotes(personIdentifier: String): CaseNotes =
+    webClient
+      .post()
+      .uri("/search/case-notes/$personIdentifier")
+      .bodyValue(SearchCaseNotes())
+      .exchangeToMono { res ->
+        when (res.statusCode()) {
+          HttpStatus.OK -> res.bodyToMono<CaseNotes>()
+          else -> res.createError()
+        }
+      }.retryRequestOnTransientException()
+      .block()!!
+}

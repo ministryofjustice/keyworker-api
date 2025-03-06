@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.TRANSFER_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.TRANSFER_TYPE
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -135,11 +135,4 @@ data class CaseNoteSummary(
       .filter { it.subType == SESSION_SUBTYPE }
       .map { it.personIdentifier }
       .toSet()
-
-  companion object {
-    const val KW_TYPE = "KA"
-    const val SESSION_SUBTYPE = "KS"
-    const val ENTRY_SUBTYPE = "KE"
-    const val TRANSFER_TYPE = "TRANSFER"
-  }
 }

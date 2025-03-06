@@ -1,11 +1,18 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
-
 data class KeyworkerSearchRequest(
   val query: String?,
-  val status: KeyworkerStatus,
-)
+  val status: Status,
+) {
+  enum class Status {
+    ALL,
+    ACTIVE,
+    UNAVAILABLE_ANNUAL_LEAVE,
+    UNAVAILABLE_LONG_TERM_ABSENCE,
+    UNAVAILABLE_NO_PRISONER_CONTACT,
+    INACTIVE,
+  }
+}
 
 data class KeyworkerSearchResponse(
   val content: List<KeyworkerSummary>,

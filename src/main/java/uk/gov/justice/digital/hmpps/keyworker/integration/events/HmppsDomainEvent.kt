@@ -45,10 +45,11 @@ data class MergeInformation(
   val removedNomsNumber: String,
 ) : AdditionalInformation
 
-data class SessionInformation(
+data class CaseNoteInformation(
   val id: UUID,
   val type: String,
   val subType: String,
-  val systemGenerated: Boolean,
   val previousNomsNumber: String?,
 ) : AdditionalInformation
+
+data object CaseNoteMigrationInformation : AdditionalInformation

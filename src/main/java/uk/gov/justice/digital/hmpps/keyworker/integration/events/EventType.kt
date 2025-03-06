@@ -31,6 +31,10 @@ sealed interface EventType {
     override val name = "person.case-note.deleted"
   }
 
+  data object MigrateCaseNotes : EventType {
+    override val name = "person.case-note.migrate"
+  }
+
   data class Other(
     override val name: String,
   ) : EventType
@@ -41,6 +45,11 @@ sealed interface EventType {
         CalculatePrisonStats,
         ComplexityOfNeedChanged,
         PrisonMerged,
+        CaseNoteCreated,
+        CaseNoteUpdated,
+        CaseNoteMoved,
+        CaseNoteDeleted,
+        MigrateCaseNotes,
       )
 
     fun from(value: String): EventType = entries().firstOrNull { it.name.lowercase() == value.lowercase() } ?: Other(value)
