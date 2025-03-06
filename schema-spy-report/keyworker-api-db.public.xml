@@ -40,6 +40,8 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="created_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="8" name="text_length" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="amendment_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="keyworker_entry_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -66,6 +68,8 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="created_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="8" name="text_length" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="amendment_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="keyworker_session_pkey" unique="true">
             <column ascending="true" name="id"/>
