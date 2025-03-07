@@ -67,12 +67,12 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
         )
       }
     caseNotesMockServer.stubGetKeyworkerCaseNotes(personIdentifier, CaseNotes(caseNotes))
-    givenKeyworkerInteraction(caseNotes[3].copy(occurredAt = now().minusWeeks(52)).asKeyworkerInteraction())
-    givenKeyworkerInteraction(caseNotes[5].copy(occurredAt = now().minusWeeks(54)).asKeyworkerInteraction())
-    givenKeyworkerInteraction(caseNotes[8].copy(occurredAt = now().minusWeeks(56)).asKeyworkerInteraction())
-    givenKeyworkerInteraction(caseNotes[9].copy(occurredAt = now().minusWeeks(58)).asKeyworkerInteraction())
-    givenKeyworkerInteraction(caseNotes[10].copy(occurredAt = now().minusWeeks(60)).asKeyworkerInteraction())
-    givenKeyworkerInteraction(caseNotes[11].copy(occurredAt = now().minusWeeks(62)).asKeyworkerInteraction())
+    givenKeyworkerInteraction(caseNotes[3].copy(occurredAt = now().minusWeeks(52)).asKeyworkerInteraction()!!)
+    givenKeyworkerInteraction(caseNotes[5].copy(occurredAt = now().minusWeeks(54)).asKeyworkerInteraction()!!)
+    givenKeyworkerInteraction(caseNotes[8].copy(occurredAt = now().minusWeeks(56)).asKeyworkerInteraction()!!)
+    givenKeyworkerInteraction(caseNotes[9].copy(occurredAt = now().minusWeeks(58)).asKeyworkerInteraction()!!)
+    givenKeyworkerInteraction(caseNotes[10].copy(occurredAt = now().minusWeeks(60)).asKeyworkerInteraction()!!)
+    givenKeyworkerInteraction(caseNotes[11].copy(occurredAt = now().minusWeeks(62)).asKeyworkerInteraction()!!)
 
     publishEventToTopic(migrateEvent(personIdentifier))
 

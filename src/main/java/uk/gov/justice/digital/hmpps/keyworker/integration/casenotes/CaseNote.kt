@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
@@ -43,7 +44,7 @@ data class CaseNoteAmendment(
   val text: String,
 )
 
-fun CaseNote.asKeyworkerInteraction() =
+fun CaseNote.asKeyworkerInteraction(): KeyworkerInteraction? =
   when (subType) {
     SESSION_SUBTYPE ->
       KeyworkerSession(
@@ -71,5 +72,5 @@ fun CaseNote.asKeyworkerInteraction() =
         id,
       )
 
-    else -> throw IllegalArgumentException("Unknown case note sub type")
+    else -> null
   }
