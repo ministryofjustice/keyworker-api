@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.statistics.internal
+package uk.gov.justice.digital.hmpps.keyworker.domain
 
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

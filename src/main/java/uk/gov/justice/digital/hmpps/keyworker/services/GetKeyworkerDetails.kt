@@ -2,6 +2,12 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
@@ -18,11 +24,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPerso
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocation
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
 import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
@@ -70,7 +71,7 @@ class GetKeyworkerDetails(
 
     return KeyworkerDetails(
       keyworker,
-      (keyworkerInfo?.keyworker?.status ?: KeyworkerStatus.ACTIVE).codedDescription(),
+      (keyworkerInfo?.keyworker?.status?.asKeyworkerStatus() ?: KeyworkerStatus.ACTIVE).codedDescription(),
       CodedDescription(prisonCode, prisonName),
       keyworkerInfo?.keyworker?.capacity ?: prisonConfig.capacityTier1,
       keyworkerInfo?.allocationCount ?: 0,

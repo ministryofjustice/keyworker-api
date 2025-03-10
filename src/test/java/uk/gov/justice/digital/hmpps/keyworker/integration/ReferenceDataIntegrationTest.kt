@@ -1,0 +1,58 @@
+package uk.gov.justice.digital.hmpps.keyworker.integration
+
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+
+class ReferenceDataIntegrationTest : IntegrationTest() {
+  @Test
+  fun `401 unauthorised without a valid token`() {
+    webTestClient
+      .get()
+      .uri(REFERENCE_DATA_URL, "any-domain")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
+  }
+
+  @Test
+  fun `403 forbidden without correct role`() {
+    getReferenceDataSpec("any-domain", "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [Roles.KEYWORKER_RO, Roles.KEYWORKER_RW])
+  fun `200 ok - can retrieve reference data with correct role`(role: String) {
+    val rd =
+      getReferenceDataSpec("keyworker-status", role)
+        .expectStatus()
+        .isOk
+        .expectBodyList(CodedDescription::class.java)
+        .returnResult()
+        .responseBody
+
+    assertThat(rd).containsExactly(
+      CodedDescription("ACTIVE", "Active"),
+      CodedDescription("UNAVAILABLE_ANNUAL_LEAVE", "Unavailable - annual leave"),
+      CodedDescription("UNAVAILABLE_LONG_TERM_ABSENCE", "Unavailable - long term absence"),
+      CodedDescription("UNAVAILABLE_NO_PRISONER_CONTACT", "Unavailable - no prisoner contact"),
+      CodedDescription("INACTIVE", "Inactive"),
+    )
+  }
+
+  private fun getReferenceDataSpec(
+    domain: String,
+    role: String? = Roles.KEYWORKER_RO,
+  ) = webTestClient
+    .get()
+    .uri(REFERENCE_DATA_URL, domain)
+    .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+    .exchange()
+
+  companion object {
+    const val REFERENCE_DATA_URL = "/reference-data/{domain}"
+  }
+}

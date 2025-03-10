@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
@@ -14,18 +16,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKt.getKeyworkerStatus;
+
 @Service
 @Transactional
+@AllArgsConstructor
 @Slf4j
 public class KeyworkerBatchService {
     private final LegacyKeyworkerRepository keyworkerRepository;
-    private TelemetryClient telemetryClient;
-
-    public KeyworkerBatchService(final LegacyKeyworkerRepository keyworkerRepository,
-                                 final TelemetryClient telemetryClient) {
-        this.keyworkerRepository = keyworkerRepository;
-        this.telemetryClient = telemetryClient;
-    }
+    private final ReferenceDataRepository referenceDataRepository;
+    private final TelemetryClient telemetryClient;
 
     public List<Long> executeUpdateStatus() {
         try {
@@ -49,12 +49,13 @@ public class KeyworkerBatchService {
 
         final var today = LocalDate.now();
 
-        final var returningKeyworkers = keyworkerRepository.findByStatusAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, today.plusDays(1));
+        final var returningKeyworkers = keyworkerRepository.findByStatusKeyCodeAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1));
+        final var status = getKeyworkerStatus(referenceDataRepository, KeyworkerStatus.ACTIVE);
 
         returningKeyworkers.forEach(kw -> {
             log.debug("Updating keyworker {}, changing status to ACTIVE from {}", kw.getStaffId(), kw.getStatus());
             kw.setActiveDate(null);
-            kw.setStatus(KeyworkerStatus.ACTIVE);
+            kw.setStatus(status);
             kw.setAutoAllocationFlag(true);
         });
 
