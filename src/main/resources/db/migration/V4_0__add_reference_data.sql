@@ -36,3 +36,6 @@ where status_id is null;
 alter table key_worker
     alter column status_id set not null,
     drop column status;
+
+alter table reference_data
+    drop column short_code;

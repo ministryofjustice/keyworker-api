@@ -21,7 +21,6 @@ class ReferenceData(
   val key: ReferenceDataKey,
   val description: String,
   val sequenceNumber: Int,
-  val shortCode: String?,
   @Id
   @Column(name = "id")
   val id: Long,

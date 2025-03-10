@@ -14,7 +14,6 @@ object ReferenceDataMock {
           ReferenceDataKey(ReferenceDataDomain.KEYWORKER_STATUS, it.name),
           "Description of ${it.name}",
           it.ordinal,
-          it.statusCode,
           it.ordinal.toLong(),
         )
       }.associateBy { it.code }
