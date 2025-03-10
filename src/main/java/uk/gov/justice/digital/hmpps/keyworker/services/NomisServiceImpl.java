@@ -458,10 +458,8 @@ public class NomisServiceImpl implements NomisService {
             uriVariablesOf(),
             offenderNos,
             ALLOCATION_HISTORY,
-            true
-        );
+            true);
     }
-
     @Override
     public boolean isPrison(final String prisonId) {
         final var uriVariables = uriVariablesOf("agencyId", prisonId);
