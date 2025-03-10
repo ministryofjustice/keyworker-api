@@ -3,6 +3,7 @@
       <sequence increment="1" name="batch_history_batch_id_seq" startValue="1"/>
       <sequence increment="1" name="keyworker_stats_keyworker_stats_id_seq" startValue="1"/>
       <sequence increment="1" name="offender_key_worker_offender_keyworker_id_seq" startValue="1"/>
+      <sequence increment="1" name="reference_data_id_seq" startValue="1"/>
    </sequences>
    <tables>
       <table name="batch_history" remarks="Records the results of batch runs" schema="public" type="TABLE">
@@ -15,15 +16,13 @@
          </index>
       </table>
       <table name="key_worker" remarks="Stores Key worker basic details, including status and capacity." schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="staff_id" nullable="false" remarks="The unique staff identifier for Key worker in core OMS" size="19" type="int8" typeCode="-5">
-            <child column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_entry"/>
-            <child column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_session"/>
-            <child column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="offender_key_worker"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="staff_id" nullable="false" remarks="The unique staff identifier for Key worker in core OMS" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="capacity" nullable="false" remarks="Standard number of offenders that can be allocated to Key worker" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="'Y'::bpchar" digits="0" id="2" name="auto_allocation_flag" nullable="false" remarks="Y - include in auto allocation pool, N - exclude from auto allocation pool" size="1" type="bpchar" typeCode="1"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="active_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="status_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="key_worker_status_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="status" nullable="false" remarks="Current status of Key worker" size="12" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="capacity" nullable="false" remarks="Standard number of offenders that can be allocated to Key worker" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="'Y'::bpchar" digits="0" id="3" name="auto_allocation_flag" nullable="false" remarks="Y - include in auto allocation pool, N - exclude from auto allocation pool" size="1" type="bpchar" typeCode="1"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="active_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
          <primaryKey column="staff_id" sequenceNumberInPK="1"/>
          <index name="key_worker_pk" unique="true">
             <column ascending="true" name="staff_id"/>
@@ -33,9 +32,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="occurred_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="true" remarks="" size="7" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
-            <parent column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="key_worker"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="staff_username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="created_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
@@ -61,9 +58,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="occurred_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="true" remarks="" size="7" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
-            <parent column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="key_worker"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="staff_username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="created_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
@@ -114,9 +109,7 @@
       <table name="offender_key_worker" remarks="Records the Key Worker assignment history of offenders on remand or serving custodial sentences held within an establishment." schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('offender_key_worker_offender_keyworker_id_seq'::regclass)" digits="0" id="0" name="offender_keyworker_id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="offender_no" nullable="false" remarks="The Related Offender No" size="10" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="staff_id" nullable="false" remarks="The Related Key Worker Staff Id" size="19" type="int8" typeCode="-5">
-            <parent column="staff_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="key_worker"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="staff_id" nullable="false" remarks="The Related Key Worker Staff Id" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="3" name="assigned_date_time" nullable="false" remarks="Assigned Date and Time" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="active_flag" nullable="false" remarks="Assignment Active Flag" size="1" type="bpchar" typeCode="1"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="alloc_reason" nullable="false" remarks="Reason for allocation" size="12" type="varchar" typeCode="12"/>
@@ -187,6 +180,27 @@
          <primaryKey column="prison_id" sequenceNumberInPK="1"/>
          <index name="prison_pk" unique="true">
             <column ascending="true" name="prison_id"/>
+         </index>
+      </table>
+      <table name="reference_data" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="status_id" foreignKey="key_worker_status_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="key_worker"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="domain" nullable="false" remarks="" size="32" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="code" nullable="false" remarks="" size="32" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="description" nullable="false" remarks="" size="128" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="sequence_number" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="reference_data_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="unq_reference_data_domain_code" unique="true">
+            <column ascending="true" name="domain"/>
+            <column ascending="true" name="code"/>
+         </index>
+         <index name="unq_reference_data_domain_sequence" unique="true">
+            <column ascending="true" name="domain"/>
+            <column ascending="true" name="sequence_number"/>
          </index>
       </table>
    </tables>

@@ -31,7 +31,6 @@
 <text text-anchor="start" x="548" y="-352.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[10]</text>
 <polygon fill="#ffffff" stroke="transparent" points="371,-323.2 371,-345.2 545,-345.2 545,-323.2 371,-323.2"/>
 <polygon fill="none" stroke="#000000" points="371,-323.2 371,-345.2 545,-345.2 545,-323.2 371,-323.2"/>
-<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="376" y="-340.2"/>
 <text text-anchor="start" x="391" y="-330.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">staff_id</text>
 <polygon fill="none" stroke="#000000" points="545,-323.2 545,-345.2 629,-345.2 629,-323.2 545,-323.2"/>
 <text text-anchor="start" x="548" y="-330.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">int8[19]</text>
@@ -88,7 +87,7 @@
 <text text-anchor="start" x="548" y="-66.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[32]</text>
 <polygon fill="#ffffff" stroke="transparent" points="371,-40.2 371,-59.2 462,-59.2 462,-40.2 371,-40.2"/>
 <polygon fill="none" stroke="#000000" points="371,-40.2 371,-59.2 462,-59.2 462,-40.2 371,-40.2"/>
-<text text-anchor="start" x="374" y="-46.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
+<text text-anchor="start" x="374" y="-46.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
 <polygon fill="#ffffff" stroke="transparent" points="462,-40.2 462,-59.2 545,-59.2 545,-40.2 462,-40.2"/>
 <polygon fill="none" stroke="#000000" points="462,-40.2 462,-59.2 545,-59.2 545,-40.2 462,-40.2"/>
 <text text-anchor="start" x="535.8862" y="-46.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
@@ -131,39 +130,6 @@
 <path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M356.276,-202.2C344.2815,-202.2 336.8229,-202.2 320,-202.2"/>
 <polygon fill="#000000" stroke="#000000" points="363,-202.2001 371,-205.8 367,-202.2 371,-202.2 371,-202.2 371,-202.2 367,-202.2 371,-198.6 363,-202.2001 363,-202.2001"/>
 <ellipse fill="none" stroke="#000000" cx="359.8" cy="-202.2001" rx="3.2" ry="3.2"/>
-</g>
-<!-- key_worker -->
-<g id="node3" class="node">
-<title>key_worker</title>
-<g id="a_node3"><a xlink:href="../../tables/key_worker.html" xlink:title="key_worker" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="86,-285.7 86,-368.7 242,-368.7 242,-285.7 86,-285.7"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="86,-345.2 86,-368.2 242,-368.2 242,-345.2 86,-345.2"/>
-<polygon fill="none" stroke="#000000" points="86,-345.2 86,-368.2 242,-368.2 242,-345.2 86,-345.2"/>
-<text text-anchor="start" x="91" y="-353.8" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">key_worker</text>
-<text text-anchor="start" x="207.0437" y="-353.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="86,-323.2 86,-345.2 242,-345.2 242,-323.2 86,-323.2"/>
-<image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="91" y="-340.2"/>
-<text text-anchor="start" x="106" y="-330.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">staff_id</text>
-<polygon fill="none" stroke="#000000" points="86,-304.2 86,-323.2 242,-323.2 242,-304.2 86,-304.2"/>
-<text text-anchor="start" x="89" y="-310.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="86,-285.2 86,-304.2 153,-304.2 153,-285.2 86,-285.2"/>
-<polygon fill="none" stroke="#000000" points="86,-285.2 86,-304.2 153,-304.2 153,-285.2 86,-285.2"/>
-<text text-anchor="start" x="89" y="-291.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="153,-285.2 153,-304.2 193,-304.2 193,-285.2 153,-285.2"/>
-<polygon fill="none" stroke="#000000" points="153,-285.2 153,-304.2 193,-304.2 193,-285.2 153,-285.2"/>
-<text text-anchor="start" x="183.8862" y="-291.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="193,-285.2 193,-304.2 242,-304.2 242,-285.2 193,-285.2"/>
-<polygon fill="none" stroke="#000000" points="193,-285.2 193,-304.2 242,-304.2 242,-285.2 193,-285.2"/>
-<text text-anchor="start" x="223.4053" y="-291.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">3 &gt;</text>
-</a>
-</g>
-</g>
-<!-- offender_key_worker&#45;&gt;key_worker -->
-<g id="edge2" class="edge">
-<title>offender_key_worker:w&#45;&gt;key_worker:e</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M356.5258,-334.2C310.7441,-334.2 294.1823,-334.2 242,-334.2"/>
-<polygon fill="#000000" stroke="#000000" points="363,-334.2001 371,-337.8 367,-334.2 371,-334.2 371,-334.2 371,-334.2 367,-334.2 371,-330.6 363,-334.2001 363,-334.2001"/>
-<ellipse fill="none" stroke="#000000" cx="359.8" cy="-334.2001" rx="3.2" ry="3.2"/>
 </g>
 </g>
 </svg>

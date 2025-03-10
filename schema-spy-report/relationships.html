@@ -87,27 +87,25 @@
                                 <!-- Tabs within a box -->
                                 <h5>By default only columns that are primary keys, foreign keys or indexes are shown.</h5>
                                 <ul class="nav nav-tabs pull-left ui-sortable-handle">
-                                    <li class="active"><a href="#compactimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Compact Implied</a></li>
+                                    <li class="active"><a href="#compactDegreeImg-chart" data-toggle="tab" aria-expanded="true">Compact</a></li>
+                                    <li class=""><a href="#largeDegreeImg-chart" data-toggle="tab" aria-expanded="true">Large</a></li>
+                                    <li class=""><a href="#compactimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Compact Implied</a></li>
                                     <li class=""><a href="#largeimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Large Implied</a></li>
                                 </ul>
                                 <div class="tab-content no-padding">
-                                    <div class="chart tab-pane active" id="compactimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
-                                        <div class="alert alert-warning alert-dismissible">
-                                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                                            <h4><i class="icon fa fa-info-circle"></i> Implied Relationships</h4>
-                                            <p>No 'real' Foreign Key relationships were detected in the schema.<br />
-                                                Displayed relationships are implied by a column's name/type/size matching another table's primary key.</p>
-                                        </div>
+                                    <div class="chart tab-pane active" id="compactDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        
+                                        <a name='diagram'><object type="image/svg+xml" id="compactDegreeImg" data="diagrams/summary/relationships.real.compact.svg" class="diagram" border="0" align="left"></object></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="largeDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        
+                                        <a name='diagram'><object type="image/svg+xml" id="largeDegreeImg" data="diagrams/summary/relationships.real.large.svg" class="diagram" border="0" align="left"></object></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="compactimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
                                         <a name='diagram'><object type="image/svg+xml" id="compactimpliedDegreeImg" data="diagrams/summary/relationships.implied.compact.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                     <div class="chart tab-pane " id="largeimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
-                                        <div class="alert alert-warning alert-dismissible">
-                                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                                            <h4><i class="icon fa fa-info-circle"></i> Implied Relationships</h4>
-                                            <p>No 'real' Foreign Key relationships were detected in the schema.<br />
-                                                Displayed relationships are implied by a column's name/type/size matching another table's primary key.</p>
-                                        </div>
                                         
                                         <a name='diagram'><object type="image/svg+xml" id="largeimpliedDegreeImg" data="diagrams/summary/relationships.implied.large.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>

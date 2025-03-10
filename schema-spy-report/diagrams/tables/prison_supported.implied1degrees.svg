@@ -122,7 +122,6 @@
 <text text-anchor="start" x="497" y="-179.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">offender_no</text>
 <polygon fill="#ffffff" stroke="transparent" points="474,-150.2 474,-172.2 654,-172.2 654,-150.2 474,-150.2"/>
 <polygon fill="none" stroke="#000000" points="474,-150.2 474,-172.2 654,-172.2 654,-150.2 474,-150.2"/>
-<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="479" y="-167.2"/>
 <text text-anchor="start" x="497" y="-157.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">staff_id</text>
 <polygon fill="#ffffff" stroke="transparent" points="474,-128.2 474,-150.2 654,-150.2 654,-128.2 474,-128.2"/>
 <polygon fill="none" stroke="#000000" points="474,-128.2 474,-150.2 654,-150.2 654,-128.2 474,-128.2"/>
@@ -135,7 +134,7 @@
 <text text-anchor="start" x="477" y="-93.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
 <polygon fill="#ffffff" stroke="transparent" points="474,-68.2 474,-87.2 562,-87.2 562,-68.2 474,-68.2"/>
 <polygon fill="none" stroke="#000000" points="474,-68.2 474,-87.2 562,-87.2 562,-68.2 474,-68.2"/>
-<text text-anchor="start" x="477" y="-74.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
+<text text-anchor="start" x="477" y="-74.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
 <polygon fill="#ffffff" stroke="transparent" points="562,-68.2 562,-87.2 608,-87.2 608,-68.2 562,-68.2"/>
 <polygon fill="none" stroke="#000000" points="562,-68.2 562,-87.2 608,-87.2 608,-68.2 562,-68.2"/>
 <text text-anchor="start" x="598.8862" y="-74.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
