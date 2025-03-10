@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatSummary;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
@@ -54,6 +57,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.T
 @Service
 @Transactional(readOnly = true)
 @Slf4j
+@AllArgsConstructor
 public class KeyworkerStatsService {
 
     private final NomisService nomisService;
@@ -64,22 +68,7 @@ public class KeyworkerStatsService {
     private final TelemetryClient telemetryClient;
     private final ComplexityOfNeed complexityOfNeedService;
 
-    private final static BigDecimal HUNDRED = new BigDecimal("100.00");
-
-    public KeyworkerStatsService(final NomisService nomisService, final PrisonSupportedService prisonSupportedService,
-                                 final OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                 final PrisonKeyWorkerStatisticRepository statisticRepository,
-                                 final LegacyKeyworkerRepository keyworkerRepository,
-                                 final TelemetryClient telemetryClient,
-                                 final ComplexityOfNeed complexityOfNeedService) {
-        this.nomisService = nomisService;
-        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
-        this.prisonSupportedService = prisonSupportedService;
-        this.statisticRepository = statisticRepository;
-        this.keyworkerRepository = keyworkerRepository;
-        this.telemetryClient = telemetryClient;
-        this.complexityOfNeedService = complexityOfNeedService;
-    }
+    private static final BigDecimal hundred = new BigDecimal("100.00");
 
     public KeyworkerStatsDto getStatsForStaff(final Long staffId, final String prisonId, final LocalDate fromDate, final LocalDate toDate) {
 
@@ -160,7 +149,7 @@ public class KeyworkerStatsService {
             final var keyWorkers = activeKeyWorkers.getBody().stream().filter(
                     kw -> {
                         var keyworker = keyworkerRepository.findById(kw.getStaffId()).orElse(null);
-                        return keyworker == null || keyworker.getStatus() == KeyworkerStatus.ACTIVE;
+                        return keyworker == null || KeyworkerStatus.ACTIVE.name().equals(keyworker.getStatus().getCode());
                     }
             ).toList();
             log.info("There are currently {} active key workers in {}", keyWorkers.size(), prisonId);
@@ -477,7 +466,7 @@ public class KeyworkerStatsService {
     }
 
     static BigDecimal percentage(final double numerator, final double denominator) {
-        var percentage = HUNDRED;
+        var percentage = hundred;
 
         if (denominator > 0) {
             percentage = new BigDecimal(numerator * 100.00 / denominator).setScale(2, RoundingMode.HALF_UP);
@@ -486,7 +475,7 @@ public class KeyworkerStatsService {
     }
 
     static BigDecimal rate(final long numerator, final double denominator) {
-        var complianceRate = HUNDRED;
+        var complianceRate = hundred;
 
         if (denominator > 0) {
             complianceRate = new BigDecimal(numerator * 100.00 / denominator).setScale(2, RoundingMode.HALF_UP);

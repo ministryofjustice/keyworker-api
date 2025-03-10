@@ -18,7 +18,7 @@ import java.time.LocalDate
 
 @Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
-@RequestMapping(value = ["/prisons/{prisonCode}/keyworkers", "/prisons/{prisonCode}/keyworker"])
+@RequestMapping(value = ["/prisons/{prisonCode}/keyworkers"])
 class PrisonController(
   private val prisonService: PrisonService,
   private val statsService: PrisonStatsService,

@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration.Companion.NOT_CONFIGURED
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
 
 @Service
 class PrisonService(

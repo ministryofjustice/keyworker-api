@@ -2,15 +2,15 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StatSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.WeeklyStatDbl
 import uk.gov.justice.digital.hmpps.keyworker.dto.WeeklyStatInt
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic.percentage
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
 import java.math.RoundingMode.HALF_EVEN
 import java.time.DayOfWeek
 import java.time.LocalDate

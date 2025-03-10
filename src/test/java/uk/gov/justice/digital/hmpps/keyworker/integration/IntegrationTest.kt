@@ -20,11 +20,24 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import uk.gov.justice.digital.hmpps.keyworker.domain.Keyworker
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.KEYWORKER_STATUS
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
@@ -41,14 +54,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.Keyworker
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocation
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -100,6 +105,9 @@ abstract class IntegrationTest {
 
   @Autowired
   internal lateinit var keRepository: KeyworkerEntryRepository
+
+  @Autowired
+  internal lateinit var referenceDataRepository: ReferenceDataRepository
 
   @MockitoBean
   internal lateinit var telemetryClient: TelemetryClient
@@ -383,7 +391,7 @@ abstract class IntegrationTest {
     staffId: Long = newId(),
     capacity: Int = 6,
     autoAllocation: Boolean = true,
-  ) = Keyworker(status, capacity, autoAllocation, staffId)
+  ) = Keyworker(withReferenceData(KEYWORKER_STATUS, status.name), capacity, autoAllocation, staffId)
 
   protected fun givenKeyworker(keyworker: Keyworker): Keyworker = keyworkerRepository.save(keyworker)
 
@@ -421,4 +429,11 @@ abstract class IntegrationTest {
       is KeyworkerSession -> ksRepository.save(interaction)
       is KeyworkerEntry -> keRepository.save(interaction)
     }
+
+  protected fun withReferenceData(
+    domain: ReferenceDataDomain,
+    code: String,
+  ): ReferenceData =
+    referenceDataRepository.findByKey(ReferenceDataKey(domain, code))
+      ?: throw IllegalArgumentException("Reference data does not exist: $code")
 }
