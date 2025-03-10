@@ -7,6 +7,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
@@ -15,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageRes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
 import java.time.LocalDate.now
@@ -41,7 +42,10 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
   fun `200 ok and keyworker details returned`() {
     val prisonCode = "DEF"
     val keyworker = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
-    prisonMockServer.stubKeyworkerDetails(keyworker.staffId)
+    prisonMockServer.stubKeyworkerDetails(
+      prisonCode,
+      staffDetail(keyworker.staffId, ScheduleType.FULL_TIME),
+    )
 
     val allocations =
       (0..30).map {
@@ -110,8 +114,8 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
   fun `200 ok and keyworker details returned when no allocations exist and no config`() {
     val agency = Agency("NOAL", "No Allocations")
     val (prisonCode, prisonDescription) = agency
-    val staff = StaffSummary(newId(), "Noah", "Cations", "PT")
-    prisonMockServer.stubKeyworkerDetails(staff.staffId, staff)
+    val staff = staffDetail(newId(), ScheduleType.PART_TIME, "Noah", "Locations")
+    prisonMockServer.stubKeyworkerDetails(prisonCode, staff)
     prisonMockServer.stubGetAgency(prisonCode, agency)
 
     val response =
@@ -177,5 +181,19 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
 
   companion object {
     const val GET_KEYWORKER_DETAILS = "/prisons/{prisonCode}/keyworkers/{staffId}"
+
+    fun staffDetail(
+      id: Long,
+      scheduleType: ScheduleType,
+      firstName: String = "First",
+      lastName: String = "Last",
+    ): StaffLocationRoleDto =
+      StaffLocationRoleDto
+        .builder()
+        .staffId(id)
+        .scheduleType(scheduleType.code)
+        .firstName(firstName)
+        .lastName(lastName)
+        .build()
   }
 }

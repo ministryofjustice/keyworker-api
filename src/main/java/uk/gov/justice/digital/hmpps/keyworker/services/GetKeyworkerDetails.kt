@@ -45,7 +45,11 @@ class GetKeyworkerDetails(
     staffId: Long,
   ): KeyworkerDetails {
     val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
-    val keyworker = nomisService.getBasicKeyworkerDtoForStaffId(staffId).asKeyworker()
+    val keyworker =
+      nomisService
+        .getStaffKeyWorkerForPrison(prisonCode, staffId)
+        .orElseThrow { IllegalArgumentException("Staff not recognised as a keyworker") }
+        .asKeyworker()
 
     val keyworkerInfo = keyworkerRepository.findAllWithAllocationCount(setOf(staffId)).firstOrNull()
     val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)

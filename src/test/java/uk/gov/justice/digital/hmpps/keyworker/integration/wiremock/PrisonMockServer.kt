@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -170,30 +170,45 @@ class PrisonMockServer : WireMockServer(9999) {
     )
   }
 
-  fun stubKeyworkerDetails(
-    staffId: Long,
-    staffSummary: StaffSummary = StaffSummary(staffId, "First", "Last", "FT"),
-  ) {
+  fun stubKeyworkerSummary(staffSummary: StaffSummary) {
     stubFor(
       WireMock
-        .get(WireMock.urlEqualTo("/api/staff/$staffId"))
+        .get(WireMock.urlEqualTo("/api/staff/${staffSummary.staffId}"))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(jacksonObjectMapper().writeValueAsString(staffSummary)),
+            .withBody(objectMapper.writeValueAsString(staffSummary)),
+        ),
+    )
+  }
+
+  fun stubKeyworkerDetails(
+    prisonCode: String,
+    staffDetail: StaffLocationRoleDto,
+  ) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathMatching("/api/staff/roles/$prisonCode/role/KW"))
+        .withQueryParam("staffId", equalTo(staffDetail.staffId.toString()))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(listOf(staffDetail))),
         ),
     )
   }
 
   fun stubKeyworkerSearch(
-    prisonId: String,
+    prisonCode: String,
     response: List<StaffLocationRoleDto>,
   ) {
     stubFor(
       WireMock
-        .get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonId/role/KW"))
+        .get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonCode/role/KW"))
         .willReturn(
           WireMock
             .aResponse()
