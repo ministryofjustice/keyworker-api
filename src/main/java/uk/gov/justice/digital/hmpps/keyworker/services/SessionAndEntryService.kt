@@ -80,9 +80,23 @@ class SessionAndEntryService(
     block: KeyworkerInteraction.(CaseNote) -> KeyworkerInteraction,
   ) {
     val caseNote = getCaseNote(personInfo)
-    caseNote.asKeyworkerInteraction()?.let {
-      getKeyworkerInteraction(it)?.block(caseNote)?.also(::saveKeyworkerInteraction)
-    } ?: delete(personInfo)
+    val interaction = caseNote.asKeyworkerInteraction()
+    val updated =
+      interaction?.let {
+        getKeyworkerInteraction(it)?.block(caseNote)?.also(::saveKeyworkerInteraction)
+      }
+    if (updated == null) {
+      when (interaction) {
+        is KeyworkerSession -> keRepository.deleteById(personInfo.info.id)
+        is KeyworkerEntry -> ksRepository.deleteById(personInfo.info.id)
+        else -> {
+          ksRepository.deleteById(personInfo.info.id)
+          keRepository.deleteById(personInfo.info.id)
+        }
+      }
+      // if a session has been changed to an entry or vice versa
+      interaction?.let { saveKeyworkerInteraction(it) }
+    }
   }
 }
 

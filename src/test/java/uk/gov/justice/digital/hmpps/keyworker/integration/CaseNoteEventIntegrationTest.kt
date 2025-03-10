@@ -137,6 +137,34 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     assertThat(interaction).isNull()
   }
 
+  @ParameterizedTest
+  @MethodSource("sessionEntrySwap")
+  fun `swap session for entry and vice versa`(caseNote: CaseNote) {
+    val subType = if (caseNote.subType == SESSION_SUBTYPE) ENTRY_SUBTYPE else SESSION_SUBTYPE
+    val updateCaseNote = caseNote.copy(subType = subType)
+    caseNotesMockServer.stubGetCaseNote(updateCaseNote)
+    val event =
+      caseNoteEvent(
+        CaseNoteUpdated,
+        caseNoteInfo(updateCaseNote),
+        caseNote.personIdentifier,
+      )
+    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
+    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(existingInteraction).isNotNull()
+    existingInteraction!!.verifyAgainst(caseNote)
+
+    publishEventToTopic(event, updateCaseNote.snsAttributes())
+
+    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
+
+    val newInteraction = interactionRepository(updateCaseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(newInteraction).isNotNull()
+
+    val deletedInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(deletedInteraction).isNull()
+  }
+
   @Test
   fun `non keyworker case notes are ignored`() {
     val caseNote = caseNote("OTHER", "ANY")
@@ -249,6 +277,13 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     @JvmStatic
     fun caseNoteTypeChanged() =
+      listOf(
+        Arguments.of(caseNote(SESSION_SUBTYPE)),
+        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+      )
+
+    @JvmStatic
+    fun sessionEntrySwap() =
       listOf(
         Arguments.of(caseNote(SESSION_SUBTYPE)),
         Arguments.of(caseNote(ENTRY_SUBTYPE)),
