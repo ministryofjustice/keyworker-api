@@ -11,6 +11,7 @@ generic-service:
     COMPLEXITY_OF_NEED_URI: https://complexity-of-need.hmpps.service.justice.gov.uk
 
   postgresDatabaseRestore:
+    tag: "sha-a08734f"
     enabled: true
     namespace_secrets:
       dps-rds-instance-output:

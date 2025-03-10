@@ -12,6 +12,6 @@ enum class ScheduleType(
   ;
 
   companion object {
-    fun from(code: String): ScheduleType = entries.find { it.code == code } ?: UNKNOWN
+    fun from(code: String?): ScheduleType = entries.find { it.code == code } ?: UNKNOWN
   }
 }
