@@ -89,7 +89,7 @@ class KeyworkerStatsServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new KeyworkerStatsService(nomisService, prisonSupportedService, repository, statisticRepository, keyworkerRepository, telemetryClient, complexityOfNeedService);
+        service = new KeyworkerStatsService(nomisService, repository, keyworkerRepository, statisticRepository, prisonSupportedService, telemetryClient, complexityOfNeedService);
         toDate = LocalDate.now();
         fromDate = toDate.minusMonths(1);
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(Prison.builder().kwSessionFrequencyInWeeks(1).migrated(true).migratedDateTime(toDate.minusMonths(10).atStartOfDay()).build());
@@ -703,8 +703,12 @@ class KeyworkerStatsServiceTest {
         when(nomisService.getActiveStaffKeyWorkersForPrison(eq(TEST_AGENCY_ID), eq(Optional.empty()), isA(PagingAndSortingDto.class), eq(true)))
                 .thenReturn(new ResponseEntity<>(staffLocationRoleDtos, HttpStatus.OK));
 
-        lenient().when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(LegacyKeyworker.builder().staffId(-5L).status(KeyworkerStatus.ACTIVE).build()));
-        lenient().when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(LegacyKeyworker.builder().staffId(-5L).status(KeyworkerStatus.INACTIVE).build()));
+        lenient().when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(LegacyKeyworker.builder().staffId(-5L)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+            .build()));
+        lenient().when(keyworkerRepository.findById(-3L)).thenReturn(Optional.of(LegacyKeyworker.builder().staffId(-5L)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.INACTIVE.name()))
+            .build()));
 
         when(nomisService.getCaseNoteUsageByPrison(eq(TEST_AGENCY_ID),
                 eq(KEYWORKER_CASENOTE_TYPE), isNull(), eq(toDate.minusDays(1)),

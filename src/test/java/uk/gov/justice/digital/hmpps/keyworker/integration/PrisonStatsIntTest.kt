@@ -99,6 +99,6 @@ class PrisonStatsIntTest : IntegrationTest() {
     .exchange()
 
   companion object {
-    const val GET_STATS = "/prisons/{prisonCode}/keyworker/statistics"
+    const val GET_STATS = "/prisons/{prisonCode}/keyworkers/statistics"
   }
 }

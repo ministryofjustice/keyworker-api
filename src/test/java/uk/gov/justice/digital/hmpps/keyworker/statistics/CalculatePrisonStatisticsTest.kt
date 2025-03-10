@@ -5,6 +5,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
@@ -26,7 +27,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
 import java.time.LocalDate.now
@@ -52,7 +52,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           keyworkerAllocation(
             pi,
             prisonCode,
-            (keyworkers + additionalKeyworkers).filter { it.status == ACTIVE }.random().staffId,
+            (keyworkers + additionalKeyworkers).filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
             allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
           ),
@@ -129,7 +129,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           keyworkerAllocation(
             pi,
             prisonCode,
-            keyworkers.filter { it.status == ACTIVE }.random().staffId,
+            keyworkers.filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
             allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
           ),

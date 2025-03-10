@@ -1,22 +1,23 @@
-package uk.gov.justice.digital.hmpps.keyworker.statistics.internal
+package uk.gov.justice.digital.hmpps.keyworker.domain
 
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.type.YesNoConverter
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatusConvertor
 
 @Entity
 @Table(name = "key_worker")
 class Keyworker(
-  @Column(name = "status")
-  @Convert(converter = KeyworkerStatusConvertor::class)
-  val status: KeyworkerStatus,
+  @ManyToOne
+  @JoinColumn(name = "status_id")
+  val status: ReferenceData,
   val capacity: Int,
   @Column(name = "auto_allocation_flag")
   @Convert(converter = YesNoConverter::class)
@@ -41,14 +42,20 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
   )
   fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
 
-  fun findAllByStaffIdInAndStatusIn(
+  fun findAllByStaffIdInAndStatusKeyCodeIn(
     staffIds: Set<Long>,
-    status: Set<KeyworkerStatus>,
+    status: Set<String>,
   ): List<Keyworker>
 }
 
 fun KeyworkerRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
-  findAllByStaffIdInAndStatusIn(staffIds, KeyworkerStatus.entries.filter { it != KeyworkerStatus.ACTIVE }.toSet())
+  findAllByStaffIdInAndStatusKeyCodeIn(
+    staffIds,
+    KeyworkerStatus.entries
+      .filter { it != KeyworkerStatus.ACTIVE }
+      .map { it.name }
+      .toSet(),
+  )
 
 interface KeyworkerWithAllocationCount {
   val staffId: Long

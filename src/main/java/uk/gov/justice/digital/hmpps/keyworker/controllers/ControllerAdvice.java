@@ -50,7 +50,7 @@ public class ControllerAdvice {
                         .build());
     }
 
-    @ExceptionHandler({AllocationException.class, IllegalStateException.class})
+    @ExceptionHandler({AllocationException.class, IllegalStateException.class, IllegalArgumentException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(final Exception e) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

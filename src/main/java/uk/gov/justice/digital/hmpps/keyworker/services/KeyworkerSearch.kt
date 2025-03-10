@@ -2,6 +2,11 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerWithAllocationCount
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest.Status.ALL
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
@@ -13,10 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.valueOf
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerWithAllocationCount
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
 import java.util.Optional
 
 @Service
@@ -76,7 +77,7 @@ class KeyworkerSearch(
       staffId,
       firstName,
       lastName,
-      (status ?: ACTIVE).codedDescription(),
+      (status?.asKeyworkerStatus() ?: ACTIVE).codedDescription(),
       kwa?.keyworker?.capacity ?: prisonConfig.capacityTier1,
       kwa?.allocationCount ?: 0,
       kwa?.keyworker?.autoAllocation ?: prisonConfig.autoAllocate,

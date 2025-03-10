@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKt;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
@@ -57,6 +60,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.time.LocalDate.now;
+import static uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKt.getKeyworkerStatus;
 import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE;
 
 @Service
@@ -76,6 +80,7 @@ public class KeyworkerService {
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
     private final ComplexityOfNeed complexityOfNeedService;
+    private final ReferenceDataRepository referenceDataRepository;
 
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {
 
@@ -553,7 +558,7 @@ public class KeyworkerService {
                 .ifPresentOrElse(
                     keyworker -> {
                         keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
-                        keyworkerDto.setStatus(keyworker.getStatus());
+                        keyworkerDto.setStatus(KeyworkerStatus.valueOf(keyworker.getStatus().getCode()));
                         keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
                         keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocationFlag());
                         keyworkerDto.setActiveDate(keyworker.getActiveDate());
@@ -589,10 +594,11 @@ public class KeyworkerService {
 
         prisonSupportedService.verifyPrisonMigrated(prisonId);
         Validate.notNull(staffId, "Missing staff id");
+        final var status = getKeyworkerStatus(referenceDataRepository, keyworkerUpdateDto.getStatus());
 
         keyworkerRepository.findById(staffId).ifPresentOrElse(keyworker -> {
                 keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
-                keyworker.setStatus(keyworkerUpdateDto.getStatus());
+                keyworker.setStatus(status);
                 keyworker.setActiveDate(keyworkerUpdateDto.getActiveDate());
                 if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
                     keyworker.setAutoAllocationFlag(true);
@@ -601,7 +607,7 @@ public class KeyworkerService {
             () -> keyworkerRepository.save(LegacyKeyworker.builder()
                 .staffId(staffId)
                 .capacity(keyworkerUpdateDto.getCapacity())
-                .status(keyworkerUpdateDto.getStatus())
+                .status(status)
                 .autoAllocationFlag(true)
                 .activeDate(keyworkerUpdateDto.getActiveDate())
                 .build()));

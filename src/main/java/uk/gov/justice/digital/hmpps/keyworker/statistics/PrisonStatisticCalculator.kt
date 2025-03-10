@@ -3,6 +3,12 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
@@ -15,12 +21,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexityOfNeedGateway
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.KeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatistic
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonStatisticRepository
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.getNonActiveKeyworkers
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS

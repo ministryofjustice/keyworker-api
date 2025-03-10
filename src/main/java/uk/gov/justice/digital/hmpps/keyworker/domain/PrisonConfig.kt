@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.statistics.internal
+package uk.gov.justice.digital.hmpps.keyworker.domain
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

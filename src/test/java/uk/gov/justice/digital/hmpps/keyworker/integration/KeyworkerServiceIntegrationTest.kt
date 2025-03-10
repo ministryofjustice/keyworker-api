@@ -24,12 +24,12 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
     migratedFoAutoAllocation(PRISON_ID)
     prisonMockServer.stubOffendersAtLocationForAutoAllocation(oFFENDERSATLOCATION)
     prisonMockServer.stubKeyworkerRoles(PRISON_ID, KEYWORKER_ID_1, sTAFFLOCATIONROLELIST)
-    prisonMockServer.stubKeyworkerDetails(KEYWORKER_ID_1, StaffSummary(KEYWORKER_ID_1, "John", "Smith", "FT"))
+    prisonMockServer.stubKeyworkerSummary(StaffSummary(KEYWORKER_ID_1, "John", "Smith"))
   }
 
   @Test
   fun `Allocation history for offender reports ok`() {
-    addKeyworkerAllocation(PRISON_ID, NON_MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubkeyworkerDetails(KEYWORKER_ID_1, getWiremockResponse("staff-details--5"))
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
     prisonMockServer.stubPrisonerStatus(NON_MIGRATED_ALLOCATION_OFFENDER_ID, getWiremockResponse("prisoners_information_A1234AA"))
@@ -47,7 +47,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
   @Test
   fun `Allocation history summary reports ok`() {
-    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient
@@ -77,7 +77,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
   @Test
   fun `Allocation history summary validates offender nos provided`() {
-    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient
@@ -102,7 +102,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
   @Test
   fun `sar returns 209 if no prn set`() {
-    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient
@@ -116,7 +116,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
   @Test
   fun `sar has content`() {
-    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient
@@ -134,7 +134,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
   @Test
   fun `sar has no content with date range filter`() {
-    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient
@@ -148,7 +148,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
 
   @Test
   fun `sar has content with date range filter`() {
-    addKeyworkerAllocation(PRISON_ID, MIGRATED_ALLOCATION_OFFENDER_ID)
+    addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
     webTestClient
@@ -176,10 +176,10 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   }
 
   fun addKeyworkerAllocation(
-    prisonId: String,
-    offenderId: String,
+    prisonId: String = PRISON_ID,
+    offenderId: String = MIGRATED_ALLOCATION_OFFENDER_ID,
   ) {
-    setKeyworkerCapacity(PRISON_ID, KEYWORKER_ID_1, 3)
+    setKeyworkerCapacity(prisonId, KEYWORKER_ID_1, 3)
 
     webTestClient
       .post()
@@ -187,9 +187,9 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .headers(setOmicAdminHeaders())
       .bodyValue(
         mapOf(
-          "offenderNo" to MIGRATED_ALLOCATION_OFFENDER_ID,
+          "offenderNo" to offenderId,
           "staffId" to KEYWORKER_ID_1,
-          "prisonId" to PRISON_ID,
+          "prisonId" to prisonId,
           "allocationType" to "M",
           "allocationReason" to "MANUAL",
         ),

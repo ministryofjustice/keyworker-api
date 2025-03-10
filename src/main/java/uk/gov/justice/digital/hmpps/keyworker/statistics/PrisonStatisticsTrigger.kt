@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.MessageAttributes
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.PrisonConfigRepository
 import uk.gov.justice.hmpps.sqs.DEFAULT_BACKOFF_POLICY
 import uk.gov.justice.hmpps.sqs.DEFAULT_RETRY_POLICY
 import uk.gov.justice.hmpps.sqs.HmppsQueue

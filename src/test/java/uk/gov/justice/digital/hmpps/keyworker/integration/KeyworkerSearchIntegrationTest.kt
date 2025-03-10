@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -14,9 +15,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.statistics.internal.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import kotlin.collections.mapIndexed
 
 class KeyworkerSearchIntegrationTest : IntegrationTest() {
   @Test
