@@ -86,13 +86,14 @@ class PrisonStatisticCalculator(
           .findNewAllocationsAt(prisonCode, date, date.plusDays(1))
           .associateBy { it.personIdentifier }
 
-      val cnSummary = caseNotesApi.getUsageByPersonIdentifier(keyworkerTypes(eligiblePrisoners, date)).summary()
+      val cnSummary =
+        caseNotesApi.getUsageByPersonIdentifier(keyworkerTypes(prisonCode, eligiblePrisoners, date)).summary()
       val peopleWithSessions = cnSummary.personIdentifiersWithSessions()
       val previousSessions =
         if (peopleWithSessions.isNotEmpty()) {
           caseNotesApi
             .getUsageByPersonIdentifier(
-              sessionTypes(peopleWithSessions, date.minusMonths(6), date.minusDays(1)),
+              sessionTypes(prisonCode, peopleWithSessions, date.minusMonths(6), date.minusDays(1)),
             ).summary()
         } else {
           null
@@ -101,7 +102,7 @@ class PrisonStatisticCalculator(
       val transferSummary =
         caseNotesApi
           .getUsageByPersonIdentifier(
-            transferTypes(eligiblePrisoners, date.minusMonths(6), date.plusDays(1)),
+            transferTypes(prisonCode, eligiblePrisoners, date.minusMonths(6), date.plusDays(1)),
           ).summary()
 
       val activeKeyworkers =

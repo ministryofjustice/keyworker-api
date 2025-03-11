@@ -898,7 +898,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-7L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
             .thenReturn(3);
 
-        when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L, -7L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(), any()))
+        when(nomisService.getCaseNoteUsage(eq("LEI"), eq(List.of(-5L, -6L, -7L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(), any()))
             .thenReturn(List.of(
                 CaseNoteUsageDto.builder()
                     .staffId(-5L)
@@ -989,7 +989,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(-6L, TEST_AGENCY, true, AllocationType.PROVISIONAL))
             .thenReturn(1);
 
-        when(nomisService.getCaseNoteUsage(eq(List.of(-5L, -6L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(), any()))
+        when(nomisService.getCaseNoteUsage(eq("LEI"), eq(List.of(-5L, -6L)), eq(KEYWORKER_CASENOTE_TYPE), eq(KEYWORKER_SESSION_SUB_TYPE), any(), any()))
             .thenReturn(Arrays.asList(
                 CaseNoteUsageDto.builder()
                     .staffId(-5L)

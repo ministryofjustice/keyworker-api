@@ -32,7 +32,7 @@ class PrisonerSearchClient(
     webClient
       .post()
       .uri("/prisoner-search/prisoner-numbers")
-      .bodyValue(prisonNumbers)
+      .bodyValue(PrisonNumbers(prisonNumbers))
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
       .retrieve()
@@ -40,3 +40,7 @@ class PrisonerSearchClient(
       .retryRequestOnTransientException()
       .block()!!
 }
+
+data class PrisonNumbers(
+  val prisonNumbers: Set<String>,
+)

@@ -193,7 +193,7 @@ public class KeyworkerStatsService {
                 }
 
                 if (!offendersWithSessions.isEmpty()) {
-                    avgDaysReceptionToKWSession = getAvgDaysReceptionToKWSession(snapshotDate, caseNoteSummary, offendersWithSessions, offenderReceptionMap);
+                    avgDaysReceptionToKWSession = getAvgDaysReceptionToKWSession(prisonId, snapshotDate, caseNoteSummary, offendersWithSessions, offenderReceptionMap);
                 }
             }
 
@@ -301,12 +301,12 @@ public class KeyworkerStatsService {
         final var furthestCaseNoteTime = prison.getMigratedDateTime().isBefore(earliestDate) ? earliestDate : prison.getMigratedDateTime();
         log.info("Looking back to {} for transfers into prison {}", furthestCaseNoteTime, prisonId);
 
-        return nomisService.getCaseNoteUsageForPrisoners(receptionCheckList, null, TRANSFER_CASENOTE_TYPE, null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1));
+        return nomisService.getCaseNoteUsageForPrisoners(prisonId, receptionCheckList, null, TRANSFER_CASENOTE_TYPE, null, furthestCaseNoteTime.toLocalDate(), snapshotDate.plusDays(1));
     }
 
-    private Integer getAvgDaysReceptionToKWSession(final LocalDate snapshotDate, final KeyWorkingCaseNoteSummary caseNoteSummary, final List<String> offendersWithSessions, final Map<String, LocalDate> offenderReceptionMap) {
+    private Integer getAvgDaysReceptionToKWSession(final String prisonId, final LocalDate snapshotDate, final KeyWorkingCaseNoteSummary caseNoteSummary, final List<String> offendersWithSessions, final Map<String, LocalDate> offenderReceptionMap) {
         // find out if this KW session is the first - look for case notes before this date.
-        final var previousCaseNotes = nomisService.getCaseNoteUsageForPrisoners(offendersWithSessions, null,
+        final var previousCaseNotes = nomisService.getCaseNoteUsageForPrisoners(prisonId, offendersWithSessions, null,
                 KEYWORKER_CASENOTE_TYPE, KEYWORKER_SESSION_SUB_TYPE, snapshotDate.minusMonths(6), snapshotDate.minusDays(1));
 
         final var previousCaseNoteMap = previousCaseNotes.stream().collect(
@@ -541,7 +541,7 @@ public class KeyworkerStatsService {
             if (prisonId != null) {
                 usageCounts = nomisService.getCaseNoteUsageByPrison(prisonId, KEYWORKER_CASENOTE_TYPE, null, start, end);
             } else {
-                usageCounts = nomisService.getCaseNoteUsageForPrisoners(offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
+                usageCounts = nomisService.getCaseNoteUsageForPrisoners(null, offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
             }
             final var usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,

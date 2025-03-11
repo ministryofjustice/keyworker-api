@@ -102,7 +102,7 @@ class GetKeyworkerDetails(
       } else {
         caseNotesApiClient
           .getUsageByPersonIdentifier(
-            keyworkerTypes(personIdentifiers, from, to, setOf(staffId.toString())),
+            keyworkerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString())),
           ).summary()
       }
     val total = applicableAllocations.sumOf { it.daysAllocatedForStats(from, to) }

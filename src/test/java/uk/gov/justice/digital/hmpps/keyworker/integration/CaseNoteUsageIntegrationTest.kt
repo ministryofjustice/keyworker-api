@@ -23,6 +23,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
 
   @Test
   fun `usage by author`() {
+    val prisonCode = "UBA"
     val noteUsage =
       listOf(
         UsageByAuthorIdResponse("-4", "KA", "KS", 6, latestNote(6)),
@@ -33,6 +34,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
       UsageByAuthorIdRequest(
         authorIds = setOf("-4", "-5"),
         typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KS"))),
+        prisonCode = prisonCode,
       )
 
     caseNotesMockServer.stubUsageByStaffIds(
@@ -40,7 +42,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
       response = NoteUsageResponse(content = noteUsage.groupBy { it.authorId }.toMap()),
     )
 
-    val usage = nomisService.getCaseNoteUsage(listOf(-4, -5), "KA", "KS", null, null)
+    val usage = nomisService.getCaseNoteUsage(prisonCode, listOf(-4, -5), "KA", "KS", null, null)
 
     assertThat(usage.size).isEqualTo(2)
     assertThat(usage).containsExactlyInAnyOrder(
@@ -51,6 +53,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
 
   @Test
   fun `usage by prison number`() {
+    val prisonCode = "UBP"
     val pn1 = prisonNumber()
     val pn2 = prisonNumber()
     val noteUsage =
@@ -63,6 +66,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
       UsageByPersonIdentifierRequest(
         personIdentifiers = setOf(pn1, pn2),
         typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KE"))),
+        prisonCode = prisonCode,
       )
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
@@ -70,7 +74,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
       response = NoteUsageResponse(content = noteUsage.groupBy { it.personIdentifier }.toMap()),
     )
 
-    val usage = nomisService.getCaseNoteUsageForPrisoners(listOf(pn1, pn2), null, "KA", "KE", null, null)
+    val usage = nomisService.getCaseNoteUsageForPrisoners(prisonCode, listOf(pn1, pn2), null, "KA", "KE", null, null)
 
     assertThat(usage.size).isEqualTo(2)
     assertThat(usage).containsExactlyInAnyOrder(
@@ -81,6 +85,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
 
   @Test
   fun `usage by prison number with staff filter`() {
+    val prisonCode = "UBS"
     val pn1 = prisonNumber()
     val pn2 = prisonNumber()
     val staffId = 126758381L
@@ -95,6 +100,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
         personIdentifiers = setOf(pn1, pn2),
         typeSubTypes = setOf(TypeSubTypeRequest("KA", setOf("KE"))),
         authorIds = setOf("$staffId"),
+        prisonCode = prisonCode,
       )
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
@@ -102,7 +108,7 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
       response = NoteUsageResponse(content = noteUsage.groupBy { it.personIdentifier }.toMap()),
     )
 
-    val usage = nomisService.getCaseNoteUsageForPrisoners(listOf(pn1, pn2), staffId, "KA", "KE", null, null)
+    val usage = nomisService.getCaseNoteUsageForPrisoners(prisonCode, listOf(pn1, pn2), staffId, "KA", "KE", null, null)
 
     assertThat(usage.size).isEqualTo(2)
     assertThat(usage).containsExactlyInAnyOrder(
