@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffUser;
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient;
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.DateType;
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.TypeSubTypeRequest;
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest;
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest;
@@ -283,6 +284,7 @@ public class NomisServiceImpl implements NomisService {
 
     @Override
     public List<CaseNoteUsageDto> getCaseNoteUsage(
+        final String prisonId,
         final List<Long> staffIds,
         final String caseNoteType,
         final String caseNoteSubType,
@@ -307,7 +309,9 @@ public class NomisServiceImpl implements NomisService {
             staffIds.stream().map(Object::toString).collect(Collectors.toSet()),
             Set.of(typeSubType),
             from,
-            to
+            to,
+            prisonId,
+            DateType.CREATED_AT
         );
 
         return caseNotesApiClient.getUsageByStaffIds(request).getContent().values().stream()
@@ -330,6 +334,7 @@ public class NomisServiceImpl implements NomisService {
 
     @Override
     public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(
+        final String prisonId,
         final List<String> offenderNos,
         final Long staffId,
         final String caseNoteType,
@@ -360,7 +365,9 @@ public class NomisServiceImpl implements NomisService {
             Set.of(typeSubType),
             from,
             to,
-            staffIds
+            staffIds,
+            prisonId,
+            DateType.CREATED_AT
         );
 
         return caseNotesApiClient.getUsageByPersonIdentifier(request).getContent().values().stream()

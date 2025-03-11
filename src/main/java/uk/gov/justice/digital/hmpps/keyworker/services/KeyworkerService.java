@@ -487,7 +487,7 @@ public class KeyworkerService {
 
             populateWithAllocations(convertedKeyworkerDtoList, prisonId);
         }
-        populateWithCaseNoteCounts(convertedKeyworkerDtoList);
+        populateWithCaseNoteCounts(prisonDetail.getPrisonId(), convertedKeyworkerDtoList);
 
         final var keyworkers = convertedKeyworkerDtoList.stream()
             .sorted(Comparator
@@ -519,11 +519,11 @@ public class KeyworkerService {
         }
     }
 
-    private void populateWithCaseNoteCounts(final List<KeyworkerDto> convertedKeyworkerDtoList) {
+    private void populateWithCaseNoteCounts(final String prisonId, final List<KeyworkerDto> convertedKeyworkerDtoList) {
         final var staffIds = convertedKeyworkerDtoList.stream().map(KeyworkerDto::getStaffId).collect(Collectors.toList());
 
         if (staffIds.size() > 0) {
-            final var kwStats = getCaseNoteUsageByStaffId(staffIds);
+            final var kwStats = getCaseNoteUsageByStaffId(prisonId, staffIds);
 
             convertedKeyworkerDtoList
                 .forEach(kw -> {
@@ -533,8 +533,9 @@ public class KeyworkerService {
         }
     }
 
-    private Map<Long, Integer> getCaseNoteUsageByStaffId(final List<Long> activeStaffIds) {
+    private Map<Long, Integer> getCaseNoteUsageByStaffId(final String prisonId, final List<Long> activeStaffIds) {
         final var caseNoteUsage = nomisService.getCaseNoteUsage(
+            prisonId,
             activeStaffIds,
             KEYWORKER_CASENOTE_TYPE,
             KEYWORKER_SESSION_SUB_TYPE,

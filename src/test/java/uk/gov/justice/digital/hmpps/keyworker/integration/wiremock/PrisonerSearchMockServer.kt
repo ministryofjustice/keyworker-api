@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonNumbers
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import java.time.LocalDate
 
@@ -45,7 +46,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
   ): StubMapping =
     stubFor(
       post(urlPathEqualTo("/prisoner-search/prisoner-numbers"))
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(prisonNumbers), true, true))
+        .withRequestBody(equalToJson(objectMapper.writeValueAsString(PrisonNumbers(prisonNumbers)), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

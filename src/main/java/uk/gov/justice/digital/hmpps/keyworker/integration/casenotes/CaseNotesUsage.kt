@@ -7,15 +7,22 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+enum class DateType {
+  CREATED_AT,
+}
+
 data class UsageByPersonIdentifierRequest(
   val personIdentifiers: Set<String>,
   val typeSubTypes: Set<TypeSubTypeRequest>,
-  val occurredFrom: LocalDateTime? = null,
-  val occurredTo: LocalDateTime? = null,
+  val from: LocalDateTime? = null,
+  val to: LocalDateTime? = null,
   val authorIds: Set<String> = setOf(),
+  val prisonCode: String? = null,
+  val dateType: DateType = DateType.CREATED_AT,
 ) {
   companion object {
     fun keyworkerTypes(
+      prisonCode: String?,
       personIdentifiers: Set<String>,
       from: LocalDate,
       to: LocalDate = from.plusDays(1),
@@ -24,12 +31,14 @@ data class UsageByPersonIdentifierRequest(
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(KW_TYPE, setOf(ENTRY_SUBTYPE, SESSION_SUBTYPE))),
-        occurredFrom = from.atStartOfDay(),
-        occurredTo = to.atStartOfDay(),
+        from = from.atStartOfDay(),
+        to = to.atStartOfDay(),
         authorIds = authorIds,
+        prisonCode = prisonCode,
       )
 
     fun sessionTypes(
+      prisonCode: String?,
       personIdentifiers: Set<String>,
       from: LocalDate,
       to: LocalDate = from.plusDays(1),
@@ -37,11 +46,13 @@ data class UsageByPersonIdentifierRequest(
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(KW_TYPE, setOf(SESSION_SUBTYPE))),
-        occurredFrom = from.atStartOfDay(),
-        occurredTo = to.atStartOfDay(),
+        from = from.atStartOfDay(),
+        to = to.atStartOfDay(),
+        prisonCode = prisonCode,
       )
 
     fun transferTypes(
+      prisonCode: String?,
       personIdentifiers: Set<String>,
       from: LocalDate,
       to: LocalDate,
@@ -49,8 +60,9 @@ data class UsageByPersonIdentifierRequest(
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(TRANSFER_TYPE, setOf())),
-        occurredFrom = from.atStartOfDay(),
-        occurredTo = to.atStartOfDay(),
+        from = from.atStartOfDay(),
+        to = to.atStartOfDay(),
+        prisonCode = prisonCode,
       )
   }
 }
@@ -66,8 +78,10 @@ data class UsageByPersonIdentifierResponse(
 data class UsageByAuthorIdRequest(
   val authorIds: Set<String>,
   val typeSubTypes: Set<TypeSubTypeRequest>,
-  val occurredFrom: LocalDateTime? = null,
-  val occurredTo: LocalDateTime? = null,
+  val from: LocalDateTime? = null,
+  val to: LocalDateTime? = null,
+  val prisonCode: String? = null,
+  val dateType: DateType = DateType.CREATED_AT,
 ) {
   companion object {
     fun forLastMonth(authorIds: Set<String>) =

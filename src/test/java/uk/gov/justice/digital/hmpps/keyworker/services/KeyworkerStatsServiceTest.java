@@ -16,8 +16,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
@@ -124,7 +124,7 @@ class KeyworkerStatsServiceTest {
         final var usageCounts = getCaseNoteUsagePrisonersDtos();
 
 
-        when(nomisService.getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
+        when(nomisService.getCaseNoteUsageForPrisoners(null, offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
                 .thenReturn(usageCounts);
 
         final var stats = service.getStatsForStaff(
@@ -138,7 +138,7 @@ class KeyworkerStatsServiceTest {
         assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(5);
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("80.00"));
 
-        verify(nomisService).getCaseNoteUsageForPrisoners(offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
+        verify(nomisService).getCaseNoteUsageForPrisoners(null, offenderNos, TEST_STAFF_ID, KEYWORKER_CASENOTE_TYPE,
                 null, fromDate, toDate);
     }
 
@@ -325,7 +325,7 @@ class KeyworkerStatsServiceTest {
                 .numCaseNotes(2)
                 .build());
 
-        when(nomisService.getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
+        when(nomisService.getCaseNoteUsageForPrisoners(null, otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE, null, fromDate, toDate))
                 .thenReturn(usageCounts);
 
         final var stats = service.getStatsForStaff(
@@ -339,7 +339,7 @@ class KeyworkerStatsServiceTest {
         assertThat(stats.getProjectedKeyworkerSessions()).isEqualTo(12);
         assertThat(stats.getComplianceRate()).isEqualTo(new BigDecimal("100.00"));
 
-        verify(nomisService).getCaseNoteUsageForPrisoners(otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
+        verify(nomisService).getCaseNoteUsageForPrisoners(null, otherOffenderNos, TEST_STAFF_ID2, KEYWORKER_CASENOTE_TYPE,
                 null, fromDate, toDate);
     }
 
@@ -348,7 +348,7 @@ class KeyworkerStatsServiceTest {
 
         basicSetup();
 
-        when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
+        when(nomisService.getCaseNoteUsageForPrisoners(eq(TEST_AGENCY_ID), eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate)))
                 .thenReturn(List.of(
                         CaseNoteUsagePrisonersDto.builder()
@@ -389,7 +389,7 @@ class KeyworkerStatsServiceTest {
 
         basicSetup();
 
-        lenient().when(nomisService.getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
+        lenient().when(nomisService.getCaseNoteUsageForPrisoners(eq(TEST_AGENCY_ID), eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate)))
                 .thenReturn(Collections.emptyList());
 
@@ -746,7 +746,7 @@ class KeyworkerStatsServiceTest {
         verify(repository).findByPrisonIdAndAssignedDateTimeBetween(eq(TEST_AGENCY_ID), eq(toDate.atStartOfDay().minusDays(1)), eq(toDate.atStartOfDay()));
         verify(repository).findByPrisonIdAndAssignedDateTimeBeforeAndOffenderNoInAndAllocationTypeIsNot(eq(TEST_AGENCY_ID), eq(toDate.minusDays(1).atStartOfDay()),
                 eq(new HashSet<>(List.of(offenderNos.get(2), offenderNos.get(1)))), eq(AllocationType.PROVISIONAL));
-        verify(nomisService).getCaseNoteUsageForPrisoners(eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
+        verify(nomisService).getCaseNoteUsageForPrisoners(eq(TEST_AGENCY_ID), eq(List.of(offenderNos.get(1), offenderNos.get(0), offenderNos.get(2))), isNull(), eq(TRANSFER_CASENOTE_TYPE),
                 isNull(), eq(toDate.minusDays(1).minusMonths(6)), eq(toDate));
     }
 

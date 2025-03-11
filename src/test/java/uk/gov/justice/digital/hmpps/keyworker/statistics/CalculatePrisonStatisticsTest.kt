@@ -61,16 +61,16 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     }
     val noteUsageResponse = noteUsageResponse(prisoners.personIdentifiers())
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      keyworkerTypes(prisoners.personIdentifiers(), yesterday),
+      keyworkerTypes(prisonCode, prisoners.personIdentifiers(), yesterday),
       noteUsageResponse,
     )
     val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      sessionTypes(peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      sessionTypes(prisonCode, peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
       previousSessionsResponse(peopleWithSessions),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.plusDays(1)),
+      transferTypes(prisonCode, prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.plusDays(1)),
       transferResponse(prisoners.personIdentifiers()),
     )
 
@@ -138,16 +138,16 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     }
     val noteUsageResponse = noteUsageResponse(eligiblePrisoners)
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      keyworkerTypes(eligiblePrisoners, yesterday),
+      keyworkerTypes(prisonCode, eligiblePrisoners, yesterday),
       noteUsageResponse,
     )
     val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      sessionTypes(peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      sessionTypes(prisonCode, peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
       previousSessionsResponse(peopleWithSessions),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(eligiblePrisoners, yesterday.minusMonths(6), yesterday.plusDays(1)),
+      transferTypes(prisonCode, eligiblePrisoners, yesterday.minusMonths(6), yesterday.plusDays(1)),
       NoteUsageResponse(emptyMap()),
     )
 

@@ -64,11 +64,12 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     val personIdentifiers = allocations.filter { it.active }.map { it.personIdentifier }.toSet()
     prisonerSearchMockServer.stubFindPrisonDetails(personIdentifiers)
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      keyworkerTypes(personIdentifiers, now().minusMonths(1), now(), setOf(keyworker.staffId.toString())),
+      keyworkerTypes(prisonCode, personIdentifiers, now().minusMonths(1), now(), setOf(keyworker.staffId.toString())),
       caseNoteResponse(personIdentifiers),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       keyworkerTypes(
+        prisonCode,
         personIdentifiers,
         now().minusMonths(2),
         now().minusMonths(1),
