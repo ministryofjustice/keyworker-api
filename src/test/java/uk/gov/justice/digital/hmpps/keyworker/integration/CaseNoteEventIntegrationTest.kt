@@ -58,7 +58,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteUpdated, caseNoteInfo(caseNote), caseNote.personIdentifier)
     val existingOccurredAt = LocalDateTime.now().minusDays(4).truncatedTo(ChronoUnit.SECONDS)
-    givenKeyworkerInteraction(caseNote.copy(occurredAt = existingOccurredAt).asKeyworkerInteraction())
+    givenKeyworkerInteraction(caseNote.copy(occurredAt = existingOccurredAt).asKeyworkerInteraction()!!)
     val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
     assertThat(existingInteraction).isNotNull()
     assertThat(existingInteraction!!.occurredAt).isEqualTo(existingOccurredAt)
@@ -80,7 +80,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     givenKeyworkerInteraction(
       caseNote
         .copy(personIdentifier = event.additionalInformation.previousNomsNumber!!)
-        .asKeyworkerInteraction(),
+        .asKeyworkerInteraction()!!,
     )
     val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
     assertThat(existingInteraction).isNotNull()
@@ -100,7 +100,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
   @MethodSource("caseNoteDeleted")
   fun `deletes session entry when case note deleted`(caseNote: CaseNote) {
     val event = caseNoteEvent(CaseNoteDeleted, caseNoteInfo(caseNote), caseNote.personIdentifier)
-    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction())
+    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
     val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
     assertThat(existingInteraction).isNotNull()
     existingInteraction!!.verifyAgainst(caseNote)
@@ -111,6 +111,58 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
     assertThat(interaction).isNull()
+  }
+
+  @ParameterizedTest
+  @MethodSource("caseNoteTypeChanged")
+  fun `deletes session entry when case note changed to non keyworker type`(caseNote: CaseNote) {
+    val updateCaseNote = caseNote.copy(type = "ANY", subType = "OTHER")
+    caseNotesMockServer.stubGetCaseNote(updateCaseNote)
+    val event =
+      caseNoteEvent(
+        CaseNoteUpdated,
+        caseNoteInfo(updateCaseNote),
+        caseNote.personIdentifier,
+      )
+    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
+    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(existingInteraction).isNotNull()
+    existingInteraction!!.verifyAgainst(caseNote)
+
+    publishEventToTopic(event, updateCaseNote.snsAttributes())
+
+    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
+
+    val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(interaction).isNull()
+  }
+
+  @ParameterizedTest
+  @MethodSource("sessionEntrySwap")
+  fun `swap session for entry and vice versa`(caseNote: CaseNote) {
+    val subType = if (caseNote.subType == SESSION_SUBTYPE) ENTRY_SUBTYPE else SESSION_SUBTYPE
+    val updateCaseNote = caseNote.copy(subType = subType)
+    caseNotesMockServer.stubGetCaseNote(updateCaseNote)
+    val event =
+      caseNoteEvent(
+        CaseNoteUpdated,
+        caseNoteInfo(updateCaseNote),
+        caseNote.personIdentifier,
+      )
+    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
+    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(existingInteraction).isNotNull()
+    existingInteraction!!.verifyAgainst(caseNote)
+
+    publishEventToTopic(event, updateCaseNote.snsAttributes())
+
+    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
+
+    val newInteraction = interactionRepository(updateCaseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(newInteraction).isNotNull()
+
+    val deletedInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
+    assertThat(deletedInteraction).isNull()
   }
 
   @Test
@@ -218,6 +270,20 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     @JvmStatic
     fun caseNoteDeleted() =
+      listOf(
+        Arguments.of(caseNote(SESSION_SUBTYPE)),
+        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+      )
+
+    @JvmStatic
+    fun caseNoteTypeChanged() =
+      listOf(
+        Arguments.of(caseNote(SESSION_SUBTYPE)),
+        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+      )
+
+    @JvmStatic
+    fun sessionEntrySwap() =
       listOf(
         Arguments.of(caseNote(SESSION_SUBTYPE)),
         Arguments.of(caseNote(ENTRY_SUBTYPE)),

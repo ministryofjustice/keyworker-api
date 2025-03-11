@@ -25,19 +25,21 @@ class SessionAndEntryService(
   private val keRepository: KeyworkerEntryRepository,
 ) {
   fun new(personInfo: PersonInformation) {
-    saveKeyworkerInteraction(getCaseNote(personInfo).asKeyworkerInteraction())
+    getCaseNote(personInfo).asKeyworkerInteraction()?.let { saveKeyworkerInteraction(it) }
   }
 
   fun update(personInfo: PersonInformation) {
-    updateKeyworkerInteraction(getCaseNote(personInfo)) {
+    updateKeyworkerInteraction(personInfo) {
       apply {
         occurredAt = it.occurredAt
+        textLength = it.textLength()
+        amendmentCount = it.amendments.size
       }
     }
   }
 
   fun move(personInfo: PersonInformation) {
-    updateKeyworkerInteraction(getCaseNote(personInfo)) {
+    updateKeyworkerInteraction(personInfo) {
       apply {
         personIdentifier = it.personIdentifier
       }
@@ -48,6 +50,10 @@ class SessionAndEntryService(
     when (personInfo.info.subType) {
       SESSION_SUBTYPE -> ksRepository.deleteById(personInfo.info.id)
       ENTRY_SUBTYPE -> keRepository.deleteById(personInfo.info.id)
+      else -> {
+        ksRepository.deleteById(personInfo.info.id)
+        keRepository.deleteById(personInfo.info.id)
+      }
     }
   }
 
@@ -70,10 +76,27 @@ class SessionAndEntryService(
     }
 
   private fun updateKeyworkerInteraction(
-    caseNote: CaseNote,
+    personInfo: PersonInformation,
     block: KeyworkerInteraction.(CaseNote) -> KeyworkerInteraction,
   ) {
-    getKeyworkerInteraction(caseNote.asKeyworkerInteraction())?.block(caseNote)?.also(::saveKeyworkerInteraction)
+    val caseNote = getCaseNote(personInfo)
+    val interaction = caseNote.asKeyworkerInteraction()
+    val updated =
+      interaction?.let {
+        getKeyworkerInteraction(it)?.block(caseNote)?.also(::saveKeyworkerInteraction)
+      }
+    if (updated == null) {
+      when (interaction) {
+        is KeyworkerSession -> keRepository.deleteById(personInfo.info.id)
+        is KeyworkerEntry -> ksRepository.deleteById(personInfo.info.id)
+        else -> {
+          ksRepository.deleteById(personInfo.info.id)
+          keRepository.deleteById(personInfo.info.id)
+        }
+      }
+      // if a session has been changed to an entry or vice versa
+      interaction?.let { saveKeyworkerInteraction(it) }
+    }
   }
 }
 

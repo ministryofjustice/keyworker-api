@@ -52,11 +52,11 @@ class DomainEventListener(
       }
 
       CaseNoteCreated if (notification.isKeyworkerRelated()) -> sessionEntries.new(information(notification))
-      CaseNoteUpdated if (notification.isKeyworkerRelated()) -> sessionEntries.update(information(notification))
-      CaseNoteDeleted if (notification.isKeyworkerRelated()) -> sessionEntries.delete(information(notification))
       CaseNoteMoved if (notification.isKeyworkerRelated()) -> sessionEntries.move(information(notification))
+      CaseNoteDeleted if (notification.isKeyworkerRelated()) -> sessionEntries.delete(information(notification))
+      CaseNoteUpdated -> sessionEntries.update(information(notification))
 
-      CaseNoteCreated, CaseNoteUpdated, CaseNoteMoved, CaseNoteDeleted ->
+      CaseNoteCreated, CaseNoteMoved, CaseNoteDeleted ->
         telemetryClient.trackEvent(
           "CaseNoteNotOfInterest",
           mapOf(
