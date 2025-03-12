@@ -50,6 +50,7 @@ class CaseNotesApiClient(
     webClient
       .get()
       .uri("/case-notes/$personIdentifier/$id")
+      .header("CaseloadId", "***")
       .exchangeToMono { res ->
         when (res.statusCode()) {
           HttpStatus.OK -> res.bodyToMono<CaseNote>()
