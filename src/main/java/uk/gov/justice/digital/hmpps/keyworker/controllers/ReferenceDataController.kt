@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
+import uk.gov.justice.digital.hmpps.keyworker.config.REFERENCE_DATA
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.services.RetrieveReferenceData
 
-@Tag(name = ALLOCATE_KEY_WORKERS)
+@Tag(name = REFERENCE_DATA)
 @RestController
 @RequestMapping("/reference-data/{domain}")
 class ReferenceDataController(
