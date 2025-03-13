@@ -8,20 +8,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
-import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerStatsBatchService;
 import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationBatchService;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Tag(name = "batch")
@@ -33,41 +27,11 @@ import java.util.List;
 public class BatchController {
 
     private final KeyworkerBatchService keyworkerBatchService;
-
-    private final KeyworkerStatsBatchService keyworkerStatsBatchService;
-
     private final ReconciliationBatchService reconciliationBatchService;
 
-    public BatchController(KeyworkerBatchService keyworkerBatchService, KeyworkerStatsBatchService keyworkerStatsBatchService, ReconciliationBatchService reconciliationBatchService) {
+    public BatchController(KeyworkerBatchService keyworkerBatchService, ReconciliationBatchService reconciliationBatchService) {
         this.keyworkerBatchService = keyworkerBatchService;
-        this.keyworkerStatsBatchService = keyworkerStatsBatchService;
         this.reconciliationBatchService = reconciliationBatchService;
-    }
-
-    @Operation(
-            description = "Generate prison stats at specified prison. Can only be run with SYSTEM_USER role",
-            summary = "runBatchPrisonStats",
-            security = { @SecurityRequirement(name = "SYSTEM_USER") },
-            hidden = true)
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "400", description = "Invalid request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))} ),
-            @ApiResponse(responseCode = "404", description = "Requested resource not found.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
-            @ApiResponse(responseCode = "500", description = "Unrecoverable error occurred whilst processing request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
-
-    @PostMapping(path = "/generate-stats")
-    public void runBatchPrisonStats(
-        @RequestParam(value = "snapshotDate", required = false)
-        @DateTimeFormat(iso = ISO.DATE)
-        LocalDate snapshotDate
-    )
-    {
-        if(snapshotDate == null) {
-            snapshotDate = LocalDate.now().minusDays(1);
-        }
-        log.info("Starting: Daily Prison Statistics: {}", snapshotDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        keyworkerStatsBatchService.generatePrisonStats(snapshotDate);
-        log.info("Complete: Daily Prison Statistics: {}", snapshotDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
     @Operation(

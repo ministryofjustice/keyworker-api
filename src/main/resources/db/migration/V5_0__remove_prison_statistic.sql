@@ -1,0 +1,1 @@
+drop table prison_statistic;
