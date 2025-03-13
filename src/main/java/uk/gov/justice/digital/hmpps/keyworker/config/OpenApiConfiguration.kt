@@ -27,7 +27,10 @@ import kotlin.collections.toList
 import kotlin.jvm.java
 import kotlin.text.trimMargin
 
+const val PRISON = "Prison"
+const val MANAGE_KEYWORKERS = "Manage Keyworkers"
 const val ALLOCATE_KEY_WORKERS = "Allocate Keyworkers"
+const val REFERENCE_DATA = "Reference Data"
 
 @Configuration
 class OpenApiConfiguration(
@@ -75,9 +78,10 @@ class OpenApiConfiguration(
             .name("Authorization"),
         ),
       ).addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
-      .addTagsItem(
-        Tag().name(ALLOCATE_KEY_WORKERS).description("Endpoints for allocating keyworkers"),
-      )
+      .addTagsItem(Tag().name(PRISON).description("Endpoints for prison level operations"))
+      .addTagsItem(Tag().name(MANAGE_KEYWORKERS).description("Endpoints for managing keyworkers"))
+      .addTagsItem(Tag().name(ALLOCATE_KEY_WORKERS).description("Endpoints for allocating keyworkers"))
+      .addTagsItem(Tag().name(REFERENCE_DATA).description("Endpoints for reference data"))
 
   @Bean
   fun preAuthorizeCustomizer(): OperationCustomizer =
