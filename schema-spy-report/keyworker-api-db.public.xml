@@ -144,27 +144,6 @@
          </index>
          <checkConstraint constraint="((alloc_type = ANY (ARRAY['A'::bpchar, 'M'::bpchar, 'P'::bpchar])))" name="offender_key_worker_c1"/>
       </table>
-      <table name="prison_statistic" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="date" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="total_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="eligible_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="assigned_keyworker" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="active_keyworkers" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="keyworker_sessions" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="keyworker_entries" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="average_reception_to_allocation_days" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="average_reception_to_session_days" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
-         <primaryKey column="id" sequenceNumberInPK="1"/>
-         <index name="prison_statistic_pkey" unique="true">
-            <column ascending="true" name="id"/>
-         </index>
-         <index name="idx_prison_code_date" unique="true">
-            <column ascending="true" name="prison_code"/>
-            <column ascending="true" name="date"/>
-         </index>
-      </table>
       <table name="prison_supported" remarks="Records the prisons have can be supported by this service and which have been migrated" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_id" nullable="false" remarks="Prison ID (NOMIS column is Agency ID)" size="6" type="varchar" typeCode="12">
             <child column="prison_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_stats"/>

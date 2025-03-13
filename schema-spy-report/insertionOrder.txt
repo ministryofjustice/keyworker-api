@@ -6,4 +6,3 @@ offender_key_worker
 batch_history
 keyworker_entry
 keyworker_session
-prison_statistic

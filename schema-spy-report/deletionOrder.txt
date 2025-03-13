@@ -1,4 +1,3 @@
-prison_statistic
 keyworker_session
 keyworker_entry
 batch_history
