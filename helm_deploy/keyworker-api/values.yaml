@@ -48,10 +48,6 @@ generic-service:
           deny all;
           return 401;
         }
-        location /batch/generate-stats {
-          deny all;
-          return 401;
-        }
         location /batch/update-status {
           deny all;
           return 401;
@@ -90,4 +86,4 @@ generic-service:
 
   retryDlqCronjob:
     enabled: true
-    retryDlqSchedule: "0 * * * *"
+    retryDlqSchedule: "0/30 * * * *"
