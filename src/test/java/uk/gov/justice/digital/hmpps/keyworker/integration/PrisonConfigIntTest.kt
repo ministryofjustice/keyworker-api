@@ -24,7 +24,7 @@ class PrisonConfigIntTest : IntegrationTest() {
   private fun getPrisonConfig(prisonCode: String) =
     webTestClient
       .get()
-      .uri { it.path("/prisons/{prisonCode}/keyworkers/configuration").build(prisonCode) }
+      .uri { it.path("/prisons/{prisonCode}/configuration/keyworker").build(prisonCode) }
       .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(Roles.KEYWORKER_RO)))
       .exchange()
       .expectStatus()
