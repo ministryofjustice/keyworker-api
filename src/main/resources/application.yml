@@ -69,6 +69,9 @@ spring:
 springdoc:
   paths-to-exclude: "/queue-admin/**"
 
+sentry:
+  exception-resolver-order: -2147483647
+
 # These are needed for running locally - should be overridden by secrets when deployed with Kubernetes
 client:
   id: omicadmin
