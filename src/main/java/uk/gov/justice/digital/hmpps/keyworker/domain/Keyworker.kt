@@ -37,7 +37,7 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
         )
         select coalesce(ac.id, kw.staffId) as staffId, ac.count as allocationCount, kw as keyworker from counts ac
         full outer join Keyworker kw on ac.id = kw.staffId
-        where kw.staffId in :staffIds
+        where kw.staffId is null or kw.staffId in :staffIds
         """,
   )
   fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
