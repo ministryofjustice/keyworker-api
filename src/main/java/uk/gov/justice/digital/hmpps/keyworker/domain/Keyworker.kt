@@ -32,7 +32,7 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
         with counts as (select kwa.staffId as id, count(kwa) as count
                         from KeyworkerAllocation kwa
                         where kwa.active = true and kwa.allocationType <> 'P'
-                        and kwa.staffId in :staffIds
+                        and kwa.prisonCode = :prisonCode and kwa.staffId in :staffIds
                         group by kwa.staffId
         )
         select coalesce(ac.id, kw.staffId) as staffId, ac.count as allocationCount, kw as keyworker from counts ac
@@ -40,7 +40,10 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
         where kw.staffId is null or kw.staffId in :staffIds
         """,
   )
-  fun findAllWithAllocationCount(staffIds: Set<Long>): List<KeyworkerWithAllocationCount>
+  fun findAllWithAllocationCount(
+    prisonCode: String,
+    staffIds: Set<Long>,
+  ): List<KeyworkerWithAllocationCount>
 
   fun findAllByStaffIdInAndStatusKeyCodeIn(
     staffIds: Set<Long>,

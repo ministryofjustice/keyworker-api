@@ -52,7 +52,7 @@ class GetKeyworkerDetails(
         .orElseThrow { IllegalArgumentException("Staff not recognised as a keyworker") }
         .asKeyworker()
 
-    val keyworkerInfo = keyworkerRepository.findAllWithAllocationCount(setOf(staffId)).firstOrNull()
+    val keyworkerInfo = keyworkerRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
     val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     val prisonerDetails =
       if (allocations.isEmpty()) {
