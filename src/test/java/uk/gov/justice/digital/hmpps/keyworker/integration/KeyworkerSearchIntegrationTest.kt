@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
-import kotlin.collections.mapIndexed
 
 class KeyworkerSearchIntegrationTest : IntegrationTest() {
   @Test
@@ -169,6 +168,42 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(response.content).hasSize(11)
+  }
+
+  @Test
+  fun `can find allocation counts when no keyworker record`() {
+    val prisonCode = "NKR"
+    givenPrisonConfig(prisonConfig(prisonCode))
+
+    val staffId = newId()
+    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+
+    givenKeyworkerAllocation(keyworkerAllocation(prisonNumber(), prisonCode, staffId))
+    givenKeyworkerAllocation(keyworkerAllocation(prisonNumber(), prisonCode, staffId))
+
+    val noteUsage =
+      NoteUsageResponse(
+        mapOf(
+          "$staffId" to listOf(UsageByAuthorIdResponse("$staffId", KW_TYPE, SESSION_SUBTYPE, 7)),
+        ),
+      )
+    caseNotesMockServer.stubUsageByStaffIds(
+      request = forLastMonth(setOf("$staffId")),
+      response = noteUsage,
+    )
+
+    val response =
+      searchKeyworkerSpec(prisonCode, searchRequest())
+        .expectStatus()
+        .isOk
+        .expectBody(KeyworkerSearchResponse::class.java)
+        .returnResult()
+        .responseBody!!
+
+    val keyworker = response.content.single()
+    assertThat(keyworker.capacity).isEqualTo(6)
+    assertThat(keyworker.numberAllocated).isEqualTo(2)
+    assertThat(keyworker.numberOfKeyworkerSessions).isEqualTo(7)
   }
 
   private fun searchRequest(
