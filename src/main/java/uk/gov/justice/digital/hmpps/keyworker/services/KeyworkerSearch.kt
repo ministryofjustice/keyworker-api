@@ -49,7 +49,7 @@ class KeyworkerSearch(
       if (keyworkerStaffIds.isEmpty()) {
         emptyMap()
       } else {
-        keyworkerRepository.findAllWithAllocationCount(keyworkerStaffIds).associateBy { it.staffId }
+        keyworkerRepository.findAllWithAllocationCount(prisonCode, keyworkerStaffIds).associateBy { it.staffId }
       }
 
     return KeyworkerSearchResponse(
