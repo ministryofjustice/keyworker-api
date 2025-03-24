@@ -2,11 +2,16 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
@@ -26,19 +31,13 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class ReconciliationService {
 
     private final NomisService nomisService;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final TelemetryClient telemetryClient;
-
-    public ReconciliationService(final NomisService nomisService,
-                                 final OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                 final TelemetryClient telemetryClient) {
-        this.nomisService = nomisService;
-        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
-        this.telemetryClient = telemetryClient;
-    }
+    private final ReferenceDataRepository referenceDataRepository;
 
     @Transactional
     public ReconMetrics reconcileKeyWorkerAllocations(final String prisonId) {
@@ -85,7 +84,7 @@ public class ReconciliationService {
     private void removeMissingRecord(final ReconMetrics reconMetrics, final OffenderKeyworker notFoundOffender) {
         // can't find but remove anyway.
         log.warn("Cannot find this prisoner {}, de-allocating...", notFoundOffender.getOffenderNo());
-        notFoundOffender.deallocate(LocalDateTime.now(), DeallocationReason.MISSING);
+        notFoundOffender.deallocate(LocalDateTime.now(), getDeallocationReason(DeallocationReason.MISSING));
         reconMetrics.deAllocatedOffenders.getAndIncrement();
         reconMetrics.missingOffenders.getAndIncrement();
     }
@@ -102,7 +101,7 @@ public class ReconciliationService {
         log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), oldOffenderNo, newOffenderNo);
         if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
             log.info("Offender already re-allocated - de-allocating {}", offenderKeyWorker.getOffenderNo());
-            offenderKeyWorker.deallocate(LocalDateTime.now(), DeallocationReason.MERGED);
+            offenderKeyWorker.deallocate(LocalDateTime.now(), getDeallocationReason(DeallocationReason.MERGED));
         }
         offenderKeyWorker.setOffenderNo(newOffenderNo);
         reconMetrics.mergedRecords.put(oldOffenderNo, newOffenderNo);
@@ -126,7 +125,7 @@ public class ReconciliationService {
         if (!prisonerDetail.getLatestLocationId().equals(prisonId)) {
             // deallocate
             log.info("Offender {} no longer in {}, now {}, in prison? = {}", prisonerDetail.getOffenderNo(), prisonId, prisonerDetail.getLatestLocationId(), prisonerDetail.isInPrison());
-            offenderKeyWorker.deallocate(LocalDateTime.now(), prisonerDetail.isInPrison() ? DeallocationReason.TRANSFER : DeallocationReason.RELEASED);
+            offenderKeyWorker.deallocate(LocalDateTime.now(), getDeallocationReason(prisonerDetail.isInPrison() ? DeallocationReason.TRANSFER : DeallocationReason.RELEASED));
             reconMetrics.deAllocatedOffenders.getAndIncrement();
         }
     }
@@ -159,15 +158,19 @@ public class ReconciliationService {
             // check if its a transfer then its to another prison
             if ("TRN".equals(movement.getMovementType())) {
                 if (nomisService.isPrison(movement.getToAgencyLocationId())) {
-                    offenderKeyWorker.deallocate(movement.getMovementDateTime(), DeallocationReason.TRANSFER);
+                    offenderKeyWorker.deallocate(movement.getMovementDateTime(), getDeallocationReason(DeallocationReason.TRANSFER));
                 }
             } else if ("REL".equals(movement.getMovementType())) {
-                offenderKeyWorker.deallocate(movement.getMovementDateTime(), DeallocationReason.RELEASED);
+                offenderKeyWorker.deallocate(movement.getMovementDateTime(), getDeallocationReason(DeallocationReason.RELEASED));
 
             } else if ("ADM".equals(movement.getMovementType())) {
-                offenderKeyWorker.deallocate(movement.getMovementDateTime(), DeallocationReason.TRANSFER);
+                offenderKeyWorker.deallocate(movement.getMovementDateTime(), getDeallocationReason(DeallocationReason.TRANSFER));
             }
         }
+    }
+
+    private ReferenceData getDeallocationReason(DeallocationReason reason) {
+        return referenceDataRepository.findByKey(new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, reason.getReasonCode()));
     }
 
     @ToString
@@ -202,6 +205,5 @@ public class ReconciliationService {
             mergedProps.putAll(mergedRecords);
             return mergedProps;
         }
-
     }
 }

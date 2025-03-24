@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +22,14 @@ class ReferenceDataController(
   @PreAuthorize("hasAnyRole('${Roles.KEYWORKER_RO}', '${Roles.KEYWORKER_RW}')")
   @GetMapping
   fun findReferenceDataForDomain(
+    @Parameter(
+      description = "The reference data domain required. This is case insensitive.",
+      schema =
+        Schema(
+          type = "string",
+          allowableValues = ["keyworker-status", "allocation-reason", "deallocation-reason"],
+        ),
+    )
     @PathVariable domain: String,
   ): List<CodedDescription> = referenceData.findAllByDomain(ReferenceDataDomain.of(domain))
 }

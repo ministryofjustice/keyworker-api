@@ -5,6 +5,8 @@ import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.type.YesNoConverter
 import org.springframework.data.annotation.CreatedBy
@@ -12,12 +14,8 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReasonConvertor
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationTypeConvertor
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReasonConvertor
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -37,9 +35,9 @@ class KeyworkerAllocation(
   @Column(name = "active_flag")
   @Convert(converter = YesNoConverter::class)
   val active: Boolean,
-  @Column(name = "alloc_reason")
-  @Convert(converter = AllocationReasonConvertor::class)
-  val allocationReason: AllocationReason,
+  @ManyToOne
+  @JoinColumn(name = "allocation_reason_id")
+  val allocationReason: ReferenceData,
   @Column(name = "alloc_type")
   @Convert(converter = AllocationTypeConvertor::class)
   val allocationType: AllocationType,
@@ -47,9 +45,9 @@ class KeyworkerAllocation(
   val userId: String?,
   @Column(name = "expiry_date_time")
   val expiryDateTime: LocalDateTime?,
-  @Column(name = "dealloc_reason")
-  @Convert(converter = DeallocationReasonConvertor::class)
-  val deallocationReason: DeallocationReason?,
+  @ManyToOne
+  @JoinColumn(name = "deallocation_reason_id")
+  val deallocationReason: ReferenceData?,
   @Id
   @Column(name = "offender_keyworker_id")
   val id: Long,

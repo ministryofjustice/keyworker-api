@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
@@ -28,6 +27,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
+import static uk.gov.justice.digital.hmpps.keyworker.utils.ReferenceDataHelper.allocationReason;
 
 class KeyworkerTestHelper {
     public static final int CAPACITY_TIER_1 = 6;
@@ -200,7 +200,7 @@ class KeyworkerTestHelper {
         verifyNewAllocation(kwAlloc, prisonId, offenderNo, staffId);
 
         assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
-        assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
+        assertThat(kwAlloc.getAllocationReason().getCode()).isEqualTo(AllocationReason.AUTO.getReasonCode());
     }
 
     public static void verifyNewAllocation(final OffenderKeyworker kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
@@ -247,22 +247,7 @@ class KeyworkerTestHelper {
                 .active(true)
                 .assignedDateTime(assigned)
                 .allocationType(AllocationType.AUTO)
-                .allocationReason(AllocationReason.AUTO)
-                .build();
-    }
-
-    // Expires a Key worker allocation using specified reason and expiry datetime.
-    public static OffenderKeyworker expireAllocation(final OffenderKeyworker allocation, final DeallocationReason reason, final LocalDateTime expiry) {
-        Validate.notNull(allocation, "Allocation to expire must be specified.");
-        Validate.notNull(expiry, "Expiry datetime must be specified.");
-
-        return OffenderKeyworker.builder()
-                .prisonId(allocation.getPrisonId())
-                .offenderNo(allocation.getOffenderNo())
-                .staffId(allocation.getStaffId())
-                .active(false)
-                .deallocationReason(reason)
-                .expiryDateTime(expiry)
+                .allocationReason(allocationReason(AllocationReason.AUTO))
                 .build();
     }
 

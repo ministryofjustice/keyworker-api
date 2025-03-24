@@ -3,8 +3,11 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 
 class ReferenceDataIntegrationTest : IntegrationTest() {
@@ -25,7 +28,7 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
   @ParameterizedTest
   @ValueSource(strings = [Roles.KEYWORKER_RO, Roles.KEYWORKER_RW])
-  fun `200 ok - can retrieve reference data with correct role`(role: String) {
+  fun `200 ok - can retrieve keyworker status`(role: String) {
     val rd =
       getReferenceDataSpec("keyworker-status", role)
         .expectStatus()
@@ -43,6 +46,22 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
     )
   }
 
+  @ParameterizedTest
+  @MethodSource("referenceDataDomains")
+  fun `200 ok - can retrieve reference data domains with correct role`(domain: String) {
+    ReferenceDataDomain.entries.forEach {
+      val rd =
+        getReferenceDataSpec(domain)
+          .expectStatus()
+          .isOk
+          .expectBodyList(CodedDescription::class.java)
+          .returnResult()
+          .responseBody
+
+      assertThat(rd).isNotEmpty
+    }
+  }
+
   private fun getReferenceDataSpec(
     domain: String,
     role: String? = Roles.KEYWORKER_RO,
@@ -54,5 +73,15 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
   companion object {
     const val REFERENCE_DATA_URL = "/reference-data/{domain}"
+
+    @JvmStatic
+    fun referenceDataDomains() =
+      ReferenceDataDomain.entries.flatMap {
+        listOf(
+          Arguments.of(it.name),
+          Arguments.of(it.name.lowercase()),
+          Arguments.of(it.name.lowercase().replace("_", "-")),
+        )
+      }
   }
 }
