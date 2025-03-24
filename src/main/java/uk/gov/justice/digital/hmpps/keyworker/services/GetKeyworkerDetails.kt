@@ -143,7 +143,7 @@ private fun StaffLocationRoleDto.asKeyworker() =
 
 private fun ScheduleType.toCodedDescription() = CodedDescription(code, description)
 
-private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra)
+private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
 
 private fun KeyworkerAllocation.asAllocation(
   prisoner: Prisoner,
@@ -151,7 +151,6 @@ private fun KeyworkerAllocation.asAllocation(
 ) = Allocation(
   prisoner.asPrisoner(),
   prisoner.prisonName,
-  prisoner.releaseDate,
   latestSession?.let { LatestKeyworkerSession(it) },
 )
 

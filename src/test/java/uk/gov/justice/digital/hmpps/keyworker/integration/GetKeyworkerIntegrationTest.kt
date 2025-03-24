@@ -93,6 +93,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.capacity).isEqualTo(10)
     assertThat(response.allocated).isEqualTo(23)
     assertThat(response.allocations.size).isEqualTo(23)
+    assertThat(response.allocations.all { it.prisoner.cellLocation == "DEF-A-1" }).isTrue
 
     assertThat(response.stats.current!!).isNotNull()
     with(response.stats.current) {
