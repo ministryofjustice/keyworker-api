@@ -22,7 +22,6 @@ data class Keyworker(
 data class Allocation(
   val prisoner: Prisoner,
   val location: String,
-  val releaseDate: LocalDate?,
   val latestSession: LatestKeyworkerSession?,
 )
 
@@ -31,6 +30,8 @@ data class Prisoner(
   val firstName: String,
   val lastName: String,
   val csra: String?,
+  val cellLocation: String?,
+  val releaseDate: LocalDate?,
 )
 
 data class LatestKeyworkerSession(

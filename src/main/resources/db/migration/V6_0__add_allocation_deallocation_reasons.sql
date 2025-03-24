@@ -44,6 +44,8 @@ $$ language plpgsql;
 
 select update_allocation_reason_to_reference_data();
 
+drop function update_allocation_reason_to_reference_data;
+
 alter table offender_key_worker
     alter column allocation_reason_id set not null,
     drop column if exists alloc_reason,
