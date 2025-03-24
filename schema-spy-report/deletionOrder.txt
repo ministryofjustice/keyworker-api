@@ -4,5 +4,5 @@ batch_history
 offender_key_worker
 keyworker_stats
 key_worker
-reference_data
 prison_supported
+reference_data
