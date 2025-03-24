@@ -3,17 +3,16 @@ package uk.gov.justice.digital.hmpps.keyworker.sar.internal
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationTypeConvertor
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import java.time.LocalDateTime
 
 @Immutable
@@ -31,12 +30,12 @@ class SarKeyWorker(
   @Column(name = "alloc_type")
   @Convert(converter = AllocationTypeConvertor::class)
   val allocationType: AllocationType,
-  @Enumerated(EnumType.STRING)
-  @Column(name = "alloc_reason")
-  val allocationReason: AllocationReason,
-  @Enumerated(EnumType.STRING)
-  @Column(name = "dealloc_reason")
-  val deallocationReason: DeallocationReason?,
+  @ManyToOne
+  @JoinColumn(name = "allocation_reason_id")
+  val allocationReason: ReferenceData,
+  @ManyToOne
+  @JoinColumn(name = "deallocation_reason_id")
+  val deallocationReason: ReferenceData?,
   @Column(name = "staff_id")
   val staffId: Long,
   @Id

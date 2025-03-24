@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderBooking;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.utils.ReferenceDataHelper;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,17 +27,18 @@ import java.util.Optional;
 
 import static java.time.LocalDateTime.now;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.kotlin.OngoingStubbingKt.whenever;
 
 
 @ExtendWith(MockitoExtension.class)
 class ReconciliationServiceTest {
 
     private static final String OFFENDER_NO = "A1234AA";
-    private static final String MERGED_OFFENDER_NO = "B1234BB";
     @Mock
     private NomisService nomisService;
 
@@ -45,6 +48,9 @@ class ReconciliationServiceTest {
     @Mock
     private TelemetryClient telemetryClient;
 
+    @Mock
+    private ReferenceDataRepository referenceDataRepository;
+
     private final static String TEST_AGENCY_ID = "LEI";
 
     private ReconciliationService service;
@@ -52,11 +58,12 @@ class ReconciliationServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
-        service = new ReconciliationService(nomisService, repository, telemetryClient);
+        service = new ReconciliationService(nomisService, repository, telemetryClient, referenceDataRepository);
     }
 
     @Test
     void testReconciliation() {
+        whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
 
         when(repository.findByActiveAndPrisonId(true, TEST_AGENCY_ID)).thenReturn(
                 List.of(
@@ -146,6 +153,8 @@ class ReconciliationServiceTest {
 
     @Test
     void testCheckWhenTransferredOutDeallocationOccurs() {
+        whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
+
         final var now = now();
         final var offenderKw = OffenderKeyworker.builder()
                 .offenderNo(OFFENDER_NO)
@@ -171,13 +180,15 @@ class ReconciliationServiceTest {
         service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
-        assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
+        assertThat(offenderKw.getDeallocationReason().getCode()).isEqualTo(DeallocationReason.TRANSFER.getReasonCode());
         assertThat(offenderKw.getExpiryDateTime()).isNotNull();
 
     }
 
     @Test
     void testCheckWhenAdmittedInDeallocationOccurs() {
+        whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
+
         final var now = now();
 
         final var offenderKw = OffenderKeyworker.builder()
@@ -200,7 +211,7 @@ class ReconciliationServiceTest {
         service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
-        assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.TRANSFER);
+        assertThat(offenderKw.getDeallocationReason().getCode()).isEqualTo(DeallocationReason.TRANSFER.getReasonCode());
         assertThat(offenderKw.getExpiryDateTime()).isNotNull();
     }
     @Test
@@ -234,6 +245,7 @@ class ReconciliationServiceTest {
 
     @Test
     void testCheckWhenReleasedDeallocationOccurs() {
+        whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
         final var now = now();
 
         final var offenderKw = OffenderKeyworker.builder()
@@ -258,7 +270,7 @@ class ReconciliationServiceTest {
         service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
-        assertThat(offenderKw.getDeallocationReason()).isEqualTo(DeallocationReason.RELEASED);
+        assertThat(offenderKw.getDeallocationReason().getCode()).isEqualTo(DeallocationReason.RELEASED.getReasonCode());
         assertThat(offenderKw.getExpiryDateTime()).isNotNull();
 
     }

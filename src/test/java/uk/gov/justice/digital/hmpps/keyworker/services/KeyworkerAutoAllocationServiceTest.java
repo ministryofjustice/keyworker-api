@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Page;
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.utils.ReferenceDataHelper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,20 +87,20 @@ class KeyworkerAutoAllocationServiceTest {
     @Mock
     private ComplexityOfNeedGateway complexityOfNeedGateway;
 
-    private long allocCount;
+    @Mock
+    private ReferenceDataRepository referenceDataRepository;
 
     @BeforeEach
     void setUp() {
-        // Construct service under test (using mock collaborators)
-        final var aSet = Stream.of(TEST_AGENCY_ID).collect(Collectors.toSet());
-
         final var prisonDetail = Prison.builder()
             .prisonId(TEST_AGENCY_ID).capacityTier1(CAPACITY_TIER_1).capacityTier2(CAPACITY_TIER_2)
             .build();
         lenient().when(prisonSupportedService.getPrisonDetail(TEST_AGENCY_ID)).thenReturn(prisonDetail);
 
         keyworkerAutoAllocationService =
-            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService, complexityOfNeedService);
+            new KeyworkerAutoAllocationService(keyworkerService, keyworkerPoolFactory, offenderKeyworkerRepository, prisonSupportedService, complexityOfNeedService, referenceDataRepository);
+
+        when(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
     }
 
     // Each unit test below is preceded by acceptance criteria in Given-When-Then form
@@ -112,6 +116,7 @@ class KeyworkerAutoAllocationServiceTest {
     // And auto-allocation process throws an AgencyNotSupported exception
     @Test
     void testServicePerformsNoAllocationsForUnsupportedAgency() {
+        reset(referenceDataRepository);
         doThrow(new PrisonNotSupportedException(format("Agency [%s] is not supported by this service.", TEST_AGENCY_ID))).when(prisonSupportedService).verifyPrisonSupportsAutoAllocation(eq(TEST_AGENCY_ID));
 
         // Invoke auto-allocate for unsupported agency (catching expected exception)
@@ -133,6 +138,7 @@ class KeyworkerAutoAllocationServiceTest {
     // If this test fails, automatic allocation may be attempted for an offender that is already allocated.
     @Test
     void testServicePerformsNoAllocationsWhenAllOffendersAreAllocated() {
+        reset(referenceDataRepository);
         // No unallocated offenders
         mockUnallocatedOffenders(TEST_AGENCY_ID, Collections.emptySet());
 
@@ -157,6 +163,7 @@ class KeyworkerAutoAllocationServiceTest {
     // If this test fails, offenders may be allocated to Key workers that are not available for allocation.
     @Test
     void testServiceErrorsWhenNoKeyWorkersAvailableForAutoAllocation() {
+        reset(referenceDataRepository);
         final var offenders = getNextOffenderNo(3);
 
         when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
@@ -192,6 +199,7 @@ class KeyworkerAutoAllocationServiceTest {
     // If this test fails, Key workers may be allocated too many offenders.
     @Test
     void testServiceErrorsWhenNoKeyWorkersWithSpareAllocationCapacity() {
+        reset(referenceDataRepository);
         final var offenders = getNextOffenderNo(3);
 
         when(complexityOfNeedService.removeOffendersWithHighComplexityOfNeed(TEST_AGENCY_ID, offenders)).thenReturn(offenders);
@@ -529,7 +537,7 @@ class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getOffenderNo()).isNotNull();
             assertThat(kwAlloc.getStaffId()).isBetween(1L, totalKeyworkers);
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
-            assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
+            assertThat(kwAlloc.getAllocationReason().getCode()).isEqualTo(AllocationReason.AUTO.getReasonCode());
         });
     }
 
@@ -590,7 +598,7 @@ class KeyworkerAutoAllocationServiceTest {
             assertThat(kwAlloc.getOffenderNo()).isNotNull();
             assertThat(kwAlloc.getStaffId()).isBetween(1L, (long) totalKeyworkers);
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
-            assertThat(kwAlloc.getAllocationReason()).isEqualTo(AllocationReason.AUTO);
+            assertThat(kwAlloc.getAllocationReason().getCode()).isEqualTo(AllocationReason.AUTO.getReasonCode());
         });
     }
 

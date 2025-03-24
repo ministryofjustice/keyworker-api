@@ -40,6 +40,8 @@ data class ReferenceDataKey(
 
 enum class ReferenceDataDomain {
   KEYWORKER_STATUS,
+  ALLOCATION_REASON,
+  DEALLOCATION_REASON,
   ;
 
   companion object {

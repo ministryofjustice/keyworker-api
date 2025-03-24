@@ -377,10 +377,10 @@ abstract class IntegrationTest {
         this.staffId = staffId
         assignedDateTime = assignedAt
         this.allocationType = allocationType
-        this.allocationReason = allocationReason
+        this.allocationReason = allocationReason.asReferenceData()
         this.userId = userId
         expiryDateTime = expiredAt
-        this.deallocationReason = deallocationReason
+        this.deallocationReason = deallocationReason?.asReferenceData()
         isActive = active
         prisonId = prisonCode
       },
@@ -413,11 +413,11 @@ abstract class IntegrationTest {
     staffId,
     assignedAt,
     active,
-    allocationReason,
+    allocationReason.asReferenceData(),
     allocationType,
     userId,
     expiryDateTime,
-    deallocationReason,
+    deallocationReason?.asReferenceData(),
     id,
   )
 
@@ -436,4 +436,8 @@ abstract class IntegrationTest {
   ): ReferenceData =
     referenceDataRepository.findByKey(ReferenceDataKey(domain, code))
       ?: throw IllegalArgumentException("Reference data does not exist: $code")
+
+  protected fun AllocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
+
+  protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
 }

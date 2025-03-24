@@ -7,6 +7,8 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -20,6 +22,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData;
+
 import static java.time.temporal.ChronoUnit.DAYS;
 
 @Entity
@@ -51,9 +55,9 @@ public class OffenderKeyworker {
     private boolean active;
 
     @NotNull
-    @Column(name = "ALLOC_REASON", nullable = false)
-    @Convert(converter = AllocationReasonConvertor.class)
-    private AllocationReason allocationReason;
+    @ManyToOne
+    @JoinColumn(name = "ALLOCATION_REASON_ID")
+    private ReferenceData allocationReason;
 
     @NotNull
     @Column(name = "ALLOC_TYPE", nullable = false)
@@ -73,9 +77,9 @@ public class OffenderKeyworker {
     @Column(name = "EXPIRY_DATE_TIME")
     LocalDateTime expiryDateTime;
 
-    @Column(name = "DEALLOC_REASON")
-    @Convert(converter = DeallocationReasonConvertor.class)
-    private DeallocationReason deallocationReason;
+    @ManyToOne
+    @JoinColumn(name = "DEALLOCATION_REASON_ID")
+    private ReferenceData deallocationReason;
 
     /* --------------------------------------------------------------------------------------
      * Generic fields below here.  Move to super-type?
@@ -100,7 +104,7 @@ public class OffenderKeyworker {
     @Column(name = "MODIFY_USER_ID")
     private String modifyUserId;
 
-  public OffenderKeyworker(Long offenderKeyworkerId, @NotNull @Length(max = 10) String offenderNo, @NotNull Long staffId, @NotNull LocalDateTime assignedDateTime, boolean active, @NotNull AllocationReason allocationReason, @NotNull AllocationType allocationType, @NotNull @Length(max = 32) String userId, @NotNull @Length(max = 6) String prisonId, LocalDateTime expiryDateTime, DeallocationReason deallocationReason, LocalDateTime creationDateTime, String createUserId, LocalDateTime modifyDateTime, String modifyUserId) {
+  public OffenderKeyworker(Long offenderKeyworkerId, @NotNull @Length(max = 10) String offenderNo, @NotNull Long staffId, @NotNull LocalDateTime assignedDateTime, boolean active, @NotNull ReferenceData allocationReason, @NotNull AllocationType allocationType, @NotNull @Length(max = 32) String userId, @NotNull @Length(max = 6) String prisonId, LocalDateTime expiryDateTime, ReferenceData deallocationReason, LocalDateTime creationDateTime, String createUserId, LocalDateTime modifyDateTime, String modifyUserId) {
     this.offenderKeyworkerId = offenderKeyworkerId;
     this.offenderNo = offenderNo;
     this.staffId = staffId;
@@ -126,7 +130,7 @@ public class OffenderKeyworker {
   }
 
 
-  public void deallocate(final LocalDateTime expiryDateTime, final DeallocationReason deallocationReason) {
+  public void deallocate(final LocalDateTime expiryDateTime, final ReferenceData deallocationReason) {
         log.info("De-allocating {} in prison {} reason: {}", offenderNo, prisonId, deallocationReason);
         active = false;
         setExpiryDateTime(expiryDateTime);
@@ -159,7 +163,7 @@ public class OffenderKeyworker {
     return this.active;
   }
 
-  public @NotNull AllocationReason getAllocationReason() {
+  public @NotNull ReferenceData getAllocationReason() {
     return this.allocationReason;
   }
 
@@ -179,7 +183,7 @@ public class OffenderKeyworker {
     return this.expiryDateTime;
   }
 
-  public DeallocationReason getDeallocationReason() {
+  public ReferenceData getDeallocationReason() {
     return this.deallocationReason;
   }
 
@@ -219,7 +223,7 @@ public class OffenderKeyworker {
     this.active = active;
   }
 
-  public void setAllocationReason(@NotNull AllocationReason allocationReason) {
+  public void setAllocationReason(@NotNull ReferenceData allocationReason) {
     this.allocationReason = allocationReason;
   }
 
@@ -239,7 +243,7 @@ public class OffenderKeyworker {
     this.expiryDateTime = expiryDateTime;
   }
 
-  public void setDeallocationReason(DeallocationReason deallocationReason) {
+  public void setDeallocationReason(ReferenceData deallocationReason) {
     this.deallocationReason = deallocationReason;
   }
 
@@ -307,12 +311,12 @@ public class OffenderKeyworker {
     private @NotNull Long staffId;
     private @NotNull LocalDateTime assignedDateTime;
     private boolean active;
-    private @NotNull AllocationReason allocationReason;
+    private @NotNull ReferenceData allocationReason;
     private @NotNull AllocationType allocationType;
     private @NotNull @Length(max = 32) String userId;
     private @NotNull @Length(max = 6) String prisonId;
     private LocalDateTime expiryDateTime;
-    private DeallocationReason deallocationReason;
+    private ReferenceData deallocationReason;
     private LocalDateTime creationDateTime;
     private String createUserId;
     private LocalDateTime modifyDateTime;
@@ -346,7 +350,7 @@ public class OffenderKeyworker {
       return this;
     }
 
-    public OffenderKeyworker.OffenderKeyworkerBuilder allocationReason(@NotNull AllocationReason allocationReason) {
+    public OffenderKeyworker.OffenderKeyworkerBuilder allocationReason(@NotNull ReferenceData allocationReason) {
       this.allocationReason = allocationReason;
       return this;
     }
@@ -371,7 +375,7 @@ public class OffenderKeyworker {
       return this;
     }
 
-    public OffenderKeyworker.OffenderKeyworkerBuilder deallocationReason(DeallocationReason deallocationReason) {
+    public OffenderKeyworker.OffenderKeyworkerBuilder deallocationReason(ReferenceData deallocationReason) {
       this.deallocationReason = deallocationReason;
       return this;
     }
