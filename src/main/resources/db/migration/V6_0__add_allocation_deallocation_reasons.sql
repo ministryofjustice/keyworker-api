@@ -35,7 +35,7 @@ begin
                                         and rd.code = okw.alloc_reason),
             deallocation_reason_id = (select id
                                       from reference_data rd
-                                      where rd.domain = 'ALLOCATION_REASON'
+                                      where rd.domain = 'DEALLOCATION_REASON'
                                         and rd.code = okw.dealloc_reason)
         where allocation_reason_id is null;
     end if;
