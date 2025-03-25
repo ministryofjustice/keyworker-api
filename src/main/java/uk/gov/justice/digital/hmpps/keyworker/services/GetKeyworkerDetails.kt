@@ -150,7 +150,6 @@ private fun KeyworkerAllocation.asAllocation(
   latestSession: LocalDate?,
 ) = Allocation(
   prisoner.asPrisoner(),
-  prisoner.prisonName,
   latestSession?.let { LatestKeyworkerSession(it) },
 )
 
