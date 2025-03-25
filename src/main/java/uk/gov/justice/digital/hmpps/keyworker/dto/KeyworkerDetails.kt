@@ -21,7 +21,6 @@ data class Keyworker(
 
 data class Allocation(
   val prisoner: Prisoner,
-  val location: String,
   val latestSession: LatestKeyworkerSession?,
 )
 
@@ -39,8 +38,8 @@ data class LatestKeyworkerSession(
 )
 
 data class KeyworkerStats(
-  val current: KeyworkerSessionStats?,
-  val previous: KeyworkerSessionStats?,
+  val current: KeyworkerSessionStats,
+  val previous: KeyworkerSessionStats,
 )
 
 data class KeyworkerSessionStats(

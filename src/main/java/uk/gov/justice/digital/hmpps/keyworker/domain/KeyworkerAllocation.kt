@@ -34,7 +34,7 @@ class KeyworkerAllocation(
   val assignedAt: LocalDateTime,
   @Column(name = "active_flag")
   @Convert(converter = YesNoConverter::class)
-  val active: Boolean,
+  var active: Boolean,
   @ManyToOne
   @JoinColumn(name = "allocation_reason_id")
   val allocationReason: ReferenceData,
@@ -44,13 +44,13 @@ class KeyworkerAllocation(
   @Column(name = "user_id", nullable = false)
   val userId: String?,
   @Column(name = "expiry_date_time")
-  val expiryDateTime: LocalDateTime?,
+  var expiryDateTime: LocalDateTime?,
   @ManyToOne
   @JoinColumn(name = "deallocation_reason_id")
-  val deallocationReason: ReferenceData?,
+  var deallocationReason: ReferenceData?,
   @Id
   @Column(name = "offender_keyworker_id")
-  val id: Long,
+  val id: Long?,
 ) {
   @CreatedDate
   @Column(name = "create_datetime")
@@ -59,6 +59,12 @@ class KeyworkerAllocation(
   @CreatedBy
   @Column(name = "create_user_id", nullable = false)
   var createdBy: String = "SYS"
+
+  fun deallocate(deallocationReason: ReferenceData) {
+    this.active = false
+    this.expiryDateTime = LocalDateTime.now()
+    this.deallocationReason = deallocationReason
+  }
 }
 
 interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Long> {
@@ -111,6 +117,8 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     prisonCode: String,
     staffId: Long,
   ): List<KeyworkerAllocation>
+
+  fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<KeyworkerAllocation>
 }
 
 interface NewAllocation {

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.utils
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
+import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
@@ -14,7 +15,7 @@ object ReferenceDataHelper {
     val description =
       reason.reasonCode.mapIndexed { i, v -> if (i == 0) v.uppercase() else v.toString() }.joinToString("")
     return ReferenceData(
-      ReferenceDataKey(ReferenceDataDomain.ALLOCATION_REASON, reason.reasonCode),
+      ReferenceDataDomain.ALLOCATION_REASON of reason.reasonCode,
       description,
       reason.ordinal,
       newId(),
@@ -26,7 +27,7 @@ object ReferenceDataHelper {
     val description =
       reason.reasonCode.mapIndexed { i, v -> if (i == 0) v.uppercase() else v.toString() }.joinToString("")
     return ReferenceData(
-      ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, reason.reasonCode),
+      ReferenceDataDomain.DEALLOCATION_REASON of reason.reasonCode,
       description,
       reason.ordinal,
       newId(),
@@ -38,7 +39,7 @@ object ReferenceDataHelper {
     val description =
       status.statusCode.mapIndexed { i, v -> if (i == 0) v.uppercase() else v.toString() }.joinToString("")
     return ReferenceData(
-      ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, status.name),
+      ReferenceDataDomain.KEYWORKER_STATUS of status.name,
       description,
       status.ordinal,
       newId(),

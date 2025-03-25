@@ -341,7 +341,7 @@ public class KeyworkerService {
                 .map(
                     kw -> {
                         var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
-                        var deallocationReason = kw.getAllocationReason();
+                        var deallocationReason = kw.getDeallocationReason();
                         return KeyWorkerAllocation.builder()
                             .offenderKeyworkerId(kw.getOffenderKeyworkerId())
                             .firstName(staffKw.getFirstName())
