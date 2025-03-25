@@ -38,8 +38,8 @@ data class LatestKeyworkerSession(
 )
 
 data class KeyworkerStats(
-  val current: KeyworkerSessionStats?,
-  val previous: KeyworkerSessionStats?,
+  val current: KeyworkerSessionStats,
+  val previous: KeyworkerSessionStats,
 )
 
 data class KeyworkerSessionStats(
