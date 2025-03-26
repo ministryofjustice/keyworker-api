@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
@@ -83,7 +84,7 @@ class KeyworkerAllocationManager(
   private fun PersonStaffAllocations.deallocate(rdSupplier: (String) -> ReferenceData) {
     val existingAllocations =
       allocationRepository
-        .findAllByPersonIdentifierInAndActiveTrue(personIdentifiersToAllocate)
+        .findAllByPersonIdentifierInAndActiveTrue(personIdentifiersToDeallocate)
         .associateBy { it.personIdentifier }
     deallocations.forEach { psd ->
       existingAllocations[psd.personIdentifier]
@@ -102,6 +103,9 @@ class KeyworkerAllocationManager(
     prisonCode: String,
     personIdentifiers: Set<String>,
   ): Map<String, Prisoner> {
+    if (personIdentifiers.isEmpty()) {
+      return emptyMap()
+    }
     val prisoners = prisonerSearch.findPrisonerDetails(personIdentifiers).associateBy { it.prisonerNumber }
     require(prisoners.values.all { it.prisonId == prisonCode }) {
       "A provided person identifier is not currently at the provided prison"
@@ -112,28 +116,33 @@ class KeyworkerAllocationManager(
   private fun activeKeyworkers(
     prisonCode: String,
     staffIds: Set<Long>,
-  ) = nomisService
-    .getActiveStaffKeyWorkersForPrison(
-      prisonCode,
-      Optional.empty(),
-      activeStaffKeyWorkersPagingAndSorting(),
-      true,
-    )?.body
-    ?.let { nomisKeyworkers ->
-      val nomisKeyworkerMap = nomisKeyworkers.associateBy { it.staffId }
-      require(nomisKeyworkerMap.keys.containsAll(staffIds)) {
-        "A provided staff id is not a keyworker for the provided prison"
-      }
-      val nonActiveIds =
-        keyworkerRepository
-          .getNonActiveKeyworkers(staffIds)
-          .map { it.staffId }
-          .toSet()
-      require(nonActiveIds.isEmpty()) {
-        "A provided staff id is not an active keyworker"
-      }
-      nomisKeyworkerMap
-    } ?: throw IllegalStateException("No active keyworkers found for the provided prison")
+  ): Map<Long, StaffLocationRoleDto> {
+    if (staffIds.isEmpty()) {
+      return emptyMap()
+    }
+    return nomisService
+      .getActiveStaffKeyWorkersForPrison(
+        prisonCode,
+        Optional.empty(),
+        activeStaffKeyWorkersPagingAndSorting(),
+        true,
+      )?.body
+      ?.let { nomisKeyworkers ->
+        val nomisKeyworkerMap = nomisKeyworkers.associateBy { it.staffId }
+        require(nomisKeyworkerMap.keys.containsAll(staffIds)) {
+          "A provided staff id is not a keyworker for the provided prison"
+        }
+        val nonActiveIds =
+          keyworkerRepository
+            .getNonActiveKeyworkers(staffIds)
+            .map { it.staffId }
+            .toSet()
+        require(nonActiveIds.isEmpty()) {
+          "A provided staff id is not an active keyworker"
+        }
+        nomisKeyworkerMap
+      } ?: throw IllegalStateException("No active keyworkers found for the provided prison")
+  }
 
   private fun PersonStaffAllocations.referenceData(): Map<ReferenceDataKey, ReferenceData> {
     val rdKeys = referenceDataKeys()
@@ -144,7 +153,8 @@ class KeyworkerAllocationManager(
 
   private fun PersonStaffAllocations.referenceDataKeys(): Set<ReferenceDataKey> {
     val allocationReasons = allocations.map { ALLOCATION_REASON of it.allocationReason }.toSet()
-    val deallocationReasons = deallocations.map { DEALLOCATION_REASON of it.deallocationReason }.toSet()
+    val deallocationReasons =
+      (deallocations.map { DEALLOCATION_REASON of it.deallocationReason } + (DEALLOCATION_REASON of OVERRIDE.reasonCode)).toSet()
     return allocationReasons + deallocationReasons
   }
 
@@ -168,7 +178,7 @@ class KeyworkerAllocationManager(
     assignedAt = LocalDateTime.now(),
     active = true,
     allocationReason = allocationReason,
-    allocationType = AllocationType.MANUAL,
+    allocationType = AllocationType.valueOf(allocationReason.code),
     userId = authentication().username(),
     null,
     null,

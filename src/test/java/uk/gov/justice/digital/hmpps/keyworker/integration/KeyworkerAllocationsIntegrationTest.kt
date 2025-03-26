@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
@@ -116,6 +117,124 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(res.userMessage).isEqualTo("A provided staff id is not an active keyworker")
   }
 
+  @Test
+  fun `204 no content - new allocations`() {
+    val prisonCode = "NAL"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val prisoners = listOf(prisoner(prisonCode))
+    val staff = staffRole()
+    val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staff.staffId) }
+    prisonerSearchMockServer.stubFindPrisonDetails(prisoners.map { it.prisonerNumber }.toSet(), prisoners)
+    prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
+    assertThat(allocations).hasSize(psas.size)
+    psas.forEach { psa ->
+      assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
+    }
+  }
+
+  @Test
+  fun `204 no content - new allocations and existing allocations deallocated`() {
+    val prisonCode = "EAL"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val prisoners = listOf(prisoner(prisonCode))
+    val staff = staffRole()
+    val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staff.staffId) }
+    prisonerSearchMockServer.stubFindPrisonDetails(prisoners.map { it.prisonerNumber }.toSet(), prisoners)
+    prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
+    val existingAllocations =
+      prisoners.map { givenKeyworkerAllocation(keyworkerAllocation(it.prisonerNumber, prisonCode)) }
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
+    assertThat(allocations).hasSize(psas.size)
+    psas.forEach { psa ->
+      assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
+    }
+
+    keyworkerAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
+      assertThat(allocation.active).isFalse
+      assertThat(allocation.expiryDateTime).isNotNull
+      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
+    }
+  }
+
+  @Test
+  fun `204 no content - no changes if already allocated to same staff`() {
+    val prisonCode = "NNA"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val prisoners = listOf(prisoner(prisonCode))
+    val staff = staffRole()
+    val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staff.staffId) }
+    prisonerSearchMockServer.stubFindPrisonDetails(prisoners.map { it.prisonerNumber }.toSet(), prisoners)
+    prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
+    val existingAllocations =
+      prisoners.map { givenKeyworkerAllocation(keyworkerAllocation(it.prisonerNumber, prisonCode, staff.staffId)) }
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
+    assertThat(allocations).hasSize(psas.size)
+    psas.forEach { psa ->
+      assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
+    }
+
+    keyworkerAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
+      assertThat(allocation.active).isTrue
+      assertThat(allocation.expiryDateTime).isNull()
+      assertThat(allocation.deallocationReason?.code).isNull()
+    }
+  }
+
+  @Test
+  fun `204 no content - deallocate existing allocations`() {
+    val prisonCode = "DAL"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val staffId = newId()
+    val psds = listOf(personStaffDeallocation(staffId = staffId), personStaffDeallocation(staffId = staffId))
+    val existing = psds.map { givenKeyworkerAllocation(keyworkerAllocation(it.personIdentifier, prisonCode, staffId)) }
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    assertThat(allocations.isEmpty()).isTrue
+
+    keyworkerAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
+      assertThat(allocation.active).isFalse
+      assertThat(allocation.expiryDateTime).isNotNull
+      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.KEYWORKER_STATUS_CHANGE.reasonCode)
+    }
+  }
+
+  @Test
+  fun `204 no content - doesn't deallocate unless person and staff match`() {
+    val prisonCode = "DDA"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val staffId = newId()
+    val psds = listOf(personStaffDeallocation(), personStaffDeallocation())
+    val existing = psds.map { givenKeyworkerAllocation(keyworkerAllocation(it.personIdentifier, prisonCode, staffId)) }
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    assertThat(allocations.isEmpty()).isFalse
+
+    keyworkerAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
+      assertThat(allocation.active).isTrue
+      assertThat(allocation.expiryDateTime).isNull()
+      assertThat(allocation.deallocationReason?.code).isNull()
+    }
+  }
+
   private fun prisoner(
     prisonCode: String,
     personIdentifier: String = prisonNumber(),
@@ -139,6 +258,12 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     staffId: Long = newId(),
     allocationReason: String = AllocationReason.MANUAL.name,
   ) = PersonStaffAllocation(personIdentifier, staffId, allocationReason)
+
+  private fun personStaffDeallocation(
+    personIdentifier: String = prisonNumber(),
+    staffId: Long = newId(),
+    deallocationReason: String = DeallocationReason.KEYWORKER_STATUS_CHANGE.name,
+  ) = PersonStaffDeallocation(personIdentifier, staffId, deallocationReason)
 
   private fun personStaffAllocations(
     allocations: List<PersonStaffAllocation> = emptyList(),

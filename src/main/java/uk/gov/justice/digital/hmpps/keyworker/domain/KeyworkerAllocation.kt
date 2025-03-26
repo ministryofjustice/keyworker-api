@@ -4,6 +4,8 @@ import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -41,14 +43,15 @@ class KeyworkerAllocation(
   @Column(name = "alloc_type")
   @Convert(converter = AllocationTypeConvertor::class)
   val allocationType: AllocationType,
-  @Column(name = "user_id", nullable = false)
-  val userId: String?,
+  @Column(name = "user_id")
+  val userId: String,
   @Column(name = "expiry_date_time")
   var expiryDateTime: LocalDateTime?,
   @ManyToOne
   @JoinColumn(name = "deallocation_reason_id")
   var deallocationReason: ReferenceData?,
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "offender_keyworker_id")
   val id: Long?,
 ) {
