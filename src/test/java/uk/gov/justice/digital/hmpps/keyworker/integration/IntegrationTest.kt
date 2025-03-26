@@ -77,7 +77,7 @@ abstract class IntegrationTest {
   private lateinit var keyworkerRepository: KeyworkerRepository
 
   @Autowired
-  private lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
+  protected lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
 
   @Autowired
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
@@ -403,10 +403,10 @@ abstract class IntegrationTest {
     active: Boolean = true,
     allocationReason: AllocationReason = AllocationReason.AUTO,
     allocationType: AllocationType = AllocationType.AUTO,
-    userId: String? = "T357",
+    userId: String = "T357",
     expiryDateTime: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
-    id: Long = newId(),
+    id: Long? = null,
   ) = KeyworkerAllocation(
     personIdentifier,
     prisonCode,
