@@ -34,13 +34,14 @@ class GetKeyworkerAllocations(
 
     return PersonStaffAllocationHistory(
       prisonNumber,
-      allocations.map {
-        it.toModel(
-          { prisons[it]!!.asCodedDescription() },
-          { staff[it]!!.asKeyworker() },
-          { users[it]!! },
-        )
-      },
+      allocations
+        .map {
+          it.toModel(
+            { prisons[it]!!.asCodedDescription() },
+            { staff[it]!!.asKeyworker() },
+            { users[it]!! },
+          )
+        }.sortedByDescending { it.allocated.at },
     )
   }
 

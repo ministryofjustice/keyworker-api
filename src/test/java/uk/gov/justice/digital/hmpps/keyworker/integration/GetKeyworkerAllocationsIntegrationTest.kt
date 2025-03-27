@@ -88,6 +88,7 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     with(response.allocations) {
       assertThat(size).isEqualTo(historicAllocations.size + 1)
+      assertThat(first().active).isEqualTo(true)
       with(single { it.active }) {
         assertThat(prison.description).isEqualTo("Indicated Prison")
         assertThat(keyworker.staffId).isEqualTo(currentAllocation.staffId)
@@ -98,6 +99,9 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
       assertThat(
         filter { !it.active },
       ).allMatch { it.deallocated != null && it.deallocated.by.matches("Deallocating User [0-4]".toRegex()) }
+      val idOrder = map { it.keyworker.staffId }
+      val reOrdered = sortedByDescending { it.allocated.at }.map { it.keyworker.staffId }
+      assertThat(idOrder).containsExactlyElementsOf(reOrdered)
     }
   }
 
