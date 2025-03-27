@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @ToString(exclude = {"firstName", "lastName"})
-public class KeyWorkerAllocation {
+public class LegacyKeyWorkerAllocation {
 
     @Schema(required = true, description = "Id of offender allocation.")
     @NotNull

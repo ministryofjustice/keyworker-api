@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 import java.time.LocalDate
 
 data class KeyworkerDetails(
-  val keyworker: Keyworker,
+  val keyworker: KeyworkerWithSchedule,
   val status: CodedDescription,
   val prison: CodedDescription,
   val capacity: Int,
@@ -12,7 +12,7 @@ data class KeyworkerDetails(
   val stats: KeyworkerStats,
 )
 
-data class Keyworker(
+data class KeyworkerWithSchedule(
   val staffId: Long,
   val firstName: String,
   val lastName: String,

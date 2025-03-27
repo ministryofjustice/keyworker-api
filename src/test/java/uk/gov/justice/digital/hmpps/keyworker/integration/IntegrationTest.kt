@@ -403,7 +403,7 @@ abstract class IntegrationTest {
     active: Boolean = true,
     allocationReason: AllocationReason = AllocationReason.AUTO,
     allocationType: AllocationType = AllocationType.AUTO,
-    userId: String = "T357",
+    allocatedBy: String = "T357",
     expiryDateTime: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
     id: Long? = null,
@@ -415,7 +415,7 @@ abstract class IntegrationTest {
     active,
     allocationReason.asReferenceData(),
     allocationType,
-    userId,
+    allocatedBy,
     expiryDateTime,
     deallocationReason?.asReferenceData(),
     id,
@@ -439,5 +439,5 @@ abstract class IntegrationTest {
 
   protected fun AllocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
 
-  protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
+  protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.DEALLOCATION_REASON, reasonCode)
 }

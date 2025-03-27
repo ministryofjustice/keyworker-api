@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyWorkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.dto.LegacyKeyWorkerAllocation;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
@@ -302,7 +302,7 @@ public class KeyworkerService {
     public Optional<OffenderKeyWorkerHistory> getFullAllocationHistory(final String offenderNo) {
         final var keyworkers = repository.findByOffenderNo(offenderNo);
 
-        final List<KeyWorkerAllocation> keyWorkerAllocations;
+        final List<LegacyKeyWorkerAllocation> keyWorkerAllocations;
 
         // get distinct list of prisons that have been migrated for this offender
         final var prisonsMigrated = keyworkers.stream().map(OffenderKeyworker::getPrisonId).distinct().toList();
@@ -315,7 +315,7 @@ public class KeyworkerService {
                 .map(kw -> {
                         var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
 
-                        return KeyWorkerAllocation.builder()
+                        return LegacyKeyWorkerAllocation.builder()
                             .firstName(staffKw.getFirstName())
                             .lastName(staffKw.getLastName())
                             .staffId(kw.getStaffId())
@@ -342,7 +342,7 @@ public class KeyworkerService {
                     kw -> {
                         var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
                         var deallocationReason = kw.getDeallocationReason();
-                        return KeyWorkerAllocation.builder()
+                        return LegacyKeyWorkerAllocation.builder()
                             .offenderKeyworkerId(kw.getOffenderKeyworkerId())
                             .firstName(staffKw.getFirstName())
                             .lastName(staffKw.getLastName())
@@ -367,7 +367,7 @@ public class KeyworkerService {
 
         keyWorkerAllocations = allocations.stream()
             .sorted(Comparator
-                .comparing(KeyWorkerAllocation::getAssigned).reversed())
+                .comparing(LegacyKeyWorkerAllocation::getAssigned).reversed())
             .collect(Collectors.toList());
         // use prison for most recent allocation
         final var prisonerDetail = nomisService.getPrisonerDetail(offenderNo, false).orElseThrow(EntityNotFoundException::new);

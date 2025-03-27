@@ -132,6 +132,8 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
   ): List<KeyworkerAllocation>
 
   fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<KeyworkerAllocation>
+
+  fun findAllByPersonIdentifier(personIdentifier: String): List<KeyworkerAllocation>
 }
 
 interface NewAllocation {

@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
 import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
@@ -87,7 +87,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(response.keyworker)
-      .isEqualTo(Keyworker(keyworker.staffId, "First", "Last", CodedDescription("FT", "Full Time")))
+      .isEqualTo(KeyworkerWithSchedule(keyworker.staffId, "First", "Last", CodedDescription("FT", "Full Time")))
     assertThat(response.status).isEqualTo(CodedDescription("ACT", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription("DEF", "Default Prison"))
     assertThat(response.capacity).isEqualTo(10)
@@ -129,7 +129,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(response.keyworker)
-      .isEqualTo(Keyworker(staff.staffId, staff.firstName, staff.lastName, CodedDescription("PT", "Part Time")))
+      .isEqualTo(KeyworkerWithSchedule(staff.staffId, staff.firstName, staff.lastName, CodedDescription("PT", "Part Time")))
     assertThat(response.status).isEqualTo(CodedDescription("ACT", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, prisonDescription))
     assertThat(response.capacity).isEqualTo(6)
