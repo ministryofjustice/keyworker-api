@@ -20,7 +20,7 @@ public class OffenderKeyWorkerHistory {
 
     private PrisonerDetail offender;
 
-    private List<KeyWorkerAllocation> allocationHistory;
+    private List<LegacyKeyWorkerAllocation> allocationHistory;
 
 
 }

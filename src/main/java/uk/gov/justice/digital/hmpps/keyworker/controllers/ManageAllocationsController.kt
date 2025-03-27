@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAllocationManage
 @Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
 @RequestMapping("/prisons/{prisonCode}")
-class AllocationController(
+class ManageAllocationsController(
   private val allocationManager: KeyworkerAllocationManager,
 ) {
   @ResponseStatus(HttpStatus.NO_CONTENT)

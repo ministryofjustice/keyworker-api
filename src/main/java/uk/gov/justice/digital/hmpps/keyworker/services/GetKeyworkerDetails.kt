@@ -10,10 +10,10 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSessionStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestKeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -139,7 +139,7 @@ class GetKeyworkerDetails(
 }
 
 private fun StaffLocationRoleDto.asKeyworker() =
-  Keyworker(staffId, firstName, lastName, ScheduleType.from(scheduleType).toCodedDescription())
+  KeyworkerWithSchedule(staffId, firstName, lastName, ScheduleType.from(scheduleType).toCodedDescription())
 
 private fun ScheduleType.toCodedDescription() = CodedDescription(code, description)
 
