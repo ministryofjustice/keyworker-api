@@ -13,6 +13,8 @@ import jakarta.persistence.Table
 import org.hibernate.type.YesNoConverter
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedBy
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -44,7 +46,7 @@ class KeyworkerAllocation(
   @Convert(converter = AllocationTypeConvertor::class)
   val allocationType: AllocationType,
   @Column(name = "user_id")
-  val userId: String,
+  val allocatedBy: String,
   @Column(name = "expiry_date_time")
   var expiryDateTime: LocalDateTime?,
   @ManyToOne
@@ -62,6 +64,14 @@ class KeyworkerAllocation(
   @CreatedBy
   @Column(name = "create_user_id", nullable = false)
   var createdBy: String = "SYS"
+
+  @LastModifiedDate
+  @Column(name = "modify_datetime")
+  var lastModifiedAt: LocalDateTime? = null
+
+  @LastModifiedBy
+  @Column(name = "modify_user_id")
+  var lastModifiedBy: String? = null
 
   fun deallocate(deallocationReason: ReferenceData) {
     this.active = false

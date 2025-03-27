@@ -179,7 +179,7 @@ class KeyworkerAllocationManager(
     active = true,
     allocationReason = allocationReason,
     allocationType = AllocationType.valueOf(allocationReason.code),
-    userId = authentication().username(),
+    allocatedBy = authentication().username(),
     null,
     null,
     null,
