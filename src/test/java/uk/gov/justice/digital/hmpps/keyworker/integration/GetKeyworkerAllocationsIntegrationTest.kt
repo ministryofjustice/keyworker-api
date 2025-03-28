@@ -53,15 +53,21 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
               expiryDateTime = LocalDateTime.now().minusWeeks(i.toLong()),
               deallocationReason = DeallocationReason.entries.random(),
             ).apply {
-              lastModifiedBy = "DS$i"
+              if (i != 3) {
+                lastModifiedBy = "DS$i"
+              }
             },
           )
         manageUsersMockServer.stubGetUserDetails(allocation.allocatedBy, newId().toString(), "Allocating User $i")
-        manageUsersMockServer.stubGetUserDetails(
-          allocation.lastModifiedBy!!,
-          newId().toString(),
-          "Deallocating User $i",
-        )
+        if (i == 2) {
+          manageUsersMockServer.stubGetUserDetailsNotFound(allocation.lastModifiedBy!!)
+        } else {
+          manageUsersMockServer.stubGetUserDetails(
+            allocation.lastModifiedBy!!,
+            newId().toString(),
+            "Deallocating User $i",
+          )
+        }
       }
 
     val currentAllocation =
@@ -98,7 +104,7 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
       }
       assertThat(
         filter { !it.active },
-      ).allMatch { it.deallocated != null && it.deallocated.by.matches("Deallocating User [0-4]".toRegex()) }
+      ).allMatch { it.deallocated != null && it.deallocated.by.matches("(Deallocating User [0-4])|(User)".toRegex()) }
       val idOrder = map { it.keyworker.staffId }
       val reOrdered = sortedByDescending { it.allocated.at }.map { it.keyworker.staffId }
       assertThat(idOrder).containsExactlyElementsOf(reOrdered)
