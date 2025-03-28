@@ -46,6 +46,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfN
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ManageUsersMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonRegisterMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearchMockServer
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
@@ -163,6 +164,9 @@ abstract class IntegrationTest {
     @JvmField
     internal val prisonerSearchMockServer = PrisonerSearchMockServer()
 
+    @JvmField
+    internal val prisonRegisterMockServer = PrisonRegisterMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -172,6 +176,7 @@ abstract class IntegrationTest {
       manageUsersMockServer.start()
       caseNotesMockServer.start()
       prisonerSearchMockServer.start()
+      prisonRegisterMockServer.start()
     }
 
     @AfterAll
@@ -183,6 +188,7 @@ abstract class IntegrationTest {
       manageUsersMockServer.stop()
       caseNotesMockServer.stop()
       prisonerSearchMockServer.stop()
+      prisonRegisterMockServer.stop()
     }
 
     private val pgContainer = PostgresContainer.instance
