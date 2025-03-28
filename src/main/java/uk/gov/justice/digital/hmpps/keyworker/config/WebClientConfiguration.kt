@@ -33,7 +33,7 @@ class WebClientConfiguration(
   @Value("\${prison.uri.root}") private val healthRootUri: String,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
   @Value("\${prisoner-search.api.uri.root}") private val prisonerSearchApiRootUri: String,
-  @Value("\${api.timeout:2s}") val timeout: Duration,
+  @Value("\${prison-register.api.uri.root}") private val prisonRegisterApiRootUri: String,
 ) {
   @Bean
   fun authorizedClientManager(
@@ -52,6 +52,12 @@ class WebClientConfiguration(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonApiRootUri, ofSeconds(60))
+
+  @Bean
+  fun prisonRegisterApiWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonRegisterApiRootUri)
 
   @Bean
   fun manageUsersApiWebClient(

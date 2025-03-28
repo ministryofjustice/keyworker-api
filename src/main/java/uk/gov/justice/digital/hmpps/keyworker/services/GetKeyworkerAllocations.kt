@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.dto.Actioned
-import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
@@ -26,7 +25,7 @@ class GetKeyworkerAllocations(
     val usernames = allocations.flatMap { listOfNotNull(it.allocatedBy, it.lastModifiedBy) }.toSet()
     val users = manageUsers.getUsersDetails(usernames).associateBy { it.username }
     check(users.keys.containsAll(usernames))
-    val prisons = prisonService.findAllPrisons().associateBy { it.agencyId }
+    val prisons = prisonService.findPrisons(allocations.map { it.prisonCode }.toSet()).associateBy { it.prisonId }
     check(prisons.keys.containsAll(allocations.map { it.prisonCode }.toSet()))
     val staffIds = allocations.map { it.staffId }.toSet()
     val staff = staffDetailProvider.findStaffSummariesFromIds(staffIds).associateBy { it.staffId }
@@ -66,7 +65,7 @@ class GetKeyworkerAllocations(
 
   private fun StaffSummary.asKeyworker() = Keyworker(staffId, firstName, lastName)
 
-  private fun Agency.asCodedDescription() = CodedDescription(agencyId, description)
+  private fun Prison.asCodedDescription() = CodedDescription(prisonId, prisonName)
 
   private fun ReferenceData.asCodedDescription() = CodedDescription(code, description)
 }

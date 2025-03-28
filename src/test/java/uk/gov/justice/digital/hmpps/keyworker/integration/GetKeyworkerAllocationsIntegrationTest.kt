@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
 import java.time.LocalDateTime
@@ -37,7 +37,7 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
       prisonMockServer.stubKeyworkerSummary(staffSummary("Forename $i", "Surname $i", kw.staffId))
     }
 
-    prisonMockServer.stubGetPrisons(listOf(Agency("ANY", "Other"), Agency("HAL", "Indicated Prison")))
+    prisonRegisterMockServer.stubGetPrisons(setOf(Prison("HAL", "Indicated Prison")))
 
     val historicAllocations =
       keyworkers.mapIndexed { i, a ->
