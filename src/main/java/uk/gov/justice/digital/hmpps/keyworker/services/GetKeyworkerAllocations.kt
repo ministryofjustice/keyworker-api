@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.UserDetails
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.sar.internal.StaffDetailProvider
 
@@ -38,7 +37,7 @@ class GetKeyworkerAllocations(
           it.toModel(
             { prisons[it]!!.asCodedDescription() },
             { staff[it]!!.asKeyworker() },
-            { users[it]!! },
+            { username -> username?.let { users[it]?.name } ?: "User" },
           )
         }.sortedByDescending { it.allocated.at },
     )
@@ -47,17 +46,17 @@ class GetKeyworkerAllocations(
   private fun uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation.toModel(
     prison: (String) -> CodedDescription,
     keyworker: (Long) -> Keyworker,
-    actionedBy: (String) -> UserDetails,
+    actionedBy: (String?) -> String,
   ): KeyworkerAllocation =
     KeyworkerAllocation(
       active,
       keyworker(staffId),
       prison(prisonCode),
-      Actioned(assignedAt, actionedBy(allocatedBy).name, allocationReason.asCodedDescription()),
+      Actioned(assignedAt, actionedBy(allocatedBy), allocationReason.asCodedDescription()),
       deallocationReason?.let {
         Actioned(
           expiryDateTime!!,
-          actionedBy(lastModifiedBy!!).name,
+          actionedBy(lastModifiedBy),
           it.asCodedDescription(),
         )
       },
