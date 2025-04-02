@@ -48,7 +48,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     )
 
     val allocations =
-      (0..30).map {
+      (0..40).map {
         givenKeyworkerAllocation(
           keyworkerAllocation(
             personIdentifier = prisonNumber(),
@@ -91,21 +91,21 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.status).isEqualTo(CodedDescription("ACT", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription("DEF", "Default Prison"))
     assertThat(response.capacity).isEqualTo(10)
-    assertThat(response.allocated).isEqualTo(23)
-    assertThat(response.allocations.size).isEqualTo(23)
+    assertThat(response.allocated).isEqualTo(30)
+    assertThat(response.allocations.size).isEqualTo(30)
     assertThat(response.allocations.all { it.prisoner.cellLocation == "DEF-A-1" }).isTrue
 
-    assertThat(response.stats.current!!).isNotNull()
+    assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(69)
-      assertThat(recordedSessions).isEqualTo(12)
-      assertThat(recordedEntries).isEqualTo(4)
-      assertThat(complianceRate).isEqualTo(17.39)
+      assertThat(projectedSessions).isEqualTo(95)
+      assertThat(recordedSessions).isEqualTo(15)
+      assertThat(recordedEntries).isEqualTo(5)
+      assertThat(complianceRate).isEqualTo(15.79)
     }
 
-    assertThat(response.stats.previous!!).isNotNull()
+    assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {
-      assertThat(projectedSessions).isEqualTo(17)
+      assertThat(projectedSessions).isEqualTo(39)
       assertThat(recordedSessions).isEqualTo(0)
       assertThat(recordedEntries).isEqualTo(0)
       assertThat(complianceRate).isEqualTo(0.0)

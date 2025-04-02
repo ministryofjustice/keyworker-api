@@ -55,7 +55,6 @@ public class KeyworkerStatsService {
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
-    private final TelemetryClient telemetryClient;
 
     private static final BigDecimal hundred = new BigDecimal("100.00");
 
@@ -363,13 +362,5 @@ public class KeyworkerStatsService {
             sessionsDone = sessionCount != null ? sessionCount : 0;
             entriesDone = entryCount != null ? entryCount : 0;
         }
-    }
-
-    public void raiseStatsProcessingError(final String prisonId, final Exception exception) {
-        final var logMap = new HashMap<String, String>();
-        logMap.put("snapshotDate", LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE));
-        logMap.put("prisonId", prisonId);
-
-        telemetryClient.trackException(exception, logMap, null);
     }
 }
