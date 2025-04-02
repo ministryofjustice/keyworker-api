@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.sar
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.sar.internal.SarKeyWorkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.sar.internal.StaffDetailProvider
 import java.time.LocalDate
@@ -42,21 +40,8 @@ class SubjectAccessRequest(
         AllocationType.MANUAL -> "Manual"
         AllocationType.PROVISIONAL -> "Provisional"
       },
-      when (allocationReason) {
-        AllocationReason.AUTO -> "Automatic"
-        AllocationReason.MANUAL -> "Manual"
-      },
-      when (deallocationReason) {
-        DeallocationReason.OVERRIDE -> "Overridden"
-        DeallocationReason.RELEASED -> "Released"
-        DeallocationReason.KEYWORKER_STATUS_CHANGE -> "Keyworker status changed"
-        DeallocationReason.TRANSFER -> "Transferred"
-        DeallocationReason.MERGED -> "Merged"
-        DeallocationReason.MISSING -> "Missing"
-        DeallocationReason.DUP -> "Duplicate"
-        DeallocationReason.MANUAL -> "Manual"
-        null -> null
-      },
+      allocationReason.description,
+      deallocationReason?.description,
       getStaff(staffId),
     )
 }

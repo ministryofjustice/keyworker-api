@@ -10,10 +10,10 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSessionStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestKeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -52,7 +52,7 @@ class GetKeyworkerDetails(
         .orElseThrow { IllegalArgumentException("Staff not recognised as a keyworker") }
         .asKeyworker()
 
-    val keyworkerInfo = keyworkerRepository.findAllWithAllocationCount(setOf(staffId)).firstOrNull()
+    val keyworkerInfo = keyworkerRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
     val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     val prisonerDetails =
       if (allocations.isEmpty()) {
@@ -139,19 +139,17 @@ class GetKeyworkerDetails(
 }
 
 private fun StaffLocationRoleDto.asKeyworker() =
-  Keyworker(staffId, firstName, lastName, ScheduleType.from(scheduleType).toCodedDescription())
+  KeyworkerWithSchedule(staffId, firstName, lastName, ScheduleType.from(scheduleType).toCodedDescription())
 
 private fun ScheduleType.toCodedDescription() = CodedDescription(code, description)
 
-private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra)
+private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
 
 private fun KeyworkerAllocation.asAllocation(
   prisoner: Prisoner,
   latestSession: LocalDate?,
 ) = Allocation(
   prisoner.asPrisoner(),
-  prisoner.prisonName,
-  prisoner.releaseDate,
   latestSession?.let { LatestKeyworkerSession(it) },
 )
 

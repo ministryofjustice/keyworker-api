@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.util.Collection;
 
 @Getter
-class AuthAwareAuthenticationToken extends JwtAuthenticationToken {
+public class AuthAwareAuthenticationToken extends JwtAuthenticationToken {
     private final Object principal;
     private final String name;
 

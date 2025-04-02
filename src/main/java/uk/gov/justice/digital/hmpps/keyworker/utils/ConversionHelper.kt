@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.utils
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto
@@ -55,6 +56,7 @@ object ConversionHelper {
   }
 
   fun getOffenderKeyworker(
+    allocationReason: ReferenceData,
     newAllocation: KeyworkerAllocationDto,
     userId: String?,
   ): OffenderKeyworker =
@@ -63,7 +65,7 @@ object ConversionHelper {
       .offenderNo(newAllocation.offenderNo)
       .staffId(newAllocation.staffId)
       .prisonId(newAllocation.prisonId)
-      .allocationReason(newAllocation.allocationReason)
+      .allocationReason(allocationReason)
       .active(true)
       .assignedDateTime(LocalDateTime.now())
       .allocationType(newAllocation.allocationType)

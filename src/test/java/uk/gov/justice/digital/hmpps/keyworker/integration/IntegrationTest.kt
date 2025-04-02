@@ -46,6 +46,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfN
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ManageUsersMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonRegisterMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearchMockServer
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
@@ -77,7 +78,7 @@ abstract class IntegrationTest {
   private lateinit var keyworkerRepository: KeyworkerRepository
 
   @Autowired
-  private lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
+  protected lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
 
   @Autowired
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
@@ -163,6 +164,9 @@ abstract class IntegrationTest {
     @JvmField
     internal val prisonerSearchMockServer = PrisonerSearchMockServer()
 
+    @JvmField
+    internal val prisonRegisterMockServer = PrisonRegisterMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -172,6 +176,7 @@ abstract class IntegrationTest {
       manageUsersMockServer.start()
       caseNotesMockServer.start()
       prisonerSearchMockServer.start()
+      prisonRegisterMockServer.start()
     }
 
     @AfterAll
@@ -183,6 +188,7 @@ abstract class IntegrationTest {
       manageUsersMockServer.stop()
       caseNotesMockServer.stop()
       prisonerSearchMockServer.stop()
+      prisonRegisterMockServer.stop()
     }
 
     private val pgContainer = PostgresContainer.instance
@@ -377,10 +383,10 @@ abstract class IntegrationTest {
         this.staffId = staffId
         assignedDateTime = assignedAt
         this.allocationType = allocationType
-        this.allocationReason = allocationReason
+        this.allocationReason = allocationReason.asReferenceData()
         this.userId = userId
         expiryDateTime = expiredAt
-        this.deallocationReason = deallocationReason
+        this.deallocationReason = deallocationReason?.asReferenceData()
         isActive = active
         prisonId = prisonCode
       },
@@ -403,21 +409,21 @@ abstract class IntegrationTest {
     active: Boolean = true,
     allocationReason: AllocationReason = AllocationReason.AUTO,
     allocationType: AllocationType = AllocationType.AUTO,
-    userId: String? = "T357",
+    allocatedBy: String = "T357",
     expiryDateTime: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
-    id: Long = newId(),
+    id: Long? = null,
   ) = KeyworkerAllocation(
     personIdentifier,
     prisonCode,
     staffId,
     assignedAt,
     active,
-    allocationReason,
+    allocationReason.asReferenceData(),
     allocationType,
-    userId,
+    allocatedBy,
     expiryDateTime,
-    deallocationReason,
+    deallocationReason?.asReferenceData(),
     id,
   )
 
@@ -436,4 +442,8 @@ abstract class IntegrationTest {
   ): ReferenceData =
     referenceDataRepository.findByKey(ReferenceDataKey(domain, code))
       ?: throw IllegalArgumentException("Reference data does not exist: $code")
+
+  protected fun AllocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
+
+  protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.DEALLOCATION_REASON, reasonCode)
 }

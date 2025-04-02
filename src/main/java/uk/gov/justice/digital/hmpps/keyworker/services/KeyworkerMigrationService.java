@@ -1,10 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
@@ -20,22 +24,14 @@ import java.util.Set;
 @Service
 @Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class KeyworkerMigrationService {
 
     private final NomisService nomisService;
     private final PrisonSupportedRepository repository;
     private final PrisonSupportedService prisonSupportedService;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
-
-    public KeyworkerMigrationService(final NomisService nomisService,
-                                     final PrisonSupportedRepository repository,
-                                     final PrisonSupportedService prisonSupportedService,
-                                     final OffenderKeyworkerRepository offenderKeyworkerRepository) {
-        this.repository = repository;
-        this.nomisService = nomisService;
-        this.prisonSupportedService = prisonSupportedService;
-        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
-    }
+    private final ReferenceDataRepository referenceDataRepository;
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
     public void migrateKeyworkerByPrison(final String prisonId) {
@@ -59,9 +55,12 @@ public class KeyworkerMigrationService {
 
         final var okwList = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(dtos);
 
+        final var reason = referenceDataRepository.findByKey(
+            new ReferenceDataKey(ReferenceDataDomain.ALLOCATION_REASON, AllocationReason.MANUAL.getReasonCode())
+        );
         okwList.forEach(item -> {
             item.setAllocationType(AllocationType.MANUAL);
-            item.setAllocationReason(AllocationReason.MANUAL);
+            item.setAllocationReason(reason);
         });
 
         return okwList;

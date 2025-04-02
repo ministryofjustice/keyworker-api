@@ -40,6 +40,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
           LocalDate.now().plusDays(90),
           "DEF",
           "Default Prison",
+          "DEF-A-1",
           "STANDARD",
         )
       },

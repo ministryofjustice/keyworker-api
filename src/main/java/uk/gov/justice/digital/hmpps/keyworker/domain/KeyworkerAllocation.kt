@@ -4,20 +4,22 @@ import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.type.YesNoConverter
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedBy
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReasonConvertor
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationTypeConvertor
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReasonConvertor
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -36,23 +38,24 @@ class KeyworkerAllocation(
   val assignedAt: LocalDateTime,
   @Column(name = "active_flag")
   @Convert(converter = YesNoConverter::class)
-  val active: Boolean,
-  @Column(name = "alloc_reason")
-  @Convert(converter = AllocationReasonConvertor::class)
-  val allocationReason: AllocationReason,
+  var active: Boolean,
+  @ManyToOne
+  @JoinColumn(name = "allocation_reason_id")
+  val allocationReason: ReferenceData,
   @Column(name = "alloc_type")
   @Convert(converter = AllocationTypeConvertor::class)
   val allocationType: AllocationType,
-  @Column(name = "user_id", nullable = false)
-  val userId: String?,
+  @Column(name = "user_id")
+  val allocatedBy: String,
   @Column(name = "expiry_date_time")
-  val expiryDateTime: LocalDateTime?,
-  @Column(name = "dealloc_reason")
-  @Convert(converter = DeallocationReasonConvertor::class)
-  val deallocationReason: DeallocationReason?,
+  var expiryDateTime: LocalDateTime?,
+  @ManyToOne
+  @JoinColumn(name = "deallocation_reason_id")
+  var deallocationReason: ReferenceData?,
   @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "offender_keyworker_id")
-  val id: Long,
+  val id: Long?,
 ) {
   @CreatedDate
   @Column(name = "create_datetime")
@@ -61,6 +64,20 @@ class KeyworkerAllocation(
   @CreatedBy
   @Column(name = "create_user_id", nullable = false)
   var createdBy: String = "SYS"
+
+  @LastModifiedDate
+  @Column(name = "modify_datetime")
+  var lastModifiedAt: LocalDateTime? = null
+
+  @LastModifiedBy
+  @Column(name = "modify_user_id")
+  var lastModifiedBy: String? = null
+
+  fun deallocate(deallocationReason: ReferenceData) {
+    this.active = false
+    this.expiryDateTime = LocalDateTime.now()
+    this.deallocationReason = deallocationReason
+  }
 }
 
 interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Long> {
@@ -69,6 +86,7 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     with allocations as (select ka.offender_keyworker_id as id, ka.offender_no as personIdentifier, ka.assigned_date_time as assignedAt
                      from offender_key_worker ka
                      where ka.prison_id = :prisonCode
+                       and ka.alloc_type <> 'P' 
                        and ka.assigned_date_time between :from and :to
     )
     select na.id, na.personIdentifier, na.assignedAt
@@ -112,6 +130,10 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     prisonCode: String,
     staffId: Long,
   ): List<KeyworkerAllocation>
+
+  fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<KeyworkerAllocation>
+
+  fun findAllByPersonIdentifier(personIdentifier: String): List<KeyworkerAllocation>
 }
 
 interface NewAllocation {

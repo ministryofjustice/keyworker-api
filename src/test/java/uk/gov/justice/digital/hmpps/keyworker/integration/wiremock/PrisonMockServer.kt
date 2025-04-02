@@ -271,4 +271,18 @@ class PrisonMockServer : WireMockServer(9999) {
         ),
     )
   }
+
+  fun stubGetPrisons(agencies: List<Agency>) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/agencies/prisons"))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(agencies)),
+        ),
+    )
+  }
 }

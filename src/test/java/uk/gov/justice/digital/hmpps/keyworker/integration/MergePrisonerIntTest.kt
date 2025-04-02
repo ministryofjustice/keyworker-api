@@ -51,7 +51,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val merged = requireNotNull(offenderKeyworkerRepository.findByIdOrNull(okw.offenderKeyworkerId))
     assertThat(merged.offenderNo).isEqualTo(nkw.offenderNo)
     assertThat(merged.isActive).isFalse()
-    assertThat(merged.deallocationReason).isEqualTo(DeallocationReason.MERGED)
+    assertThat(merged.deallocationReason.code).isEqualTo(DeallocationReason.MERGED.reasonCode)
   }
 
   private fun mergeEvent(

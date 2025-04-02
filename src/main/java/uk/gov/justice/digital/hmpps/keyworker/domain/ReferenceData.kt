@@ -40,6 +40,8 @@ data class ReferenceDataKey(
 
 enum class ReferenceDataDomain {
   KEYWORKER_STATUS,
+  ALLOCATION_REASON,
+  DEALLOCATION_REASON,
   ;
 
   companion object {
@@ -50,10 +52,14 @@ enum class ReferenceDataDomain {
   }
 }
 
+infix fun ReferenceDataDomain.of(code: String): ReferenceDataKey = ReferenceDataKey(this, code)
+
 interface ReferenceDataRepository : JpaRepository<ReferenceData, Long> {
   fun findByKeyDomain(domain: ReferenceDataDomain): List<ReferenceData>
 
   fun findByKey(key: ReferenceDataKey): ReferenceData?
+
+  fun findAllByKeyIn(keys: Set<ReferenceDataKey>): List<ReferenceData>
 }
 
 fun ReferenceDataRepository.getKeyworkerStatus(status: KeyworkerStatus): ReferenceData =

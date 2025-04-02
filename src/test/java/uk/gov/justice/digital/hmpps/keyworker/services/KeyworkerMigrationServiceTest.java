@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
@@ -47,6 +48,9 @@ class KeyworkerMigrationServiceTest extends AbstractServiceTest {
 
     @MockitoBean
     private PrisonSupportedService prisonSupportedService;
+
+    @MockitoBean
+    private ReferenceDataRepository referenceDataRepository;
 
     @BeforeEach
     void setUp() {

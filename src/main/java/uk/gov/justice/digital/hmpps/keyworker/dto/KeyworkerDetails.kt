@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 import java.time.LocalDate
 
 data class KeyworkerDetails(
-  val keyworker: Keyworker,
+  val keyworker: KeyworkerWithSchedule,
   val status: CodedDescription,
   val prison: CodedDescription,
   val capacity: Int,
@@ -12,7 +12,7 @@ data class KeyworkerDetails(
   val stats: KeyworkerStats,
 )
 
-data class Keyworker(
+data class KeyworkerWithSchedule(
   val staffId: Long,
   val firstName: String,
   val lastName: String,
@@ -21,8 +21,6 @@ data class Keyworker(
 
 data class Allocation(
   val prisoner: Prisoner,
-  val location: String,
-  val releaseDate: LocalDate?,
   val latestSession: LatestKeyworkerSession?,
 )
 
@@ -31,6 +29,8 @@ data class Prisoner(
   val firstName: String,
   val lastName: String,
   val csra: String?,
+  val cellLocation: String?,
+  val releaseDate: LocalDate?,
 )
 
 data class LatestKeyworkerSession(
@@ -38,8 +38,8 @@ data class LatestKeyworkerSession(
 )
 
 data class KeyworkerStats(
-  val current: KeyworkerSessionStats?,
-  val previous: KeyworkerSessionStats?,
+  val current: KeyworkerSessionStats,
+  val previous: KeyworkerSessionStats,
 )
 
 data class KeyworkerSessionStats(

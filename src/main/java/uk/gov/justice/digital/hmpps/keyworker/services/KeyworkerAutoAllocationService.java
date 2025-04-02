@@ -2,12 +2,16 @@ package uk.gov.justice.digital.hmpps.keyworker.services;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
@@ -29,6 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(noRollbackFor = {AllocationException.class})
 @Slf4j
+@RequiredArgsConstructor
 public class KeyworkerAutoAllocationService {
     private static final String COUNTER_METRIC_KEYWORKER_AUTO_ALLOCATIONS = "counter.keyworker.allocations.auto";
     private static final String OUTCOME_NO_UNALLOCATED_OFFENDERS = "No unallocated offenders.";
@@ -40,23 +45,7 @@ public class KeyworkerAutoAllocationService {
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
     private final ComplexityOfNeed complexityOfNeedService;
-    /**
-     * Constructor.
-     *
-     * @param keyworkerService     key worker allocation service.
-     * @param keyworkerPoolFactory factory that facilitates creation of Key worker pools.
-     */
-    public KeyworkerAutoAllocationService(final KeyworkerService keyworkerService,
-                                          final KeyworkerPoolFactory keyworkerPoolFactory,
-                                          final OffenderKeyworkerRepository offenderKeyworkerRepository,
-                                          final PrisonSupportedService prisonSupportedService,
-                                          final ComplexityOfNeed complexityOfNeedService) {
-        this.keyworkerService = keyworkerService;
-        this.keyworkerPoolFactory = keyworkerPoolFactory;
-        this.offenderKeyworkerRepository = offenderKeyworkerRepository;
-        this.prisonSupportedService = prisonSupportedService;
-        this.complexityOfNeedService = complexityOfNeedService;
-    }
+    private final ReferenceDataRepository referenceDataRepository;
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")
     public long autoAllocate(final String prisonId) throws AllocationException {
@@ -171,11 +160,14 @@ public class KeyworkerAutoAllocationService {
     }
 
     private OffenderKeyworker buildKeyWorkerAllocation(final OffenderLocationDto offender, final KeyworkerDto keyworker) {
+        final var reason = referenceDataRepository.findByKey(
+            new ReferenceDataKey(ReferenceDataDomain.ALLOCATION_REASON, AllocationReason.AUTO.getReasonCode())
+        );
         return OffenderKeyworker.builder()
             .offenderNo(offender.getOffenderNo())
             .staffId(keyworker.getStaffId())
             .prisonId(offender.getAgencyId())
-            .allocationReason(AllocationReason.AUTO)
+            .allocationReason(reason)
             .active(true)
             .assignedDateTime(LocalDateTime.now())
             .allocationType(AllocationType.PROVISIONAL)

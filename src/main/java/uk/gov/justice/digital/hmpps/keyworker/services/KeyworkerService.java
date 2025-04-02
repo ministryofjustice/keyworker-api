@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -16,13 +14,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKt;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain;
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyWorkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.dto.LegacyKeyWorkerAllocation;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
@@ -39,8 +38,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -184,9 +183,12 @@ public class KeyworkerService {
 
             if (activeOffenderKeyworkers.size() > 1) {
                 // de-allocate dups
+                final var deallocationReason = referenceDataRepository.findByKey(
+                    new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.DUP.getReasonCode())
+                );
                 activeOffenderKeyworkers.stream()
                     .filter(kw -> !latestKw.getOffenderKeyworkerId().equals(kw.getOffenderKeyworkerId()))
-                    .forEach(kw -> kw.deallocate(LocalDateTime.now(), DeallocationReason.DUP));
+                    .forEach(kw -> kw.deallocate(LocalDateTime.now(), deallocationReason));
             }
             final var staffDetail = nomisService.getBasicKeyworkerDtoForStaffId(latestKw.getStaffId());
             if (staffDetail != null) {
@@ -246,18 +248,25 @@ public class KeyworkerService {
     }
 
     private void doAllocate(final KeyworkerAllocationDto newAllocation) {
-
         // Remove current allocation if any
         final var entities = repository.findByActiveAndOffenderNo(
             true, newAllocation.getOffenderNo());
         final var now = LocalDateTime.now();
+
+        final var dealloc = newAllocation.getDeallocationReason() == null ? DeallocationReason.OVERRIDE : newAllocation.getDeallocationReason();
+        final var deallocationReason = referenceDataRepository.findByKey(
+          new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, dealloc.getReasonCode())
+        );
         entities.forEach(e -> {
             e.setActive(false);
             e.setExpiryDateTime(now);
-            e.setDeallocationReason(newAllocation.getDeallocationReason());
+            e.setDeallocationReason(deallocationReason);
         });
 
-        final var allocation = ConversionHelper.INSTANCE.getOffenderKeyworker(newAllocation, authenticationFacade.getCurrentUsername());
+        final var allocationReason = referenceDataRepository.findByKey(
+            new ReferenceDataKey(ReferenceDataDomain.ALLOCATION_REASON, newAllocation.getAllocationReason().getReasonCode())
+        );
+        final var allocation = ConversionHelper.INSTANCE.getOffenderKeyworker(allocationReason, newAllocation, authenticationFacade.getCurrentUsername());
 
         allocate(allocation);
     }
@@ -293,7 +302,7 @@ public class KeyworkerService {
     public Optional<OffenderKeyWorkerHistory> getFullAllocationHistory(final String offenderNo) {
         final var keyworkers = repository.findByOffenderNo(offenderNo);
 
-        final List<KeyWorkerAllocation> keyWorkerAllocations;
+        final List<LegacyKeyWorkerAllocation> keyWorkerAllocations;
 
         // get distinct list of prisons that have been migrated for this offender
         final var prisonsMigrated = keyworkers.stream().map(OffenderKeyworker::getPrisonId).distinct().toList();
@@ -306,7 +315,7 @@ public class KeyworkerService {
                 .map(kw -> {
                         var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
 
-                        return KeyWorkerAllocation.builder()
+                        return LegacyKeyWorkerAllocation.builder()
                             .firstName(staffKw.getFirstName())
                             .lastName(staffKw.getLastName())
                             .staffId(kw.getStaffId())
@@ -332,19 +341,18 @@ public class KeyworkerService {
                 .map(
                     kw -> {
                         var staffKw = nomisService.getBasicKeyworkerDtoForStaffId(kw.getStaffId());
-
-                        var deallocationReason = WordUtils.capitalizeFully(RegExUtils.replaceAll(kw.getDeallocationReason() != null ? kw.getDeallocationReason().getReasonCode() : null, "_", " "));
-                        return KeyWorkerAllocation.builder()
+                        var deallocationReason = kw.getDeallocationReason();
+                        return LegacyKeyWorkerAllocation.builder()
                             .offenderKeyworkerId(kw.getOffenderKeyworkerId())
                             .firstName(staffKw.getFirstName())
                             .lastName(staffKw.getLastName())
                             .staffId(kw.getStaffId())
                             .active(kw.isActive())
                             .allocationType(kw.getAllocationType())
-                            .allocationReason(WordUtils.capitalizeFully(kw.getAllocationReason().getReasonCode()))
+                            .allocationReason(kw.getAllocationReason().getDescription())
                             .assigned(kw.getAssignedDateTime())
                             .expired(kw.getExpiryDateTime())
-                            .deallocationReason(deallocationReason)
+                            .deallocationReason(deallocationReason == null ? null : deallocationReason.getDescription())
                             .prisonId(kw.getPrisonId())
                             .userId(nomisService.getStaffDetailByUserId(kw.getUserId()))
                             .createdByUser(nomisService.getStaffDetailByUserId(kw.getCreateUserId()))
@@ -359,7 +367,7 @@ public class KeyworkerService {
 
         keyWorkerAllocations = allocations.stream()
             .sorted(Comparator
-                .comparing(KeyWorkerAllocation::getAssigned).reversed())
+                .comparing(LegacyKeyWorkerAllocation::getAssigned).reversed())
             .collect(Collectors.toList());
         // use prison for most recent allocation
         final var prisonerDetail = nomisService.getPrisonerDetail(offenderNo, false).orElseThrow(EntityNotFoundException::new);
@@ -622,8 +630,11 @@ public class KeyworkerService {
         if (behaviour.isRemoveAllocations()) {
             final var now = LocalDateTime.now();
             final var allocations = repository.findByStaffIdAndPrisonIdAndActive(staffId, prisonId, true);
+            final var deallocationReason = referenceDataRepository.findByKey(
+                new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.KEYWORKER_STATUS_CHANGE.getReasonCode())
+            );
             allocations.forEach(ok -> {
-                ok.setDeallocationReason(DeallocationReason.KEYWORKER_STATUS_CHANGE);
+                ok.setDeallocationReason(deallocationReason);
                 ok.setActive(false);
                 ok.setExpiryDateTime(now);
             });
@@ -646,8 +657,11 @@ public class KeyworkerService {
 
         // There shouldnt ever be more than 1, but just in case
         final var now = LocalDateTime.now();
+        final var deallocationReason = referenceDataRepository.findByKey(
+            new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.MANUAL.getReasonCode())
+        );
         offenderKeyworkers.forEach(offenderKeyworker -> {
-            offenderKeyworker.deallocate(now, DeallocationReason.MANUAL);
+            offenderKeyworker.deallocate(now, deallocationReason);
             log.info("De-allocated offender {} from KW {} at {}", offenderNo, offenderKeyworker.getStaffId(), offenderKeyworker.getPrisonId());
         });
     }

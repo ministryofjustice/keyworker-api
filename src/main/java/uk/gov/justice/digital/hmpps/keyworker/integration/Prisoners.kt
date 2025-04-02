@@ -10,8 +10,6 @@ data class Prisoners(
 
   fun personIdentifiers(): Set<String> = map.keys
 
-  fun findByPersonIdentifier(personIdentifier: String) = map[personIdentifier]
-
   @JsonIgnore
   val size = map.keys.size
 
@@ -26,5 +24,6 @@ data class Prisoner(
   val releaseDate: LocalDate?,
   val prisonId: String,
   val prisonName: String,
+  val cellLocation: String?,
   val csra: String?,
 )

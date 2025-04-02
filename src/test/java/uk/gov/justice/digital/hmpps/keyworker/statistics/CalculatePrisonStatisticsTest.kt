@@ -99,7 +99,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.keyworkerSessions).isEqualTo(40)
     assertThat(stats.keyworkerEntries).isEqualTo(9)
 
-    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(22)
+    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(30)
     assertThat(stats.averageReceptionToSessionDays).isEqualTo(24)
   }
 
@@ -191,6 +191,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           now().plusDays(index * 2 + 2L),
           "DEF",
           "Default Prison",
+          "DEF-A-1",
           "STANDARD",
         )
       },
