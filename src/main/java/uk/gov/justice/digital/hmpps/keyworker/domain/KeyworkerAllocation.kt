@@ -134,10 +134,37 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
   fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<KeyworkerAllocation>
 
   fun findAllByPersonIdentifier(personIdentifier: String): List<KeyworkerAllocation>
+
+  @Query(
+    """
+    with summary as (
+        select ka.personIdentifier as pi, sum(case when ka.active then 1 else 0 end) as active, count(ka) as count
+        from KeyworkerAllocation ka
+        where ka.personIdentifier in :personIdentifiers 
+        and ka.prisonCode = :prisonCode
+        and ka.allocationType <> 'P' 
+        group by ka.personIdentifier
+    )
+    select sum.pi as personIdentifier, sum.active as activeCount, sum.count as totalCount, cur.staffId as staffId
+    from summary sum
+    left join KeyworkerAllocation cur on cur.personIdentifier = sum.pi and cur.active = true
+    """,
+  )
+  fun summariesFor(
+    prisonCode: String,
+    personIdentifiers: Set<String>,
+  ): List<AllocationSummary>
 }
 
 interface NewAllocation {
   val id: UUID
   val personIdentifier: String
   val assignedAt: LocalDateTime
+}
+
+interface AllocationSummary {
+  val personIdentifier: String
+  val activeCount: Int
+  val totalCount: Int
+  val staffId: Long?
 }
