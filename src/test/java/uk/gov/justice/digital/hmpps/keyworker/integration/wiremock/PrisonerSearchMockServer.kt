@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
@@ -27,6 +28,25 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
             .withStatus(200),
         ),
     )
+
+  fun stubFindFilteredPrisoners(
+    prisonCode: String,
+    prisoners: Prisoners,
+    queryParams: Map<String, String> = mapOf(),
+  ): StubMapping {
+    val request = get(urlPathEqualTo("/prison/$prisonCode/prisoners"))
+    queryParams.forEach { queryParam ->
+      request.withQueryParam(queryParam.key, equalTo(queryParam.value))
+    }
+    return stubFor(
+      request.willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(objectMapper.writeValueAsString(prisoners))
+          .withStatus(200),
+      ),
+    )
+  }
 
   fun stubFindPrisonDetails(
     prisonNumbers: Set<String>,
