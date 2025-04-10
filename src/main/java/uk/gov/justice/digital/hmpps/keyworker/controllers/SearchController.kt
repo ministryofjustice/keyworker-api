@@ -10,18 +10,29 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerSearch
+import uk.gov.justice.digital.hmpps.keyworker.services.PersonSearch
 
 @Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
 @RequestMapping(value = ["/search"])
 class SearchController(
-  private val search: KeyworkerSearch,
+  private val keyworkerSearch: KeyworkerSearch,
+  private val personSearch: PersonSearch,
 ) {
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @PostMapping("/prisons/{prisonCode}/keyworkers")
   fun searchKeyworkers(
     @PathVariable prisonCode: String,
     @RequestBody request: KeyworkerSearchRequest,
-  ): KeyworkerSearchResponse = search.findKeyworkers(prisonCode, request)
+  ): KeyworkerSearchResponse = keyworkerSearch.findKeyworkers(prisonCode, request)
+
+  @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
+  @PostMapping("/prisons/{prisonCode}/prisoners")
+  fun searchPeople(
+    @PathVariable prisonCode: String,
+    @RequestBody request: PersonSearchRequest,
+  ): PersonSearchResponse = personSearch.findPeople(prisonCode, request)
 }
