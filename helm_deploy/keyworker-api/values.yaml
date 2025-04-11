@@ -9,7 +9,7 @@ generic-service:
   productId: DPS023
 
   image:
-    repository: quay.io/hmpps/keyworker-api
+    repository: ghcr.io/ministryofjustice/keyworker-api
     tag: latest
     port: 8080
 
