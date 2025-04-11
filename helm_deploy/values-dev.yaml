@@ -25,10 +25,10 @@ generic-prometheus-alerts:
     cloud-platform-a75ed0cca96e6c72: 'Keyworker API'
   rdsAlertsConnectionThreshold: 100
   sqsOldestAlertQueueNames:
-    - "hmpps-move-and-improve-dev-keyworker_domain_events_queue"
+    - "hmpps-keyworker-dev-domain_events_queue"
   sqsAlertsOldestThreshold: 10
   sqsNumberAlertQueueNames:
-    - "hmpps-move-and-improve-dev-keyworker_domain_events_dlq"
+    - "hmpps-keyworker-dev-keyworker_domain_events_dlq"
   sqsAlertsTotalMessagesThreshold: 1
   businessHoursOnly: true
   applicationCronJobStatusFailedWindowMinutes: 10
