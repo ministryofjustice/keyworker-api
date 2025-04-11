@@ -49,6 +49,7 @@ jobs:
       docker_multiplatform: false
   schema_spy:
     uses: ./.github/workflows/schema-spy.yml
+    if: github.ref == 'refs/heads/main'
     with:
       docker_compose_file: 'docker-compose-schema-spy.yml'
       init_db_cli: './gradlew initialiseDatabase'
