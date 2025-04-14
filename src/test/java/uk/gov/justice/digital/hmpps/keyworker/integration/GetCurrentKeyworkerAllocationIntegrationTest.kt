@@ -27,7 +27,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
   fun `401 unauthorised without a valid token`() {
     webTestClient
       .get()
-      .uri(GET_KEYWORKER_ALLOCATION, prisonNumber())
+      .uri(GET_KEYWORKER_ALLOCATION, "ANY", prisonNumber())
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -35,7 +35,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getCurrentKeyworkerAllocationSpec(prisonNumber(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getCurrentKeyworkerAllocationSpec("ANY", prisonNumber(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
   @Test
@@ -43,10 +43,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
     val prisonCode = "CAL"
     val prisonNumber = prisonNumber()
 
-    complexityOfNeedMockServer.stubComplexOffenders(
-      setOf(prisonNumber),
-      listOf(ComplexOffender(prisonNumber, ComplexityOfNeedLevel.MEDIUM)),
-    )
+    givenPrisonConfig(prisonConfig(prisonCode))
 
     val previous = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
     val current = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
@@ -108,7 +105,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      getCurrentKeyworkerAllocationSpec(prisonNumber)
+      getCurrentKeyworkerAllocationSpec(prisonCode, prisonNumber)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -124,7 +121,10 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
 
   @Test
   fun `200 ok and complex needs correctly returned`() {
+    val prisonCode = "COM"
     val prisonNumber = prisonNumber()
+
+    givenPrisonConfig(prisonConfig(prisonCode, hasPrisonersWithHighComplexityNeeds = true))
 
     complexityOfNeedMockServer.stubComplexOffenders(
       setOf(prisonNumber),
@@ -132,7 +132,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      getCurrentKeyworkerAllocationSpec(prisonNumber)
+      getCurrentKeyworkerAllocationSpec(prisonCode, prisonNumber)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -145,13 +145,14 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
   }
 
   private fun getCurrentKeyworkerAllocationSpec(
+    prisonCode: String,
     prisonNumber: String,
     role: String? = Roles.KEYWORKER_RO,
   ) = webTestClient
     .get()
     .uri {
       it.path(GET_KEYWORKER_ALLOCATION)
-      it.build(prisonNumber)
+      it.build(prisonCode, prisonNumber)
     }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .exchange()
 
@@ -162,6 +163,6 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
   ): StaffSummary = StaffSummary(id, firstName, lastName)
 
   companion object {
-    const val GET_KEYWORKER_ALLOCATION = "/prisoners/{prisonNumber}/keyworkers/current"
+    const val GET_KEYWORKER_ALLOCATION = "prisons/{prisonCode}/prisoners/{prisonNumber}/keyworkers/current"
   }
 }

@@ -15,8 +15,9 @@ class CurrentKeyworkerController(
   private val allocations: GetKeyworkerAllocations,
 ) {
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
-  @GetMapping("/prisoners/{prisonNumber}/keyworkers/current")
+  @GetMapping("prisons/{prisonCode}/prisoners/{prisonNumber}/keyworkers/current")
   fun getCurrentKeyworker(
+    @PathVariable prisonCode: String,
     @PathVariable prisonNumber: String,
-  ): CurrentPersonStaffAllocation = allocations.currentFor(prisonNumber)
+  ): CurrentPersonStaffAllocation = allocations.currentFor(prisonCode, prisonNumber)
 }

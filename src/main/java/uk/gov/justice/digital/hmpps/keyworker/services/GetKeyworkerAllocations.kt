@@ -29,8 +29,20 @@ class GetKeyworkerAllocations(
   private val prisonService: PrisonService,
   private val caseNotesApiClient: CaseNotesApiClient,
 ) {
-  fun currentFor(prisonNumber: String): CurrentPersonStaffAllocation {
-    val level = complexityOfNeed.getOffendersWithMeasuredComplexityOfNeed(setOf(prisonNumber)).firstOrNull()?.level
+  fun currentFor(
+    prisonCode: String,
+    prisonNumber: String,
+  ): CurrentPersonStaffAllocation {
+    val config = prisonService.getPrisonKeyworkerConfig(prisonCode)
+    val level =
+      if (config.hasPrisonersWithHighComplexityNeeds) {
+        complexityOfNeed
+          .getOffendersWithMeasuredComplexityOfNeed(setOf(prisonNumber))
+          .firstOrNull { it.offenderNo == prisonNumber }
+          ?.level
+      } else {
+        null
+      }
     return when (level) {
       ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(prisonNumber, true, null, null)
       else ->
