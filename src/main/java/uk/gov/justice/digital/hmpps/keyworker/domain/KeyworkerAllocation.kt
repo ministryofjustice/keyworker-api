@@ -154,6 +154,8 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     prisonCode: String,
     personIdentifiers: Set<String>,
   ): List<AllocationSummary>
+
+  fun findFirstByPersonIdentifierAndActiveIsTrueOrderByAssignedAtDesc(personIdentifier: String): KeyworkerAllocation?
 }
 
 interface NewAllocation {
