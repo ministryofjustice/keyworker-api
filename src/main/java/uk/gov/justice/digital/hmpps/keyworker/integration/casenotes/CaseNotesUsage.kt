@@ -42,6 +42,7 @@ data class UsageByPersonIdentifierRequest(
       personIdentifiers: Set<String>,
       from: LocalDate,
       to: LocalDate = from.plusDays(1),
+      staffIds: Set<String> = setOf(),
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
@@ -49,6 +50,7 @@ data class UsageByPersonIdentifierRequest(
         from = from.atStartOfDay(),
         to = to.atStartOfDay(),
         prisonCode = prisonCode,
+        authorIds = staffIds,
       )
 
     fun transferTypes(
