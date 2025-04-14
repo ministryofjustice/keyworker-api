@@ -115,6 +115,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
+    assertThat(response.prisonNumber).isEqualTo(prisonNumber)
     assertThat(response.currentKeyworker)
       .isEqualTo(CurrentAllocation(CurrentKeyworker("Current", "Keyworker"), prisonCode))
     assertThat(response.hasHighComplexityOfNeeds).isFalse
@@ -138,6 +139,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
+    assertThat(response.prisonNumber).isEqualTo(prisonNumber)
     assertThat(response.currentKeyworker).isNull()
     assertThat(response.hasHighComplexityOfNeeds).isTrue
   }

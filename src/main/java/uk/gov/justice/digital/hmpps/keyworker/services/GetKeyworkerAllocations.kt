@@ -32,7 +32,7 @@ class GetKeyworkerAllocations(
   fun currentFor(prisonNumber: String): CurrentPersonStaffAllocation {
     val level = complexityOfNeed.getOffendersWithMeasuredComplexityOfNeed(setOf(prisonNumber)).firstOrNull()?.level
     return when (level) {
-      ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(true, null, null)
+      ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(prisonNumber, true, null, null)
       else ->
         allocationRepository
           .findFirstByPersonIdentifierAndActiveIsTrueOrderByAssignedAtDesc(prisonNumber)
@@ -49,12 +49,13 @@ class GetKeyworkerAllocations(
               )
             staffDetailProvider.findStaffSummariesFromIds(setOf(allocation.staffId)).firstOrNull()?.let {
               CurrentPersonStaffAllocation(
+                prisonNumber,
                 false,
                 CurrentAllocation(it.asCurrentKeyworker(), allocation.prisonCode),
                 cns.summary().findSessionDate(prisonNumber),
               )
             }
-          } ?: CurrentPersonStaffAllocation(false, null, null)
+          } ?: CurrentPersonStaffAllocation(prisonNumber, false, null, null)
     }
   }
 
