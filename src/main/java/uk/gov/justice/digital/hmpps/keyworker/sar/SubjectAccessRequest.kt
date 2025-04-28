@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.sar
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.sar.internal.SarKeyWorkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.sar.internal.StaffDetailProvider
+import uk.gov.justice.digital.hmpps.keyworker.services.StaffDetailProvider
 import java.time.LocalDate
 
 @Service

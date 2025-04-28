@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.sar.internal.StaffDetailProvider
 
 @Service
 class PersonSearch(

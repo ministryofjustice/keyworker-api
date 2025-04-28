@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -170,16 +171,17 @@ class PrisonMockServer : WireMockServer(9999) {
     )
   }
 
-  fun stubKeyworkerSummary(staffSummary: StaffSummary) {
+  fun stubKeyworkerSummaries(staffSummaries: List<StaffSummary>) {
     stubFor(
       WireMock
-        .get(WireMock.urlEqualTo("/api/staff/${staffSummary.staffId}"))
+        .post(WireMock.urlEqualTo("/api/staff"))
+        .withRequestBody(equalToJson(objectMapper.writeValueAsString(staffSummaries.map { it.staffId }), true, true))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(staffSummary)),
+            .withBody(objectMapper.writeValueAsString(staffSummaries)),
         ),
     )
   }
@@ -268,20 +270,6 @@ class PrisonMockServer : WireMockServer(9999) {
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(objectMapper.writeValueAsString(agency)),
-        ),
-    )
-  }
-
-  fun stubGetPrisons(agencies: List<Agency>) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/agencies/prisons"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(agencies)),
         ),
     )
   }

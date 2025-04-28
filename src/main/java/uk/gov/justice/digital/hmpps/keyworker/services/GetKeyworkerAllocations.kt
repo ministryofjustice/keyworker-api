@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.sar.internal.StaffDetailProvider
 import java.time.LocalDate.now
 
 @Service
@@ -59,14 +58,17 @@ class GetKeyworkerAllocations(
                   staffIds = setOf("${allocation.staffId}"),
                 ),
               )
-            staffDetailProvider.findStaffSummariesFromIds(setOf(allocation.staffId)).firstOrNull()?.let {
-              CurrentPersonStaffAllocation(
-                prisonNumber,
-                false,
-                CurrentAllocation(it.asCurrentKeyworker(), allocation.prisonCode),
-                cns.summary().findSessionDate(prisonNumber),
-              )
-            }
+            staffDetailProvider
+              .findStaffSummariesFromIds(setOf(allocation.staffId))
+              .firstOrNull { it.staffId == allocation.staffId }
+              ?.let {
+                CurrentPersonStaffAllocation(
+                  prisonNumber,
+                  false,
+                  CurrentAllocation(it.asCurrentKeyworker(), allocation.prisonCode),
+                  cns.summary().findSessionDate(prisonNumber),
+                )
+              }
           } ?: CurrentPersonStaffAllocation(prisonNumber, false, null, null)
     }
   }
