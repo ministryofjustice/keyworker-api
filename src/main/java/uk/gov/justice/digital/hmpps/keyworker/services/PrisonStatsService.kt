@@ -31,8 +31,8 @@ class PrisonStatsService(
     val prisonConfig = prisonConfig.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
     val lastYear = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, to.minusYears(1), to)
     val current = lastYear.filter { it.date in (from..to) }.asStats(prisonConfig.kwSessionFrequencyInWeeks)
-    val previousFrom = from.minusDays(DAYS.between(from, to))
     val previousTo = from.minusDays(1)
+    val previousFrom = previousTo.minusDays(DAYS.between(from, to.plusDays(1)))
     val previous =
       lastYear
         .filter { it.date in (previousFrom..previousTo) }
@@ -41,7 +41,7 @@ class PrisonStatsService(
     val sessionTimeline =
       lastYear
         .groupBy { it.date.with(previousOrSame(DayOfWeek.SUNDAY)) }
-        .map { WeeklyStatInt(it.key, it.value.sumOf { it.keyworkerSessions }) }
+        .map { WeeklyStatInt(it.key, it.value.sumOf { s -> s.keyworkerSessions }) }
         .sortedBy { it.date }
 
     val averageSessions = sessionTimeline.map { it.value }.average().toInt()

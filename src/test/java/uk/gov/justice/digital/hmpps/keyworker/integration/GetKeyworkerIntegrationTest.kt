@@ -105,7 +105,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
 
     assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {
-      assertThat(projectedSessions).isEqualTo(39)
+      assertThat(projectedSessions).isEqualTo(38)
       assertThat(recordedSessions).isEqualTo(0)
       assertThat(recordedEntries).isEqualTo(0)
       assertThat(complianceRate).isEqualTo(0.0)
