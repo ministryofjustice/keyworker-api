@@ -58,13 +58,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(84)
       assertThat(prisonersAssignedKeyworker).isEqualTo(79)
       assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(332)
+      assertThat(keyworkerSessions).isEqualTo(328)
       assertThat(keyworkerEntries).isEqualTo(270)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
       assertThat(avgReceptionToSessionDays).isEqualTo(8)
-      assertThat(projectedSessions).isEqualTo(372)
+      assertThat(projectedSessions).isEqualTo(348)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(89.25)
+      assertThat(compliance).isEqualTo(94.25)
     }
 
     with(res.previous) {
@@ -76,7 +76,7 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(keyworkerSessions).isEqualTo(330)
       assertThat(keyworkerEntries).isEqualTo(270)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToSessionDays).isEqualTo(10)
+      assertThat(avgReceptionToSessionDays).isEqualTo(11)
       assertThat(projectedSessions).isEqualTo(360)
       assertThat(percentageWithKeyworker).isEqualTo(94.05)
       assertThat(compliance).isEqualTo(91.67)
@@ -85,8 +85,8 @@ class PrisonStatsIntTest : IntegrationTest() {
 
   private fun getPrisonStatsSpec(
     prisonCode: String,
-    from: LocalDate = now().minusDays(30),
-    to: LocalDate = now(),
+    from: LocalDate = now().minusDays(29),
+    to: LocalDate = now().minusDays(1),
     role: String? = Roles.KEYWORKER_RO,
   ) = webTestClient
     .get()
