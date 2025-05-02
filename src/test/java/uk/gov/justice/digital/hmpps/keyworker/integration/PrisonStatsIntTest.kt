@@ -2,12 +2,17 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
+import uk.gov.justice.digital.hmpps.keyworker.services.SessionAndEntryService
 import java.time.LocalDate
 import java.time.LocalDate.now
 
 class PrisonStatsIntTest : IntegrationTest() {
+  @Autowired
+  private lateinit var sessionAndEntryService: SessionAndEntryService
+
   @Test
   fun `401 unathorised without a valid token`() {
     webTestClient
@@ -26,25 +31,56 @@ class PrisonStatsIntTest : IntegrationTest() {
   @Test
   fun `200 ok prison stats returned`() {
     val prisonCode = "GST"
+    givenPrisonConfig(
+      prisonConfig(
+        prisonCode,
+        kwSessionFrequencyInWeeks = 2,
+        hasPrisonersWithHighComplexityNeeds = true,
+      ),
+    )
+    val start = LocalDate.of(2025, 4, 1)
+    val end = LocalDate.of(2025, 4, 30)
+    val prevStart = LocalDate.of(2025, 3, 2)
+    val prevEnd = LocalDate.of(2025, 3, 31)
+
     val stats =
-      (0..370).map {
+      buildList {
+        var startDate = prevStart
+        do {
+          add(startDate)
+          startDate = startDate.plusDays(1)
+        } while (!startDate.isAfter(end))
+      }.mapIndexed { index, date ->
         prisonStat(
           prisonCode,
-          now().minusDays(it.toLong()),
-          it % 10 + 100,
-          it % 10 + 80,
-          it % 10 + 75,
-          it % 10 + 1,
-          (it % 10 + 1) * 2,
-          (it % 10) * 2,
-          if (it % 9 == 0) null else it % 10,
-          if (it % 7 == 0) null else it % 20,
+          date,
+          if (date.isBefore(start)) 90 else 100,
+          if (date.isBefore(start)) 18 else 20,
+          if (date.isBefore(start)) 72 else 80,
+          if (date.isBefore(start)) 65 else 75,
+          if (date.isBefore(start)) 9 else 10,
+          if (index % 2 == 0) {
+            5
+          } else if (index % 5 == 0) {
+            0
+          } else {
+            6
+          },
+          if (index % 2 == 0) {
+            2
+          } else if (index % 5 == 0) {
+            3
+          } else {
+            1
+          },
+          if (index % 9 == 0) null else index % 10,
+          if (index % 7 == 0) null else index % 20,
         )
       }
     prisonStatisticRepository.saveAll(stats)
 
     val res =
-      getPrisonStatsSpec(prisonCode)
+      getPrisonStatsSpec(prisonCode, start, end)
         .expectStatus()
         .isOk
         .expectBody(PrisonStats::class.java)
@@ -54,32 +90,38 @@ class PrisonStatsIntTest : IntegrationTest() {
     assertThat(res!!).isNotNull()
     with(res.current) {
       assertThat(this!!).isNotNull()
-      assertThat(totalPrisoners).isEqualTo(104)
-      assertThat(eligiblePrisoners).isEqualTo(84)
-      assertThat(prisonersAssignedKeyworker).isEqualTo(79)
-      assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(328)
-      assertThat(keyworkerEntries).isEqualTo(270)
+      assertThat(from).isEqualTo(start)
+      assertThat(to).isEqualTo(end)
+      assertThat(totalPrisoners).isEqualTo(100)
+      assertThat(highComplexityOfNeedPrisoners).isEqualTo(20)
+      assertThat(eligiblePrisoners).isEqualTo(80)
+      assertThat(prisonersAssignedKeyworker).isEqualTo(75)
+      assertThat(activeKeyworkers).isEqualTo(10)
+      assertThat(keyworkerSessions).isEqualTo(147)
+      assertThat(keyworkerEntries).isEqualTo(51)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToSessionDays).isEqualTo(8)
-      assertThat(projectedSessions).isEqualTo(348)
-      assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(94.25)
+      assertThat(avgReceptionToSessionDays).isEqualTo(11)
+      assertThat(projectedSessions).isEqualTo(171)
+      assertThat(percentageWithKeyworker).isEqualTo(93.75)
+      assertThat(compliance).isEqualTo(85.96)
     }
 
     with(res.previous) {
       assertThat(this!!).isNotNull()
-      assertThat(totalPrisoners).isEqualTo(104)
-      assertThat(eligiblePrisoners).isEqualTo(84)
-      assertThat(prisonersAssignedKeyworker).isEqualTo(79)
-      assertThat(activeKeyworkers).isEqualTo(5)
-      assertThat(keyworkerSessions).isEqualTo(330)
-      assertThat(keyworkerEntries).isEqualTo(270)
+      assertThat(from).isEqualTo(prevStart)
+      assertThat(to).isEqualTo(prevEnd)
+      assertThat(totalPrisoners).isEqualTo(90)
+      assertThat(highComplexityOfNeedPrisoners).isEqualTo(18)
+      assertThat(eligiblePrisoners).isEqualTo(72)
+      assertThat(prisonersAssignedKeyworker).isEqualTo(65)
+      assertThat(activeKeyworkers).isEqualTo(9)
+      assertThat(keyworkerSessions).isEqualTo(147)
+      assertThat(keyworkerEntries).isEqualTo(51)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToSessionDays).isEqualTo(11)
-      assertThat(projectedSessions).isEqualTo(360)
-      assertThat(percentageWithKeyworker).isEqualTo(94.05)
-      assertThat(compliance).isEqualTo(91.67)
+      assertThat(avgReceptionToSessionDays).isEqualTo(8)
+      assertThat(projectedSessions).isEqualTo(154)
+      assertThat(percentageWithKeyworker).isEqualTo(90.28)
+      assertThat(compliance).isEqualTo(95.45)
     }
   }
 
