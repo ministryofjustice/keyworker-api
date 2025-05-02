@@ -94,6 +94,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="recpt_to_alloc_days" nullable="true" remarks="Number of days (avg) between reception and allocation of a keyworker" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="recpt_to_kw_session_days" nullable="true" remarks="Number of days (avg) between reception and first Key worker session" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="total_num_eligible_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="high_complexity_of_need_prisoners" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="keyworker_stats_id" sequenceNumberInPK="1"/>
          <index name="keyworker_stats_pk" unique="true">
             <column ascending="true" name="keyworker_stats_id"/>
