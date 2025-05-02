@@ -136,6 +136,7 @@ class PrisonStatisticCalculator(
           prisonCode = prisonCode,
           date = date,
           totalPrisoners = prisoners.size,
+          highComplexityOfNeedPrisoners = prisonersWithComplexNeeds.size,
           eligiblePrisoners = eligiblePrisoners.size,
           assignedKeyworker = activeAllocations,
           activeKeyworkers = activeKeyworkers,

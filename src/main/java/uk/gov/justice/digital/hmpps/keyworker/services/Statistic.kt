@@ -11,6 +11,6 @@ object Statistic {
     if (numerator == 0 || denominator == 0) {
       null
     } else {
-      BigDecimal(numerator.toDouble() / denominator.toDouble() * 100).setScale(2, HALF_EVEN).toDouble()
+      BigDecimal((numerator.toDouble() / denominator.toDouble()) * 100).setScale(2, HALF_EVEN).toDouble()
     }
 }
