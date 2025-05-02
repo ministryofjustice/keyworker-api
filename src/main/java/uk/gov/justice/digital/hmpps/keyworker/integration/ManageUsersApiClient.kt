@@ -16,11 +16,15 @@ class ManageUsersClient(
   fun getUserDetails(username: String): UserDetails? = getUserDetailsMono(username).block()
 
   fun getUsersDetails(usernames: Set<String>): List<UserDetails> =
-    Flux
-      .fromIterable(usernames)
-      .flatMap({ getUserDetailsMono(it) }, 10)
-      .collectList()
-      .block()!!
+    if (usernames.isEmpty()) {
+      emptyList()
+    } else {
+      Flux
+        .fromIterable(usernames)
+        .flatMap({ getUserDetailsMono(it) }, 10)
+        .collectList()
+        .block()!!
+    }
 
   private fun getUserDetailsMono(username: String): Mono<UserDetails> =
     webClient

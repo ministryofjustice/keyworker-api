@@ -33,9 +33,6 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "HAL"
     val prisonNumber = prisonNumber()
     val keyworkers = (0..4).map { givenKeyworker(keyworker(KeyworkerStatus.entries.random(), capacity = 10)) }
-    keyworkers.forEachIndexed { i, kw ->
-      prisonMockServer.stubKeyworkerSummary(staffSummary("Forename $i", "Surname $i", kw.staffId))
-    }
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison("HAL", "Indicated Prison")))
 
@@ -81,7 +78,9 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubKeyworkerSummary(staffSummary("Current", "Keyworker", currentAllocation.staffId))
+
+    val historic = keyworkers.mapIndexed { i, s -> staffSummary("Forename ${i + 1}", "Surname ${i + 1}", s.staffId) }
+    prisonMockServer.stubKeyworkerSummaries(historic + staffSummary("Current", "Keyworker", currentAllocation.staffId))
     manageUsersMockServer.stubGetUserDetails(currentAllocation.allocatedBy, newId().toString(), "Current Allocator")
 
     val response =

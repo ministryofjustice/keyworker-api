@@ -36,28 +36,38 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode))
 
     val prisoners = prisoners(prisonCode, 10)
-    prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners, mapOf("cellLocationPrefix" to "$prisonCode-A"))
+    prisonerSearchMockServer.stubFindFilteredPrisoners(
+      prisonCode,
+      prisoners,
+      mapOf("cellLocationPrefix" to "$prisonCode-A"),
+    )
 
     val staffIds = (0..6).map { newId() }
-    staffIds.forEach {
-      prisonMockServer.stubKeyworkerSummary(StaffSummary(it, "Keyworker$it", "Staff$it"))
-    }
 
-    prisoners.content.mapIndexed { index, p ->
-      if (index == 0) {
-        null
-      } else {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(
-            p.prisonerNumber,
-            prisonCode,
-            staffIds.random(),
-            allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
-            active = index % 3 != 0,
-          ),
-        )
+    val allocations =
+      prisoners.content.mapIndexedNotNull { index, p ->
+        if (index == 0) {
+          null
+        } else {
+          givenKeyworkerAllocation(
+            keyworkerAllocation(
+              p.prisonerNumber,
+              prisonCode,
+              staffIds.random(),
+              allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
+              active = index % 3 != 0,
+            ),
+          )
+        }
       }
-    }
+
+    val summaries =
+      allocations
+        .filter { it.active && it.allocationType != AllocationType.PROVISIONAL }
+        .map { it.staffId }
+        .distinct()
+        .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
+    prisonMockServer.stubKeyworkerSummaries(summaries)
 
     val response =
       searchPersonSpec(prisonCode, searchRequest(cellLocationPrefix = "$prisonCode-A"))
@@ -111,25 +121,31 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     )
 
     val staffIds = (0..6).map { newId() }
-    staffIds.forEach {
-      prisonMockServer.stubKeyworkerSummary(StaffSummary(it, "Keyworker$it", "Staff$it"))
-    }
 
-    prisoners.content.mapIndexed { index, p ->
-      if (index == 0) {
-        null
-      } else {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(
-            p.prisonerNumber,
-            prisonCode,
-            staffIds.random(),
-            allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
-            active = index % 3 != 0,
-          ),
-        )
+    val allocations =
+      prisoners.content.mapIndexedNotNull { index, p ->
+        if (index == 0) {
+          null
+        } else {
+          givenKeyworkerAllocation(
+            keyworkerAllocation(
+              p.prisonerNumber,
+              prisonCode,
+              staffIds.random(),
+              allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
+              active = index % 3 != 0,
+            ),
+          )
+        }
       }
-    }
+
+    val summaries =
+      allocations
+        .filter { it.active && it.allocationType != AllocationType.PROVISIONAL }
+        .map { it.staffId }
+        .distinct()
+        .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
+    prisonMockServer.stubKeyworkerSummaries(summaries)
 
     val response =
       searchPersonSpec(prisonCode, searchRequest(query = "First"))
@@ -169,9 +185,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staffIds = (0..6).map { newId() }
-    staffIds.forEach {
-      prisonMockServer.stubKeyworkerSummary(StaffSummary(it, "Keyworker$it", "Staff$it"))
-    }
+    val summaries = staffIds.map { StaffSummary(it, "Keyworker$it", "Staff$it") }
+    prisonMockServer.stubKeyworkerSummaries(summaries)
 
     prisoners.content.mapIndexed { index, p ->
       if (index == 0) {

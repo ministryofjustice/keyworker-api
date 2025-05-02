@@ -8,15 +8,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StatSummary
-import uk.gov.justice.digital.hmpps.keyworker.dto.WeeklyStatDbl
-import uk.gov.justice.digital.hmpps.keyworker.dto.WeeklyStatInt
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic.percentage
-import java.math.RoundingMode.HALF_EVEN
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
-import java.time.temporal.TemporalAdjusters.previousOrSame
-import kotlin.math.roundToInt
 
 @Service
 class PrisonStatsService(
@@ -28,56 +22,22 @@ class PrisonStatsService(
     from: LocalDate,
     to: LocalDate,
   ): PrisonStats {
-    val prisonConfig = prisonConfig.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
-    val lastYear = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, to.minusYears(1), to)
-    val current = lastYear.filter { it.date in (from..to) }.asStats(prisonConfig.kwSessionFrequencyInWeeks)
-    val previousFrom = from.minusDays(DAYS.between(from, to))
+    val dateRange = DAYS.between(from, to.plusDays(1))
     val previousTo = from.minusDays(1)
+    val previousFrom = previousTo.minusDays(dateRange)
+    val prisonConfig = prisonConfig.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
+    val allStats = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, previousFrom, to)
+    val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig.kwSessionFrequencyInWeeks)
     val previous =
-      lastYear
+      allStats
         .filter { it.date in (previousFrom..previousTo) }
         .asStats(prisonConfig.kwSessionFrequencyInWeeks)
-
-    val sessionTimeline =
-      lastYear
-        .groupBy { it.date.with(previousOrSame(DayOfWeek.SUNDAY)) }
-        .map { WeeklyStatInt(it.key, it.value.sumOf { it.keyworkerSessions }) }
-        .sortedBy { it.date }
-
-    val averageSessions = sessionTimeline.map { it.value }.average().toInt()
-
-    val complianceTimeline =
-      lastYear
-        .groupBy { it.date.with(previousOrSame(DayOfWeek.SUNDAY)) }
-        .map {
-          WeeklyStatDbl(
-            it.key,
-            with(it.value) {
-              percentage(
-                totalSessions(),
-                projectedSessions(averageEligiblePrisoners(), start(), end(), prisonConfig.kwSessionFrequencyInWeeks),
-              ) ?: 0.00
-            },
-          )
-        }.sortedBy { it.date }
-
-    val averageCompliance =
-      complianceTimeline
-        .map { it.value }
-        .average()
-        .takeIf { !it.isNaN() }
-        ?.toBigDecimal()
-        ?.setScale(2, HALF_EVEN)
-        ?.toDouble()
 
     return PrisonStats(
       prisonCode,
       current,
       previous,
-      sessionTimeline,
-      averageSessions,
-      complianceTimeline,
-      averageCompliance ?: 0.0,
+      prisonConfig.hasPrisonersWithHighComplexityNeeds,
     )
   }
 }
@@ -94,6 +54,7 @@ private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
     from,
     to,
     map { it.totalPrisoners }.average().toInt(),
+    map { it.highComplexityOfNeedPrisoners }.average().toInt(),
     eligible,
     assignedKeyworker,
     map { it.activeKeyworkers }.average().toInt(),
@@ -101,7 +62,7 @@ private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
     sumOf { it.keyworkerEntries },
     mapNotNull { it.averageReceptionToAllocationDays }.average().toInt(),
     mapNotNull { it.averageReceptionToSessionDays }.average().toInt(),
-    projectedSessions,
+    projectedSessions.toInt(),
     percentage(assignedKeyworker, eligible),
     percentage(sessions, projectedSessions) ?: 0.0,
   )
@@ -119,5 +80,12 @@ private fun List<PrisonStatistic>.projectedSessions(
   eligible: Int,
   from: LocalDate,
   to: LocalDate,
-  sessionFrequency: Int,
-) = if (eligible == 0) 0 else (eligible * ((DAYS.between(from, to) + 1.0) / (sessionFrequency * 7.0))).roundToInt()
+  sessionFrequencyInWeeks: Int,
+): Int =
+  if (eligible == 0) {
+    0
+  } else {
+    (
+      eligible * (DAYS.between(from, to.plusDays(1)) / (sessionFrequencyInWeeks * 7.0))
+    ).toInt()
+  }

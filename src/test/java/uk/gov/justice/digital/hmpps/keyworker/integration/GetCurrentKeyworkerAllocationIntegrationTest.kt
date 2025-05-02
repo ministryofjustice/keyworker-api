@@ -48,9 +48,6 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
     val previous = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
     val current = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
     val keyworkers = listOf(previous, current)
-    keyworkers.forEachIndexed { i, kw ->
-      prisonMockServer.stubKeyworkerSummary(staffSummary("Forename ${i + 1}", "Surname ${i + 1}", kw.staffId))
-    }
 
     keyworkers.mapIndexed { i, a ->
       givenKeyworkerAllocation(
@@ -78,7 +75,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubKeyworkerSummary(staffSummary("Current", "Keyworker", currentAllocation.staffId))
+    prisonMockServer.stubKeyworkerSummaries(listOf(staffSummary("Current", "Keyworker", currentAllocation.staffId)))
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
       sessionTypes(

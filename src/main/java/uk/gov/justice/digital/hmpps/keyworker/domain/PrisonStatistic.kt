@@ -19,6 +19,8 @@ class PrisonStatistic(
   val date: LocalDate,
   @Column(name = "total_num_prisoners")
   val totalPrisoners: Int,
+  @Column(name = "high_complexity_of_need_prisoners")
+  val highComplexityOfNeedPrisoners: Int,
   @Column(name = "total_num_eligible_prisoners")
   val eligiblePrisoners: Int,
   @Column(name = "num_prisoners_assigned_kw")

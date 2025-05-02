@@ -6,16 +6,14 @@ data class PrisonStats(
   val prisonCode: String,
   val current: StatSummary?,
   val previous: StatSummary?,
-  val sessionTimeline: List<WeeklyStatInt>,
-  val averageSessions: Int,
-  val complianceTimeline: List<WeeklyStatDbl>,
-  val averageCompliance: Double,
+  val hasPrisonersWithHighComplexityOfNeed: Boolean,
 )
 
 data class StatSummary(
   val from: LocalDate,
   val to: LocalDate,
   val totalPrisoners: Int,
+  val highComplexityOfNeedPrisoners: Int,
   val eligiblePrisoners: Int,
   val prisonersAssignedKeyworker: Int,
   val activeKeyworkers: Int,
