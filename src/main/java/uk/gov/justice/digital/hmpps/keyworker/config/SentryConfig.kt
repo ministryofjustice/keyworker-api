@@ -11,7 +11,7 @@ class SentryConfig {
   @Bean
   fun ignoreHealthRequests() =
     SentryOptions.BeforeSendTransactionCallback { transaction, _ ->
-      transaction.transaction?.let { if (it.startsWith("GET /health") or it.startsWith("GET /info")) null else transaction }
+      transaction.transaction?.let { if (it.isNoSample()) null else transaction }
     }
 
   @Bean
@@ -20,14 +20,19 @@ class SentryConfig {
       context.customSamplingContext?.let {
         val request = it["request"] as HttpServletRequest
         when (request.method) {
-          "GET" if (matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", request.requestURI)) -> {
-            0.0025
+          "GET" if (request.requestURI.isHighUsage()) -> {
+            0.001
           }
 
           else -> {
-            0.05
+            0.02
           }
         }
       }
     }
+
+  private fun String.isNoSample(): Boolean =
+    this.startsWith("GET /health") or this.startsWith("GET /info") or this.startsWith("GET /swagger-ui")
+
+  private fun String.isHighUsage(): Boolean = matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", this)
 }
