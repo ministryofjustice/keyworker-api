@@ -34,5 +34,7 @@ class SentryConfig {
   private fun String.isNoSample(): Boolean =
     this.startsWith("GET /health") or this.startsWith("GET /info") or this.startsWith("GET /swagger-ui")
 
-  private fun String.isHighUsage(): Boolean = matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", this)
+  private fun String.isHighUsage(): Boolean =
+    matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", this) or
+      matches("/prisons/[A-Z]{3}/prisoners/[A-Z][0-9]{4}[A-Z]{2}/keyworkers/current", this)
 }
