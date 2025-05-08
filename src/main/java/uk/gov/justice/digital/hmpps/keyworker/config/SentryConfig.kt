@@ -11,23 +11,15 @@ import java.util.regex.Pattern.matches
 @Configuration
 class SentryConfig {
   @Bean
-  fun ignoreHealthRequests() =
+  fun ignoreAdministrativeRequests() =
     SentryOptions.BeforeSendTransactionCallback { transaction, _ ->
-      transaction.transaction?.let { if (it.isNoSample()) null else transaction }
+      transaction.transaction?.let { if (it.isAdministrativeRequest()) null else transaction }
     }
 
   @Bean
   fun ignore4xxClientErrorExceptions() =
     SentryOptions.BeforeSendCallback { event, _ ->
-      event.throwable?.let {
-        if ((it is EntityNotFoundException) or
-          ((it as? WebClientResponseException)?.statusCode?.is4xxClientError ?: false)
-        ) {
-          null
-        } else {
-          event
-        }
-      }
+      event.throwable?.let { if (it.is4xxClientError()) null else event }
     }
 
   @Bean
@@ -47,8 +39,11 @@ class SentryConfig {
       }
     }
 
-  private fun String.isNoSample(): Boolean =
+  private fun String.isAdministrativeRequest(): Boolean =
     this.startsWith("GET /health") or this.startsWith("GET /info") or this.startsWith("GET /swagger-ui")
+
+  private fun Throwable.is4xxClientError(): Boolean =
+    (this is EntityNotFoundException) or ((this as? WebClientResponseException)?.statusCode?.is4xxClientError ?: false)
 
   private fun String.isHighUsage(): Boolean =
     matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", this) or
