@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.config
 
 import io.sentry.SentryOptions
+import jakarta.persistence.EntityNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.util.regex.Pattern.matches
 
 @Configuration
@@ -12,6 +14,20 @@ class SentryConfig {
   fun ignoreHealthRequests() =
     SentryOptions.BeforeSendTransactionCallback { transaction, _ ->
       transaction.transaction?.let { if (it.isNoSample()) null else transaction }
+    }
+
+  @Bean
+  fun ignore4xxClientErrorExceptions() =
+    SentryOptions.BeforeSendCallback { event, _ ->
+      event.throwable?.let {
+        if ((it is EntityNotFoundException) or
+          ((it as? WebClientResponseException)?.statusCode?.is4xxClientError ?: false)
+        ) {
+          null
+        } else {
+          event
+        }
+      }
     }
 
   @Bean
