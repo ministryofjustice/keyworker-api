@@ -28,6 +28,7 @@ data class PersonStaffAllocations(
     staffIdsToDeallocate = toDeallocate.values.toSet()
   }
 
+  @JsonIgnore
   fun isEmpty() = allocations.isEmpty() && deallocations.isEmpty()
 }
 
