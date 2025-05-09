@@ -1,16 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.domain
 
-import jakarta.persistence.Column
-import jakarta.persistence.Embeddable
-import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
-import jakarta.persistence.EntityNotFoundException
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import org.hibernate.annotations.Immutable
 import org.springframework.data.jpa.repository.JpaRepository
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 
 @Immutable
@@ -67,3 +60,6 @@ fun ReferenceDataRepository.getKeyworkerStatus(status: KeyworkerStatus): Referen
     ?: throw EntityNotFoundException("Keyworker status not found")
 
 fun ReferenceData.asKeyworkerStatus(): KeyworkerStatus = KeyworkerStatus.valueOf(code)
+
+fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
+  CodedDescription(this?.code ?: "ACTIVE", this?.description ?: "Active")
