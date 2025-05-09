@@ -2,9 +2,21 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.*
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.*
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSessionStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
+import uk.gov.justice.digital.hmpps.keyworker.dto.LatestKeyworkerSession
+import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient

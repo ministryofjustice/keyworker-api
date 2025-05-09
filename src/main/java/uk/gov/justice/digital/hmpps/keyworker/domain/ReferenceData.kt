@@ -1,6 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.domain
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EntityNotFoundException
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
 import org.springframework.data.jpa.repository.JpaRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
