@@ -51,7 +51,6 @@ public class RestCallHelper {
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .retrieve()
                 .toEntity(responseType)
-                .retryWhen(Retry.backoff(3, Duration.ofMillis(250)))
             .block();
     }
 
@@ -115,7 +114,6 @@ public class RestCallHelper {
                 .headers(withPagingAndSorting(pagingAndSorting))
                 .retrieve()
                 .toEntity(responseType)
-             .retryWhen(Retry.backoff(3, Duration.ofMillis(250)))
                 .block();
     }
 
@@ -131,7 +129,6 @@ public class RestCallHelper {
                 .headers(withPaging(pagingAndSorting))
                 .retrieve()
                 .toEntity(responseType)
-                .retryWhen(Retry.backoff(3, Duration.ofMillis(250)))
                 .block();
     }
 
