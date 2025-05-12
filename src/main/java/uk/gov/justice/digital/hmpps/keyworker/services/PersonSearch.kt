@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
@@ -20,7 +21,7 @@ class PersonSearch(
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeed: ComplexityOfNeedGateway,
   private val allocationRepository: KeyworkerAllocationRepository,
-  private val staffDetailProvider: StaffDetailProvider,
+  private val prisonApi: PrisonApiClient,
 ) {
   fun findPeople(
     prisonCode: String,
@@ -45,7 +46,7 @@ class PersonSearch(
       if (request.excludeActiveAllocations) {
         emptyMap()
       } else {
-        staffDetailProvider
+        prisonApi
           .findStaffSummariesFromIds(summaries.values.mapNotNull { it.staffId }.toSet())
           .associateBy { it.staffId }
       }
