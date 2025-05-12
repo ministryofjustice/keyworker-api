@@ -88,7 +88,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
 
     assertThat(response.keyworker)
       .isEqualTo(KeyworkerWithSchedule(keyworker.staffId, "First", "Last", CodedDescription("FT", "Full Time")))
-    assertThat(response.status).isEqualTo(CodedDescription("ACT", "Active"))
+    assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription("DEF", "Default Prison"))
     assertThat(response.capacity).isEqualTo(10)
     assertThat(response.allocated).isEqualTo(30)
@@ -130,7 +130,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
 
     assertThat(response.keyworker)
       .isEqualTo(KeyworkerWithSchedule(staff.staffId, staff.firstName, staff.lastName, CodedDescription("PT", "Part Time")))
-    assertThat(response.status).isEqualTo(CodedDescription("ACT", "Active"))
+    assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, prisonDescription))
     assertThat(response.capacity).isEqualTo(6)
     assertThat(response.allocated).isEqualTo(0)
