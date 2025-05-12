@@ -22,17 +22,4 @@ class RetryConfiguration {
     retryTemplate.setBackOffPolicy(backoffPolicy)
     return retryTemplate
   }
-
-  @Bean
-  fun enableNomisRetryTemplate(): RetryTemplate {
-    val retryTemplate = RetryTemplate()
-    val retryPolicy = SimpleRetryPolicy()
-    retryPolicy.maxAttempts = 3
-    retryTemplate.setRetryPolicy(retryPolicy)
-    val backoffPolicy = ExponentialBackOffPolicy()
-    backoffPolicy.multiplier = 0.29
-    backoffPolicy.initialInterval = 3000
-    retryTemplate.setBackOffPolicy(backoffPolicy)
-    return retryTemplate
-  }
 }

@@ -11,9 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.util.retry.Retry;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.RestResponsePage;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -49,7 +51,8 @@ public class RestCallHelper {
                 .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
                 .retrieve()
                 .toEntity(responseType)
-                .block();
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(250)))
+            .block();
     }
 
     <T> T getObject(final String path,
@@ -112,6 +115,7 @@ public class RestCallHelper {
                 .headers(withPagingAndSorting(pagingAndSorting))
                 .retrieve()
                 .toEntity(responseType)
+             .retryWhen(Retry.backoff(3, Duration.ofMillis(250)))
                 .block();
     }
 
@@ -127,6 +131,7 @@ public class RestCallHelper {
                 .headers(withPaging(pagingAndSorting))
                 .retrieve()
                 .toEntity(responseType)
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(250)))
                 .block();
     }
 
@@ -143,17 +148,6 @@ public class RestCallHelper {
                 .toEntity(responseType)
                 .block())
                 .map(HttpEntity::getBody).orElse(new RestResponsePage<>());
-    }
-
-    public void delete(final String path,
-                       final MultiValueMap<String, String> queryParams,
-                       final Map<String, String> uriVariables,
-                       final boolean admin) {
-        getWebClient(admin)
-                .delete()
-                .uri(uriBuilder -> uriBuilder.path(path).queryParams(queryParams).build(uriVariables))
-                .exchange()
-                .block();
     }
 
     public <T> T put(final String path,

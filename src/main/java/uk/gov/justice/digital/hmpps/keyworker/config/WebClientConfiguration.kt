@@ -117,6 +117,7 @@ class WebClientConfiguration(
   fun webClient(builder: Builder): WebClient =
     builder
       .baseUrl(prisonApiRootUri)
+      .clientConnector(clientConnector(ofSeconds(30)))
       .filter(addAuthHeaderFilterFunction())
       .build()
 
@@ -124,6 +125,7 @@ class WebClientConfiguration(
   fun healthWebClient(builder: Builder): WebClient =
     builder
       .baseUrl(healthRootUri)
+      .clientConnector(clientConnector(ofSeconds(1)))
       .filter(addAuthHeaderFilterFunction())
       .build()
 
@@ -131,6 +133,7 @@ class WebClientConfiguration(
   fun complexityOfNeedHealthWebClient(builder: Builder): WebClient =
     builder
       .baseUrl("$complexityOfNeedUri/ping")
+      .clientConnector(clientConnector(ofSeconds(1)))
       .filter(addAuthHeaderFilterFunction())
       .build()
 

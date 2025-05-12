@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
@@ -24,7 +25,7 @@ class GetKeyworkerAllocations(
   private val complexityOfNeed: ComplexityOfNeedGateway,
   private val allocationRepository: KeyworkerAllocationRepository,
   private val manageUsers: ManageUsersClient,
-  private val staffDetailProvider: StaffDetailProvider,
+  private val prisonApi: PrisonApiClient,
   private val prisonService: PrisonService,
   private val caseNotesApiClient: CaseNotesApiClient,
 ) {
@@ -58,7 +59,7 @@ class GetKeyworkerAllocations(
                   staffIds = setOf("${allocation.staffId}"),
                 ),
               )
-            staffDetailProvider
+            prisonApi
               .findStaffSummariesFromIds(setOf(allocation.staffId))
               .firstOrNull { it.staffId == allocation.staffId }
               ?.let {
@@ -81,7 +82,7 @@ class GetKeyworkerAllocations(
     val prisons = prisonService.findPrisons(allocations.map { it.prisonCode }.toSet()).associateBy { it.prisonId }
     check(prisons.keys.containsAll(allocations.map { it.prisonCode }.toSet()))
     val staffIds = allocations.map { it.staffId }.toSet()
-    val staff = staffDetailProvider.findStaffSummariesFromIds(staffIds).associateBy { it.staffId }
+    val staff = prisonApi.findStaffSummariesFromIds(staffIds).associateBy { it.staffId }
     check(staff.keys.containsAll(staffIds))
 
     return PersonStaffAllocationHistory(

@@ -1,15 +1,15 @@
 package uk.gov.justice.digital.hmpps.keyworker.sar
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.sar.internal.SarKeyWorkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.services.StaffDetailProvider
 import java.time.LocalDate
 
 @Service
 class SubjectAccessRequest(
   private val skwr: SarKeyWorkerRepository,
-  private val sdp: StaffDetailProvider,
+  private val prisonApi: PrisonApiClient,
 ) {
   fun getSarContent(
     prn: String,
@@ -18,7 +18,7 @@ class SubjectAccessRequest(
   ): SubjectAccessResponse? {
     val kws = skwr.findSarContent(prn, fromDate?.atStartOfDay(), toDate?.plusDays(1)?.atStartOfDay())
     val staffMap: Map<Long, StaffMember> =
-      sdp.findStaffSummariesFromIds(kws.map { it.staffId }.toSet()).associate {
+      prisonApi.findStaffSummariesFromIds(kws.map { it.staffId }.toSet()).associate {
         it.staffId to StaffMember(it.firstName, it.lastName)
       }
     val result =

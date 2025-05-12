@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 
 @Component
 class PrisonApiClient(
@@ -18,7 +19,7 @@ class PrisonApiClient(
   ): Boolean? =
     webClient
       .get()
-      .uri("/staff/{staffId}/{prisonCode}/roles/{role}", staffId, prisonCode, role)
+      .uri(VERIFY_STAFF_ROLE_URL, staffId, prisonCode, role)
       .exchangeToMono { res ->
         when (res.statusCode()) {
           HttpStatus.NOT_FOUND -> Mono.empty()
@@ -27,4 +28,23 @@ class PrisonApiClient(
         }
       }.retryRequestOnTransientException()
       .block()
+
+  fun findStaffSummariesFromIds(ids: Set<Long>): List<StaffSummary> =
+    if (ids.isEmpty()) {
+      emptyList()
+    } else {
+      webClient
+        .post()
+        .uri(STAFF_BY_IDS_URL)
+        .bodyValue(ids)
+        .retrieve()
+        .bodyToMono<List<StaffSummary>>()
+        .retryRequestOnTransientException()
+        .block()!!
+    }
+
+  companion object {
+    const val VERIFY_STAFF_ROLE_URL = "/staff/{staffId}/{prisonCode}/roles/{role}"
+    const val STAFF_BY_IDS_URL = "/staff"
+  }
 }
