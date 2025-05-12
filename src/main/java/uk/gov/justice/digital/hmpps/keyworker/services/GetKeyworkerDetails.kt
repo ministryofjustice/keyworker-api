@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationReposito
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
@@ -71,7 +70,7 @@ class GetKeyworkerDetails(
 
     return KeyworkerDetails(
       keyworker,
-      (keyworkerInfo?.keyworker?.status?.asKeyworkerStatus() ?: KeyworkerStatus.ACTIVE).codedDescription(),
+      keyworkerInfo?.keyworker?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
       keyworkerInfo?.keyworker?.capacity ?: prisonConfig.capacityTier1,
       keyworkerInfo?.allocationCount ?: 0,
