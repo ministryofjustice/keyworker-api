@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -27,7 +27,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
   fun `401 unauthorised without a valid token`() {
     webTestClient
       .get()
-      .uri(GET_KEYWORKER_ALLOCATION, "ANY", prisonNumber())
+      .uri(GET_KEYWORKER_ALLOCATION, "ANY", personIdentifier())
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -35,18 +35,18 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getCurrentKeyworkerAllocationSpec("ANY", prisonNumber(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getCurrentKeyworkerAllocationSpec("ANY", personIdentifier(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
   @Test
   fun `200 ok and current allocation returned`() {
     val prisonCode = "CAL"
-    val prisonNumber = prisonNumber()
+    val prisonNumber = personIdentifier()
 
     givenPrisonConfig(prisonConfig(prisonCode))
 
-    val previous = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
-    val current = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
+    val previous = givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10))
+    val current = givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10))
     val keyworkers = listOf(previous, current)
 
     keyworkers.mapIndexed { i, a ->
@@ -119,7 +119,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
   @Test
   fun `200 ok and complex needs correctly returned`() {
     val prisonCode = "COM"
-    val prisonNumber = prisonNumber()
+    val prisonNumber = personIdentifier()
 
     givenPrisonConfig(prisonConfig(prisonCode, hasPrisonersWithHighComplexityNeeds = true))
 

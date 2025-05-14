@@ -70,4 +70,6 @@ fun ReferenceDataRepository.getKeyworkerStatus(status: KeyworkerStatus): Referen
 fun ReferenceData.asKeyworkerStatus(): KeyworkerStatus = KeyworkerStatus.valueOf(code)
 
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
-  CodedDescription(this?.code ?: "ACTIVE", this?.description ?: "Active")
+  this?.let {
+    CodedDescription(code, description)
+  } ?: CodedDescription("ACTIVE", "Active")

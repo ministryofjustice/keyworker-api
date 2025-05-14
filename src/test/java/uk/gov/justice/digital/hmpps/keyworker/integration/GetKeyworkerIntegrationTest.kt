@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPerso
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 
@@ -41,7 +41,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
   @Test
   fun `200 ok and keyworker details returned`() {
     val prisonCode = "DEF"
-    val keyworker = givenKeyworker(keyworker(KeyworkerStatus.ACTIVE, capacity = 10))
+    val keyworker = givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10))
     prisonMockServer.stubKeyworkerDetails(
       prisonCode,
       staffDetail(keyworker.staffId, ScheduleType.FULL_TIME),
@@ -51,7 +51,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
       (0..40).map {
         givenKeyworkerAllocation(
           keyworkerAllocation(
-            personIdentifier = prisonNumber(),
+            personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = keyworker.staffId,
             assignedAt = LocalDateTime.now().minusDays(it * 2L),

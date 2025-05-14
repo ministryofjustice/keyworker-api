@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 
@@ -49,17 +49,17 @@ public class KeyworkerBatchService {
 
         final var today = LocalDate.now();
 
-        final var returningKeyworkers = keyworkerRepository.findByStatusKeyCodeAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1));
+        final var returningKeyworkers = keyworkerRepository.findByStatusKeyCodeAndReactivateOnBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1));
         final var status = getKeyworkerStatus(referenceDataRepository, KeyworkerStatus.ACTIVE);
 
         returningKeyworkers.forEach(kw -> {
             log.debug("Updating keyworker {}, changing status to ACTIVE from {}", kw.getStaffId(), kw.getStatus());
-            kw.setActiveDate(null);
+            kw.setReactivateOn(null);
             kw.setStatus(status);
-            kw.setAutoAllocationFlag(true);
+            kw.setAllowAutoAllocation(true);
         });
 
-        return returningKeyworkers.stream().map(LegacyKeyworker::getStaffId).collect(Collectors.toList());
+        return returningKeyworkers.stream().map(LegacyKeyworkerConfig::getStaffId).collect(Collectors.toList());
     }
 
     private void logUpdateStatusEventToAzure(final List keyworkers) {

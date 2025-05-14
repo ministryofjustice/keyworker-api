@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -54,8 +54,8 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
   @Test
   fun `usage by prison number`() {
     val prisonCode = "UBP"
-    val pn1 = prisonNumber()
-    val pn2 = prisonNumber()
+    val pn1 = personIdentifier()
+    val pn2 = personIdentifier()
     val noteUsage =
       listOf(
         UsageByPersonIdentifierResponse(pn1, "KA", "KE", 5, latestNote(5)),
@@ -86,8 +86,8 @@ class CaseNoteUsageIntegrationTest : IntegrationTest() {
   @Test
   fun `usage by prison number with staff filter`() {
     val prisonCode = "UBS"
-    val pn1 = prisonNumber()
-    val pn2 = prisonNumber()
+    val pn1 = personIdentifier()
+    val pn2 = personIdentifier()
     val staffId = 126758381L
     val noteUsage =
       listOf(

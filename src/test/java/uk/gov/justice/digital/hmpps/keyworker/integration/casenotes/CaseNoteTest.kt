@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.util.UUID
@@ -27,7 +27,7 @@ class CaseNoteTest {
 
   private fun caseNote(
     text: String,
-    personIdentifier: String = prisonNumber(),
+    personIdentifier: String = personIdentifier(),
     occurredAt: LocalDateTime = now(),
     subType: String = SESSION_SUBTYPE,
     type: String = KW_TYPE,

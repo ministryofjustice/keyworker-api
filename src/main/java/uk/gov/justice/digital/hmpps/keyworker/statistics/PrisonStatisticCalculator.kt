@@ -4,7 +4,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
@@ -35,7 +35,7 @@ class PrisonStatisticCalculator(
   private val keyworkerAllocationRepository: KeyworkerAllocationRepository,
   private val caseNotesApi: CaseNotesApiClient,
   private val nomisService: NomisService,
-  private val keyworkerRepository: KeyworkerRepository,
+  private val keyworkerConfigRepository: KeyworkerConfigRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
@@ -116,7 +116,7 @@ class PrisonStatisticCalculator(
           ?.let { nomisKeyworkers ->
             val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
             val nonActiveIds =
-              keyworkerRepository
+              keyworkerConfigRepository
                 .getNonActiveKeyworkers(keyworkerIds)
                 .map { it.staffId }
                 .toSet()

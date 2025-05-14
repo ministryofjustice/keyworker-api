@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEven
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.time.temporal.ChronoUnit
@@ -30,7 +30,7 @@ import java.util.UUID
 class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
   @Test
   fun `can migrate sessions and entries that do not exist`() {
-    val personIdentifier = prisonNumber()
+    val personIdentifier = personIdentifier()
     val caseNotes =
       (0..20).map {
         caseNote(
@@ -57,7 +57,7 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
 
   @Test
   fun `can migrate sessions and entries when some already exist`() {
-    val personIdentifier = prisonNumber()
+    val personIdentifier = personIdentifier()
     val caseNotes =
       (0..20).map {
         caseNote(

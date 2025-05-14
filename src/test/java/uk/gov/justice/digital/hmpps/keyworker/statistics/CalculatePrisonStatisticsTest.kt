@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -40,10 +40,10 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, yesterday.minusDays(7).atStartOfDay()))
     val keyworkers =
-      (0..10).map { index -> givenKeyworker(keyworker(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..10).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
     val additionalKeyworkers =
-      (0..5).map { index -> givenKeyworker(keyworker(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..5).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     val prisoners = prisoners()
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     prisoners.personIdentifiers().forEachIndexed { index, pi ->
@@ -116,7 +116,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       ),
     )
     val keyworkers =
-      (0..10).map { index -> givenKeyworker(keyworker(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..10).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
     val prisoners = prisoners()
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
@@ -184,7 +184,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     Prisoners(
       (0..count).map { index ->
         Prisoner(
-          prisonNumber(),
+          personIdentifier(),
           "First",
           "Last",
           now().minusDays(index / 2 + 1L),

@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEven
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -76,7 +76,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
   @MethodSource("caseNoteMoved")
   fun `moves session entry when case note moved`(caseNote: CaseNote) {
     caseNotesMockServer.stubGetCaseNote(caseNote)
-    val event = caseNoteEvent(CaseNoteMoved, caseNoteInfo(caseNote, prisonNumber()), caseNote.personIdentifier)
+    val event = caseNoteEvent(CaseNoteMoved, caseNoteInfo(caseNote, personIdentifier()), caseNote.personIdentifier)
     givenKeyworkerInteraction(
       caseNote
         .copy(personIdentifier = event.additionalInformation.previousNomsNumber!!)
@@ -223,7 +223,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     private fun caseNote(
       subType: String,
       type: String = KW_TYPE,
-      personIdentifier: String = prisonNumber(),
+      personIdentifier: String = personIdentifier(),
       occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
       staffId: Long = NomisIdGenerator.newId(),
       staffUsername: String = NomisIdGenerator.username(),

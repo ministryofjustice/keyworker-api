@@ -42,6 +42,9 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.15.0")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.11.1")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.9")
+  implementation("org.hibernate.orm:hibernate-envers")
+  implementation("org.springframework.data:spring-data-envers")
 
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.3.232")

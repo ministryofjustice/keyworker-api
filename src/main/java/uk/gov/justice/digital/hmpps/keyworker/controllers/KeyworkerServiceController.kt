@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
@@ -955,6 +956,7 @@ class KeyworkerServiceController(
       ),
     ],
   )
+  @CaseloadIdHeader
   @PostMapping(path = ["/{staffId}/prison/{prisonId}"])
   fun addOrUpdateKeyworker(
     @Parameter(name = "staffId", required = true)
