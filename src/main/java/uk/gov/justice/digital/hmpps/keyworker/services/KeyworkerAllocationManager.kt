@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
@@ -35,7 +35,7 @@ class KeyworkerAllocationManager(
   private val prisonConfigRepository: PrisonConfigRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val nomisService: NomisService,
-  private val keyworkerRepository: KeyworkerRepository,
+  private val keyworkerConfigRepository: KeyworkerConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
   private val allocationRepository: KeyworkerAllocationRepository,
 ) {
@@ -133,7 +133,7 @@ class KeyworkerAllocationManager(
           "A provided staff id is not a keyworker for the provided prison"
         }
         val nonActiveIds =
-          keyworkerRepository
+          keyworkerConfigRepository
             .getNonActiveKeyworkers(staffIds)
             .map { it.staffId }
             .toSet()

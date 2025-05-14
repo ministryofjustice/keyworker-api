@@ -569,8 +569,8 @@ public class KeyworkerService {
                         keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
                         keyworkerDto.setStatus(KeyworkerStatus.valueOf(keyworker.getStatus().getCode()));
                         keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
-                        keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocationFlag());
-                        keyworkerDto.setActiveDate(keyworker.getActiveDate());
+                        keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocation());
+                        keyworkerDto.setActiveDate(keyworker.getReactivateOn());
                     },
                     () -> {
                         keyworkerDto.setCapacity(capacityDefault);
@@ -608,17 +608,17 @@ public class KeyworkerService {
         keyworkerRepository.findById(staffId).ifPresentOrElse(keyworker -> {
                 keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
                 keyworker.setStatus(status);
-                keyworker.setActiveDate(keyworkerUpdateDto.getActiveDate());
+                keyworker.setReactivateOn(keyworkerUpdateDto.getActiveDate());
                 if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
-                    keyworker.setAutoAllocationFlag(true);
+                    keyworker.setAutoAllocation(true);
                 }
             },
             () -> keyworkerRepository.save(LegacyKeyworker.builder()
                 .staffId(staffId)
                 .capacity(keyworkerUpdateDto.getCapacity())
                 .status(status)
-                .autoAllocationFlag(true)
-                .activeDate(keyworkerUpdateDto.getActiveDate())
+                .autoAllocation(true)
+                .reactivateOn(keyworkerUpdateDto.getActiveDate())
                 .build()));
 
         final var behaviour = keyworkerUpdateDto.getBehaviour();
@@ -641,7 +641,7 @@ public class KeyworkerService {
         }
 
         if (behaviour.isRemoveFromAutoAllocation()) {
-            keyworkerRepository.findById(staffId).ifPresent(kw -> kw.setAutoAllocationFlag(false));
+            keyworkerRepository.findById(staffId).ifPresent(kw -> kw.setAutoAllocation(false));
         }
     }
 

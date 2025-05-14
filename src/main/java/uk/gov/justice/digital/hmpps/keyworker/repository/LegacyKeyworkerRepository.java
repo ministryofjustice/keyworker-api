@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface LegacyKeyworkerRepository extends CrudRepository<LegacyKeyworker,Long> {
 
-    List<LegacyKeyworker> findByStatusKeyCodeAndActiveDateBefore(String statusCode, LocalDate date);
+    List<LegacyKeyworker> findByStatusKeyCodeAndReactivateOnBefore(String statusCode, LocalDate date);
 }

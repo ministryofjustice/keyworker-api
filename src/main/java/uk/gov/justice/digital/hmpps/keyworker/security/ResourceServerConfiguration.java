@@ -29,7 +29,7 @@ public class ResourceServerConfiguration {
                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
                 "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
                 "/queue-admin/retry-all-dlqs",
-                "/batch/key-worker-recon", "/batch/update-status", "/batch/generate-stats",
+                "/batch/key-worker-recon", "/batch/update-status",
                 "/prison-statistics/calculate"
             ).permitAll().anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(new AuthAwareTokenConverter())))

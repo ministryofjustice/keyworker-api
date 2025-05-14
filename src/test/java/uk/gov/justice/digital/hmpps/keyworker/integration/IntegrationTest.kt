@@ -3,9 +3,15 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.microsoft.applicationinsights.TelemetryClient
+import jakarta.persistence.EntityManager
+import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
+import org.hibernate.envers.AuditReaderFactory
+import org.hibernate.envers.RevisionType
+import org.hibernate.envers.query.AuditEntity
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,14 +25,17 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.transaction.support.TransactionTemplate
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import uk.gov.justice.digital.hmpps.keyworker.domain.Keyworker
+import uk.gov.justice.digital.hmpps.keyworker.config.KeyworkerContext
+import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
@@ -58,7 +67,7 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedReposito
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.casenotes.config.container.PostgresContainer
@@ -75,7 +84,7 @@ import java.time.LocalDateTime
 @ActiveProfiles("test")
 abstract class IntegrationTest {
   @Autowired
-  private lateinit var keyworkerRepository: KeyworkerRepository
+  protected lateinit var keyworkerConfigRepository: KeyworkerConfigRepository
 
   @Autowired
   protected lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
@@ -113,6 +122,12 @@ abstract class IntegrationTest {
   @MockitoBean
   internal lateinit var telemetryClient: TelemetryClient
 
+  @Autowired
+  internal lateinit var transactionTemplate: TransactionTemplate
+
+  @Autowired
+  internal lateinit var entityManager: EntityManager
+
   init {
     SecurityContextHolder.getContext().authentication = TestingAuthenticationToken("user", "pw")
     // Resolves an issue where Wiremock keeps previous sockets open from other tests causing connection resets
@@ -144,6 +159,41 @@ abstract class IntegrationTest {
   }
 
   internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl).get()
+
+  internal fun verifyAudit(
+    entity: Any,
+    entityId: Any,
+    revisionType: RevisionType,
+    affectedEntities: Set<String>,
+    context: KeyworkerContext,
+  ) {
+    transactionTemplate.execute {
+      val auditReader = AuditReaderFactory.get(entityManager)
+      assertTrue(auditReader.isEntityClassAudited(entity::class.java))
+
+      val revisionNumber =
+        auditReader
+          .getRevisions(entity::class.java, entityId)
+          .filterIsInstance<Long>()
+          .max()
+
+      val entityRevision: Array<*> =
+        auditReader
+          .createQuery()
+          .forRevisionsOfEntity(entity::class.java, false, true)
+          .add(AuditEntity.revisionNumber().eq(revisionNumber))
+          .resultList
+          .first() as Array<*>
+      assertThat(entityRevision[2]).isEqualTo(revisionType)
+
+      val auditRevision = entityRevision[1] as AuditRevision
+      with(auditRevision) {
+        assertThat(username).isEqualTo(context.username)
+        assertThat(caseloadId).isEqualTo(context.activeCaseloadId)
+        assertThat(this.affectedEntities).containsExactlyInAnyOrderElementsOf(affectedEntities)
+      }
+    }
+  }
 
   companion object {
     @JvmField
@@ -368,7 +418,7 @@ abstract class IntegrationTest {
   )
 
   protected fun givenOffenderKeyWorker(
-    prisonNumber: String = prisonNumber(),
+    prisonNumber: String = personIdentifier(),
     staffId: Long = newId(),
     assignedAt: LocalDateTime = LocalDateTime.now(),
     allocationType: AllocationType = AllocationType.AUTO,
@@ -394,14 +444,15 @@ abstract class IntegrationTest {
       },
     )
 
-  protected fun keyworker(
+  protected fun keyworkerConfig(
     status: KeyworkerStatus,
     staffId: Long = newId(),
     capacity: Int = 6,
     autoAllocation: Boolean = true,
-  ) = Keyworker(withReferenceData(KEYWORKER_STATUS, status.name), capacity, autoAllocation, staffId)
+    reactivateOn: LocalDate? = null,
+  ) = KeyworkerConfig(withReferenceData(KEYWORKER_STATUS, status.name), capacity, autoAllocation, reactivateOn, staffId)
 
-  protected fun givenKeyworker(keyworker: Keyworker): Keyworker = keyworkerRepository.save(keyworker)
+  protected fun givenKeyworkerConfig(keyworkerConfig: KeyworkerConfig): KeyworkerConfig = keyworkerConfigRepository.save(keyworkerConfig)
 
   protected fun keyworkerAllocation(
     personIdentifier: String,

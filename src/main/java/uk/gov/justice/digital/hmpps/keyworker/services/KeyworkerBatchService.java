@@ -49,14 +49,14 @@ public class KeyworkerBatchService {
 
         final var today = LocalDate.now();
 
-        final var returningKeyworkers = keyworkerRepository.findByStatusKeyCodeAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1));
+        final var returningKeyworkers = keyworkerRepository.findByStatusKeyCodeAndReactivateOnBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1));
         final var status = getKeyworkerStatus(referenceDataRepository, KeyworkerStatus.ACTIVE);
 
         returningKeyworkers.forEach(kw -> {
             log.debug("Updating keyworker {}, changing status to ACTIVE from {}", kw.getStaffId(), kw.getStatus());
-            kw.setActiveDate(null);
+            kw.setReactivateOn(null);
             kw.setStatus(status);
-            kw.setAutoAllocationFlag(true);
+            kw.setAutoAllocation(true);
         });
 
         return returningKeyworkers.stream().map(LegacyKeyworker::getStaffId).collect(Collectors.toList());

@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
@@ -25,7 +25,7 @@ class KeyworkerSearch(
   private val nomisService: NomisService,
   private val caseNoteApi: CaseNotesApiClient,
   private val prisonConfigRepository: PrisonConfigRepository,
-  private val keyworkerRepository: KeyworkerRepository,
+  private val keyworkerConfigRepository: KeyworkerConfigRepository,
 ) {
   fun findKeyworkers(
     prisonCode: String,
@@ -49,7 +49,7 @@ class KeyworkerSearch(
       if (keyworkerStaffIds.isEmpty()) {
         emptyMap()
       } else {
-        keyworkerRepository.findAllWithAllocationCount(prisonCode, keyworkerStaffIds).associateBy { it.staffId }
+        keyworkerConfigRepository.findAllWithAllocationCount(prisonCode, keyworkerStaffIds).associateBy { it.staffId }
       }
 
     return KeyworkerSearchResponse(
@@ -72,15 +72,15 @@ class KeyworkerSearch(
     keyworkerSessions: (Long) -> UsageByAuthorIdResponse?,
   ): KeyworkerSummary {
     val kwa = keyworkerConfig(staffId)
-    val status = kwa?.keyworker?.status
+    val status = kwa?.keyworkerConfig?.status
     return KeyworkerSummary(
       staffId,
       firstName,
       lastName,
       (status?.asKeyworkerStatus() ?: ACTIVE).codedDescription(),
-      kwa?.keyworker?.capacity ?: prisonConfig.capacityTier1,
+      kwa?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1,
       kwa?.allocationCount ?: 0,
-      kwa?.keyworker?.autoAllocation ?: prisonConfig.autoAllocate,
+      kwa?.keyworkerConfig?.autoAllocation ?: prisonConfig.autoAllocate,
       keyworkerSessions(staffId)?.count ?: 0,
     )
   }

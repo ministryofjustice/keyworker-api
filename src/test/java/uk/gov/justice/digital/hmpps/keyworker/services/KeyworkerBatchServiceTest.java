@@ -51,7 +51,7 @@ class KeyworkerBatchServiceTest {
         final var status = ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name());
         final var keyworker_backFromLeave = new LegacyKeyworker(2L, 6, status, Boolean.TRUE, DATE_14_JAN_2018);
 
-        when(keyworkerRepository.findByStatusKeyCodeAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1))).thenReturn(Collections.singletonList(keyworker_backFromLeave));
+        when(keyworkerRepository.findByStatusKeyCodeAndReactivateOnBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1))).thenReturn(Collections.singletonList(keyworker_backFromLeave));
 
         final var keyworkerIds = batchService.executeUpdateStatus();
 
@@ -62,7 +62,7 @@ class KeyworkerBatchServiceTest {
     void testUpdateStatusJobException() {
         final var today = LocalDate.now();
 
-        when(keyworkerRepository.findByStatusKeyCodeAndActiveDateBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1))).thenThrow(new RuntimeException("test"));
+        when(keyworkerRepository.findByStatusKeyCodeAndReactivateOnBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1))).thenThrow(new RuntimeException("test"));
 
         batchService.executeUpdateStatus();
 

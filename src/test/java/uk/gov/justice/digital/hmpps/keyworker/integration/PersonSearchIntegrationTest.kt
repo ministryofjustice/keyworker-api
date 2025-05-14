@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 
 class PersonSearchIntegrationTest : IntegrationTest() {
@@ -251,7 +251,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     (1..count)
       .map {
         Prisoner(
-          prisonNumber(),
+          personIdentifier(),
           "First$it",
           "Last$it",
           LocalDate.now().minusWeeks(it.toLong()),
