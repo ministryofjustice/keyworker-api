@@ -39,7 +39,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
@@ -569,7 +569,7 @@ public class KeyworkerService {
                         keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
                         keyworkerDto.setStatus(KeyworkerStatus.valueOf(keyworker.getStatus().getCode()));
                         keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
-                        keyworkerDto.setAutoAllocationAllowed(keyworker.getAutoAllocation());
+                        keyworkerDto.setAutoAllocationAllowed(keyworker.getAllowAutoAllocation());
                         keyworkerDto.setActiveDate(keyworker.getReactivateOn());
                     },
                     () -> {
@@ -610,14 +610,14 @@ public class KeyworkerService {
                 keyworker.setStatus(status);
                 keyworker.setReactivateOn(keyworkerUpdateDto.getActiveDate());
                 if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
-                    keyworker.setAutoAllocation(true);
+                    keyworker.setAllowAutoAllocation(true);
                 }
             },
-            () -> keyworkerRepository.save(LegacyKeyworker.builder()
+            () -> keyworkerRepository.save(LegacyKeyworkerConfig.builder()
                 .staffId(staffId)
                 .capacity(keyworkerUpdateDto.getCapacity())
                 .status(status)
-                .autoAllocation(true)
+                .allowAutoAllocation(true)
                 .reactivateOn(keyworkerUpdateDto.getActiveDate())
                 .build()));
 
@@ -641,7 +641,7 @@ public class KeyworkerService {
         }
 
         if (behaviour.isRemoveFromAutoAllocation()) {
-            keyworkerRepository.findById(staffId).ifPresent(kw -> kw.setAutoAllocation(false));
+            keyworkerRepository.findById(staffId).ifPresent(kw -> kw.setAllowAutoAllocation(false));
         }
     }
 

@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 
 import java.time.LocalDate;
@@ -49,7 +49,7 @@ class KeyworkerBatchServiceTest {
         when(referenceDataRepository.findByKey(activeStatus.getKey())).thenReturn(activeStatus);
 
         final var status = ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name());
-        final var keyworker_backFromLeave = new LegacyKeyworker(2L, 6, status, Boolean.TRUE, DATE_14_JAN_2018);
+        final var keyworker_backFromLeave = new LegacyKeyworkerConfig(2L, 6, status, Boolean.TRUE, DATE_14_JAN_2018);
 
         when(keyworkerRepository.findByStatusKeyCodeAndReactivateOnBefore(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name(), today.plusDays(1))).thenReturn(Collections.singletonList(keyworker_backFromLeave));
 

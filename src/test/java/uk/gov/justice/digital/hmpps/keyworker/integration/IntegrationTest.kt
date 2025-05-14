@@ -448,9 +448,9 @@ abstract class IntegrationTest {
     status: KeyworkerStatus,
     staffId: Long = newId(),
     capacity: Int = 6,
-    autoAllocation: Boolean = true,
+    allowAutoAllocation: Boolean = true,
     reactivateOn: LocalDate? = null,
-  ) = KeyworkerConfig(withReferenceData(KEYWORKER_STATUS, status.name), capacity, autoAllocation, reactivateOn, staffId)
+  ) = KeyworkerConfig(withReferenceData(KEYWORKER_STATUS, status.name), capacity, allowAutoAllocation, reactivateOn, staffId)
 
   protected fun givenKeyworkerConfig(keyworkerConfig: KeyworkerConfig): KeyworkerConfig = keyworkerConfigRepository.save(keyworkerConfig)
 

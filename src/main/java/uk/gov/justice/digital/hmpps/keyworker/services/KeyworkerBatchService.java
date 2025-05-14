@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig;
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
 
@@ -56,10 +56,10 @@ public class KeyworkerBatchService {
             log.debug("Updating keyworker {}, changing status to ACTIVE from {}", kw.getStaffId(), kw.getStatus());
             kw.setReactivateOn(null);
             kw.setStatus(status);
-            kw.setAutoAllocation(true);
+            kw.setAllowAutoAllocation(true);
         });
 
-        return returningKeyworkers.stream().map(LegacyKeyworker::getStaffId).collect(Collectors.toList());
+        return returningKeyworkers.stream().map(LegacyKeyworkerConfig::getStaffId).collect(Collectors.toList());
     }
 
     private void logUpdateStatusEventToAzure(final List keyworkers) {

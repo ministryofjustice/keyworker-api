@@ -51,7 +51,7 @@ class KeyworkerConfigManager(
     apply {
       status = referenceDataRepository.getKeyworkerStatus(request.status)
       capacity = request.capacity
-      autoAllocation = !request.removeFromAutoAllocation
+      allowAutoAllocation = !request.removeFromAutoAllocation
       reactivateOn = request.reactivateOn
     }
 }

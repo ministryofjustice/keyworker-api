@@ -22,8 +22,8 @@ class KeyworkerConfig(
   @JoinColumn(name = "status_id")
   var status: ReferenceData,
   var capacity: Int,
-  @Column(name = "auto_allocation")
-  var autoAllocation: Boolean,
+  @Column(name = "allow_auto_allocation")
+  var allowAutoAllocation: Boolean,
   @Column(name = "reactivate_on")
   var reactivateOn: LocalDate?,
   @Audited(withModifiedFlag = false)

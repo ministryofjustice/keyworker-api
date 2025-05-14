@@ -27,7 +27,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"staffId"})
 @Audited(withModifiedFlag = true)
-public class LegacyKeyworker {
+public class LegacyKeyworkerConfig {
 
     @Audited(withModifiedFlag = false)
     @Id @Column(name = "STAFF_ID", nullable = false)
@@ -44,9 +44,9 @@ public class LegacyKeyworker {
     private ReferenceData status;
 
     @NotNull
-    @Column(name = "AUTO_ALLOCATION", nullable = false)
+    @Column(name = "ALLOW_AUTO_ALLOCATION", nullable = false)
     @Builder.Default
-    private Boolean autoAllocation = Boolean.TRUE;
+    private Boolean allowAutoAllocation = Boolean.TRUE;
 
     @Column(name = "REACTIVATE_ON")
     LocalDate reactivateOn;

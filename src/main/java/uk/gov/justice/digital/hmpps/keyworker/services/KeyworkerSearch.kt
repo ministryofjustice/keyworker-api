@@ -80,7 +80,7 @@ class KeyworkerSearch(
       (status?.asKeyworkerStatus() ?: ACTIVE).codedDescription(),
       kwa?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1,
       kwa?.allocationCount ?: 0,
-      kwa?.keyworkerConfig?.autoAllocation ?: prisonConfig.autoAllocate,
+      kwa?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.autoAllocate,
       keyworkerSessions(staffId)?.count ?: 0,
     )
   }
