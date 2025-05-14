@@ -1,6 +1,8 @@
 reference_data
 prison_supported
-key_worker
+audit_revision
+keyworker_configuration
+keyworker_configuration_audit
 keyworker_stats
 offender_key_worker
 batch_history
