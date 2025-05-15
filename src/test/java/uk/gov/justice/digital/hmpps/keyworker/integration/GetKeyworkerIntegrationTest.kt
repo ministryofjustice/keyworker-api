@@ -136,8 +136,8 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
           staff.staffId,
           staff.firstName,
           staff.lastName,
-          CodedDescription("PT", "Part Time")
-        )
+          CodedDescription("PT", "Part Time"),
+        ),
       )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, prisonDescription))
