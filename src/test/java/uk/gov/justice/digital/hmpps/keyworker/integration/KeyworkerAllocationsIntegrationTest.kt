@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -138,6 +139,38 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   }
 
   @Test
+  fun `204 no content - new allocations overriding recommended allocation`() {
+    val prisonCode = "NOR"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val prisoner = prisoner(prisonCode)
+    val staff = staffRole()
+    val recommendedStaff = staffRole()
+    val psa =
+      personStaffAllocation(
+        prisoner.prisonerNumber,
+        staff.staffId,
+        recommendedAllocationStaffId = recommendedStaff.staffId,
+      )
+    prisonerSearchMockServer.stubFindPrisonDetails(setOf(prisoner.prisonerNumber), listOf(prisoner))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa))).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findAllByPersonIdentifier(prisoner.prisonerNumber)
+    assertThat(allocations).hasSize(2)
+    val active = allocations.single { it.active }
+    val inactive = allocations.single { !it.active }
+    assertThat(active.staffId).isEqualTo(staff.staffId)
+    assertThat(active.allocationType).isEqualTo(AllocationType.MANUAL)
+    assertThat(active.allocationReason.code).isEqualTo(AllocationReason.MANUAL.reasonCode)
+    assertThat(inactive.staffId).isEqualTo(recommendedStaff.staffId)
+    assertThat(inactive.allocationType).isEqualTo(AllocationType.AUTO)
+    assertThat(inactive.allocationReason.code).isEqualTo(AllocationReason.AUTO.reasonCode)
+    assertThat(inactive.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
+  }
+
+  @Test
   fun `204 no content - new allocations and existing allocations deallocated`() {
     val prisonCode = "EAL"
     givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
@@ -257,7 +290,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     personIdentifier: String = personIdentifier(),
     staffId: Long = newId(),
     allocationReason: String = AllocationReason.MANUAL.name,
-  ) = PersonStaffAllocation(personIdentifier, staffId, allocationReason)
+    recommendedAllocationStaffId: Long? = null,
+  ) = PersonStaffAllocation(personIdentifier, staffId, allocationReason, recommendedAllocationStaffId)
 
   private fun personStaffDeallocation(
     personIdentifier: String = personIdentifier(),
