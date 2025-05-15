@@ -41,7 +41,8 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
   @Test
   fun `200 ok and keyworker details returned`() {
     val prisonCode = "DEF"
-    val keyworker = givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10))
+    val keyworker =
+      givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
     prisonMockServer.stubKeyworkerDetails(
       prisonCode,
       staffDetail(keyworker.staffId, ScheduleType.FULL_TIME),
@@ -93,6 +94,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.capacity).isEqualTo(10)
     assertThat(response.allocated).isEqualTo(30)
     assertThat(response.allocations.size).isEqualTo(30)
+    assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "DEF-A-1" }).isTrue
 
     assertThat(response.stats.current).isNotNull()
@@ -129,12 +131,20 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(response.keyworker)
-      .isEqualTo(KeyworkerWithSchedule(staff.staffId, staff.firstName, staff.lastName, CodedDescription("PT", "Part Time")))
+      .isEqualTo(
+        KeyworkerWithSchedule(
+          staff.staffId,
+          staff.firstName,
+          staff.lastName,
+          CodedDescription("PT", "Part Time")
+        )
+      )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, prisonDescription))
     assertThat(response.capacity).isEqualTo(6)
     assertThat(response.allocated).isEqualTo(0)
     assertThat(response.allocations.size).isEqualTo(0)
+    assertThat(response.allowAutoAllocation).isTrue
   }
 
   private fun getKeyworkerSpec(

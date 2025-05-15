@@ -10,6 +10,7 @@ data class KeyworkerDetails(
   val allocated: Int,
   val allocations: List<Allocation>,
   val stats: KeyworkerStats,
+  val allowAutoAllocation: Boolean,
 )
 
 data class KeyworkerWithSchedule(
