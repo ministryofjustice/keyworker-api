@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.AUTO
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.OVERRIDE
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthAwareAuthenticationToken
@@ -64,18 +65,31 @@ class KeyworkerAllocationManager(
         .associateBy { it.personIdentifier }
 
     val newAllocations =
-      allocations.mapNotNull {
+      allocations.flatMap {
         val existing = existingAllocations[it.personIdentifier]
         if (existing?.staffId == it.staffId) {
-          null
+          emptyList()
         } else {
           existing?.deallocate(rdSupplier(DEALLOCATION_REASON, OVERRIDE.reasonCode))
-          newKeyworkerAllocation(
-            prisonCode,
-            it.staffId,
-            it.personIdentifier,
-            rdSupplier(ALLOCATION_REASON, it.allocationReason),
-          )
+
+          val recommended =
+            it.recommendedAllocationStaffId?.let { rsi ->
+              newKeyworkerAllocation(
+                prisonCode,
+                rsi,
+                it.personIdentifier,
+                rdSupplier(ALLOCATION_REASON, AUTO.reasonCode),
+              ).apply { deallocate(rdSupplier(DEALLOCATION_REASON, OVERRIDE.reasonCode)) }
+            }
+
+          val new =
+            newKeyworkerAllocation(
+              prisonCode,
+              it.staffId,
+              it.personIdentifier,
+              rdSupplier(ALLOCATION_REASON, it.allocationReason),
+            )
+          listOfNotNull(recommended, new)
         }
       }
     allocationRepository.saveAll(newAllocations)
@@ -152,7 +166,8 @@ class KeyworkerAllocationManager(
   }
 
   private fun PersonStaffAllocations.referenceDataKeys(): Set<ReferenceDataKey> {
-    val allocationReasons = allocations.map { ALLOCATION_REASON of it.allocationReason }.toSet()
+    val allocationReasons =
+      (allocations.map { ALLOCATION_REASON of it.allocationReason } + (ALLOCATION_REASON of AUTO.reasonCode)).toSet()
     val deallocationReasons =
       (deallocations.map { DEALLOCATION_REASON of it.deallocationReason } + (DEALLOCATION_REASON of OVERRIDE.reasonCode)).toSet()
     return allocationReasons + deallocationReasons
