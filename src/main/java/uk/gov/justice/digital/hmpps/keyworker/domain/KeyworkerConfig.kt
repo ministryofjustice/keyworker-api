@@ -1,32 +1,38 @@
 package uk.gov.justice.digital.hmpps.keyworker.domain
 
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import org.hibernate.type.YesNoConverter
+import org.hibernate.envers.Audited
+import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import java.time.LocalDate
 
+@Audited(withModifiedFlag = true)
 @Entity
-@Table(name = "key_worker")
-class Keyworker(
+@Table(name = "keyworker_configuration")
+class KeyworkerConfig(
+  @Audited(targetAuditMode = NOT_AUDITED, withModifiedFlag = true)
   @ManyToOne
   @JoinColumn(name = "status_id")
-  val status: ReferenceData,
-  val capacity: Int,
-  @Column(name = "auto_allocation_flag")
-  @Convert(converter = YesNoConverter::class)
-  val autoAllocation: Boolean,
-  @Id @Column(name = "staff_id")
+  var status: ReferenceData,
+  var capacity: Int,
+  @Column(name = "allow_auto_allocation")
+  var allowAutoAllocation: Boolean,
+  @Column(name = "reactivate_on")
+  var reactivateOn: LocalDate?,
+  @Audited(withModifiedFlag = false)
+  @Id
+  @Column(name = "staff_id")
   val staffId: Long,
 )
 
-interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
+interface KeyworkerConfigRepository : JpaRepository<KeyworkerConfig, Long> {
   @Query(
     """
         with counts as (select kwa.staffId as id, count(kwa) as count
@@ -35,9 +41,9 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
                         and kwa.prisonCode = :prisonCode and kwa.staffId in :staffIds
                         group by kwa.staffId
         )
-        select coalesce(ac.id, kw.staffId) as staffId, ac.count as allocationCount, kw as keyworker from counts ac
-        full outer join Keyworker kw on ac.id = kw.staffId
-        where kw.staffId is null or kw.staffId in :staffIds
+        select coalesce(ac.id, config.staffId) as staffId, ac.count as allocationCount, config as keyworkerConfig from counts ac
+        full outer join KeyworkerConfig config on ac.id = config.staffId
+        where config.staffId is null or config.staffId in :staffIds
         """,
   )
   fun findAllWithAllocationCount(
@@ -48,10 +54,10 @@ interface KeyworkerRepository : JpaRepository<Keyworker, Long> {
   fun findAllByStaffIdInAndStatusKeyCodeIn(
     staffIds: Set<Long>,
     status: Set<String>,
-  ): List<Keyworker>
+  ): List<KeyworkerConfig>
 }
 
-fun KeyworkerRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
+fun KeyworkerConfigRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
   findAllByStaffIdInAndStatusKeyCodeIn(
     staffIds,
     KeyworkerStatus.entries
@@ -62,6 +68,6 @@ fun KeyworkerRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
 
 interface KeyworkerWithAllocationCount {
   val staffId: Long
-  val keyworker: Keyworker?
+  val keyworkerConfig: KeyworkerConfig?
   val allocationCount: Int?
 }

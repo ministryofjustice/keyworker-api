@@ -9,7 +9,7 @@ object NomisIdGenerator {
 
   fun newId(): Long = id.getAndIncrement()
 
-  fun prisonNumber(): String = "${letters.random()}${numbers.random()}${letters.random()}${letters.random()}"
+  fun personIdentifier(): String = "${letters.random()}${numbers.random()}${letters.random()}${letters.random()}"
 
   fun username(): String = (0..12).joinToString("") { letters.random().toString() }
 }

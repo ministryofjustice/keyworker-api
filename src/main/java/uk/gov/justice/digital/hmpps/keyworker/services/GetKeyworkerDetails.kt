@@ -4,7 +4,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
@@ -35,7 +35,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 class GetKeyworkerDetails(
   private val prisonConfigRepository: PrisonConfigRepository,
   private val nomisService: NomisService,
-  private val keyworkerRepository: KeyworkerRepository,
+  private val keyworkerConfigRepository: KeyworkerConfigRepository,
   private val allocationRepository: KeyworkerAllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val caseNotesApiClient: CaseNotesApiClient,
@@ -51,7 +51,7 @@ class GetKeyworkerDetails(
         .orElseThrow { IllegalArgumentException("Staff not recognised as a keyworker") }
         .asKeyworker()
 
-    val keyworkerInfo = keyworkerRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
+    val keyworkerInfo = keyworkerConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
     val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     val prisonerDetails =
       if (allocations.isEmpty()) {
@@ -70,9 +70,9 @@ class GetKeyworkerDetails(
 
     return KeyworkerDetails(
       keyworker,
-      keyworkerInfo?.keyworker?.status.toKeyworkerStatusCodedDescription(),
+      keyworkerInfo?.keyworkerConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
-      keyworkerInfo?.keyworker?.capacity ?: prisonConfig.capacityTier1,
+      keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1,
       keyworkerInfo?.allocationCount ?: 0,
       allocations
         .mapNotNull { alloc ->
@@ -81,6 +81,7 @@ class GetKeyworkerDetails(
           }
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
       KeyworkerStats(current, previous),
+      keyworkerInfo?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.autoAllocate,
     )
   }
 

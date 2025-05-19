@@ -8,10 +8,12 @@ spring:
       ddl-auto: none
 
     properties:
-      hibernate:
-        jdbc:
-          lob:
-            non_contextual_creation: true
+      hibernate.jdbc.lob.non_contextual_creation: true
+      org.hibernate.envers.audit_table_suffix: _audit
+      org.hibernate.envers.revision_field_name: rev_id
+      org.hibernate.envers.revision_type_field_name: rev_type
+      org.hibernate.envers.modified_flag_suffix: _modified
+      org.hibernate.envers.store_data_at_delete: true
     open-in-view: false
 
   flyway:
@@ -22,9 +24,6 @@ spring:
 
   datasource:
     url: jdbc:postgresql://${DB_ENDPOINT}/${DB_NAME}?sslmode=verify-full
-    username: sa
-    password:
-    continueOnError: true
 
     hikari:
       pool-name: Keyworker-CP

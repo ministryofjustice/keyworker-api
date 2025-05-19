@@ -1,18 +1,25 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerDetails
+import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerConfigManager
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonStatsService
 import java.time.LocalDate
@@ -23,6 +30,7 @@ class PrisonController(
   private val prisonService: PrisonService,
   private val statsService: PrisonStatsService,
   private val keyworkerDetails: GetKeyworkerDetails,
+  private val keyworkerConfigManager: KeyworkerConfigManager,
 ) {
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
@@ -47,4 +55,17 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
   ): KeyworkerDetails = keyworkerDetails.getFor(prisonCode, staffId)
+
+  @Tag(name = MANAGE_KEYWORKERS)
+  @CaseloadIdHeader
+  @PreAuthorize("hasRole('${Roles.KEYWORKER_RW}')")
+  @PutMapping("/keyworkers/{staffId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun modifyKeyworkerConfig(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+    @RequestBody request: KeyworkerConfigRequest,
+  ) {
+    keyworkerConfigManager.configure(prisonCode, staffId, request)
+  }
 }

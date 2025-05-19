@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 
 class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
@@ -17,7 +17,7 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
   fun `401 unauthorised without a valid token`() {
     webTestClient
       .get()
-      .uri(GET_KEYWORKER_ALLOCATIONS, prisonNumber())
+      .uri(GET_KEYWORKER_ALLOCATIONS, personIdentifier())
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -25,14 +25,14 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getKeyworkerAllocationSpec(prisonNumber(), role = "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getKeyworkerAllocationSpec(personIdentifier(), role = "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
   @Test
   fun `200 ok and all allocations returned`() {
     val prisonCode = "HAL"
-    val prisonNumber = prisonNumber()
-    val keyworkers = (0..4).map { givenKeyworker(keyworker(KeyworkerStatus.entries.random(), capacity = 10)) }
+    val prisonNumber = personIdentifier()
+    val keyworkers = (0..4).map { givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.entries.random(), capacity = 10)) }
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison("HAL", "Indicated Prison")))
 

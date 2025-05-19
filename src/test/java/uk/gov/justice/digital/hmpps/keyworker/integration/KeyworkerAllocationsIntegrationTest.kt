@@ -9,10 +9,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 
 class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
@@ -105,7 +106,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonDetails(setOf(psa.personIdentifier), listOf(prisoner))
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
 
-    givenKeyworker(keyworker(KeyworkerStatus.INACTIVE, staff.staffId))
+    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.INACTIVE, staff.staffId))
 
     val res =
       allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)))
@@ -135,6 +136,38 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
     }
+  }
+
+  @Test
+  fun `204 no content - new allocations overriding recommended allocation`() {
+    val prisonCode = "NOR"
+    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+
+    val prisoner = prisoner(prisonCode)
+    val staff = staffRole()
+    val recommendedStaff = staffRole()
+    val psa =
+      personStaffAllocation(
+        prisoner.prisonerNumber,
+        staff.staffId,
+        recommendedAllocationStaffId = recommendedStaff.staffId,
+      )
+    prisonerSearchMockServer.stubFindPrisonDetails(setOf(prisoner.prisonerNumber), listOf(prisoner))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
+
+    allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa))).expectStatus().isNoContent
+
+    val allocations = keyworkerAllocationRepository.findAllByPersonIdentifier(prisoner.prisonerNumber)
+    assertThat(allocations).hasSize(2)
+    val active = allocations.single { it.active }
+    val inactive = allocations.single { !it.active }
+    assertThat(active.staffId).isEqualTo(staff.staffId)
+    assertThat(active.allocationType).isEqualTo(AllocationType.MANUAL)
+    assertThat(active.allocationReason.code).isEqualTo(AllocationReason.MANUAL.reasonCode)
+    assertThat(inactive.staffId).isEqualTo(recommendedStaff.staffId)
+    assertThat(inactive.allocationType).isEqualTo(AllocationType.AUTO)
+    assertThat(inactive.allocationReason.code).isEqualTo(AllocationReason.AUTO.reasonCode)
+    assertThat(inactive.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
   }
 
   @Test
@@ -237,7 +270,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
   private fun prisoner(
     prisonCode: String,
-    personIdentifier: String = prisonNumber(),
+    personIdentifier: String = personIdentifier(),
   ): Prisoner =
     Prisoner(
       personIdentifier,
@@ -254,13 +287,14 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   private fun staffRole(staffId: Long = newId()) = StaffLocationRoleDto.builder().staffId(staffId).build()
 
   private fun personStaffAllocation(
-    personIdentifier: String = prisonNumber(),
+    personIdentifier: String = personIdentifier(),
     staffId: Long = newId(),
     allocationReason: String = AllocationReason.MANUAL.name,
-  ) = PersonStaffAllocation(personIdentifier, staffId, allocationReason)
+    recommendedAllocationStaffId: Long? = null,
+  ) = PersonStaffAllocation(personIdentifier, staffId, allocationReason, recommendedAllocationStaffId)
 
   private fun personStaffDeallocation(
-    personIdentifier: String = prisonNumber(),
+    personIdentifier: String = personIdentifier(),
     staffId: Long = newId(),
     deallocationReason: String = DeallocationReason.KEYWORKER_STATUS_CHANGE.name,
   ) = PersonStaffDeallocation(personIdentifier, staffId, deallocationReason)

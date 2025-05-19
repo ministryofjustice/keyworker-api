@@ -12,13 +12,13 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformatio
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
 class MergePrisonerIntTest : IntegrationTest() {
   @Test
   fun `receiving a merge event where no keyworker information exists does not cause a failure`() {
-    val oldNoms = prisonNumber()
-    val newNoms = prisonNumber()
+    val oldNoms = personIdentifier()
+    val newNoms = personIdentifier()
 
     publishEventToTopic(mergeEvent(newNoms, oldNoms))
 
@@ -28,7 +28,7 @@ class MergePrisonerIntTest : IntegrationTest() {
   @Test
   fun `merge updates prison number for offender keyworker`() {
     val okw = givenOffenderKeyWorker()
-    val newNoms = prisonNumber()
+    val newNoms = personIdentifier()
 
     publishEventToTopic(mergeEvent(newNoms, okw.offenderNo))
 

@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.Keyworker
+import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonNumber
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
 class KeyworkerSearchIntegrationTest : IntegrationTest() {
   @Test
@@ -43,21 +43,21 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..10).map { newId() }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
 
-    val keyworkers: List<Keyworker> =
+    val keyworkerConfigs: List<KeyworkerConfig> =
       staffIds.mapIndexedNotNull { index, staffId ->
         if (index % 5 == 0) {
           null
         } else {
-          givenKeyworker(keyworker(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenKeyworkerConfig(keyworkerConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
         }
       }
 
-    keyworkers
+    keyworkerConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
           givenKeyworkerAllocation(
             keyworkerAllocation(
-              prisonNumber(),
+              personIdentifier(),
               prisonCode,
               kw.staffId,
               allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
@@ -76,7 +76,7 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
               SESSION_SUBTYPE,
               index,
             )
-          }.groupBy { it.authorId.toString() },
+          }.groupBy { it.authorId },
       )
     caseNotesMockServer.stubUsageByStaffIds(
       request = forLastMonth(staffIds.map(Long::toString).toSet()),
@@ -119,21 +119,21 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..10).map { newId() }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
 
-    val keyworkers: List<Keyworker> =
+    val keyworkerConfigs: List<KeyworkerConfig> =
       staffIds.mapIndexedNotNull { index, staffId ->
         if (index % 5 == 0) {
           null
         } else {
-          givenKeyworker(keyworker(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenKeyworkerConfig(keyworkerConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
         }
       }
 
-    keyworkers
+    keyworkerConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
           givenKeyworkerAllocation(
             keyworkerAllocation(
-              prisonNumber(),
+              personIdentifier(),
               prisonCode,
               kw.staffId,
               allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
@@ -152,7 +152,7 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
               SESSION_SUBTYPE,
               index,
             )
-          }.groupBy { it.authorId.toString() },
+          }.groupBy { it.authorId },
       )
     caseNotesMockServer.stubUsageByStaffIds(
       request = forLastMonth(staffIds.map(Long::toString).toSet()),
@@ -178,8 +178,8 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val staffId = newId()
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
 
-    givenKeyworkerAllocation(keyworkerAllocation(prisonNumber(), prisonCode, staffId))
-    givenKeyworkerAllocation(keyworkerAllocation(prisonNumber(), prisonCode, staffId))
+    givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+    givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
 
     val noteUsage =
       NoteUsageResponse(
