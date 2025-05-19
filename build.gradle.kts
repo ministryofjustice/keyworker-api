@@ -5,8 +5,8 @@ import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.1.0"
-  kotlin("plugin.spring") version "2.1.20"
-  kotlin("plugin.jpa") version "2.1.20"
+  kotlin("plugin.spring") version "2.1.21"
+  kotlin("plugin.jpa") version "2.1.21"
   jacoco
 }
 
@@ -34,15 +34,15 @@ dependencies {
   implementation("com.sun.xml.bind:jaxb-core")
   implementation("javax.activation:activation:1.1.1")
   implementation("javax.transaction:javax.transaction-api:1.3")
-  implementation("io.swagger:swagger-annotations:1.6.15")
+  implementation("io.swagger:swagger-annotations:1.6.16")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
   implementation("org.apache.commons:commons-text:1.13.1")
   implementation("com.google.guava:guava:32.1.3-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.49.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.15.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.11.1")
+  implementation("io.opentelemetry:opentelemetry-api:1.50.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.16.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.12.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.9")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.10")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
 
@@ -69,7 +69,7 @@ dependencies {
   testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.32.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
   testImplementation("io.jsonwebtoken:jjwt:0.12.6")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.21.0")
