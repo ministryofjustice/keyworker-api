@@ -51,7 +51,7 @@ class KeyworkerAllocationRecommender(
             keyworkers.firstOrNull { it.allocationCount < it.autoAllocationCapacity }
           }?.also {
             keyworkers.remove(it)
-            it.recommendedForAllocation()
+            it.allocationCount++
             keyworkers.add(it)
           }
 
@@ -103,19 +103,9 @@ class KeyworkerAllocationRecommender(
 private class KeyworkerCapacity(
   val keyworker: Keyworker,
   val autoAllocationCapacity: Int,
-  allocationCount: Int,
+  var allocationCount: Int,
   val lastAutoAllocationAt: LocalDateTime?,
-) {
-  var allocationCount: Int = allocationCount
-    private set
-
-  fun recommendedForAllocation() {
-    allocationCount++
-  }
-
-  override fun toString(): String =
-    "KeyworkerCapacity(keyworker=$keyworker, autoAllocationCapacity=$autoAllocationCapacity, allocationCount=$allocationCount, lastAutoAllocationAt=$lastAutoAllocationAt)"
-}
+)
 
 private fun List<KeyworkerCapacity>.sortedForAllocation(): TreeSet<KeyworkerCapacity> =
   TreeSet(
