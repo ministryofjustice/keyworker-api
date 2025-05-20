@@ -48,16 +48,18 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
       staffDetail(keyworker.staffId, ScheduleType.FULL_TIME),
     )
 
+    val fromDate = now().minusMonths(1)
+    val previousFromDate = fromDate.minusMonths(1)
     val allocations =
-      (0..40).map {
+      (1..20).map {
         givenKeyworkerAllocation(
           keyworkerAllocation(
             personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = keyworker.staffId,
-            assignedAt = LocalDateTime.now().minusDays(it * 2L),
-            active = it % 4 != 0,
-            expiryDateTime = if (it % 9 == 0) LocalDateTime.now().minusDays(1) else null,
+            assignedAt = LocalDateTime.now().minusDays(it * 3L),
+            active = it % 9 != 0,
+            expiryDateTime = if (it % 9 == 0) LocalDateTime.now().minusDays(10) else null,
           ),
         )
       }
@@ -65,15 +67,31 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     val personIdentifiers = allocations.filter { it.active }.map { it.personIdentifier }.toSet()
     prisonerSearchMockServer.stubFindPrisonDetails(personIdentifiers)
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      keyworkerTypes(prisonCode, personIdentifiers, now().minusMonths(1), now(), setOf(keyworker.staffId.toString())),
+      keyworkerTypes(
+        prisonCode,
+        allocations
+          .filter {
+            (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(fromDate)) &&
+              it.assignedAt.toLocalDate().isBefore(now())
+          }.map { it.personIdentifier }
+          .toSet(),
+        fromDate,
+        now(),
+        setOf(keyworker.staffId.toString()),
+      ),
       caseNoteResponse(personIdentifiers),
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       keyworkerTypes(
         prisonCode,
-        personIdentifiers,
-        now().minusMonths(2),
-        now().minusMonths(1),
+        allocations
+          .filter {
+            (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(previousFromDate)) &&
+              it.assignedAt.toLocalDate().isBefore(fromDate)
+          }.map { it.personIdentifier }
+          .toSet(),
+        previousFromDate,
+        fromDate,
         setOf(keyworker.staffId.toString()),
       ),
       NoteUsageResponse(emptyMap()),
@@ -92,22 +110,22 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription("DEF", "Default Prison"))
     assertThat(response.capacity).isEqualTo(10)
-    assertThat(response.allocated).isEqualTo(30)
-    assertThat(response.allocations.size).isEqualTo(30)
+    assertThat(response.allocated).isEqualTo(18)
+    assertThat(response.allocations.size).isEqualTo(18)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "DEF-A-1" }).isTrue
 
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(96)
-      assertThat(recordedSessions).isEqualTo(15)
-      assertThat(recordedEntries).isEqualTo(5)
-      assertThat(complianceRate).isEqualTo(15.62)
+      assertThat(projectedSessions).isEqualTo(62)
+      assertThat(recordedSessions).isEqualTo(38)
+      assertThat(recordedEntries).isEqualTo(15)
+      assertThat(complianceRate).isEqualTo(61.29)
     }
 
     assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {
-      assertThat(projectedSessions).isEqualTo(40)
+      assertThat(projectedSessions).isEqualTo(22)
       assertThat(recordedSessions).isEqualTo(0)
       assertThat(recordedEntries).isEqualTo(0)
       assertThat(complianceRate).isEqualTo(0.0)
@@ -203,13 +221,13 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
       personIdentifiers
         .mapIndexed { index, pi ->
           buildSet {
-            if (index % 2 == 0) {
+            if (index % 4 != 0) {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
                   SESSION_SUBTYPE,
-                  3 * index / personIdentifiers.size,
+                  (index % 4) + 1,
                   LatestNote(LocalDateTime.now().minusDays(index * 2L)),
                 ),
               )
@@ -220,7 +238,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
                   pi,
                   KW_TYPE,
                   ENTRY_SUBTYPE,
-                  2 * index / personIdentifiers.size,
+                  (index % 2) + 2,
                   LatestNote(LocalDateTime.now().minusDays(index + 1L)),
                 ),
               )

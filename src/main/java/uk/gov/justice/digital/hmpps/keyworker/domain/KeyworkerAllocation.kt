@@ -131,6 +131,20 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     staffId: Long,
   ): List<KeyworkerAllocation>
 
+  @Query(
+    """
+      select kwa from KeyworkerAllocation kwa
+      where kwa.staffId = :staffId and kwa.prisonCode = :prisonCode
+      and kwa.allocationType <> 'P' and kwa.assignedAt <= :toDate and (kwa.expiryDateTime is null or kwa.expiryDateTime >= :fromDate)
+    """,
+  )
+  fun findActiveForPrisonStaffBetween(
+    prisonCode: String,
+    staffId: Long,
+    fromDate: LocalDateTime,
+    toDate: LocalDateTime,
+  ): List<KeyworkerAllocation>
+
   fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<KeyworkerAllocation>
 
   fun findAllByPersonIdentifier(personIdentifier: String): List<KeyworkerAllocation>
