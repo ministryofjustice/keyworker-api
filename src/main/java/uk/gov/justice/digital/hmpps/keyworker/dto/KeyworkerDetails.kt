@@ -11,6 +11,7 @@ data class KeyworkerDetails(
   val allocations: List<Allocation>,
   val stats: KeyworkerStats,
   val allowAutoAllocation: Boolean,
+  val reactivateOn: LocalDate?,
 )
 
 data class KeyworkerWithSchedule(

@@ -147,6 +147,45 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.allowAutoAllocation).isTrue
   }
 
+  @Test
+  fun `keyworker details are returned including a reactivate date`() {
+    val agency = Agency("UAL", "Unavailable for Annual Leave)")
+    val prisonCode = agency.agencyId
+    val staff = staffDetail(newId(), ScheduleType.FULL_TIME, "On", "Holiday")
+    val keyworker =
+      givenKeyworkerConfig(
+        keyworkerConfig(
+          KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE,
+          staff.staffId,
+          capacity = 10,
+          allowAutoAllocation = false,
+          reactivateOn = now().plusDays(7),
+        ),
+      )
+    prisonMockServer.stubKeyworkerDetails(prisonCode, staff)
+    prisonMockServer.stubGetAgency(prisonCode, agency)
+
+    val response =
+      getKeyworkerSpec(prisonCode, staff.staffId)
+        .expectStatus()
+        .isOk
+        .expectBody(KeyworkerDetails::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(response.keyworker)
+      .isEqualTo(
+        KeyworkerWithSchedule(
+          staff.staffId,
+          staff.firstName,
+          staff.lastName,
+          CodedDescription("FT", "Full Time"),
+        ),
+      )
+    assertThat(response.status).isEqualTo(CodedDescription("UNAVAILABLE_ANNUAL_LEAVE", "Unavailable - annual leave"))
+    assertThat(response.reactivateOn).isEqualTo(keyworker.reactivateOn)
+  }
+
   private fun getKeyworkerSpec(
     prisonCode: String,
     staffId: Long,
@@ -163,7 +202,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     NoteUsageResponse(
       personIdentifiers
         .mapIndexed { index, pi ->
-          buildSet<UsageByPersonIdentifierResponse> {
+          buildSet {
             if (index % 2 == 0) {
               add(
                 UsageByPersonIdentifierResponse(

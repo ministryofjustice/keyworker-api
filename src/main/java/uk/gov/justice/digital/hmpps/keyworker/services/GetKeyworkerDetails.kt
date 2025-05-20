@@ -82,6 +82,7 @@ class GetKeyworkerDetails(
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
       KeyworkerStats(current, previous),
       keyworkerInfo?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.autoAllocate,
+      keyworkerInfo?.keyworkerConfig?.reactivateOn,
     )
   }
 
