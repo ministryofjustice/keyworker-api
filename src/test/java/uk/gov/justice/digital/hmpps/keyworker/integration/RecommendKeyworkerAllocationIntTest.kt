@@ -133,9 +133,34 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
+    val sortedPrisoners = prisoners.content.sortedBy { it.lastName }
     val allocMap = res.allocations.groupBy({ it.keyworker.staffId }, { it.personIdentifier })
-    assertThat(allocMap.values.map { it.size }.sortedDescending()).containsExactly(5, 4, 3, 2, 1)
-    assertThat(res.noAvailableKeyworkersFor).containsExactly(prisoners.content.maxBy { it.lastName }.prisonerNumber)
+    assertThat(allocMap.toList()).containsExactlyInAnyOrder(
+      staff[0].staffId to listOf(sortedPrisoners[14].prisonerNumber),
+      staff[1].staffId to listOf(sortedPrisoners[9].prisonerNumber, sortedPrisoners[13].prisonerNumber),
+      staff[2].staffId to
+        listOf(
+          sortedPrisoners[5].prisonerNumber,
+          sortedPrisoners[8].prisonerNumber,
+          sortedPrisoners[12].prisonerNumber,
+        ),
+      staff[3].staffId to
+        listOf(
+          sortedPrisoners[2].prisonerNumber,
+          sortedPrisoners[4].prisonerNumber,
+          sortedPrisoners[7].prisonerNumber,
+          sortedPrisoners[11].prisonerNumber,
+        ),
+      staff[4].staffId to
+        listOf(
+          sortedPrisoners[0].prisonerNumber,
+          sortedPrisoners[1].prisonerNumber,
+          sortedPrisoners[3].prisonerNumber,
+          sortedPrisoners[6].prisonerNumber,
+          sortedPrisoners[10].prisonerNumber,
+        ),
+    )
+    assertThat(res.noAvailableKeyworkersFor).containsExactly(sortedPrisoners.last().prisonerNumber)
   }
 
   private fun getKeyworkerRecommendations(

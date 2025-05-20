@@ -104,16 +104,13 @@ private class KeyworkerCapacity(
   val keyworker: Keyworker,
   val autoAllocationCapacity: Int,
   allocationCount: Int,
-  lastAutoAllocationAt: LocalDateTime?,
+  val lastAutoAllocationAt: LocalDateTime?,
 ) {
   var allocationCount: Int = allocationCount
-    private set
-  var lastAutoAllocationAt: LocalDateTime? = lastAutoAllocationAt
     private set
 
   fun recommendedForAllocation() {
     allocationCount++
-    lastAutoAllocationAt = LocalDateTime.now()
   }
 
   override fun toString(): String =
