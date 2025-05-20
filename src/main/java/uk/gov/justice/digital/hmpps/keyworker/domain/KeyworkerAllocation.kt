@@ -156,6 +156,32 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
   ): List<AllocationSummary>
 
   fun findFirstByPersonIdentifierAndActiveIsTrueOrderByAssignedAtDesc(personIdentifier: String): KeyworkerAllocation?
+
+  @Query(
+    """
+    with auto_alloc as ( 
+        select ka.*, row_number() over(partition by ka.staff_id order by ka.assigned_date_time desc) as row_number from offender_key_worker ka 
+        where ka.staff_id in :staffIds and ka.alloc_type = 'A' and ka.active_flag = 'Y'
+    )
+    select aa.* from auto_alloc aa
+    where aa.row_number = 1
+    """,
+    nativeQuery = true,
+  )
+  fun findLatestAutoAllocationsFor(staffIds: Set<Long>): List<KeyworkerAllocation>
+
+  @Query(
+    """
+      select ka.staffId from KeyworkerAllocation ka
+      where ka.personIdentifier = :personIdentifier and ka.prisonCode = :prisonCode and ka.allocationType <> 'P'
+      and ka.staffId in :staffIds
+    """,
+  )
+  fun findPreviousKeyworkerAllocations(
+    prisonCode: String,
+    personIdentifier: String,
+    staffIds: Set<Long>,
+  ): Set<Long>
 }
 
 interface NewAllocation {

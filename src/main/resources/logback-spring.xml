@@ -11,7 +11,7 @@
         </encoder>
     </appender>
 
-    <logger name="uk.gov.justice.digital.hmpps" additivity="false" level="DEBUG">
+    <logger name="uk.gov.justice.digital.hmpps" additivity="false" level="INFO">
         <appender-ref ref="consoleAppender"/>
     </logger>
 
@@ -32,6 +32,10 @@
     </logger>
 
     <logger name="org.springframework.boot" additivity="false" level="INFO">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <logger name="org.flywaydb.core.FlywayExecutor" additivity="false" level="WARN">
         <appender-ref ref="consoleAppender"/>
     </logger>
 
