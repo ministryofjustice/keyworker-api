@@ -27,8 +27,6 @@ import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
-import java.time.temporal.ChronoUnit.WEEKS
-import kotlin.math.roundToInt
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 
 @Service
@@ -51,8 +49,16 @@ class GetKeyworkerDetails(
         .orElseThrow { IllegalArgumentException("Staff not recognised as a keyworker") }
         .asKeyworker()
 
+    val fromDate = now().minusMonths(1)
+    val previousFromDate = fromDate.minusMonths(1)
     val keyworkerInfo = keyworkerConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
-    val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations =
+      allocationRepository.findActiveForPrisonStaffBetween(
+        prisonCode,
+        staffId,
+        previousFromDate.atStartOfDay(),
+        now().atStartOfDay(),
+      )
     val prisonerDetails =
       if (allocations.isEmpty()) {
         emptyMap()
@@ -64,9 +70,9 @@ class GetKeyworkerDetails(
       }
     val prisonName = prisonerDetails.values.firstOrNull()?.prisonName ?: nomisService.getAgency(prisonCode).description
 
-    val (current, cnSummary) = allocations.keyworkerSessionStats(now().minusMonths(1), now(), prisonConfig, staffId)
+    val (current, cnSummary) = allocations.keyworkerSessionStats(fromDate, now(), prisonConfig, staffId)
     val (previous, _) =
-      allocations.keyworkerSessionStats(now().minusMonths(2), now().minusMonths(1), prisonConfig, staffId)
+      allocations.keyworkerSessionStats(previousFromDate, fromDate, prisonConfig, staffId)
 
     return KeyworkerDetails(
       keyworker,
@@ -75,6 +81,7 @@ class GetKeyworkerDetails(
       keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1,
       keyworkerInfo?.allocationCount ?: 0,
       allocations
+        .filter { it.active }
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
             alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
@@ -94,7 +101,8 @@ class GetKeyworkerDetails(
   ): Pair<KeyworkerSessionStats, CaseNoteSummary?> {
     val applicableAllocations =
       filter {
-        it.expiryDateTime == null || !it.expiryDateTime!!.isBefore(from.atStartOfDay())
+        (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(from)) &&
+          it.assignedAt.toLocalDate().isBefore(to)
       }
     val personIdentifiers = applicableAllocations.map { it.personIdentifier }.toSet()
     val cnSummary =
@@ -107,16 +115,16 @@ class GetKeyworkerDetails(
           ).summary()
       }
     val total = applicableAllocations.sumOf { it.daysAllocatedForStats(from, to) }
-    val averagePerDay = if (total == 0L) null else total / DAYS.between(from, to).toDouble()
+    val averagePerDay = if (total == 0L) 0 else total / DAYS.between(from, to)
     val projectedSessions =
-      if (averagePerDay == null) {
-        null
+      if (averagePerDay == 0L) {
+        0
       } else {
-        val sessionMultiplier = Math.floorDiv(WEEKS.between(from, to), prisonConfig.kwSessionFrequencyInWeeks)
-        (averagePerDay * sessionMultiplier).roundToInt()
+        val sessionMultiplier = (DAYS.between(from, to.plusDays(1)) / (prisonConfig.kwSessionFrequencyInWeeks * 7.0))
+        (averagePerDay * sessionMultiplier).toInt()
       }
     val compliance =
-      if (projectedSessions == null || cnSummary == null) {
+      if (projectedSessions == 0 || cnSummary == null) {
         null
       } else {
         Statistic.percentage(
@@ -129,7 +137,7 @@ class GetKeyworkerDetails(
       KeyworkerSessionStats(
         from,
         to,
-        projectedSessions ?: 0,
+        projectedSessions,
         cnSummary?.totalSessions ?: 0,
         cnSummary?.totalEntries ?: 0,
         compliance ?: 0.0,
