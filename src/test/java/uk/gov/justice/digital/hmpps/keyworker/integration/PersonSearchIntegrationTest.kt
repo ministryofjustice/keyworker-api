@@ -260,6 +260,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
           "Description of $prisonCode",
           "$prisonCode-A-$it",
           "STANDARD",
+          null,
+          null,
         )
       },
   )

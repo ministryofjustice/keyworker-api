@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import java.time.LocalDate
 
 data class Prisoners(
@@ -14,6 +15,8 @@ data class Prisoners(
   val size = map.keys.size
 
   fun isEmpty() = map.keys.isEmpty()
+
+  operator fun get(prisonerNumber: String): Prisoner? = map[prisonerNumber]
 }
 
 data class Prisoner(
@@ -26,4 +29,6 @@ data class Prisoner(
   val prisonName: String,
   val cellLocation: String?,
   val csra: String?,
+  val complexityOfNeedLevel: ComplexityOfNeedLevel?,
+  val lastAdmissionDate: LocalDate?,
 )
