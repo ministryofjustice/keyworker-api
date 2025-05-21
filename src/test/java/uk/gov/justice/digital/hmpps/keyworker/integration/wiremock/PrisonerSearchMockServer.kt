@@ -62,6 +62,8 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
           "Default Prison",
           "DEF-A-1",
           "STANDARD",
+          null,
+          null,
         )
       },
   ): StubMapping =

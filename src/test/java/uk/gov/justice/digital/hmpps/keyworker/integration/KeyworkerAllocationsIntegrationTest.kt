@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
@@ -282,6 +283,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
       "Description of $prisonCode",
       null,
       null,
+      ComplexityOfNeedLevel.LOW,
+      LocalDate.now().minusDays(10),
     )
 
   private fun staffRole(staffId: Long = newId()) = StaffLocationRoleDto.builder().staffId(staffId).build()

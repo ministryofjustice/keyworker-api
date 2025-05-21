@@ -193,6 +193,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           "Default Prison",
           "DEF-A-1",
           "STANDARD",
+          null,
+          null,
         )
       },
     )

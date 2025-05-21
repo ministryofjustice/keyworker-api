@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
+import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexityOfNeedGateway
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import java.time.LocalDate
@@ -64,6 +66,7 @@ class PrisonStatisticCalculator(
         } else {
           emptyList()
         }
+
       val eligiblePrisoners = (prisoners.personIdentifiers() - prisonersWithComplexNeeds.map { it.offenderNo }).toSet()
 
       if (eligiblePrisoners.isEmpty()) {
@@ -131,6 +134,8 @@ class PrisonStatisticCalculator(
           { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
         )
 
+      logPrisonerSearchDiffs(prisoners, prisonersWithComplexNeeds, summaries)
+
       statisticRepository.save(
         PrisonStatistic(
           prisonCode = prisonCode,
@@ -147,6 +152,34 @@ class PrisonStatisticCalculator(
         ),
       )
     }
+  }
+
+  private fun logPrisonerSearchDiffs(
+    prisoners: Prisoners,
+    prisonersWithComplexNeeds: List<ComplexOffender>,
+    summaries: PeopleSummaries,
+  ) {
+    val prisonerSearchHighComplexNeeds =
+      prisoners.content
+        .filter { it.complexityOfNeedLevel == HIGH }
+        .map { it.prisonerNumber }
+        .toSet()
+
+    val telemetryProperties = mutableMapOf<String, String>()
+    val hcnDiffs = (prisonersWithComplexNeeds.toSet() - prisonerSearchHighComplexNeeds)
+    if (hcnDiffs.isNotEmpty()) {
+      telemetryProperties.put("highComplexityOfNeedDifferences", hcnDiffs.joinToString(",", "[", "]"))
+    }
+
+    val rdDiffs =
+      summaries.data.mapNotNull {
+        if (prisoners[it.personIdentifier]?.lastAdmissionDate == it.receptionDate) null else it.personIdentifier
+      }
+    if (rdDiffs.isNotEmpty()) {
+      telemetryProperties.put("receptionDateDifferences", rdDiffs.joinToString(",", "[", "]"))
+    }
+
+    telemetryClient.trackEvent("PrisonStatisticsDiffs", telemetryProperties, null)
   }
 }
 
