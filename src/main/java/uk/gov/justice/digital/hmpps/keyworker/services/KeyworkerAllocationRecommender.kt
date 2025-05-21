@@ -105,11 +105,14 @@ private class KeyworkerCapacity(
   val autoAllocationCapacity: Int,
   var allocationCount: Int,
   val lastAutoAllocationAt: LocalDateTime?,
-)
+) {
+  fun availability(): Double =
+    if (allocationCount == 0 || autoAllocationCapacity == 0) 0.0 else allocationCount / autoAllocationCapacity.toDouble()
+}
 
 private fun List<KeyworkerCapacity>.sortedForAllocation(): TreeSet<KeyworkerCapacity> =
   TreeSet(
-    compareBy(KeyworkerCapacity::allocationCount)
+    compareBy(KeyworkerCapacity::availability)
       .thenByDescending(KeyworkerCapacity::lastAutoAllocationAt)
       .thenBy { it.keyworker.staffId },
   ).apply { addAll(this@sortedForAllocation) }
