@@ -173,7 +173,7 @@ class PrisonStatisticCalculator(
 
     val rdDiffs =
       summaries.data.mapNotNull {
-        if (prisoners[it.personIdentifier]?.lastAdmissionDate == it.receptionDate) null else it.personIdentifier
+        if (it.receptionDate == null || prisoners[it.personIdentifier]?.lastAdmissionDate == it.receptionDate) null else it.personIdentifier
       }
     if (rdDiffs.isNotEmpty()) {
       telemetryProperties.put("receptionDateDifferences", rdDiffs.joinToString(",", "[", "]"))
