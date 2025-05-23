@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
+import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.LOW
+import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.MEDIUM
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
@@ -134,7 +136,7 @@ class PrisonStatisticCalculator(
           { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
         )
 
-      logPrisonerSearchDiffs(prisoners, prisonersWithComplexNeeds, summaries)
+      logPrisonerSearchDiffs(prisonCode, prisoners, prisonersWithComplexNeeds, summaries)
 
       statisticRepository.save(
         PrisonStatistic(
@@ -155,6 +157,7 @@ class PrisonStatisticCalculator(
   }
 
   private fun logPrisonerSearchDiffs(
+    prisonCode: String,
     prisoners: Prisoners,
     prisonersWithComplexNeeds: List<ComplexOffender>,
     summaries: PeopleSummaries,
@@ -166,19 +169,52 @@ class PrisonStatisticCalculator(
         .toSet()
 
     val telemetryProperties = mutableMapOf<String, String>()
-    val hcnDiffs = (prisonersWithComplexNeeds.toSet() - prisonerSearchHighComplexNeeds)
+    val hcnDiffs = (
+      prisonersWithComplexNeeds
+        .filter { it.level == HIGH }
+        .map { it.offenderNo }
+        .toSet() - prisonerSearchHighComplexNeeds
+    )
     if (hcnDiffs.isNotEmpty()) {
       telemetryProperties.put("highComplexityOfNeedDifferences", hcnDiffs.joinToString(",", "[", "]"))
     }
 
     val rdDiffs =
       summaries.data.mapNotNull {
-        if (it.receptionDate == null || prisoners[it.personIdentifier]?.lastAdmissionDate == it.receptionDate) null else it.personIdentifier
+        val prisoner = prisoners[it.personIdentifier]
+        if (it.receptionDate == null || prisoner?.lastAdmissionDate == it.receptionDate) {
+          null
+        } else {
+          telemetryProperties.put(it.personIdentifier, "${it.receptionDate} : ${prisoner?.lastAdmissionDate}")
+          it.personIdentifier
+        }
       }
     if (rdDiffs.isNotEmpty()) {
       telemetryProperties.put("receptionDateDifferences", rdDiffs.joinToString(",", "[", "]"))
     }
 
+    telemetryProperties +=
+      mapOf(
+        "prisonCode" to prisonCode,
+        "hcn" to
+          "${
+            prisonersWithComplexNeeds.filter {
+              it.level == HIGH
+            }.size
+          } : ${prisoners.content.filter { it.complexityOfNeedLevel == HIGH }.size}",
+        "mcn" to
+          "${
+            prisonersWithComplexNeeds.filter {
+              it.level == MEDIUM
+            }.size
+          } : ${prisoners.content.filter { it.complexityOfNeedLevel == MEDIUM }.size}",
+        "lcn" to
+          "${
+            prisonersWithComplexNeeds.filter {
+              it.level == LOW
+            }.size
+          } : ${prisoners.content.filter { it.complexityOfNeedLevel == LOW }.size}",
+      )
     telemetryClient.trackEvent("PrisonStatisticsDiffs", telemetryProperties, null)
   }
 }
