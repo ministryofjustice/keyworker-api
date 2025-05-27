@@ -40,7 +40,7 @@ dependencies {
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.50.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.16.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.12.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.13.1")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.10")
   implementation("org.hibernate.orm:hibernate-envers")
@@ -51,7 +51,7 @@ dependencies {
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:postgresql")
-  testImplementation("org.codehaus.groovy:groovy-all:3.0.24")
+  testImplementation("org.codehaus.groovy:groovy-all:3.0.25")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:$spockVersion") {
     // Upgrade breaks groovy
@@ -64,9 +64,9 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.gebish:geb-core:$gebishVersion") // Upgrade breaks groovy
   testImplementation("org.gebish:geb-spock:$gebishVersion") // Upgrade breaks groovy
-  testImplementation("org.seleniumhq.selenium:selenium-support:4.32.0")
-  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.32.0")
-  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.32.0")
+  testImplementation("org.seleniumhq.selenium:selenium-support:4.33.0")
+  testImplementation("org.seleniumhq.selenium:selenium-chrome-driver:4.33.0")
+  testImplementation("org.seleniumhq.selenium:selenium-firefox-driver:4.33.0")
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
