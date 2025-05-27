@@ -62,14 +62,16 @@ class PrisonStatisticCalculator(
 
       val prisonersWithComplexNeeds =
         if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {
-          complexityOfNeed
-            .getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
-            .filter { it.level == HIGH }
+          complexityOfNeed.getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
         } else {
           emptyList()
         }
 
-      val eligiblePrisoners = (prisoners.personIdentifiers() - prisonersWithComplexNeeds.map { it.offenderNo }).toSet()
+      val eligiblePrisoners =
+        (
+          prisoners.personIdentifiers() -
+            prisonersWithComplexNeeds.filter { it.level == HIGH }.map { it.offenderNo }
+        ).toSet()
 
       if (eligiblePrisoners.isEmpty()) {
         telemetryClient.trackEvent(
