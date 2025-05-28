@@ -1,11 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import com.microsoft.applicationinsights.TelemetryClient
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
@@ -33,7 +32,7 @@ import java.util.Optional
 @Service
 class PrisonStatisticCalculator(
   private val statisticRepository: PrisonStatisticRepository,
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeed: ComplexityOfNeedGateway,
   private val keyworkerAllocationRepository: KeyworkerAllocationRepository,
@@ -48,7 +47,7 @@ class PrisonStatisticCalculator(
 
       if (stats != null) return
 
-      val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode)
+      val prisonConfig = prisonConfigRepository.findByCode(prisonCode)
       val prisoners = prisonerSearch.findAllPrisoners(prisonCode)
 
       if (prisoners.isEmpty()) {

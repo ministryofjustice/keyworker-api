@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.MessageAttributes
@@ -24,7 +24,7 @@ import java.util.UUID
 
 @Service
 class PrisonStatisticsTrigger(
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val queueService: HmppsQueueService,
   private val objectMapper: ObjectMapper,
 ) {
@@ -34,14 +34,14 @@ class PrisonStatisticsTrigger(
 
   fun runFor(date: LocalDate) {
     prisonConfigRepository
-      .findAllByMigratedIsTrue()
+      .findAllByEnabledIsTrue()
       .asSequence()
       .map { it.toDomainEvent(date) }
       .chunked(10)
       .forEach { eventQueue.publishBatch(it) }
   }
 
-  private fun PrisonConfig.toDomainEvent(date: LocalDate): HmppsDomainEvent<PrisonStatisticsInfo> =
+  private fun PrisonConfiguration.toDomainEvent(date: LocalDate): HmppsDomainEvent<PrisonStatisticsInfo> =
     HmppsDomainEvent(EventType.CalculatePrisonStats.name, PrisonStatisticsInfo(code, date))
 
   private fun HmppsQueue.publishBatch(

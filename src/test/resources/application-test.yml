@@ -49,7 +49,7 @@ spring:
           public-key-location: classpath:local-public-key.pub
   jpa:
     open-in-view: false
-    show-sql: false
+    show-sql: true
     generate-ddl: false
     hibernate:
       ddl-auto: none
