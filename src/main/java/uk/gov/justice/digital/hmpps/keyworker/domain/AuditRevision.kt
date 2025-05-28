@@ -14,7 +14,7 @@ import org.hibernate.envers.RevisionEntity
 import org.hibernate.envers.RevisionNumber
 import org.hibernate.envers.RevisionTimestamp
 import org.hibernate.envers.RevisionType
-import uk.gov.justice.digital.hmpps.keyworker.config.KeyworkerContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import java.time.LocalDateTime
 
 @Entity
@@ -40,7 +40,7 @@ class AuditRevision {
 class AuditRevisionEntityListener : EntityTrackingRevisionListener {
   override fun newRevision(revision: Any?) {
     (revision as AuditRevision).apply {
-      val context = KeyworkerContext.get()
+      val context = AllocationContext.get()
       username = context.username
       caseloadId = context.activeCaseloadId
     }

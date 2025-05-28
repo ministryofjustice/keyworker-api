@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllo
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
+import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,25 +72,25 @@ public class PrisonSupportedService {
     @Transactional
     public void updateSupportedPrison(final String prisonId, final boolean autoAllocate, final Integer capacityTier1, final Integer capacityTier2, final Integer kwSessionFrequencyInWeeks) {
 
-        repository.findById(prisonId)
+        repository.findByPrisonCode(prisonId)
                 .ifPresentOrElse(prison -> {
-                    prison.setAutoAllocate(autoAllocate);
+                    prison.setAllowAutoAllocation(autoAllocate);
                     if (capacityTier1 != null) {
-                        prison.setCapacityTier1(capacityTier1);
+                        prison.setCapacity(capacityTier1);
                     }
                     if (capacityTier2 != null) {
-                        prison.setCapacityTier2(capacityTier2);
+                        prison.setMaximumCapacity(capacityTier2);
                     }
                     if (kwSessionFrequencyInWeeks != null) {
-                        prison.setKwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks);
+                        prison.setFrequencyInWeeks(kwSessionFrequencyInWeeks);
                     }
                 }, () -> {
                     final var prisonSupported = PrisonSupported.builder()
-                            .prisonId(prisonId)
-                            .autoAllocate(autoAllocate)
-                            .capacityTier1(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
-                            .capacityTier2(capacityTier2 == null ? capacityTiers.get(1) : capacityTier2)
-                            .kwSessionFrequencyInWeeks(kwSessionFrequencyInWeeks == null ? keyWorkerSessionDefaultFrequency : kwSessionFrequencyInWeeks)
+                            .prisonCode(prisonId)
+                            .allowAutoAllocation(autoAllocate)
+                            .capacity(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
+                            .maximumCapacity(capacityTier2 == null ? capacityTiers.get(1) : capacityTier2)
+                            .frequencyInWeeks(kwSessionFrequencyInWeeks == null ? keyWorkerSessionDefaultFrequency : kwSessionFrequencyInWeeks)
                             .build();
 
                     // create a new entry for a new supported prison
@@ -103,11 +104,11 @@ public class PrisonSupportedService {
     }
 
     public List<Prison> getMigratedPrisons() {
-        return repository.findAllByMigratedEquals(true).stream().map(this::buildPrison).collect(Collectors.toList());
+        return repository.findAllByEnabledEquals(true).stream().map(this::buildPrison).collect(Collectors.toList());
     }
 
     public Prison getPrisonDetail(final String prisonId) {
-        return repository.findById(prisonId).map(this::buildPrison)
+        return repository.findByPrisonCode(prisonId).map(this::buildPrison)
                 .orElseGet(() ->  Prison.builder()
                     .prisonId(prisonId)
                     .capacityTier1(capacityTiers.get(0))
@@ -121,20 +122,19 @@ public class PrisonSupportedService {
 
     private Prison buildPrison(final PrisonSupported prison) {
         return Prison.builder()
-                .prisonId(prison.getPrisonId())
-                .migrated(prison.isMigrated())
+                .prisonId(prison.getPrisonCode())
+                .migrated(prison.isEnabled())
                 .supported(true)
-                .autoAllocatedSupported(prison.isAutoAllocate())
-                .capacityTier1(prison.getCapacityTier1())
-                .capacityTier2(prison.getCapacityTier2())
-                .kwSessionFrequencyInWeeks(prison.getKwSessionFrequencyInWeeks())
-                .migratedDateTime(prison.getMigratedDateTime())
+                .autoAllocatedSupported(prison.isAllowAutoAllocation())
+                .capacityTier1(prison.getCapacity())
+                .capacityTier2(prison.getMaximumCapacity())
+                .kwSessionFrequencyInWeeks(prison.getFrequencyInWeeks())
                 .highComplexity(prison.isHasPrisonersWithHighComplexityNeeds())
                 .build();
     }
 
     private boolean isNotSupported(final String prisonId) {
-        return !repository.existsByPrisonId(prisonId);
+        return !repository.existsByPrisonCode(prisonId);
     }
 
 }

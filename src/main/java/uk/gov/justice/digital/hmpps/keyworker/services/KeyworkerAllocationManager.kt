@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import jakarta.validation.ValidationException
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -9,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.ALLOCATION_REASON
@@ -33,7 +32,7 @@ import java.util.Optional
 @Transactional
 @Service
 class KeyworkerAllocationManager(
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val nomisService: NomisService,
   private val keyworkerConfigRepository: KeyworkerConfigRepository,
@@ -109,8 +108,8 @@ class KeyworkerAllocationManager(
 
   private fun prisonConfig(prisonCode: String) =
     prisonConfigRepository
-      .findByIdOrNull(prisonCode)
-      ?.takeIf { it.migrated }
+      .findByCode(prisonCode)
+      ?.takeIf { it.enabled }
       ?: throw IllegalArgumentException("Prison not enabled for keyworker service")
 
   private fun prisoners(

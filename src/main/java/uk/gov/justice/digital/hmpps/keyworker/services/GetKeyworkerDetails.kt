@@ -1,12 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -31,7 +30,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 
 @Service
 class GetKeyworkerDetails(
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val nomisService: NomisService,
   private val keyworkerConfigRepository: KeyworkerConfigRepository,
   private val allocationRepository: KeyworkerAllocationRepository,
@@ -42,7 +41,7 @@ class GetKeyworkerDetails(
     prisonCode: String,
     staffId: Long,
   ): KeyworkerDetails {
-    val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val keyworker =
       nomisService
         .getStaffKeyWorkerForPrison(prisonCode, staffId)
@@ -78,7 +77,7 @@ class GetKeyworkerDetails(
       keyworker,
       keyworkerInfo?.keyworkerConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
-      keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1,
+      keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacity,
       keyworkerInfo?.allocationCount ?: 0,
       allocations
         .filter { it.active }
@@ -88,7 +87,7 @@ class GetKeyworkerDetails(
           }
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
       KeyworkerStats(current, previous),
-      keyworkerInfo?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.autoAllocate,
+      keyworkerInfo?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       keyworkerInfo?.keyworkerConfig?.reactivateOn,
     )
   }
@@ -96,7 +95,7 @@ class GetKeyworkerDetails(
   private fun List<KeyworkerAllocation>.keyworkerSessionStats(
     from: LocalDate,
     to: LocalDate,
-    prisonConfig: PrisonConfig,
+    prisonConfig: PrisonConfiguration,
     staffId: Long,
   ): Pair<KeyworkerSessionStats, CaseNoteSummary?> {
     val applicableAllocations =
@@ -120,7 +119,7 @@ class GetKeyworkerDetails(
       if (averagePerDay == 0L) {
         0
       } else {
-        val sessionMultiplier = (DAYS.between(from, to.plusDays(1)) / (prisonConfig.kwSessionFrequencyInWeeks * 7.0))
+        val sessionMultiplier = (DAYS.between(from, to.plusDays(1)) / (prisonConfig.frequencyInWeeks * 7.0))
         (averagePerDay * sessionMultiplier).toInt()
       }
     val compliance =

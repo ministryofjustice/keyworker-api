@@ -5,71 +5,86 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.TenantId;
+import org.hibernate.envers.Audited;
 import org.hibernate.validator.constraints.Length;
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy;
+import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator;
 
+import java.util.UUID;
+
+@Audited(withModifiedFlag = true)
 @Entity
-@Table(name = "PRISON_SUPPORTED")
+@Table(name = "PRISON_CONFIGURATION")
 @Data()
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@EqualsAndHashCode(of = {"prisonId"})
 public class PrisonSupported {
 
-    @Id()
+    @Audited(withModifiedFlag = false)
     @NotNull
     @Length(max = 6)
-    @Column(name = "PRISON_ID", nullable = false)
-    private String prisonId;
+    @Column(name = "PRISON_CODE", nullable = false)
+    private String prisonCode;
 
-    @Column(name = "MIGRATED", nullable = false)
-    private boolean migrated;
+    @Audited(withModifiedFlag = true, modifiedColumnName = "is_enabled_modified")
+    @Column(name = "IS_ENABLED", nullable = false)
+    private boolean enabled;
 
-    @Column(name = "AUTO_ALLOCATE", nullable = false)
-    private boolean autoAllocate;
+    @Column(name = "ALLOW_AUTO_ALLOCATION", nullable = false)
+    private boolean allowAutoAllocation;
 
-    @Column(name = "MIGRATED_DATE_TIME")
-    private LocalDateTime migratedDateTime;
+    @Column(name = "CAPACITY", nullable = false)
+    private int capacity;
 
-    @Column(name = "CAPACITY_TIER_1", nullable = false)
-    private int capacityTier1;
+    @Column(name = "MAXIMUM_CAPACITY")
+    private int maximumCapacity;
 
-    @Column(name = "CAPACITY_TIER_2")
-    private int capacityTier2;
+    @Column(name = "FREQUENCY_IN_WEEKS", nullable = false)
+    private int frequencyInWeeks;
 
-    @Column(name = "KW_SESSION_FREQ_WEEKS", nullable = false)
-    private int kwSessionFrequencyInWeeks;
-
-    @Column(name = "has_prisoners_with_high_complexity_needs", nullable = false)
+    @Column(name = "HAS_PRISONERS_WITH_HIGH_COMPLEXITY_NEEDS", nullable = false)
     private boolean hasPrisonersWithHighComplexityNeeds;
 
-    public boolean isMigrated() {
-        return migrated;
+    @TenantId
+    @Audited(withModifiedFlag = false)
+    @Column(name = "POLICY_CODE", updatable = false)
+    @Builder.Default
+    private String policy = AllocationPolicy.KEY_WORKER.name();
+
+    @Id
+    @Audited(withModifiedFlag = false)
+    private final UUID id = IdGenerator.INSTANCE.newUuid();
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public boolean hasPrisonersWithHighComplexityNeeds() {
         return hasPrisonersWithHighComplexityNeeds;
     }
 
-    public boolean isAutoAllocate() {
-        return autoAllocate;
+    public boolean isAllowAutoAllocation() {
+        return allowAutoAllocation;
     }
 
-    public int getCapacityTier1() {
-        return capacityTier1;
+    public int getCapacity() {
+        return capacity;
     }
 
-    public int getCapacityTier2() {
-        return capacityTier2;
+    public int getMaximumCapacity() {
+        return maximumCapacity;
     }
 
-    public int getKwSessionFrequencyInWeeks() {
-        return kwSessionFrequencyInWeeks;
+    public int getFrequencyInWeeks() {
+        return frequencyInWeeks;
     }
+
+    public String getPolicy() { return policy; }
 }

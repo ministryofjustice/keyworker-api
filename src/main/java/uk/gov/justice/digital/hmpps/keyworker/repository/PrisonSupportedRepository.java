@@ -4,10 +4,13 @@ import org.springframework.data.repository.CrudRepository;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PrisonSupportedRepository extends CrudRepository<PrisonSupported, String> {
 
-    boolean existsByPrisonId(String prisonId);
+    Optional<PrisonSupported> findByPrisonCode(String prisonCode);
 
-    List<PrisonSupported> findAllByMigratedEquals(boolean migrated);
+    boolean existsByPrisonCode(String prisonId);
+
+    List<PrisonSupported> findAllByEnabledEquals(boolean migrated);
 }

@@ -86,10 +86,10 @@ class KeyworkerMigrationServiceTest extends AbstractServiceTest {
 
         when(nomisService.getOffenderKeyWorkerPage(TEST_AGENCY, 0, TEST_PAGE_SIZE)).thenReturn(testDtos);
 
-        when(prisonSupportedRepository.findById(eq(TEST_AGENCY))).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).build()));
+        when(prisonSupportedRepository.findByPrisonCode(eq(TEST_AGENCY))).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).build()));
         service.migrateKeyworkerByPrison(TEST_AGENCY);
 
-        verify(prisonSupportedRepository, times(1)).findById(eq(TEST_AGENCY));
+        verify(prisonSupportedRepository, times(1)).findByPrisonCode(eq(TEST_AGENCY));
         verify(offenderKeyworkerRepository).saveAll(anySet());
     }
 

@@ -44,9 +44,8 @@ public class KeyworkerMigrationService {
         offenderKeyworkerRepository.saveAll(translate(allocations));
 
         // Mark prison as migrated
-        repository.findById(prisonId).ifPresent(prison -> {
-            prison.setMigrated(true);
-            prison.setMigratedDateTime(LocalDateTime.now());
+        repository.findByPrisonCode(prisonId).ifPresent(prison -> {
+            prison.setEnabled(true);
         });
     }
 

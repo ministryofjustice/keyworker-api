@@ -7,8 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.data.repository.findByIdOrNull
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.KeyworkerContext
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerConfigRequest
@@ -55,7 +55,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
       kwConfig.staffId,
       RevisionType.ADD,
       setOf(KeyworkerConfig::class.simpleName!!),
-      KeyworkerContext(username = TEST_USERNAME, activeCaseloadId = prisonCode),
+      AllocationContext(username = TEST_USERNAME, activeCaseloadId = prisonCode),
     )
   }
 
@@ -84,7 +84,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
       kwConfig.staffId,
       RevisionType.MOD,
       setOf(KeyworkerConfig::class.simpleName!!),
-      KeyworkerContext(username = username, activeCaseloadId = prisonCode),
+      AllocationContext(username = username, activeCaseloadId = prisonCode),
     )
   }
 
@@ -111,7 +111,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
       kwConfig.staffId,
       RevisionType.ADD,
       setOf(KeyworkerConfig::class.simpleName!!),
-      KeyworkerContext(username = "SYS", activeCaseloadId = null),
+      AllocationContext(username = "SYS", activeCaseloadId = null),
     )
     keyworkerAllocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.active).isTrue

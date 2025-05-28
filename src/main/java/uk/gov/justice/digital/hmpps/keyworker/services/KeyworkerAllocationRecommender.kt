@@ -1,11 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.NoRecommendation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
@@ -20,7 +19,7 @@ import java.util.TreeSet
 
 @Service
 class KeyworkerAllocationRecommender(
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val personSearch: PersonSearch,
   private val nomisService: NomisService,
   private val keyworkerConfigRepository: KeyworkerConfigRepository,
@@ -66,7 +65,7 @@ class KeyworkerAllocationRecommender(
   }
 
   private fun getKeyworkerCapacities(prisonCode: String): SortedSet<KeyworkerCapacity> {
-    val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     return nomisService
       .getActiveStaffKeyWorkersForPrison(
         prisonCode,
@@ -82,13 +81,9 @@ class KeyworkerAllocationRecommender(
           keyworkerAllocationRepository.findLatestAutoAllocationsFor(keyworkerIds).associateBy { it.staffId }
         nomisKeyworkers.map {
           val keyworkerInfo = keyworkerInfo[it.staffId]
-          val capacity = keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1
-          val autoAllocationCapacity =
-            if (prisonConfig.capacityTier2 == null) {
-              capacity
-            } else {
-              (capacity * prisonConfig.capacityTier2!!) / prisonConfig.capacityTier1
-            }
+          val capacity = keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacity
+          val autoAllocationCapacity = capacity * prisonConfig.maximumCapacity / prisonConfig.capacity
+
           KeyworkerCapacity(
             Keyworker(it.staffId, it.firstName, it.lastName),
             autoAllocationCapacity,

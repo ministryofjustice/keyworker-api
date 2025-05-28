@@ -10,10 +10,10 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
-import java.time.LocalDateTime
 import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
@@ -51,8 +51,8 @@ class ComplexityOfNeedServiceTest {
         ComplexOffender(OFFENDER_NO_1, ComplexityOfNeedLevel.LOW),
       ),
     )
-    whenever(prisonSupportedRepository.findById("MDI"))
-      .thenReturn(Optional.of(PrisonSupported("MDI", true, true, LocalDateTime.now(), 6, 9, 1, true)))
+    whenever(prisonSupportedRepository.findByPrisonCode("MDI"))
+      .thenReturn(Optional.of(PrisonSupported("MDI", true, true, 6, 9, 1, true, AllocationPolicy.KEY_WORKER.name)))
     complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1))
 
     verify(complexityOfNeedGateway, times(1)).getOffendersWithMeasuredComplexityOfNeed(setOf(OFFENDER_NO_1))
@@ -66,8 +66,8 @@ class ComplexityOfNeedServiceTest {
         ComplexOffender(OFFENDER_NO_2, ComplexityOfNeedLevel.LOW),
       ),
     )
-    whenever(prisonSupportedRepository.findById("MDI"))
-      .thenReturn(Optional.of(PrisonSupported("MDI", true, true, LocalDateTime.now(), 6, 9, 1, true)))
+    whenever(prisonSupportedRepository.findByPrisonCode("MDI"))
+      .thenReturn(Optional.of(PrisonSupported("MDI", true, true, 6, 9, 1, true, AllocationPolicy.KEY_WORKER.name)))
 
     val complexOffenders =
       complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1, OFFENDER_NO_2, OFFENDER_NO_3))

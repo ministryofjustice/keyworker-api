@@ -29,21 +29,17 @@ class KeyworkerContextConfiguration(
 }
 
 @Configuration
-class KeyworkerContextInterceptor : HandlerInterceptor {
+class KeyworkerContextInterceptor(
+  private val ach: AllocationContextHolder,
+) : HandlerInterceptor {
   override fun preHandle(
     request: HttpServletRequest,
     response: HttpServletResponse,
     handler: Any,
   ): Boolean {
-    if (arrayOf("POST", "PUT", "PATCH", "DELETE").contains(request.method)) {
-      request.setAttribute(
-        KeyworkerContext::class.simpleName,
-        KeyworkerContext(
-          username = getUsername(),
-          activeCaseloadId = request.caseloadId(),
-        ),
-      )
-    }
+    ach.setContext(
+      AllocationContext(username = getUsername(), activeCaseloadId = request.caseloadId(), policy = request.policy()),
+    )
 
     return true
   }
@@ -61,4 +57,6 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
       ?: throw ValidationException("Could not find non empty username")
 
   private fun HttpServletRequest.caseloadId(): String? = getHeader(CaseloadIdHeader.NAME)
+
+  private fun HttpServletRequest.policy(): AllocationPolicy = AllocationPolicy.of(getHeader(PolicyHeader.NAME))
 }
