@@ -70,6 +70,6 @@ private fun PrisonConfigRequest.asPrisonConfig(prisonCode: String) =
     capacity,
     maximumCapacity,
     frequencyInWeeks,
-    hasPrisonersWithHighComplexityNeeds,
+    hasPrisonersWithHighComplexityNeeds ?: false,
     AllocationContext.get().policy.name,
   )
