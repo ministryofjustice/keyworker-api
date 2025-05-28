@@ -1,10 +1,13 @@
+keyworker_stats
+batch_history
+prison_configuration_audit
+prison_configuration
+offender_key_worker
 keyworker_session
 keyworker_entry
-batch_history
-offender_key_worker
-keyworker_stats
 keyworker_configuration_audit
 keyworker_configuration
+policy
 audit_revision
-prison_supported
 reference_data
+prison_migration_date_history

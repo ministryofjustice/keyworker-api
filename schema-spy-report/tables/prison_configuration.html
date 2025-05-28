@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>prison_supported - keyworker-api-db.public</title>
+        <title>prison_configuration - keyworker-api-db.public</title>
         <!-- Tell the browser to be responsive to screen width -->
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
@@ -73,7 +73,7 @@
             <div class="content-wrapper">
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
-                    <h1>prison_supported</h1><p><span id="recordNumber">-1</span> rows</p><br />
+                    <h1>prison_configuration</h1><p><span id="recordNumber">12</span> rows</p><br />
                     <div class="box box-primary">
                         <div class="box-header with-border">
                             <i class="fa fa-file-text-o"></i>
@@ -122,7 +122,7 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="prison_id">prison_id</span></td>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="prison_code">prison_code</span></td>
                                     <td>varchar</td>
                                     <td>6</td>
                                     <td title=''></td>
@@ -130,26 +130,21 @@
                                     <td>null</td>
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
-                                            <tr>
-                                                <td title="keyworker_stats.prison_id&#39;s name implies that it&#39;s a child of prison_supported.prison_id, but it doesn&#39;t reference that column."><a href='keyworker_stats.html'>keyworker_stats</a><span class='relatedKey'>.prison_id</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="offender_key_worker.prison_id&#39;s name implies that it&#39;s a child of prison_supported.prison_id, but it doesn&#39;t reference that column."><a href='offender_key_worker.html'>offender_key_worker</a><span class='relatedKey'>.prison_id</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
                                         </table>
                                     </td>
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="prison_configuration.prison_code&#39;s name implies that it&#39;s a child of prison_migration_date_history.prison_code, but it doesn&#39;t reference that column."><a href='prison_migration_date_history.html'>prison_migration_date_history</a><span class='relatedKey'>.prison_code</span></td>
+                                                <td class="constraint detail">Implied Constraint</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
                                         </table>
                                     </td>
                                     <td><p>Prison ID (NOMIS column is Agency ID)</p></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="auto_allocate">auto_allocate</span></td>
+                                    <td><span id="allow_auto_allocation">allow_auto_allocation</span></td>
                                     <td>bool</td>
                                     <td>1</td>
                                     <td title=''></td>
@@ -166,7 +161,7 @@
                                     <td><p>Indicates that the prisons supports auto allocation</p></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="migrated">migrated</span></td>
+                                    <td><span id="is_enabled">is_enabled</span></td>
                                     <td>bool</td>
                                     <td>1</td>
                                     <td title=''></td>
@@ -183,24 +178,7 @@
                                     <td><p>Indicates if the prison keyworker data has been migrated</p></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="migrated_date_time">migrated_date_time</span></td>
-                                    <td>timestamp</td>
-                                    <td>29,6</td>
-                                    <td title='nullable'>√</td>
-                                    <td title=''></td>
-                                    <td>null</td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
-                                        </table>
-                                    </td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
-                                        </table>
-                                    </td>
-                                    <td><p>Migrated Date and Time</p></td>
-                                </tr>
-                                <tr>
-                                    <td><span id="capacity_tier_1">capacity_tier_1</span></td>
+                                    <td><span id="capacity">capacity</span></td>
                                     <td>int4</td>
                                     <td>10</td>
                                     <td title=''></td>
@@ -217,10 +195,10 @@
                                     <td><p>Default capacity for keyworkers at this prison</p></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="capacity_tier_2">capacity_tier_2</span></td>
+                                    <td><span id="maximum_capacity">maximum_capacity</span></td>
                                     <td>int4</td>
                                     <td>10</td>
-                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
                                     <td title=''></td>
                                     <td>null</td>
                                     <td>
@@ -234,7 +212,7 @@
                                     <td><p>Default extended capacity for keyworkers at this prison</p></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="kw_session_freq_weeks">kw_session_freq_weeks</span></td>
+                                    <td><span id="frequency_in_weeks">frequency_in_weeks</span></td>
                                     <td>int4</td>
                                     <td>10</td>
                                     <td title=''></td>
@@ -257,6 +235,45 @@
                                     <td title=''></td>
                                     <td title=''></td>
                                     <td>false</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="policy_code">policy_code</span></td>
+                                    <td>varchar</td>
+                                    <td>16</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="prison_configuration.policy_code references policy.code via prison_configuration_policy_code_fkey"><a href='policy.html'>policy</a><span class='relatedKey'>.code</span></td>
+                                                <td class="constraint detail">prison_configuration_policy_code_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="id">id</span></td>
+                                    <td>uuid</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>gen_random_uuid()</td>
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
@@ -298,10 +315,16 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> prison_pk</td>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> prison_configuration_pkey</td>
                                     <td>Primary key</td>
                                     <td><span title='Ascending'>Asc</span></td>
-                                    <td>prison_id</td>
+                                    <td>id</td>
+                                </tr>
+                                <tr>
+                                    <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> prison_configuration_prison_code_policy_code</td>
+                                    <td>Must be unique</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>prison_code + policy_code</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -327,15 +350,15 @@
                                 <div class="tab-content no-padding">
                                     <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="oneDegreeImg" data="../diagrams/tables/prison_supported.1degree.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="oneDegreeImg" data="../diagrams/tables/prison_configuration.1degree.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                     <div class="chart tab-pane " id="oneimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="oneimpliedDegreeImg" data="../diagrams/tables/prison_supported.implied1degrees.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="oneimpliedDegreeImg" data="../diagrams/tables/prison_configuration.implied1degrees.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                     <div class="chart tab-pane " id="twoimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="twoimpliedDegreeImg" data="../diagrams/tables/prison_supported.implied2degrees.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="twoimpliedDegreeImg" data="../diagrams/tables/prison_configuration.implied2degrees.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                 </div>
                             </div>
