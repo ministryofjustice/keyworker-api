@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -58,6 +59,9 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
   @Test
   fun `can create a new prison configurations`() {
     val prisonCode = "ALC"
+    val kwContext =
+      AllocationContext.get().copy("keyworker-ui", activeCaseloadId = prisonCode, policy = AllocationPolicy.KEY_WORKER)
+    val poContext = kwContext.copy(policy = AllocationPolicy.PERSONAL_OFFICER)
     val kRequest = prisonConfigRequest(capacity = 5, maximumCapacity = 10, frequencyInWeeks = 4)
     val kConfig = setPrisonConfig(prisonCode, kRequest, policy = AllocationPolicy.KEY_WORKER).asPrisonConfig()
     val pRequest = prisonConfigRequest(capacity = 3, maximumCapacity = 5, frequencyInWeeks = 1)
@@ -66,14 +70,17 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
     kConfig.verifyAgainst(kRequest)
     pConfig.verifyAgainst(pRequest)
 
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    setContext(kwContext)
     val kwConfig = requireNotNull(prisonConfigRepository.findByCode(prisonCode))
 
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    setContext(poContext)
     val poConfig = requireNotNull(prisonConfigRepository.findByCode(prisonCode))
 
     kwConfig.verifyAgainst(kRequest)
     poConfig.verifyAgainst(pRequest)
+
+    verifyAudit(kwConfig, kwConfig.id, RevisionType.ADD, setOf(PrisonConfiguration::class.simpleName!!), kwContext)
+    verifyAudit(poConfig, poConfig.id, RevisionType.ADD, setOf(PrisonConfiguration::class.simpleName!!), poContext)
   }
 
   @Test
@@ -100,6 +107,11 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
 
     kwConfig.verifyAgainst(kRequest)
     poConfig.verifyAgainst(pRequest)
+
+    val kwContext = AllocationContext("keyworker-ui", activeCaseloadId = prisonCode, policy = AllocationPolicy.KEY_WORKER)
+    val poContext = kwContext.copy(policy = AllocationPolicy.PERSONAL_OFFICER)
+    verifyAudit(kwConfig, kwConfig.id, RevisionType.MOD, setOf(PrisonConfiguration::class.simpleName!!), kwContext)
+    verifyAudit(poConfig, poConfig.id, RevisionType.MOD, setOf(PrisonConfiguration::class.simpleName!!), poContext)
   }
 
   private fun setPrisonConfig(

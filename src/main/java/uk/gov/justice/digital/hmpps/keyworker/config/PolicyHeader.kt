@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema
   description = """
     Relevant policy for the context e.g. KEY_WORKER or PERSONAL_OFFICER
     """,
-  required = false,
+  required = true,
   content = [Content(schema = Schema(implementation = String::class))],
 )
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)

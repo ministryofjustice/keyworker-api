@@ -9,7 +9,8 @@ values ('KEY_WORKER', 'Key worker'),
        ('PERSONAL_OFFICER', 'Personal officer');
 
 alter table prison_supported
-    drop constraint prison_pk;
+    drop constraint prison_pk,
+    drop column migrated_date_time;
 
 alter table prison_supported
     rename to prison_configuration;
@@ -102,6 +103,7 @@ begin
 end;
 $$ language plpgsql;
 
-select initialise_prison_config_audit(id) from prison_configuration;
+select initialise_prison_config_audit(id)
+from prison_configuration;
 
 drop function initialise_prison_config_audit(config_id uuid);
