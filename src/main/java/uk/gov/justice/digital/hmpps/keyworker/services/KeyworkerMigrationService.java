@@ -14,10 +14,9 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,7 @@ import java.util.Set;
 public class KeyworkerMigrationService {
 
     private final NomisService nomisService;
-    private final PrisonSupportedRepository repository;
+    private final LegacyPrisonConfigurationRepository repository;
     private final PrisonSupportedService prisonSupportedService;
     private final OffenderKeyworkerRepository offenderKeyworkerRepository;
     private final ReferenceDataRepository referenceDataRepository;

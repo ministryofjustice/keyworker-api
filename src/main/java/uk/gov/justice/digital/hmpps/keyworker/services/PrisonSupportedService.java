@@ -10,9 +10,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
-import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,10 +26,10 @@ public class PrisonSupportedService {
     @Value("${svc.kw.session.frequency.weeks:1}")
     private  int keyWorkerSessionDefaultFrequency;
 
-    private final PrisonSupportedRepository repository;
+    private final LegacyPrisonConfigurationRepository repository;
 
     @Autowired
-    public PrisonSupportedService(final PrisonSupportedRepository repository) {
+    public PrisonSupportedService(final LegacyPrisonConfigurationRepository repository) {
         this.repository = repository;
     }
 
@@ -85,7 +84,7 @@ public class PrisonSupportedService {
                         prison.setFrequencyInWeeks(kwSessionFrequencyInWeeks);
                     }
                 }, () -> {
-                    final var prisonSupported = PrisonSupported.builder()
+                    final var prisonSupported = LegacyPrisonConfiguration.builder()
                             .prisonCode(prisonId)
                             .allowAutoAllocation(autoAllocate)
                             .capacity(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
@@ -120,7 +119,7 @@ public class PrisonSupportedService {
 
     }
 
-    private Prison buildPrison(final PrisonSupported prison) {
+    private Prison buildPrison(final LegacyPrisonConfiguration prison) {
         return Prison.builder()
                 .prisonId(prison.getPrisonCode())
                 .migrated(prison.isEnabled())

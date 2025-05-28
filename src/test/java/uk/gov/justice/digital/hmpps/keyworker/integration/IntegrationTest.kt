@@ -64,8 +64,8 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -95,7 +95,7 @@ abstract class IntegrationTest {
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
 
   @Autowired
-  protected lateinit var prisonSupportedRepository: PrisonSupportedRepository
+  protected lateinit var prisonSupportedRepository: LegacyPrisonConfigurationRepository
 
   @Autowired
   protected lateinit var prisonConfigRepository: PrisonConfigurationRepository

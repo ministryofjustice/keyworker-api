@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.TenantId;
 import org.hibernate.envers.Audited;
@@ -25,7 +24,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class PrisonSupported {
+public class LegacyPrisonConfiguration {
 
     @Audited(withModifiedFlag = false)
     @NotNull

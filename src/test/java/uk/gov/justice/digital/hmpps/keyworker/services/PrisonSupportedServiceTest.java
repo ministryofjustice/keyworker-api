@@ -10,8 +10,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +31,7 @@ class PrisonSupportedServiceTest {
     private PrisonSupportedService prisonSupportedService;
 
     @Mock
-    private PrisonSupportedRepository repository;
+    private LegacyPrisonConfigurationRepository repository;
 
     @BeforeEach
     void setUp() {
@@ -48,20 +48,20 @@ class PrisonSupportedServiceTest {
     @Test
     void testVerifyPrisonSupportForSupportedPrison() {
         when(repository.existsByPrisonCode(TEST_AGENCY)).thenReturn(true);
-        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).enabled(false).build()));
+        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).enabled(false).build()));
         assertThatThrownBy(() -> prisonSupportedService.verifyPrisonMigrated(TEST_AGENCY)).isInstanceOf(PrisonNotMigratedException.class);
     }
 
     @Test
     void testVerifyPrisonMigratedForSupportedPrison() {
         when(repository.existsByPrisonCode(TEST_AGENCY)).thenReturn(true);
-        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).enabled(true).build()));
+        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).enabled(true).build()));
         prisonSupportedService.verifyPrisonMigrated(TEST_AGENCY);
     }
 
     @Test
     void testIsMigratedSupportedPrison() {
-        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).enabled(true).build()));
+        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).enabled(true).build()));
         final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
         assertThat(migrated).isTrue();
@@ -69,7 +69,7 @@ class PrisonSupportedServiceTest {
 
     @Test
     void testIsNotMigratedSupportedPrison() {
-        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).enabled(false).build()));
+        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).enabled(false).build()));
         final var migrated = prisonSupportedService.isMigrated(TEST_AGENCY);
 
         assertThat(migrated).isFalse();
@@ -86,25 +86,25 @@ class PrisonSupportedServiceTest {
     @Test
     void testAutoAllocationSupportedForPrison() {
         when(repository.existsByPrisonCode(TEST_AGENCY)).thenReturn(true);
-        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).allowAutoAllocation(true).build()));
+        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).allowAutoAllocation(true).build()));
         prisonSupportedService.verifyPrisonSupportsAutoAllocation(TEST_AGENCY);
     }
 
     @Test
     void testAutoAllocationNotSupportedForPrison() {
         when(repository.existsByPrisonCode(TEST_AGENCY)).thenReturn(true);
-        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(PrisonSupported.builder().prisonCode(TEST_AGENCY).allowAutoAllocation(false).build()));
+        when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).allowAutoAllocation(false).build()));
         assertThatThrownBy(() -> prisonSupportedService.verifyPrisonSupportsAutoAllocation(TEST_AGENCY)).isInstanceOf(PrisonNotSupportAutoAllocationException.class);
     }
 
     @Test
     void testUpdateSupportedPrisonAutoAllocateUpdate() {
-        final var prison = PrisonSupported.builder().prisonCode(TEST_AGENCY).build();
+        final var prison = LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).build();
         when(repository.findByPrisonCode(TEST_AGENCY)).thenReturn(Optional.of(prison));
 
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true, 5, 7, 1);
 
-        verify(repository, never()).save(any(PrisonSupported.class));
+        verify(repository, never()).save(any(LegacyPrisonConfiguration.class));
         assertThat(prison.getCapacity()).isEqualTo(5);
         assertThat(prison.getMaximumCapacity()).isEqualTo(7);
     }
@@ -115,10 +115,10 @@ class PrisonSupportedServiceTest {
         final var agencyWithoutHighComplexity = "LEI";
         when(repository.findAllByEnabledEquals(true)).thenReturn(
             List.of(
-                PrisonSupported.builder().prisonCode(agencyWithHighComplexity).allowAutoAllocation(true).enabled(true)
+                LegacyPrisonConfiguration.builder().prisonCode(agencyWithHighComplexity).allowAutoAllocation(true).enabled(true)
                     .capacity(5).maximumCapacity(7).frequencyInWeeks(1)
                     .hasPrisonersWithHighComplexityNeeds(true).build(),
-                PrisonSupported.builder().prisonCode(agencyWithoutHighComplexity).allowAutoAllocation(true).enabled(true)
+                LegacyPrisonConfiguration.builder().prisonCode(agencyWithoutHighComplexity).allowAutoAllocation(true).enabled(true)
                     .capacity(2).maximumCapacity(5).frequencyInWeeks(4)
                     .hasPrisonersWithHighComplexityNeeds(false).build()
             )
@@ -147,7 +147,7 @@ class PrisonSupportedServiceTest {
         final var agencyWithHighComplexity = "MDI";
         when(repository.findByPrisonCode(agencyWithHighComplexity))
             .thenReturn(Optional.of(
-                PrisonSupported.builder().prisonCode(agencyWithHighComplexity)
+                LegacyPrisonConfiguration.builder().prisonCode(agencyWithHighComplexity)
                     .allowAutoAllocation(true)
                     .enabled(true)
                     .capacity(5)
@@ -172,7 +172,7 @@ class PrisonSupportedServiceTest {
 
         prisonSupportedService.updateSupportedPrison(TEST_AGENCY, true);
 
-        final var kwaArg = ArgumentCaptor.forClass(PrisonSupported.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyPrisonConfiguration.class);
         verify(repository).save(kwaArg.capture());
         final var prison = kwaArg.getValue();
         assertThat(prison.getCapacity()).isEqualTo(6);

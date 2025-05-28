@@ -12,8 +12,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
@@ -25,7 +25,7 @@ class ComplexityOfNeedServiceTest {
   }
 
   @Mock
-  lateinit var prisonSupportedRepository: PrisonSupportedRepository
+  lateinit var prisonSupportedRepository: LegacyPrisonConfigurationRepository
 
   @Mock
   lateinit var complexityOfNeedGateway: ComplexityOfNeedGateway
@@ -52,7 +52,20 @@ class ComplexityOfNeedServiceTest {
       ),
     )
     whenever(prisonSupportedRepository.findByPrisonCode("MDI"))
-      .thenReturn(Optional.of(PrisonSupported("MDI", true, true, 6, 9, 1, true, AllocationPolicy.KEY_WORKER.name)))
+      .thenReturn(
+        Optional.of(
+          LegacyPrisonConfiguration(
+            "MDI",
+            true,
+            true,
+            6,
+            9,
+            1,
+            true,
+            AllocationPolicy.KEY_WORKER.name,
+          ),
+        ),
+      )
     complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1))
 
     verify(complexityOfNeedGateway, times(1)).getOffendersWithMeasuredComplexityOfNeed(setOf(OFFENDER_NO_1))
@@ -67,7 +80,20 @@ class ComplexityOfNeedServiceTest {
       ),
     )
     whenever(prisonSupportedRepository.findByPrisonCode("MDI"))
-      .thenReturn(Optional.of(PrisonSupported("MDI", true, true, 6, 9, 1, true, AllocationPolicy.KEY_WORKER.name)))
+      .thenReturn(
+        Optional.of(
+          LegacyPrisonConfiguration(
+            "MDI",
+            true,
+            true,
+            6,
+            9,
+            1,
+            true,
+            AllocationPolicy.KEY_WORKER.name,
+          ),
+        ),
+      )
 
     val complexOffenders =
       complexityOfNeedService.removeOffendersWithHighComplexityOfNeed("MDI", setOf(OFFENDER_NO_1, OFFENDER_NO_2, OFFENDER_NO_3))
