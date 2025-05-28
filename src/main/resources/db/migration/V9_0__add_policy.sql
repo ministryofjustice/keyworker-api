@@ -1,3 +1,13 @@
+create table prison_migration_date_history
+(
+    prison_code    varchar(6) not null primary key,
+    migration_date timestamp  not null
+);
+
+insert into prison_migration_date_history(prison_code, migration_date)
+select prison_id, migrated_date_time from prison_supported
+where migrated_date_time is not null;
+
 create table policy
 (
     code        varchar(16)  not null primary key,

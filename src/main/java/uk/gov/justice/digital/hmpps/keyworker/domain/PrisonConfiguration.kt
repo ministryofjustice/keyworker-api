@@ -47,7 +47,7 @@ class PrisonConfiguration(
       maximumCapacity = request.maximumCapacity
       allowAutoAllocation = request.allowAutoAllocation
       frequencyInWeeks = request.frequencyInWeeks
-      hasPrisonersWithHighComplexityNeeds = request.hasPrisonersWithHighComplexityNeeds
+      request.hasPrisonersWithHighComplexityNeeds?.also { hasPrisonersWithHighComplexityNeeds = it }
     }
 
   companion object {

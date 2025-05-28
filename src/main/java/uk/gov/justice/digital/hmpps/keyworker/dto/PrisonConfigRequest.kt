@@ -8,7 +8,7 @@ data class PrisonConfigRequest(
   @field:Min(1, "capacity must be greater than 0") val capacity: Int,
   @field:Min(1, "maximum capacity must be greater than 0") val maximumCapacity: Int,
   @field:Min(1, "frequency in weeks must be greater than 0") val frequencyInWeeks: Int,
-  val hasPrisonersWithHighComplexityNeeds: Boolean,
+  val hasPrisonersWithHighComplexityNeeds: Boolean?,
 )
 
 data class PrisonConfigResponse(
