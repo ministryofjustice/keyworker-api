@@ -1,9 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
@@ -14,7 +13,7 @@ import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class PrisonStatsService(
-  private val prisonConfig: PrisonConfigRepository,
+  private val prisonConfig: PrisonConfigurationRepository,
   private val statistics: PrisonStatisticRepository,
 ) {
   fun getPrisonStats(
@@ -25,13 +24,13 @@ class PrisonStatsService(
     val dateRange = DAYS.between(from, to.plusDays(1))
     val previousTo = from.minusDays(1)
     val previousFrom = previousTo.minusDays(dateRange)
-    val prisonConfig = prisonConfig.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
+    val prisonConfig = prisonConfig.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val allStats = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, previousFrom, to)
-    val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig.kwSessionFrequencyInWeeks)
+    val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig.frequencyInWeeks)
     val previous =
       allStats
         .filter { it.date in (previousFrom..previousTo) }
-        .asStats(prisonConfig.kwSessionFrequencyInWeeks)
+        .asStats(prisonConfig.frequencyInWeeks)
 
     return PrisonStats(
       prisonCode,

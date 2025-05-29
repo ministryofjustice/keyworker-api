@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.data.repository.findByIdOrNull
-import uk.gov.justice.digital.hmpps.keyworker.config.KeyworkerContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatusBehaviour
@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
   @Test
@@ -44,7 +43,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
   @Test
   fun `keyworker config is created if it does not exist`() {
     val prisonCode = "LE1"
-    givenPrisonConfig(prisonConfig(prisonCode, true, LocalDateTime.now().minusDays(1), true))
+    givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
     val request = keyworkerConfigRequest()
     manageKeyworkerConfig(prisonCode, staffId, request).expectStatus().isOk
@@ -56,14 +55,14 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
       kwConfig.staffId,
       RevisionType.ADD,
       setOf(LegacyKeyworkerConfig::class.simpleName!!),
-      KeyworkerContext(username = TEST_USERNAME),
+      AllocationContext(username = TEST_USERNAME),
     )
   }
 
   @Test
   fun `keyworker config is updated if it exists`() {
     val prisonCode = "LE2"
-    givenPrisonConfig(prisonConfig(prisonCode, true, LocalDateTime.now().minusDays(1), true))
+    givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
     val username = username()
     givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId))
@@ -84,14 +83,14 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
       kwConfig.staffId,
       RevisionType.MOD,
       setOf(LegacyKeyworkerConfig::class.simpleName!!),
-      KeyworkerContext(username = username),
+      AllocationContext(username = username),
     )
   }
 
   @Test
   fun `keyworker config management does not audit no change requests`() {
     val prisonCode = "LE3"
-    givenPrisonConfig(prisonConfig(prisonCode, true, LocalDateTime.now().minusDays(1), true))
+    givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
     val username = username()
     givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId))
@@ -110,7 +109,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
       kwConfig.staffId,
       RevisionType.ADD,
       setOf(KeyworkerConfig::class.simpleName!!),
-      KeyworkerContext(username = "SYS", activeCaseloadId = null),
+      AllocationContext(username = "SYS", activeCaseloadId = null),
     )
     keyworkerAllocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.active).isTrue
@@ -122,7 +121,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
   @Test
   fun `active allocations are deallocated`() {
     val prisonCode = "LE4"
-    givenPrisonConfig(prisonConfig(prisonCode, true, LocalDateTime.now().minusDays(1), true))
+    givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
     givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId, capacity = 10))
     val allocations =

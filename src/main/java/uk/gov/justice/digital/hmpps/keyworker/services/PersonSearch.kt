@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
@@ -17,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 
 @Service
 class PersonSearch(
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeed: ComplexityOfNeedGateway,
   private val allocationRepository: KeyworkerAllocationRepository,
@@ -27,7 +26,7 @@ class PersonSearch(
     prisonCode: String,
     request: PersonSearchRequest,
   ): PersonSearchResponse {
-    val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode)
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode)
     val prisoners = prisonerSearch.findFilteredPrisoners(prisonCode, request)
     val complexNeedsMap =
       if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {

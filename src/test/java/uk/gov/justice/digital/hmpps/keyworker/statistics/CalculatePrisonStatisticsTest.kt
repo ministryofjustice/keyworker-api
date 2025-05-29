@@ -38,7 +38,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   fun `calculate prison statistics for yesterday for a prison without complex needs`() {
     val prisonCode = "CALWOC"
     val yesterday = now().minusDays(1)
-    givenPrisonConfig(prisonConfig(prisonCode, true, yesterday.minusDays(7).atStartOfDay()))
+    givenPrisonConfig(prisonConfig(prisonCode, true))
     val keyworkers =
       (0..10).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
@@ -107,14 +107,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
     val prisonCode = "CALWIC"
     val yesterday = now().minusDays(1)
-    givenPrisonConfig(
-      prisonConfig(
-        prisonCode,
-        true,
-        yesterday.minusDays(7).atStartOfDay(),
-        hasPrisonersWithHighComplexityNeeds = true,
-      ),
-    )
+    givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
     val keyworkers =
       (0..10).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))

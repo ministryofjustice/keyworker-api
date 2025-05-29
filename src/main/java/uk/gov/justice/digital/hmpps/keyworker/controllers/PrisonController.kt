@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,8 +15,11 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerDetails
@@ -32,6 +36,16 @@ class PrisonController(
   private val keyworkerDetails: GetKeyworkerDetails,
   private val keyworkerConfigManager: KeyworkerConfigManager,
 ) {
+  @PolicyHeader
+  @CaseloadIdHeader
+  @Tag(name = PRISON)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping(value = ["/configurations"])
+  fun setPrisonConfiguration(
+    @PathVariable("prisonCode") prisonCode: String,
+    @Valid @RequestBody request: PrisonConfigRequest,
+  ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
+
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping(value = ["/configuration/keyworker"])

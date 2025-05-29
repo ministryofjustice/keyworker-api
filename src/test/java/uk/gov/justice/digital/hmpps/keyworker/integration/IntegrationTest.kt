@@ -27,7 +27,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.transaction.support.TransactionTemplate
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import uk.gov.justice.digital.hmpps.keyworker.config.KeyworkerContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
@@ -38,8 +40,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
@@ -62,8 +64,8 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -93,10 +95,10 @@ abstract class IntegrationTest {
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
 
   @Autowired
-  protected lateinit var prisonSupportedRepository: PrisonSupportedRepository
+  protected lateinit var prisonSupportedRepository: LegacyPrisonConfigurationRepository
 
   @Autowired
-  protected lateinit var prisonConfigRepository: PrisonConfigRepository
+  protected lateinit var prisonConfigRepository: PrisonConfigurationRepository
 
   @Autowired
   protected lateinit var prisonStatisticRepository: PrisonStatisticRepository
@@ -127,6 +129,9 @@ abstract class IntegrationTest {
 
   @Autowired
   internal lateinit var entityManager: EntityManager
+
+  @Autowired
+  internal lateinit var contextHolder: AllocationContextHolder
 
   init {
     SecurityContextHolder.getContext().authentication = TestingAuthenticationToken("user", "pw")
@@ -165,7 +170,7 @@ abstract class IntegrationTest {
     entityId: Any,
     revisionType: RevisionType,
     affectedEntities: Set<String>,
-    context: KeyworkerContext,
+    context: AllocationContext,
   ) {
     transactionTemplate.execute {
       val auditReader = AuditReaderFactory.get(entityManager)
@@ -193,6 +198,10 @@ abstract class IntegrationTest {
         assertThat(this.affectedEntities).containsExactlyInAnyOrderElementsOf(affectedEntities)
       }
     }
+  }
+
+  internal fun setContext(context: AllocationContext) {
+    contextHolder.setContext(context)
   }
 
   companion object {
@@ -371,25 +380,25 @@ abstract class IntegrationTest {
 
   protected fun prisonConfig(
     code: String,
-    migrated: Boolean = false,
-    migratedDateTime: LocalDateTime? = null,
-    autoAllocate: Boolean = false,
-    capacityTier1: Int = 6,
-    capacityTier2: Int? = 9,
-    kwSessionFrequencyInWeeks: Int = 1,
+    enabled: Boolean = false,
+    allowAutoAllocation: Boolean = false,
+    capacity: Int = 6,
+    maxCapacity: Int = 9,
+    frequencyInWeeks: Int = 1,
     hasPrisonersWithHighComplexityNeeds: Boolean = false,
-  ) = PrisonConfig(
+    policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
+  ) = PrisonConfiguration(
     code,
-    migrated,
-    migratedDateTime,
-    autoAllocate,
-    capacityTier1,
-    capacityTier2,
-    kwSessionFrequencyInWeeks,
+    enabled,
+    allowAutoAllocation,
+    capacity,
+    maxCapacity,
+    frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds,
+    policy.name,
   )
 
-  protected fun givenPrisonConfig(prisonConfig: PrisonConfig): PrisonConfig = prisonConfigRepository.save(prisonConfig)
+  protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration = prisonConfigRepository.save(prisonConfig)
 
   protected fun prisonStat(
     prisonCode: String,

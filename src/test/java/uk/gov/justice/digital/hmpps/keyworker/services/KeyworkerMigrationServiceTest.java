@@ -11,9 +11,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonSupportedRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private NomisService nomisService;
 
     @MockitoBean
-    private PrisonSupportedRepository prisonSupportedRepository;
+    private LegacyPrisonConfigurationRepository prisonSupportedRepository;
 
     @MockitoBean
     private OffenderKeyworkerRepository offenderKeyworkerRepository;
@@ -86,10 +86,11 @@ class KeyworkerMigrationServiceTest extends AbstractServiceTest {
 
         when(nomisService.getOffenderKeyWorkerPage(TEST_AGENCY, 0, TEST_PAGE_SIZE)).thenReturn(testDtos);
 
-        when(prisonSupportedRepository.findById(eq(TEST_AGENCY))).thenReturn(Optional.of(PrisonSupported.builder().prisonId(TEST_AGENCY).build()));
+        when(prisonSupportedRepository.findByPrisonCode(eq(TEST_AGENCY))).thenReturn(Optional.of(
+                LegacyPrisonConfiguration.builder().prisonCode(TEST_AGENCY).build()));
         service.migrateKeyworkerByPrison(TEST_AGENCY);
 
-        verify(prisonSupportedRepository, times(1)).findById(eq(TEST_AGENCY));
+        verify(prisonSupportedRepository, times(1)).findByPrisonCode(eq(TEST_AGENCY));
         verify(offenderKeyworkerRepository).saveAll(anySet());
     }
 

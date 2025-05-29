@@ -43,7 +43,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("At least one allocation or deallocation must be provided")
+    assertThat(res.userMessage).isEqualTo("Validation failure: At least one allocation or deallocation must be provided")
   }
 
   @Test
@@ -55,13 +55,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("Prison not enabled for keyworker service")
+    assertThat(res.userMessage).isEqualTo("Validation failure: Prison not enabled for keyworker service")
   }
 
   @Test
   fun `400 bad request - prisoner not at provided prison`() {
     val prisonCode = "PRM"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
     val psa = personStaffAllocation()
     prisonerSearchMockServer.stubFindPrisonDetails(setOf(psa.personIdentifier), listOf(prisoner(psa.personIdentifier)))
 
@@ -72,13 +72,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("A provided person identifier is not currently at the provided prison")
+    assertThat(res.userMessage).isEqualTo("Validation failure: A provided person identifier is not currently at the provided prison")
   }
 
   @Test
   fun `400 bad request - staff id not a keyworker at provided prison`() {
     val prisonCode = "SNK"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoner = prisoner(prisonCode)
     val staff = staffRole()
@@ -93,13 +93,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("A provided staff id is not a keyworker for the provided prison")
+    assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not a keyworker for the provided prison")
   }
 
   @Test
   fun `400 bad request - staff id not an active keyworker`() {
     val prisonCode = "SIK"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoner = prisoner(prisonCode)
     val staff = staffRole()
@@ -116,13 +116,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("A provided staff id is not an active keyworker")
+    assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not an active keyworker")
   }
 
   @Test
   fun `204 no content - new allocations`() {
     val prisonCode = "NAL"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoners = listOf(prisoner(prisonCode))
     val staff = staffRole()
@@ -142,7 +142,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   @Test
   fun `204 no content - new allocations overriding recommended allocation`() {
     val prisonCode = "NOR"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoner = prisoner(prisonCode)
     val staff = staffRole()
@@ -174,7 +174,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   @Test
   fun `204 no content - new allocations and existing allocations deallocated`() {
     val prisonCode = "EAL"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoners = listOf(prisoner(prisonCode))
     val staff = staffRole()
@@ -202,7 +202,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   @Test
   fun `204 no content - no changes if already allocated to same staff`() {
     val prisonCode = "NNA"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoners = listOf(prisoner(prisonCode))
     val staff = staffRole()
@@ -230,7 +230,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   @Test
   fun `204 no content - deallocate existing allocations`() {
     val prisonCode = "DAL"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val staffId = newId()
     val psds = listOf(personStaffDeallocation(staffId = staffId), personStaffDeallocation(staffId = staffId))
@@ -251,7 +251,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   @Test
   fun `204 no content - doesn't deallocate unless person and staff match`() {
     val prisonCode = "DDA"
-    givenPrisonConfig(prisonConfig(prisonCode, migrated = true))
+    givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val staffId = newId()
     val psds = listOf(personStaffDeallocation(), personStaffDeallocation())

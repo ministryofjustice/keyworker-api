@@ -1,11 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerWithAllocationCount
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest.Status.ALL
@@ -24,7 +23,7 @@ import java.util.Optional
 class KeyworkerSearch(
   private val nomisService: NomisService,
   private val caseNoteApi: CaseNotesApiClient,
-  private val prisonConfigRepository: PrisonConfigRepository,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val keyworkerConfigRepository: KeyworkerConfigRepository,
 ) {
   fun findKeyworkers(
@@ -44,7 +43,7 @@ class KeyworkerSearch(
       )
     val keyworkerStaffIds = keyworkerStaff.map { it.staffId }.toSet()
     val sessions = caseNoteApi.getUsageByStaffIds(forLastMonth(keyworkerStaffIds.map(Long::toString).toSet()))
-    val prisonConfig = prisonConfigRepository.findByIdOrNull(prisonCode) ?: PrisonConfig.default(prisonCode)
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val keyworkerDetail =
       if (keyworkerStaffIds.isEmpty()) {
         emptyMap()
@@ -68,7 +67,7 @@ class KeyworkerSearch(
 
   fun StaffLocationRoleDto.searchResponse(
     keyworkerConfig: (Long) -> KeyworkerWithAllocationCount?,
-    prisonConfig: PrisonConfig,
+    prisonConfig: PrisonConfiguration,
     keyworkerSessions: (Long) -> UsageByAuthorIdResponse?,
   ): KeyworkerSummary {
     val kwa = keyworkerConfig(staffId)
@@ -78,9 +77,9 @@ class KeyworkerSearch(
       firstName,
       lastName,
       (status?.asKeyworkerStatus() ?: ACTIVE).codedDescription(),
-      kwa?.keyworkerConfig?.capacity ?: prisonConfig.capacityTier1,
+      kwa?.keyworkerConfig?.capacity ?: prisonConfig.capacity,
       kwa?.allocationCount ?: 0,
-      kwa?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.autoAllocate,
+      kwa?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       keyworkerSessions(staffId)?.count ?: 0,
     )
   }

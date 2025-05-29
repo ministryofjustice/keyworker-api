@@ -33,7 +33,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
   @Test
   fun `identifies cases that have no recommendations when all keyworkers are at max capacity`() {
     val prisonCode = "FUL"
-    givenPrisonConfig(prisonConfig(prisonCode, capacityTier1 = 1, capacityTier2 = null))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, maxCapacity = 1))
     val prisoners = prisoners(prisonCode, 10)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
@@ -59,7 +59,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
   @Test
   fun `will recommend previous keyworker regardless of capacity`() {
     val prisonCode = "EXI"
-    givenPrisonConfig(prisonConfig(prisonCode, capacityTier1 = 1, capacityTier2 = null))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, maxCapacity = 1))
     val prisoners = prisoners(prisonCode, 6)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
@@ -110,7 +110,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
   @Test
   fun `will balance recommendations based on capacity availability and report when keyworkers are at max capacity`() {
     val prisonCode = "BAL"
-    givenPrisonConfig(prisonConfig(prisonCode, capacityTier1 = 6, capacityTier2 = 9))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 6, maxCapacity = 9))
     val prisoners = prisoners(prisonCode, 16)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
@@ -166,7 +166,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
   @Test
   fun `will balance recommendations based on capacity availability when capacity is different`() {
     val prisonCode = "BAL"
-    givenPrisonConfig(prisonConfig(prisonCode, capacityTier1 = 6, capacityTier2 = 9))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 6, maxCapacity = 9))
     val prisoners = prisoners(prisonCode, 16)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 

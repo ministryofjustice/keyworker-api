@@ -1,22 +1,32 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
-import uk.gov.justice.digital.hmpps.keyworker.model.PrisonSupported
 
 class PrisonConfigIntTest : IntegrationTest() {
+  @AfterEach
+  fun setUp() {
+    prisonConfigRepository.deleteAll()
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+  }
+
   @ParameterizedTest
   @MethodSource("prisonConfigArgs")
   fun `200 ok - prison config is returned appropriately`(
     prisonCode: String,
     status: PrisonKeyworkerConfiguration,
   ) {
-    givenConfiguredPrisons()
-
+    givenConfiguredKeyworkerPrisonConfig.forEach { givenPrisonConfig(it) }
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    givenPersonalOfficerPrisonConfig.forEach { givenPrisonConfig(it) }
     val res = getPrisonConfig(prisonCode)
     assertThat(res).isEqualTo(status)
   }
@@ -33,22 +43,21 @@ class PrisonConfigIntTest : IntegrationTest() {
       .returnResult()
       .responseBody!!
 
-  private fun givenConfiguredPrisons() =
-    prisonSupportedRepository.saveAll(
-      listOf(
-        prisonConfig("ZEZE", false, false, false),
-        prisonConfig("ZEON", false, false, true),
-        prisonConfig("ONZE", true, true, false),
-        prisonConfig("ONON", true, true, true),
-      ),
-    )
+  private fun givenConfiguredKeyworkerPrisonConfig() =
+    listOf(
+      prisonConfig("ZEZE", false, false, hasPrisonersWithHighComplexityNeeds = false),
+      prisonConfig("ZEON", false, false, hasPrisonersWithHighComplexityNeeds = true),
+      prisonConfig("ONZE", true, true, hasPrisonersWithHighComplexityNeeds = false),
+      prisonConfig("ONON", true, true, hasPrisonersWithHighComplexityNeeds = true),
+    ).map { givenPrisonConfig(it) }
 
-  private fun prisonConfig(
-    code: String,
-    migrated: Boolean,
-    autoAllocate: Boolean,
-    hasPrisonersWithComplexNeeds: Boolean,
-  ) = PrisonSupported(code, migrated, autoAllocate, null, 6, 9, 1, hasPrisonersWithComplexNeeds)
+  private fun givenPersonalOfficerPrisonConfig() =
+    listOf(
+      prisonConfig("ZEZE", true, true, policy = AllocationPolicy.PERSONAL_OFFICER),
+      prisonConfig("ZEON", true, true, policy = AllocationPolicy.PERSONAL_OFFICER),
+      prisonConfig("ONZE", false, true, policy = AllocationPolicy.PERSONAL_OFFICER),
+      prisonConfig("ONON", false, false, policy = AllocationPolicy.PERSONAL_OFFICER),
+    ).map { givenPrisonConfig(it) }
 
   companion object {
     @JvmStatic
@@ -59,5 +68,41 @@ class PrisonConfigIntTest : IntegrationTest() {
         Arguments.of("ONZE", PrisonKeyworkerConfiguration(true, false, true, 6, 9, 1)),
         Arguments.of("ONON", PrisonKeyworkerConfiguration(true, true, true, 6, 9, 1)),
       )
+
+    private val givenConfiguredKeyworkerPrisonConfig =
+      listOf(
+        prisonConfig("ZEZE", false, false, hasPrisonersWithHighComplexityNeeds = false),
+        prisonConfig("ZEON", false, false, hasPrisonersWithHighComplexityNeeds = true),
+        prisonConfig("ONZE", true, true, hasPrisonersWithHighComplexityNeeds = false),
+        prisonConfig("ONON", true, true, hasPrisonersWithHighComplexityNeeds = true),
+      )
+
+    private val givenPersonalOfficerPrisonConfig =
+      listOf(
+        prisonConfig("ZEZE", true, true, policy = AllocationPolicy.PERSONAL_OFFICER),
+        prisonConfig("ZEON", true, true, policy = AllocationPolicy.PERSONAL_OFFICER),
+        prisonConfig("ONZE", false, true, policy = AllocationPolicy.PERSONAL_OFFICER),
+        prisonConfig("ONON", false, false, policy = AllocationPolicy.PERSONAL_OFFICER),
+      )
+
+    protected fun prisonConfig(
+      code: String,
+      enabled: Boolean = false,
+      allowAutoAllocation: Boolean = false,
+      capacity: Int = 6,
+      maxCapacity: Int = 9,
+      frequencyInWeeks: Int = 1,
+      hasPrisonersWithHighComplexityNeeds: Boolean = false,
+      policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
+    ) = PrisonConfiguration(
+      code,
+      enabled,
+      allowAutoAllocation,
+      capacity,
+      maxCapacity,
+      frequencyInWeeks,
+      hasPrisonersWithHighComplexityNeeds,
+      policy.name,
+    )
   }
 }

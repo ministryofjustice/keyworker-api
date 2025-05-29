@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -139,15 +138,15 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
 
   @Test
   fun `should return a list of unallocated offenders ignoring offenders with high complexity of need`() {
-    val prisonSupported = checkNotNull(prisonSupportedRepository.findByIdOrNull("AGI"))
-    prisonSupported.isMigrated = true
+    val prisonSupported = prisonSupportedRepository.findByPrisonCode("AGI").orElseThrow()
+    prisonSupported.isEnabled = true
     prisonSupportedRepository.save(prisonSupported)
 
     complexityOfNeedMockServer.stubComplexOffenders(cOMPLEXOFFENDERUNALLOC1)
 
     webTestClient
       .get()
-      .uri("/key-worker/${prisonSupported.prisonId}/offenders/unallocated")
+      .uri("/key-worker/${prisonSupported.prisonCode}/offenders/unallocated")
       .headers(setHeaders())
       .exchange()
       .expectStatus()

@@ -34,7 +34,7 @@ class PrisonStatsIntTest : IntegrationTest() {
     givenPrisonConfig(
       prisonConfig(
         prisonCode,
-        kwSessionFrequencyInWeeks = 2,
+        frequencyInWeeks = 2,
         hasPrisonersWithHighComplexityNeeds = true,
       ),
     )
