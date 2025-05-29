@@ -52,5 +52,6 @@ object ReferenceDataHelper {
       ReferenceDataDomain.ALLOCATION_REASON -> allocationReason(AllocationReason.get(rdKey.code))
       ReferenceDataDomain.DEALLOCATION_REASON -> deallocationReason(DeallocationReason.get(rdKey.code))
       ReferenceDataDomain.KEYWORKER_STATUS -> keyworkerStatus(KeyworkerStatus.valueOf(rdKey.code))
+      else -> throw UnsupportedOperationException("Unsupported reference data domain ${rdKey.domain}")
     }
 }

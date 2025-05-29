@@ -43,6 +43,8 @@ enum class ReferenceDataDomain {
   KEYWORKER_STATUS,
   ALLOCATION_REASON,
   DEALLOCATION_REASON,
+  SCHEDULE_TYPE,
+  STAFF_POS,
   ;
 
   companion object {
@@ -67,9 +69,15 @@ fun ReferenceDataRepository.getKeyworkerStatus(status: KeyworkerStatus): Referen
   findByKey(ReferenceDataKey(ReferenceDataDomain.KEYWORKER_STATUS, status.name))
     ?: throw EntityNotFoundException("Keyworker status not found")
 
+fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
+  findByKey(key)
+    ?: throw EntityNotFoundException("Reference data not found")
+
 fun ReferenceData.asKeyworkerStatus(): KeyworkerStatus = KeyworkerStatus.valueOf(code)
 
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
   this?.let {
     CodedDescription(code, description)
   } ?: CodedDescription("ACTIVE", "Active")
+
+fun ReferenceData.asCodedDescription(): CodedDescription = CodedDescription(code, description)
