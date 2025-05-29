@@ -24,6 +24,12 @@ class KeyworkerContextConfiguration(
         "/batch/update-status",
         "/queue-admin/retry-all-dlqs",
         "/prison-statistics/calculate",
+        "/health/**",
+        "/info",
+        "/ping",
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/swagger-resources/**",
       )
   }
 }

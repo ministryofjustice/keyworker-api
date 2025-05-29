@@ -6,6 +6,11 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationReposito
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
+import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -14,7 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSessionStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestKeyworkerSession
-import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
@@ -36,6 +40,7 @@ class GetKeyworkerDetails(
   private val allocationRepository: KeyworkerAllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val caseNotesApiClient: CaseNotesApiClient,
+  private val referenceDataRepository: ReferenceDataRepository,
 ) {
   fun getFor(
     prisonCode: String,
@@ -92,6 +97,14 @@ class GetKeyworkerDetails(
     )
   }
 
+  private fun StaffLocationRoleDto.asKeyworker() =
+    KeyworkerWithSchedule(
+      staffId,
+      firstName,
+      lastName,
+      referenceDataRepository.getReferenceData(ReferenceDataDomain.SCHEDULE_TYPE of scheduleType).asCodedDescription(),
+    )
+
   private fun List<KeyworkerAllocation>.keyworkerSessionStats(
     from: LocalDate,
     to: LocalDate,
@@ -145,11 +158,6 @@ class GetKeyworkerDetails(
     )
   }
 }
-
-private fun StaffLocationRoleDto.asKeyworker() =
-  KeyworkerWithSchedule(staffId, firstName, lastName, ScheduleType.from(scheduleType).toCodedDescription())
-
-private fun ScheduleType.toCodedDescription() = CodedDescription(code, description)
 
 private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
 
