@@ -6,15 +6,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatusBehaviour
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
@@ -48,13 +47,13 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
     val request = keyworkerConfigRequest()
     manageKeyworkerConfig(prisonCode, staffId, request).expectStatus().isOk
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
     verifyAudit(
       kwConfig,
-      kwConfig.staffId,
+      kwConfig.id,
       RevisionType.ADD,
-      setOf(LegacyKeyworkerConfig::class.simpleName!!),
+      setOf(LegacyKeyworkerConfiguration::class.simpleName!!),
       AllocationContext(username = TEST_USERNAME),
     )
   }
@@ -65,24 +64,24 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
     val username = username()
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val request =
       keyworkerConfigRequest(
-        status = KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE,
+        status = StaffStatus.UNAVAILABLE_ANNUAL_LEAVE,
         capacity = 100,
         keyworkerStatusBehaviour = KeyworkerStatusBehaviour.KEEP_ALLOCATIONS_NO_AUTO,
         reactivateOn = LocalDate.now().plusDays(7),
       )
     manageKeyworkerConfig(prisonCode, staffId, request, username = username).expectStatus().isOk
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
     verifyAudit(
       kwConfig,
-      kwConfig.staffId,
+      kwConfig.id,
       RevisionType.MOD,
-      setOf(LegacyKeyworkerConfig::class.simpleName!!),
+      setOf(LegacyKeyworkerConfiguration::class.simpleName!!),
       AllocationContext(username = username),
     )
   }
@@ -93,22 +92,22 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
     val username = username()
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
     val allocations =
       (0..10).map {
         givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
       }
 
-    val request = keyworkerConfigRequest(status = KeyworkerStatus.ACTIVE, capacity = 6)
+    val request = keyworkerConfigRequest(status = StaffStatus.ACTIVE, capacity = 6)
     manageKeyworkerConfig(prisonCode, staffId, request, username = username).expectStatus().isOk
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
     verifyAudit(
       kwConfig,
-      kwConfig.staffId,
+      kwConfig.id,
       RevisionType.ADD,
-      setOf(KeyworkerConfig::class.simpleName!!),
+      setOf(StaffConfiguration::class.simpleName!!),
       AllocationContext(username = "SYS", activeCaseloadId = null),
     )
     keyworkerAllocationRepository.findAllById(allocations.map { it.id }).forEach {
@@ -123,7 +122,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
     val prisonCode = "LE4"
     givenPrisonConfig(prisonConfig(prisonCode, true, true))
     val staffId = newId()
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId, capacity = 10))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 10))
     val allocations =
       (0..10).map {
         givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
@@ -132,18 +131,18 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
     val request = keyworkerConfigRequest(keyworkerStatusBehaviour = KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO)
     manageKeyworkerConfig(prisonCode, staffId, request).expectStatus().isOk
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
 
     keyworkerAllocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.active).isFalse
       assertThat(it.expiryDateTime?.toLocalDate()).isEqualTo(LocalDate.now())
-      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.KEYWORKER_STATUS_CHANGE.reasonCode)
+      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }
 
   fun keyworkerConfigRequest(
-    status: KeyworkerStatus = KeyworkerStatus.ACTIVE,
+    status: StaffStatus = StaffStatus.ACTIVE,
     capacity: Int = 10,
     keyworkerStatusBehaviour: KeyworkerStatusBehaviour = KeyworkerStatusBehaviour.KEEP_ALLOCATIONS,
     reactivateOn: LocalDate? = null,
@@ -168,7 +167,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
   }
 }
 
-private fun KeyworkerConfig.verifyAgainst(request: KeyworkerUpdateDto) {
+private fun StaffConfiguration.verifyAgainst(request: KeyworkerUpdateDto) {
   assertThat(status.code).isEqualTo(request.status.name)
   assertThat(capacity).isEqualTo(request.capacity)
   assertThat(allowAutoAllocation).isEqualTo(!request.behaviour.isRemoveFromAutoAllocation)

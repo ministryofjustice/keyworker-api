@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
@@ -36,7 +36,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 class GetKeyworkerDetails(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val nomisService: NomisService,
-  private val keyworkerConfigRepository: KeyworkerConfigRepository,
+  private val staffConfigRepository: StaffConfigRepository,
   private val allocationRepository: KeyworkerAllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val caseNotesApiClient: CaseNotesApiClient,
@@ -55,7 +55,7 @@ class GetKeyworkerDetails(
 
     val fromDate = now().minusMonths(1)
     val previousFromDate = fromDate.minusMonths(1)
-    val keyworkerInfo = keyworkerConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
+    val keyworkerInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
     val allocations =
       allocationRepository.findActiveForPrisonStaffBetween(
         prisonCode,
@@ -80,9 +80,9 @@ class GetKeyworkerDetails(
 
     return KeyworkerDetails(
       keyworker,
-      keyworkerInfo?.keyworkerConfig?.status.toKeyworkerStatusCodedDescription(),
+      keyworkerInfo?.staffConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
-      keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacity,
+      keyworkerInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       keyworkerInfo?.allocationCount ?: 0,
       allocations
         .filter { it.active }
@@ -92,8 +92,8 @@ class GetKeyworkerDetails(
           }
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
       KeyworkerStats(current, previous),
-      keyworkerInfo?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
-      keyworkerInfo?.keyworkerConfig?.reactivateOn,
+      keyworkerInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
+      keyworkerInfo?.staffConfig?.reactivateOn,
     )
   }
 

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
@@ -15,6 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.ALLOCAT
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
@@ -35,7 +35,7 @@ class KeyworkerAllocationManager(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val nomisService: NomisService,
-  private val keyworkerConfigRepository: KeyworkerConfigRepository,
+  private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
   private val allocationRepository: KeyworkerAllocationRepository,
 ) {
@@ -146,7 +146,7 @@ class KeyworkerAllocationManager(
           "A provided staff id is not a keyworker for the provided prison"
         }
         val nonActiveIds =
-          keyworkerConfigRepository
+          staffConfigRepository
             .getNonActiveKeyworkers(staffIds)
             .map { it.staffId }
             .toSet()

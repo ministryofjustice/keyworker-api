@@ -6,14 +6,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
@@ -48,13 +47,13 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
     verifyAudit(
       kwConfig,
-      kwConfig.staffId,
+      kwConfig.id,
       RevisionType.ADD,
-      setOf(KeyworkerConfig::class.simpleName!!),
+      setOf(StaffConfiguration::class.simpleName!!),
       AllocationContext(username = TEST_USERNAME, activeCaseloadId = prisonCode),
     )
   }
@@ -64,11 +63,11 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
     val prisonCode = "UPD"
     val staffId = newId()
     val username = username()
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val request =
       keyworkerConfigRequest(
-        status = KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE,
+        status = StaffStatus.UNAVAILABLE_ANNUAL_LEAVE,
         capacity = 100,
         removeFromAutoAllocation = true,
         reactivateOn = LocalDate.now().plusDays(7),
@@ -77,13 +76,13 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
     verifyAudit(
       kwConfig,
-      kwConfig.staffId,
+      kwConfig.id,
       RevisionType.MOD,
-      setOf(KeyworkerConfig::class.simpleName!!),
+      setOf(StaffConfiguration::class.simpleName!!),
       AllocationContext(username = username, activeCaseloadId = prisonCode),
     )
   }
@@ -93,24 +92,24 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
     val prisonCode = "NOC"
     val staffId = newId()
     val username = username()
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
     val allocations =
       (0..10).map {
         givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
       }
 
-    val request = keyworkerConfigRequest(status = KeyworkerStatus.ACTIVE, capacity = 6)
+    val request = keyworkerConfigRequest(status = StaffStatus.ACTIVE, capacity = 6)
     manageKeyworkerConfig(prisonCode, staffId, request, username = username, caseloadId = prisonCode)
       .expectStatus()
       .isNoContent
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
     verifyAudit(
       kwConfig,
-      kwConfig.staffId,
+      kwConfig.id,
       RevisionType.ADD,
-      setOf(KeyworkerConfig::class.simpleName!!),
+      setOf(StaffConfiguration::class.simpleName!!),
       AllocationContext(username = "SYS", activeCaseloadId = null),
     )
     keyworkerAllocationRepository.findAllById(allocations.map { it.id }).forEach {
@@ -124,7 +123,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
   fun `active allocations are deallocated`() {
     val prisonCode = "DEA"
     val staffId = newId()
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staffId, capacity = 10))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 10))
     val allocations =
       (0..10).map {
         givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
@@ -135,18 +134,18 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    val kwConfig = requireNotNull(keyworkerConfigRepository.findByIdOrNull(staffId))
+    val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
 
     keyworkerAllocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.active).isFalse
       assertThat(it.expiryDateTime?.toLocalDate()).isEqualTo(LocalDate.now())
-      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.KEYWORKER_STATUS_CHANGE.reasonCode)
+      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }
 
   fun keyworkerConfigRequest(
-    status: KeyworkerStatus = KeyworkerStatus.ACTIVE,
+    status: StaffStatus = StaffStatus.ACTIVE,
     capacity: Int = 10,
     deactivateActiveAllocations: Boolean = false,
     removeFromAutoAllocation: Boolean = false,
@@ -174,7 +173,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
   }
 }
 
-private fun KeyworkerConfig.verifyAgainst(request: KeyworkerConfigRequest) {
+private fun StaffConfiguration.verifyAgainst(request: KeyworkerConfigRequest) {
   assertThat(status.code).isEqualTo(request.status.name)
   assertThat(capacity).isEqualTo(request.capacity)
   assertThat(allowAutoAllocation).isEqualTo(!request.removeFromAutoAllocation)

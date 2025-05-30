@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus;
 
 import java.time.LocalDate;
 
@@ -49,7 +49,7 @@ public class KeyworkerDto {
     private String agencyDescription;
 
     @Schema(description = "Key worker's status.")
-    private KeyworkerStatus status;
+    private StaffStatus status;
 
     @Schema(description = "Key worker is eligible for auto allocation.")
     private Boolean autoAllocationAllowed;
@@ -60,7 +60,7 @@ public class KeyworkerDto {
     @Schema(description = "Number of KW sessions in the time period specified")
     private Integer numKeyWorkerSessions;
 
-    public KeyworkerDto(@NotNull Long staffId, @NotBlank String firstName, @NotBlank String lastName, String email, Long thumbnailId, @NotNull Integer capacity, @NotNull Integer numberAllocated, String scheduleType, String agencyId, String agencyDescription, KeyworkerStatus status, Boolean autoAllocationAllowed, LocalDate activeDate, Integer numKeyWorkerSessions) {
+    public KeyworkerDto(@NotNull Long staffId, @NotBlank String firstName, @NotBlank String lastName, String email, Long thumbnailId, @NotNull Integer capacity, @NotNull Integer numberAllocated, String scheduleType, String agencyId, String agencyDescription, StaffStatus status, Boolean autoAllocationAllowed, LocalDate activeDate, Integer numKeyWorkerSessions) {
         this.staffId = staffId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -164,11 +164,11 @@ public class KeyworkerDto {
         this.agencyDescription = agencyDescription;
     }
 
-    public KeyworkerStatus getStatus() {
+    public StaffStatus getStatus() {
         return this.status;
     }
 
-    public void setStatus(KeyworkerStatus status) {
+    public void setStatus(StaffStatus status) {
         this.status = status;
     }
 
@@ -304,7 +304,7 @@ public class KeyworkerDto {
         private String scheduleType;
         private String agencyId;
         private String agencyDescription;
-        private KeyworkerStatus status;
+        private StaffStatus status;
         private Boolean autoAllocationAllowed;
         private LocalDate activeDate;
         private Integer numKeyWorkerSessions;
@@ -362,7 +362,7 @@ public class KeyworkerDto {
             return this;
         }
 
-        public KeyworkerDto.KeyworkerDtoBuilder status(KeyworkerStatus status) {
+        public KeyworkerDto.KeyworkerDtoBuilder status(StaffStatus status) {
             this.status = status;
             return this;
         }

@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus;
 
 import java.time.LocalDate;
 
@@ -27,7 +27,7 @@ public class KeyworkerUpdateDto {
 
     @Schema(required = true, description = "Key worker's status.")
     @NotNull
-    private KeyworkerStatus status;
+    private StaffStatus status;
 
     @Schema(description = "Determines behaviour to apply to auto-allocation")
     private KeyworkerStatusBehaviour behaviour;

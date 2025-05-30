@@ -28,9 +28,9 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
   @ParameterizedTest
   @ValueSource(strings = [Roles.KEYWORKER_RO, Roles.KEYWORKER_RW])
-  fun `200 ok - can retrieve keyworker status`(role: String) {
+  fun `200 ok - can retrieve staff status`(role: String) {
     val rd =
-      getReferenceDataSpec("keyworker-status", role)
+      getReferenceDataSpec("staff-status", role)
         .expectStatus()
         .isOk
         .expectBodyList(CodedDescription::class.java)
