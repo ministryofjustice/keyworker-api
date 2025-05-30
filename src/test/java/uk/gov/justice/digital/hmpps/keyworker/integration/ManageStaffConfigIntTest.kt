@@ -16,11 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -37,8 +33,9 @@ class ManageStaffConfigIntTest : IntegrationTest() {
   @Test
   fun `401 unauthorised`() {
     webTestClient
-      .get()
+      .put()
       .uri(STAFF_CONFIG_URL, "NA1", newId())
+      .bodyValue(staffConfigRequest())
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -59,7 +56,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     val prisonCode = "CBP"
     val staffId = newId()
     val request = staffConfigRequest()
-    stubNomisUserRoles(prisonCode, staffId, request.classification, policy)
 
     manageStaffConfig(prisonCode, staffId, request, policy)
       .expectStatus()
@@ -68,18 +64,12 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
     val staffConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     staffConfig.verifyAgainst(request)
-    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
-      val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
-      staffRole.verifyAgainst(request.classification)
-    }
+
     verifyAudit(
       staffConfig,
       staffConfig.id,
       RevisionType.ADD,
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> setOf("StaffConfiguration")
-        AllocationPolicy.PERSONAL_OFFICER -> setOf("StaffConfiguration", "StaffRole")
-      },
+      setOf(StaffConfiguration::class.simpleName!!),
       AllocationContext(username = TEST_USERNAME, activeCaseloadId = prisonCode, policy = policy),
     )
   }
@@ -91,9 +81,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
-    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val request =
@@ -103,8 +90,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
         removeFromAutoAllocation = true,
         reactivateOn = LocalDate.now().plusDays(7),
       )
-    stubNomisUserRoles(prisonCode, staffId, request.classification, policy)
-
     manageStaffConfig(prisonCode, staffId, request, policy, username = username)
       .expectStatus()
       .isNoContent
@@ -127,9 +112,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
-    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val allocations =
@@ -138,7 +120,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
       }
 
     val request = staffConfigRequest(status = StaffStatus.ACTIVE, capacity = 6)
-    stubNomisUserRoles(prisonCode, staffId, request.classification, policy)
     manageStaffConfig(prisonCode, staffId, request, policy, username = username)
       .expectStatus()
       .isNoContent
@@ -165,9 +146,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     val prisonCode = "DBP"
     val staffId = newId()
     setContext(AllocationContext.get().copy(policy = policy))
-    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 10))
     val allocations =
       (0..10).map {
@@ -175,7 +153,6 @@ class ManageStaffConfigIntTest : IntegrationTest() {
       }
 
     val request = staffConfigRequest(deactivateActiveAllocations = true)
-    stubNomisUserRoles(prisonCode, staffId, request.classification, policy)
     manageStaffConfig(prisonCode, staffId, request, policy)
       .expectStatus()
       .isNoContent
@@ -190,47 +167,19 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     }
   }
 
-  @Test
-  fun `personal officer staff role can be updated`() {
-    val prisonCode = "UPO"
-    val staffId = newId()
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
-    givenStaffRole(staffRole(prisonCode, staffId))
-    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
-    val request = staffConfigRequest(classification = jobClassification(scheduleType = "PT", hoursPerWeek = 20, toDate = LocalDate.now()))
-    manageStaffConfig(prisonCode, staffId, request, AllocationPolicy.PERSONAL_OFFICER)
-      .expectStatus()
-      .isNoContent
-
-    val staffConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
-    staffConfig.verifyAgainst(request)
-    val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
-    staffRole.verifyAgainst(request.classification)
-  }
-
   fun staffConfigRequest(
     status: StaffStatus = StaffStatus.ACTIVE,
     capacity: Int = 10,
     deactivateActiveAllocations: Boolean = false,
     removeFromAutoAllocation: Boolean = false,
     reactivateOn: LocalDate? = null,
-    classification: StaffJobClassificationRequest = jobClassification(),
   ) = StaffConfigRequest(
     status,
     capacity,
     deactivateActiveAllocations,
     removeFromAutoAllocation,
     reactivateOn,
-    classification,
   )
-
-  fun jobClassification(
-    position: String = "PRO",
-    scheduleType: String = "FT",
-    hoursPerWeek: Int = 40,
-    fromDate: LocalDate = LocalDate.now().minusDays(7),
-    toDate: LocalDate? = null,
-  ) = StaffJobClassificationRequest(position, scheduleType, hoursPerWeek, fromDate, toDate)
 
   fun manageStaffConfig(
     prisonCode: String,
@@ -251,7 +200,7 @@ class ManageStaffConfigIntTest : IntegrationTest() {
       .exchange()
 
   companion object {
-    const val STAFF_CONFIG_URL = "/prisons/{prisonCode}/staff/{staffId}"
+    const val STAFF_CONFIG_URL = "/prisons/{prisonCode}/staff/{staffId}/configuration"
     const val TEST_USERNAME = "T35TUS3R"
 
     @JvmStatic
@@ -267,24 +216,5 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     assertThat(capacity).isEqualTo(request.capacity)
     assertThat(allowAutoAllocation).isEqualTo(!request.removeFromAutoAllocation)
     assertThat(reactivateOn).isEqualTo(request.reactivateOn)
-  }
-
-  private fun StaffRole.verifyAgainst(request: JobClassification) {
-    assertThat(position.code).isEqualTo(request.position)
-    assertThat(scheduleType.code).isEqualTo(request.scheduleType)
-    assertThat(hoursPerWeek).isEqualTo(request.hoursPerWeek)
-    assertThat(fromDate).isEqualTo(request.fromDate)
-    assertThat(toDate).isEqualTo(request.toDate)
-  }
-
-  private fun stubNomisUserRoles(
-    prisonCode: String,
-    staffId: Long,
-    request: JobClassification,
-    policy: AllocationPolicy,
-  ) {
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      nomisUserRolesMockServer.stubSetStaffRole(StaffJobClassification(prisonCode, staffId, request))
-    }
   }
 }

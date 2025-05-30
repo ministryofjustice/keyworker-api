@@ -22,8 +22,9 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
   @Test
   fun `401 unauthorised`() {
     webTestClient
-      .get()
+      .put()
       .uri(KEYWORKER_CONFIG_URL, "NA1", newId())
+      .bodyValue(keyworkerConfigRequest())
       .exchange()
       .expectStatus()
       .isUnauthorized

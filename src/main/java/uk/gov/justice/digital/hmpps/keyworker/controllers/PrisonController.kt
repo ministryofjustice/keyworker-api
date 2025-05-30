@@ -17,13 +17,13 @@ import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
+import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonStatsService
@@ -80,22 +80,36 @@ class PrisonController(
   fun modifyKeyworkerConfig(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
-    @RequestBody request: KeyworkerConfigRequest,
+    @RequestBody request: StaffConfigRequest,
   ) {
-    keyworkerConfigManager.configureKeyworker(prisonCode, staffId, request)
+    keyworkerConfigManager.setStaffConfiguration(prisonCode, staffId, request)
   }
 
   @PolicyHeader
   @CaseloadIdHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
-  @PutMapping("/staff/{staffId}")
+  @PutMapping("/staff/{staffId}/configuration")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun modifyStaffConfig(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
     @RequestBody request: StaffConfigRequest,
   ) {
-    keyworkerConfigManager.configure(prisonCode, staffId, request)
+    keyworkerConfigManager.setStaffConfiguration(prisonCode, staffId, request)
+  }
+
+  @PolicyHeader
+  @CaseloadIdHeader
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping("/staff/{staffId}/job-classification")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun modifyStaffJob(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+    @RequestBody request: StaffJobClassificationRequest,
+  ) {
+    keyworkerConfigManager.setStaffJobClassification(prisonCode, staffId, request)
   }
 }

@@ -1,6 +1,6 @@
 update reference_data
 set code        = 'STAFF_STATUS_CHANGE',
-    description = 'Staff Status Changed'
+    description = 'Staff member status change'
 where domain = 'DEALLOCATION_REASON'
   and code = 'KEYWORKER_STATUS_CHANGE';
 
