@@ -105,7 +105,7 @@ create table staff_role_audit
 (
     rev_id                  bigint      not null references audit_revision (id),
     rev_type                smallint    not null,
-    id                      uuid        not null primary key,
+    id                      uuid        not null,
     policy_code             varchar(16) not null,
     prison_code             varchar(6)  not null,
     staff_id                bigint      not null,
@@ -119,5 +119,6 @@ create table staff_role_audit
     schedule_type_modified  boolean     not null,
     hours_per_week_modified boolean     not null,
     from_date_modified      boolean     not null,
-    to_date_modified        boolean     not null
+    to_date_modified        boolean     not null,
+    primary key (rev_id, id)
 );

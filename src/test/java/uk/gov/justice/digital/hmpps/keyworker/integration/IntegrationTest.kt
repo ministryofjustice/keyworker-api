@@ -89,7 +89,7 @@ import java.time.LocalDateTime
 @ActiveProfiles("test")
 abstract class IntegrationTest {
   @Autowired
-  private lateinit var staffRoleRepository: StaffRoleRepository
+  protected lateinit var staffRoleRepository: StaffRoleRepository
 
   @Autowired
   protected lateinit var staffConfigRepository: StaffConfigRepository
