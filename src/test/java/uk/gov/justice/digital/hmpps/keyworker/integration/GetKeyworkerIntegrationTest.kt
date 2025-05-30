@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate.now
@@ -42,7 +42,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
   fun `200 ok and keyworker details returned`() {
     val prisonCode = "DEF"
     val keyworker =
-      givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
+      givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
     prisonMockServer.stubKeyworkerDetails(
       prisonCode,
       staffDetail(keyworker.staffId, ScheduleType.FULL_TIME),
@@ -171,9 +171,9 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     val prisonCode = agency.agencyId
     val staff = staffDetail(newId(), ScheduleType.FULL_TIME, "On", "Holiday")
     val keyworker =
-      givenKeyworkerConfig(
-        keyworkerConfig(
-          KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE,
+      givenStaffConfig(
+        staffConfig(
+          StaffStatus.UNAVAILABLE_ANNUAL_LEAVE,
           staff.staffId,
           capacity = 10,
           allowAutoAllocation = false,

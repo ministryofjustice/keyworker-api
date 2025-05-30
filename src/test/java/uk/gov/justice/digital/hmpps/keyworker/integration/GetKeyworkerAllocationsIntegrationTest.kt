@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -32,7 +32,7 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
   fun `200 ok and all allocations returned`() {
     val prisonCode = "HAL"
     val prisonNumber = personIdentifier()
-    val keyworkers = (0..4).map { givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.entries.random(), capacity = 10)) }
+    val keyworkers = (0..4).map { givenStaffConfig(staffConfig(StaffStatus.entries.random(), capacity = 10)) }
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison("HAL", "Indicated Prison")))
 

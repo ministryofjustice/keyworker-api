@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
@@ -13,8 +13,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageRes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.forLastMonth
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
@@ -43,12 +43,12 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..10).map { newId() }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
 
-    val keyworkerConfigs: List<KeyworkerConfig> =
+    val keyworkerConfigs: List<StaffConfiguration> =
       staffIds.mapIndexedNotNull { index, staffId ->
         if (index % 5 == 0) {
           null
         } else {
-          givenKeyworkerConfig(keyworkerConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
         }
       }
 
@@ -119,12 +119,12 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..10).map { newId() }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
 
-    val keyworkerConfigs: List<KeyworkerConfig> =
+    val keyworkerConfigs: List<StaffConfiguration> =
       staffIds.mapIndexedNotNull { index, staffId ->
         if (index % 5 == 0) {
           null
         } else {
-          givenKeyworkerConfig(keyworkerConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
         }
       }
 

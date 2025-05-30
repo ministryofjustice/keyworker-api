@@ -25,6 +25,7 @@ hmpps.sqs:
     domaineventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:domain_events_topic
 
+nomis-user-roles.api.uri.root: http://localhost:9994
 prison-register.api.uri.root: http://localhost:9995
 prisoner-search.api.uri.root: http://localhost:9996
 case-notes.api.uri.root: http://localhost:9997

@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.NoRecommendation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
@@ -22,7 +22,7 @@ class KeyworkerAllocationRecommender(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val personSearch: PersonSearch,
   private val nomisService: NomisService,
-  private val keyworkerConfigRepository: KeyworkerConfigRepository,
+  private val keyworkerConfigRepository: StaffConfigRepository,
   private val keyworkerAllocationRepository: KeyworkerAllocationRepository,
 ) {
   fun allocations(prisonCode: String): RecommendedAllocations {
@@ -81,7 +81,7 @@ class KeyworkerAllocationRecommender(
           keyworkerAllocationRepository.findLatestAutoAllocationsFor(keyworkerIds).associateBy { it.staffId }
         nomisKeyworkers.map {
           val keyworkerInfo = keyworkerInfo[it.staffId]
-          val capacity = keyworkerInfo?.keyworkerConfig?.capacity ?: prisonConfig.capacity
+          val capacity = keyworkerInfo?.staffConfig?.capacity ?: prisonConfig.capacity
           val autoAllocationCapacity = capacity * prisonConfig.maximumCapacity / prisonConfig.capacity
 
           KeyworkerCapacity(

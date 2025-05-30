@@ -8,6 +8,7 @@ import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.springframework.data.jpa.repository.JpaRepository
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration.Companion.default
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.util.UUID
@@ -65,8 +66,10 @@ class PrisonConfiguration(
   }
 }
 
-interface PrisonConfigurationRepository : JpaRepository<PrisonConfiguration, String> {
+interface PrisonConfigurationRepository : JpaRepository<PrisonConfiguration, UUID> {
   fun findByCode(code: String): PrisonConfiguration?
 
   fun findAllByEnabledIsTrue(): List<PrisonConfiguration>
 }
+
+fun PrisonConfigurationRepository.getConfigFor(prisonCode: String): PrisonConfiguration = findByCode(prisonCode) ?: default(prisonCode)

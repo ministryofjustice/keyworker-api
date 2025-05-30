@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
@@ -107,7 +107,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonDetails(setOf(psa.personIdentifier), listOf(prisoner))
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
 
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.INACTIVE, staff.staffId))
+    givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staff.staffId))
 
     val res =
       allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)))
@@ -244,7 +244,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     keyworkerAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
       assertThat(allocation.active).isFalse
       assertThat(allocation.expiryDateTime).isNotNull
-      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.KEYWORKER_STATUS_CHANGE.reasonCode)
+      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }
 
@@ -299,7 +299,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   private fun personStaffDeallocation(
     personIdentifier: String = personIdentifier(),
     staffId: Long = newId(),
-    deallocationReason: String = DeallocationReason.KEYWORKER_STATUS_CHANGE.name,
+    deallocationReason: String = DeallocationReason.STAFF_STATUS_CHANGE.name,
   ) = PersonStaffDeallocation(personIdentifier, staffId, deallocationReason)
 
   private fun personStaffAllocations(

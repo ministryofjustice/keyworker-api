@@ -12,7 +12,7 @@ import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
 import org.springframework.data.jpa.repository.JpaRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 
 @Immutable
 @Entity
@@ -40,7 +40,7 @@ data class ReferenceDataKey(
 ) : ReferenceDataLookup
 
 enum class ReferenceDataDomain {
-  KEYWORKER_STATUS,
+  STAFF_STATUS,
   ALLOCATION_REASON,
   DEALLOCATION_REASON,
   SCHEDULE_TYPE,
@@ -65,15 +65,15 @@ interface ReferenceDataRepository : JpaRepository<ReferenceData, Long> {
   fun findAllByKeyIn(keys: Set<ReferenceDataKey>): List<ReferenceData>
 }
 
-fun ReferenceDataRepository.getKeyworkerStatus(status: KeyworkerStatus): ReferenceData =
-  findByKey(ReferenceDataKey(ReferenceDataDomain.KEYWORKER_STATUS, status.name))
+fun ReferenceDataRepository.getKeyworkerStatus(status: StaffStatus): ReferenceData =
+  findByKey(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, status.name))
     ?: throw EntityNotFoundException("Keyworker status not found")
 
 fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
   findByKey(key)
     ?: throw EntityNotFoundException("Reference data not found")
 
-fun ReferenceData.asKeyworkerStatus(): KeyworkerStatus = KeyworkerStatus.valueOf(code)
+fun ReferenceData.asKeyworkerStatus(): StaffStatus = StaffStatus.valueOf(code)
 
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
   this?.let {

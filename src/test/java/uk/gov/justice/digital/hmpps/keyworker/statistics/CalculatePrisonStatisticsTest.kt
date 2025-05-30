@@ -24,8 +24,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPerso
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.INACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
@@ -40,10 +40,10 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val keyworkers =
-      (0..10).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..10).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
     val additionalKeyworkers =
-      (0..5).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..5).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     val prisoners = prisoners()
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     prisoners.personIdentifiers().forEachIndexed { index, pi ->
@@ -109,7 +109,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
     val keyworkers =
-      (0..10).map { index -> givenKeyworkerConfig(keyworkerConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..10).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
     val prisoners = prisoners()
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)

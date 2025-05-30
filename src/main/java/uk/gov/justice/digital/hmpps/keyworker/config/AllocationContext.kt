@@ -15,9 +15,11 @@ data class AllocationContext(
   }
 }
 
-enum class AllocationPolicy {
-  KEY_WORKER,
-  PERSONAL_OFFICER,
+enum class AllocationPolicy(
+  val nomisUseRoleCode: String?,
+) {
+  KEY_WORKER("KW"),
+  PERSONAL_OFFICER(null),
   ;
 
   companion object {

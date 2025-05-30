@@ -54,8 +54,7 @@ public class LegacyPrisonConfiguration {
     @TenantId
     @Audited(withModifiedFlag = false)
     @Column(name = "POLICY_CODE", updatable = false)
-    @Builder.Default
-    private String policy = AllocationPolicy.KEY_WORKER.name();
+    private final String policy = AllocationPolicy.KEY_WORKER.name();
 
     @Id
     @Audited(withModifiedFlag = false)
