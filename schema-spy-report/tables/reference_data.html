@@ -118,11 +118,6 @@
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                             <tr>
-                                                <td title="keyworker_configuration.status_id references reference_data.id via key_worker_status_id_fkey"><a href='keyworker_configuration.html'>keyworker_configuration</a><span class='relatedKey'>.status_id</span></td>
-                                                <td class="constraint detail">key_worker_status_id_fkey</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
                                                 <td title="offender_key_worker.allocation_reason_id references reference_data.id via offender_key_worker_allocation_reason_id_fkey"><a href='offender_key_worker.html'>offender_key_worker</a><span class='relatedKey'>.allocation_reason_id</span></td>
                                                 <td class="constraint detail">offender_key_worker_allocation_reason_id_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
@@ -130,6 +125,11 @@
                                             <tr>
                                                 <td title="offender_key_worker.deallocation_reason_id references reference_data.id via offender_key_worker_deallocation_reason_id_fkey"><a href='offender_key_worker.html'>offender_key_worker</a><span class='relatedKey'>.deallocation_reason_id</span></td>
                                                 <td class="constraint detail">offender_key_worker_deallocation_reason_id_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="staff_configuration.status_id references reference_data.id via key_worker_status_id_fkey"><a href='staff_configuration.html'>staff_configuration</a><span class='relatedKey'>.status_id</span></td>
+                                                <td class="constraint detail">key_worker_status_id_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
                                         </table>
@@ -274,11 +274,16 @@
                                 <h5>Close relationships within degrees of separation</h5>
                                 <ul class="nav nav-tabs pull-left ui-sortable-handle">
                                     <li class="active"><a href="#oneDegreeImg-chart" data-toggle="tab" aria-expanded="true">One</a></li>
+                                    <li class=""><a href="#twodegreesDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two degrees</a></li>
                                 </ul>
                                 <div class="tab-content no-padding">
                                     <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
                                         <a name='diagram'><object type="image/svg+xml" id="oneDegreeImg" data="../diagrams/tables/reference_data.1degree.svg" class="diagram" border="0" align="left"></object></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        
+                                        <a name='diagram'><object type="image/svg+xml" id="twodegreesDegreeImg" data="../diagrams/tables/reference_data.2degrees.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                 </div>
                             </div>
