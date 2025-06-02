@@ -42,7 +42,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAutoAllocationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerMigrationService
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService
@@ -822,7 +822,7 @@ class KeyworkerServiceController(
     nameFilter: Optional<String>?,
     @Parameter(description = "Filter results by status of key worker.")
     @RequestParam(value = "statusFilter")
-    statusFilter: Optional<KeyworkerStatus>?,
+    statusFilter: Optional<StaffStatus>?,
     @Parameter(
       description = "Requested offset of first record in returned collection of allocation records.",
       example = "0",

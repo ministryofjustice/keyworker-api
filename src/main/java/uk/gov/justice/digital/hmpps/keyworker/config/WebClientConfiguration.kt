@@ -34,6 +34,7 @@ class WebClientConfiguration(
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
   @Value("\${prisoner-search.api.uri.root}") private val prisonerSearchApiRootUri: String,
   @Value("\${prison-register.api.uri.root}") private val prisonRegisterApiRootUri: String,
+  @Value("\${nomis-user-roles.api.uri.root}") private val nomisUserRolesApiRootUri: String,
 ) {
   @Bean
   fun authorizedClientManager(
@@ -76,6 +77,12 @@ class WebClientConfiguration(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, prisonerSearchApiRootUri)
+
+  @Bean
+  fun nomisUserRolesWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, nomisUserRolesApiRootUri)
 
   private fun getOAuthWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,

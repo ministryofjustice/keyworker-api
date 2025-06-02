@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.transaction.support.TransactionTemplate
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
@@ -33,8 +34,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfig
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
@@ -46,15 +45,21 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.KEYWORKER_STATUS
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ComplexityOfNeedMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.ManageUsersMockServer
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.NomisUserRolesMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonRegisterMockServer
@@ -62,8 +67,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearc
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
@@ -86,7 +91,10 @@ import java.time.LocalDateTime
 @ActiveProfiles("test")
 abstract class IntegrationTest {
   @Autowired
-  protected lateinit var keyworkerConfigRepository: KeyworkerConfigRepository
+  protected lateinit var staffRoleRepository: StaffRoleRepository
+
+  @Autowired
+  protected lateinit var staffConfigRepository: StaffConfigRepository
 
   @Autowired
   protected lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
@@ -132,6 +140,9 @@ abstract class IntegrationTest {
 
   @Autowired
   internal lateinit var contextHolder: AllocationContextHolder
+
+  @MockitoSpyBean
+  internal lateinit var nomisUserRolesApiClient: NomisUserRolesApiClient
 
   init {
     SecurityContextHolder.getContext().authentication = TestingAuthenticationToken("user", "pw")
@@ -226,6 +237,9 @@ abstract class IntegrationTest {
     @JvmField
     internal val prisonRegisterMockServer = PrisonRegisterMockServer()
 
+    @JvmField
+    internal val nomisUserRolesMockServer = NomisUserRolesMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -236,6 +250,7 @@ abstract class IntegrationTest {
       caseNotesMockServer.start()
       prisonerSearchMockServer.start()
       prisonRegisterMockServer.start()
+      nomisUserRolesMockServer.start()
     }
 
     @AfterAll
@@ -248,6 +263,7 @@ abstract class IntegrationTest {
       caseNotesMockServer.stop()
       prisonerSearchMockServer.stop()
       prisonRegisterMockServer.stop()
+      nomisUserRolesMockServer.stop()
     }
 
     private val pgContainer = PostgresContainer.instance
@@ -277,6 +293,7 @@ abstract class IntegrationTest {
     manageUsersMockServer.resetAll()
     caseNotesMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
+    nomisUserRolesMockServer.resetAll()
   }
 
   @AfterEach
@@ -453,15 +470,33 @@ abstract class IntegrationTest {
       },
     )
 
-  protected fun keyworkerConfig(
-    status: KeyworkerStatus,
+  protected fun staffConfig(
+    status: StaffStatus,
     staffId: Long = newId(),
     capacity: Int = 6,
     allowAutoAllocation: Boolean = true,
     reactivateOn: LocalDate? = null,
-  ) = KeyworkerConfig(withReferenceData(KEYWORKER_STATUS, status.name), capacity, allowAutoAllocation, reactivateOn, staffId)
+  ) = StaffConfiguration(
+    withReferenceData(STAFF_STATUS, status.name),
+    capacity,
+    allowAutoAllocation,
+    reactivateOn,
+    staffId,
+  )
 
-  protected fun givenKeyworkerConfig(keyworkerConfig: KeyworkerConfig): KeyworkerConfig = keyworkerConfigRepository.save(keyworkerConfig)
+  protected fun givenStaffConfig(staffConfig: StaffConfiguration): StaffConfiguration = staffConfigRepository.save(staffConfig)
+
+  protected fun staffRole(
+    prisonCode: String,
+    staffId: Long,
+    position: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_POS, "PRO"),
+    scheduleType: ReferenceData = withReferenceData(ReferenceDataDomain.SCHEDULE_TYPE, "FT"),
+    hoursPerWeek: Int = 40,
+    fromDate: LocalDate = LocalDate.now().minusDays(7),
+    toDate: LocalDate? = null,
+  ) = StaffRole(position, scheduleType, hoursPerWeek, fromDate, toDate, prisonCode, staffId)
+
+  protected fun givenStaffRole(staffRole: StaffRole) = staffRoleRepository.save(staffRole)
 
   protected fun keyworkerAllocation(
     personIdentifier: String,

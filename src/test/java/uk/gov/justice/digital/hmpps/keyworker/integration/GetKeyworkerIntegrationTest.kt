@@ -16,11 +16,14 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import java.math.BigDecimal
+import java.math.RoundingMode.HALF_EVEN
 import java.time.LocalDate.now
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.DAYS
 
 class GetKeyworkerIntegrationTest : IntegrationTest() {
   @Test
@@ -42,7 +45,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
   fun `200 ok and keyworker details returned`() {
     val prisonCode = "DEF"
     val keyworker =
-      givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
+      givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
     prisonMockServer.stubKeyworkerDetails(
       prisonCode,
       staffDetail(keyworker.staffId, ScheduleType.FULL_TIME),
@@ -117,15 +120,21 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
 
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(62)
+      val projectedSessions = DAYS.between(from, to) * 2 + 2
+      assertThat(projectedSessions).isEqualTo(projectedSessions)
       assertThat(recordedSessions).isEqualTo(38)
       assertThat(recordedEntries).isEqualTo(15)
-      assertThat(complianceRate).isEqualTo(61.29)
+      assertThat(complianceRate).isEqualTo(
+        BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
+          .setScale(2, HALF_EVEN)
+          .toDouble(),
+      )
     }
 
     assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {
-      assertThat(projectedSessions).isEqualTo(22)
+      val projectedSessions = DAYS.between(from, to) * 2 + 2
+      assertThat(projectedSessions).isEqualTo(projectedSessions)
       assertThat(recordedSessions).isEqualTo(0)
       assertThat(recordedEntries).isEqualTo(0)
       assertThat(complianceRate).isEqualTo(0.0)
@@ -171,9 +180,9 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     val prisonCode = agency.agencyId
     val staff = staffDetail(newId(), ScheduleType.FULL_TIME, "On", "Holiday")
     val keyworker =
-      givenKeyworkerConfig(
-        keyworkerConfig(
-          KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE,
+      givenStaffConfig(
+        staffConfig(
+          StaffStatus.UNAVAILABLE_ANNUAL_LEAVE,
           staff.staffId,
           capacity = 10,
           allowAutoAllocation = false,

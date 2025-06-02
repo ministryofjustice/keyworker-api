@@ -29,6 +29,7 @@ import kotlin.text.trimMargin
 
 const val PRISON = "Prison"
 const val MANAGE_KEYWORKERS = "Manage Keyworkers"
+const val MANAGE_STAFF = "Manage Staff"
 const val ALLOCATE_KEY_WORKERS = "Allocate Keyworkers"
 const val REFERENCE_DATA = "Reference Data"
 
@@ -79,6 +80,7 @@ class OpenApiConfiguration(
         ),
       ).addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
       .addTagsItem(Tag().name(PRISON).description("Endpoints for prison level operations"))
+      .addTagsItem(Tag().name(MANAGE_STAFF).description("Endpoints for managing staff"))
       .addTagsItem(Tag().name(MANAGE_KEYWORKERS).description("Endpoints for managing keyworkers"))
       .addTagsItem(Tag().name(ALLOCATE_KEY_WORKERS).description("Endpoints for allocating keyworkers"))
       .addTagsItem(Tag().name(REFERENCE_DATA).description("Endpoints for reference data"))

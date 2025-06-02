@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
@@ -78,7 +78,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
               s.staffId,
               active = false,
               expiryDateTime = LocalDateTime.now().minusDays(1),
-              deallocationReason = DeallocationReason.KEYWORKER_STATUS_CHANGE,
+              deallocationReason = DeallocationReason.STAFF_STATUS_CHANGE,
             ),
           )
         }.associateBy { it.staffId }
@@ -115,7 +115,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (0..4).map { staffDetail() }
-    staff.map { givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, it.staffId, 4)) }
+    staff.map { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 4)) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
     staff.mapIndexed { i, s ->
       (1..5 - i).map {
@@ -171,8 +171,8 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (1..2).map { staffDetail() }
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staff[0].staffId, 4))
-    givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, staff[1].staffId, 8))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[0].staffId, 4))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[1].staffId, 8))
     prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
 
     val res =
