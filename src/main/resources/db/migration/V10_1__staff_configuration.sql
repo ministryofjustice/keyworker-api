@@ -8,10 +8,12 @@ update reference_data
 set domain = 'STAFF_STATUS'
 where domain = 'KEYWORKER_STATUS';
 
+drop table keyworker_configuration_audit;
+
 delete
 from audit_revision
-where id in (select rev_id from keyworker_configuration_audit);
-drop table keyworker_configuration_audit;
+where 'KeyworkerConfig' = any (affected_entities)
+   or 'LegacyKeyworkerConfig' = any (affected_entities);
 
 alter table keyworker_configuration
     drop constraint key_worker_pk;
