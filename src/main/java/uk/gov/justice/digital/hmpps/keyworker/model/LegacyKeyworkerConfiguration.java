@@ -12,25 +12,29 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.TenantId;
 import org.hibernate.envers.Audited;
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData;
+import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 @Entity
-@Table(name = "KEYWORKER_CONFIGURATION")
+@Table(name = "STAFF_CONFIGURATION")
 @Data()
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"staffId"})
 @Audited(withModifiedFlag = true)
-public class LegacyKeyworkerConfig {
+public class LegacyKeyworkerConfiguration {
 
     @Audited(withModifiedFlag = false)
-    @Id @Column(name = "STAFF_ID", nullable = false)
+    @Column(name = "STAFF_ID", nullable = false)
     private Long staffId;
 
     @NotNull
@@ -50,4 +54,13 @@ public class LegacyKeyworkerConfig {
 
     @Column(name = "REACTIVATE_ON")
     LocalDate reactivateOn;
+
+    @TenantId
+    @Audited(withModifiedFlag = false)
+    @Column(name = "POLICY_CODE", updatable = false)
+    private final String policy = AllocationPolicy.KEY_WORKER.name();
+
+    @Id
+    @Audited(withModifiedFlag = false)
+    private final UUID id = IdGenerator.INSTANCE.newUuid();
 }

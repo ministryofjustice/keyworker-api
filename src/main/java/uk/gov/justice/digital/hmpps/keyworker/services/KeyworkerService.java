@@ -38,10 +38,10 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig;
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfiguration;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerConfigurationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.time.LocalDate.now;
 import static uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKt.getKeyworkerStatus;
-import static uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE;
+import static uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE;
 
 @Service
 @Validated
@@ -74,7 +74,7 @@ public class KeyworkerService {
 
     private final AuthenticationFacade authenticationFacade;
     private final OffenderKeyworkerRepository repository;
-    private final LegacyKeyworkerRepository keyworkerRepository;
+    private final LegacyKeyworkerConfigurationRepository keyworkerRepository;
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
@@ -472,7 +472,7 @@ public class KeyworkerService {
         return RegExUtils.replaceFirst(description, StringUtils.trimToEmpty(agencyId) + "-", "");
     }
 
-    public Page<KeyworkerDto> getKeyworkers(final String prisonId, final Optional<String> nameFilter, final Optional<KeyworkerStatus> statusFilter, final PagingAndSortingDto pagingAndSorting) {
+    public Page<KeyworkerDto> getKeyworkers(final String prisonId, final Optional<String> nameFilter, final Optional<StaffStatus> statusFilter, final PagingAndSortingDto pagingAndSorting) {
 
         final var response = nomisService.getActiveStaffKeyWorkersForPrison(prisonId, nameFilter, pagingAndSorting, false);
         final var prisonCapacityDefault = getPrisonCapacityDefault(prisonId);
@@ -563,18 +563,18 @@ public class KeyworkerService {
 
     private void decorateWithKeyworkerData(final KeyworkerDto keyworkerDto, final int capacityDefault) {
         if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
-            keyworkerRepository.findById(keyworkerDto.getStaffId())
+            keyworkerRepository.findByStaffId(keyworkerDto.getStaffId())
                 .ifPresentOrElse(
                     keyworker -> {
                         keyworkerDto.setCapacity(keyworker.getCapacity() != null ? keyworker.getCapacity() : capacityDefault);
-                        keyworkerDto.setStatus(KeyworkerStatus.valueOf(keyworker.getStatus().getCode()));
+                        keyworkerDto.setStatus(StaffStatus.valueOf(keyworker.getStatus().getCode()));
                         keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
                         keyworkerDto.setAutoAllocationAllowed(keyworker.getAllowAutoAllocation());
                         keyworkerDto.setActiveDate(keyworker.getReactivateOn());
                     },
                     () -> {
                         keyworkerDto.setCapacity(capacityDefault);
-                        keyworkerDto.setStatus(KeyworkerStatus.ACTIVE);
+                        keyworkerDto.setStatus(StaffStatus.ACTIVE);
                         keyworkerDto.setAgencyId(keyworkerDto.getAgencyId());
                         keyworkerDto.setAutoAllocationAllowed(true);
                     }
@@ -584,7 +584,7 @@ public class KeyworkerService {
 
     private void decorateWithNomisKeyworkerData(final KeyworkerDto keyworkerDto) {
         if (keyworkerDto != null && keyworkerDto.getAgencyId() != null) {
-            keyworkerDto.setStatus(KeyworkerStatus.ACTIVE);
+            keyworkerDto.setStatus(StaffStatus.ACTIVE);
             keyworkerDto.setAutoAllocationAllowed(false);
             keyworkerDto.setNumberAllocated(0);
         }
@@ -605,15 +605,15 @@ public class KeyworkerService {
         Validate.notNull(staffId, "Missing staff id");
         final var status = getKeyworkerStatus(referenceDataRepository, keyworkerUpdateDto.getStatus());
 
-        keyworkerRepository.findById(staffId).ifPresentOrElse(keyworker -> {
+        keyworkerRepository.findByStaffId(staffId).ifPresentOrElse(keyworker -> {
                 keyworker.setCapacity(keyworkerUpdateDto.getCapacity());
                 keyworker.setStatus(status);
                 keyworker.setReactivateOn(keyworkerUpdateDto.getActiveDate());
-                if (keyworkerUpdateDto.getStatus() == KeyworkerStatus.ACTIVE) {
+                if (keyworkerUpdateDto.getStatus() == StaffStatus.ACTIVE) {
                     keyworker.setAllowAutoAllocation(true);
                 }
             },
-            () -> keyworkerRepository.save(LegacyKeyworkerConfig.builder()
+            () -> keyworkerRepository.save(LegacyKeyworkerConfiguration.builder()
                 .staffId(staffId)
                 .capacity(keyworkerUpdateDto.getCapacity())
                 .status(status)
@@ -631,7 +631,7 @@ public class KeyworkerService {
             final var now = LocalDateTime.now();
             final var allocations = repository.findByStaffIdAndPrisonIdAndActive(staffId, prisonId, true);
             final var deallocationReason = referenceDataRepository.findByKey(
-                new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.KEYWORKER_STATUS_CHANGE.getReasonCode())
+                new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.STAFF_STATUS_CHANGE.getReasonCode())
             );
             allocations.forEach(ok -> {
                 ok.setDeallocationReason(deallocationReason);
@@ -641,7 +641,7 @@ public class KeyworkerService {
         }
 
         if (behaviour.isRemoveFromAutoAllocation()) {
-            keyworkerRepository.findById(staffId).ifPresent(kw -> kw.setAllowAutoAllocation(false));
+            keyworkerRepository.findByStaffId(staffId).ifPresent(kw -> kw.setAllowAutoAllocation(false));
         }
     }
 

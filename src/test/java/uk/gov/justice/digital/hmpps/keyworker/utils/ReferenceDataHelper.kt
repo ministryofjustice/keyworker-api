@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 
 object ReferenceDataHelper {
@@ -35,11 +35,11 @@ object ReferenceDataHelper {
   }
 
   @JvmStatic
-  fun keyworkerStatus(status: KeyworkerStatus): ReferenceData {
+  fun keyworkerStatus(status: StaffStatus): ReferenceData {
     val description =
       status.statusCode.mapIndexed { i, v -> if (i == 0) v.uppercase() else v.toString() }.joinToString("")
     return ReferenceData(
-      ReferenceDataDomain.KEYWORKER_STATUS of status.name,
+      ReferenceDataDomain.STAFF_STATUS of status.name,
       description,
       status.ordinal,
       newId(),
@@ -51,7 +51,7 @@ object ReferenceDataHelper {
     when (rdKey.domain) {
       ReferenceDataDomain.ALLOCATION_REASON -> allocationReason(AllocationReason.get(rdKey.code))
       ReferenceDataDomain.DEALLOCATION_REASON -> deallocationReason(DeallocationReason.get(rdKey.code))
-      ReferenceDataDomain.KEYWORKER_STATUS -> keyworkerStatus(KeyworkerStatus.valueOf(rdKey.code))
+      ReferenceDataDomain.STAFF_STATUS -> keyworkerStatus(StaffStatus.valueOf(rdKey.code))
       else -> throw UnsupportedOperationException("Unsupported reference data domain ${rdKey.domain}")
     }
 }

@@ -35,10 +35,10 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedExcept
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfig;
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerConfiguration;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerConfigurationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
 import uk.gov.justice.digital.hmpps.keyworker.security.AuthenticationFacade;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ReferenceDataHelper;
@@ -99,7 +99,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     private OffenderKeyworkerRepository repository;
 
     @MockitoBean
-    private LegacyKeyworkerRepository keyworkerRepository;
+    private LegacyKeyworkerConfigurationRepository keyworkerRepository;
 
     @MockitoBean
     private KeyworkerAllocationProcessor processor;
@@ -447,7 +447,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         final var keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails, null);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, CAPACITY, ALLOCATIONS, StaffStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails, null);
     }
 
     @Test
@@ -540,10 +540,10 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     private void expectKeyworkerDetailsCall(final long staffId, final Integer CAPACITY, final int ALLOCATIONS, final LocalDate activeDate) {
         expectStaffRoleApiCall(staffId);
 
-        when(keyworkerRepository.findById(staffId)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(staffId)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(staffId)
             .capacity(CAPACITY)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.UNAVAILABLE_ANNUAL_LEAVE.name()))
             .allowAutoAllocation(true)
             .reactivateOn(activeDate)
             .build())
@@ -570,7 +570,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         final var keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, ALLOCATIONS, KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails, activeDate);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, ALLOCATIONS, StaffStatus.UNAVAILABLE_ANNUAL_LEAVE, keyworkerDetails, activeDate);
     }
 
     @Test
@@ -578,12 +578,12 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var staffId = 5L;
         expectStaffRoleApiCall(staffId);
 
-        when(keyworkerRepository.findById(staffId)).thenReturn(Optional.empty());
+        when(keyworkerRepository.findByStaffId(staffId)).thenReturn(Optional.empty());
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(staffId, TEST_AGENCY, true, PROVISIONAL)).thenReturn(null);
 
         final var keyworkerDetails = service.getKeyworkerDetails(TEST_AGENCY, staffId);
 
-        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, null, KeyworkerStatus.ACTIVE, keyworkerDetails, null);
+        KeyworkerTestHelper.verifyKeyworkerDto(staffId, 6, null, StaffStatus.ACTIVE, keyworkerDetails, null);
     }
 
     @Test
@@ -603,7 +603,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(keyworkerDetails.getAgencyId()).isEqualTo(null);
         assertThat(keyworkerDetails.getCapacity()).isEqualTo(null);
 
-        verify(keyworkerRepository, never()).findById(Mockito.anyLong());
+        verify(keyworkerRepository, never()).findByStaffId(Mockito.anyLong());
         verify(repository, never()).countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(Mockito.anyLong(), Mockito.anyString(), Mockito.anyBoolean(), ArgumentMatchers.any());
     }
 
@@ -715,7 +715,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     void testGetKeyworkers() {
 
         final var nameFilter = Optional.of("CUser");
-        final var statusFilter = Optional.of(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
+        final var statusFilter = Optional.of(StaffStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
         final var pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final var nomisList = List.of(
             StaffLocationRoleDto.builder()
@@ -741,17 +741,17 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting, false))
             .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
-        when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-5L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-5L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.UNAVAILABLE_LONG_TERM_ABSENCE.name()))
             .capacity(5)
             .allowAutoAllocation(true)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 12))
             .build())
         );
-        when(keyworkerRepository.findById(-6L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-6L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-6L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .capacity(3)
             .allowAutoAllocation(true)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 14))
@@ -771,14 +771,14 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result.getNumberAllocated()).isEqualTo(2);
         assertThat(result.getActiveDate()).isEqualTo(LocalDate.of(2018, Month.AUGUST, 12));
         assertThat(result.getAutoAllocationAllowed()).isTrue();
-        assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
+        assertThat(result.getStatus()).isEqualTo(StaffStatus.UNAVAILABLE_LONG_TERM_ABSENCE);
     }
 
     @Test
     void testGetKeyworkersNonMigrated() {
 
         final var nameFilter = Optional.of("CUser");
-        final var statusFilter = Optional.of(KeyworkerStatus.ACTIVE);
+        final var statusFilter = Optional.of(StaffStatus.ACTIVE);
         final var pagingAndSorting = PagingAndSortingDto.builder().pageLimit(50L).pageOffset(0L).build();
         final var nomisList = List.of(
             StaffLocationRoleDto.builder()
@@ -820,14 +820,14 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(result1.getLastName()).isEqualTo("DUser");
         assertThat(result1.getNumberAllocated()).isEqualTo(0);
         assertThat(result1.getAutoAllocationAllowed()).isFalse();
-        assertThat(result1.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result1.getStatus()).isEqualTo(StaffStatus.ACTIVE);
 
         final var result2 = keyworkerList.getItems().get(1);
         assertThat(result2.getStaffId()).isEqualTo(-5L);
         assertThat(result2.getLastName()).isEqualTo("CUser");
         assertThat(result2.getNumberAllocated()).isEqualTo(2);
         assertThat(result2.getAutoAllocationAllowed()).isFalse();
-        assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result2.getStatus()).isEqualTo(StaffStatus.ACTIVE);
 
     }
 
@@ -873,25 +873,25 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         );
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, nameFilter, pagingAndSorting, false))
             .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(3, 0, 10), HttpStatus.OK));
-        when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-5L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-5L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .capacity(5)
             .allowAutoAllocation(true)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 12))
             .build())
         );
-        when(keyworkerRepository.findById(-6L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-6L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-6L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .capacity(3)
             .allowAutoAllocation(true)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 14))
             .build())
         );
-        when(keyworkerRepository.findById(-7L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-7L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-7L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.UNAVAILABLE_ANNUAL_LEAVE.name()))
             .capacity(2)
             .allowAutoAllocation(false)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 14))
@@ -927,19 +927,19 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(keyworkerList.getItems()).hasSize(3);
         final var result = keyworkerList.getItems().get(0);
         assertThat(result.getStaffId()).isEqualTo(-6L);
-        assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result.getStatus()).isEqualTo(StaffStatus.ACTIVE);
         assertThat(result.getNumberAllocated()).isEqualTo(1);
         assertThat(result.getNumKeyWorkerSessions()).isEqualTo(4);
 
         final var result2 = keyworkerList.getItems().get(1);
         assertThat(result2.getStaffId()).isEqualTo(-5L);
-        assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.ACTIVE);
+        assertThat(result2.getStatus()).isEqualTo(StaffStatus.ACTIVE);
         assertThat(result2.getNumberAllocated()).isEqualTo(2);
         assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(3);
 
         final var result3 = keyworkerList.getItems().get(2);
         assertThat(result3.getStaffId()).isEqualTo(-7L);
-        assertThat(result3.getStatus()).isEqualTo(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE);
+        assertThat(result3.getStatus()).isEqualTo(StaffStatus.UNAVAILABLE_ANNUAL_LEAVE);
         assertThat(result3.getNumberAllocated()).isEqualTo(3);
         assertThat(result3.getNumKeyWorkerSessions()).isEqualTo(0);
 
@@ -973,17 +973,17 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(nomisService.getActiveStaffKeyWorkersForPrison(TEST_AGENCY, Optional.empty(), pagingAndSorting, false))
             .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
 
-        when(keyworkerRepository.findById(-5L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-5L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-5L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.INACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.INACTIVE.name()))
             .capacity(5)
             .allowAutoAllocation(true)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 12))
             .build())
         );
-        when(keyworkerRepository.findById(-6L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
+        when(keyworkerRepository.findByStaffId(-6L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
             .staffId(-6L)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.INACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.INACTIVE.name()))
             .capacity(3)
             .allowAutoAllocation(true)
             .reactivateOn(LocalDate.of(2018, Month.AUGUST, 14))
@@ -1018,12 +1018,12 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         assertThat(keyworkerList.getItems()).hasSize(2);
         final var result = keyworkerList.getItems().get(0);
         assertThat(result.getStaffId()).isEqualTo(-6L);
-        assertThat(result.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
+        assertThat(result.getStatus()).isEqualTo(StaffStatus.INACTIVE);
         assertThat(result.getNumKeyWorkerSessions()).isEqualTo(4);
 
         final var result2 = keyworkerList.getItems().get(1);
         assertThat(result2.getStaffId()).isEqualTo(-5L);
-        assertThat(result2.getStatus()).isEqualTo(KeyworkerStatus.INACTIVE);
+        assertThat(result2.getStatus()).isEqualTo(StaffStatus.INACTIVE);
         assertThat(result2.getNumKeyWorkerSessions()).isEqualTo(3);
     }
 
@@ -1287,20 +1287,20 @@ class KeyworkerServiceTest extends AbstractServiceTest {
             KeyworkerTestHelper.getKeyworker(7, 0, 0)
         );
 
-        when(keyworkerRepository.findById(1L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder().staffId(1L).allowAutoAllocation(true)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.INACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(1L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder().staffId(1L).allowAutoAllocation(true)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.INACTIVE.name()))
             .build()));
-        when(keyworkerRepository.findById(2L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder().staffId(2L).allowAutoAllocation(true)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE.name()))
+        when(keyworkerRepository.findByStaffId(2L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder().staffId(2L).allowAutoAllocation(true)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.UNAVAILABLE_ANNUAL_LEAVE.name()))
             .build()));
-        when(keyworkerRepository.findById(3L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder().staffId(3L).allowAutoAllocation(true)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(3L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder().staffId(3L).allowAutoAllocation(true)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .build()));
-        when(keyworkerRepository.findById(5L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder().staffId(3L).allowAutoAllocation(true)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE.name()))
+        when(keyworkerRepository.findByStaffId(5L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder().staffId(3L).allowAutoAllocation(true)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.UNAVAILABLE_LONG_TERM_ABSENCE.name()))
             .build()));
-        when(keyworkerRepository.findById(7L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder().staffId(3L).allowAutoAllocation(true)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(7L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder().staffId(3L).allowAutoAllocation(true)
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .build()));
 
         when(repository.countByStaffIdAndPrisonIdAndActiveAndAllocationTypeIsNot(1L, TEST_AGENCY, true, PROVISIONAL)).thenReturn(0);
@@ -1356,27 +1356,27 @@ class KeyworkerServiceTest extends AbstractServiceTest {
             KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1),
             KeyworkerTestHelper.getKeyworker(4, 0, CAPACITY_TIER_1));
 
-        when(keyworkerRepository.findById(1L))
-            .thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
-                    .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(1L))
+            .thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
+                    .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
                 .staffId(1L)
                 .allowAutoAllocation(true)
                 .build()
             ));
-        when(keyworkerRepository.findById(2L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(2L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .staffId(2L)
             .allowAutoAllocation(true)
             .build()
         ));
-        when(keyworkerRepository.findById(3L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(3L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .staffId(3L)
             .allowAutoAllocation(true)
             .build()
         ));
-        when(keyworkerRepository.findById(4L)).thenReturn(Optional.of(LegacyKeyworkerConfig.builder()
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+        when(keyworkerRepository.findByStaffId(4L)).thenReturn(Optional.of(LegacyKeyworkerConfiguration.builder()
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .staffId(4L)
             .allowAutoAllocation(false)
             .build()
@@ -1426,11 +1426,11 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final long staffId = 1;
         final var prisonId = "LEI";
         final var capacity = 10;
-        final var status = KeyworkerStatus.ACTIVE;
+        final var status = StaffStatus.ACTIVE;
 
-        final var argCap = ArgumentCaptor.forClass(LegacyKeyworkerConfig.class);
+        final var argCap = ArgumentCaptor.forClass(LegacyKeyworkerConfiguration.class);
 
-        when(keyworkerRepository.findById(staffId)).thenReturn(Optional.empty());
+        when(keyworkerRepository.findByStaffId(staffId)).thenReturn(Optional.empty());
 
         service.addOrUpdate(staffId,
             prisonId, KeyworkerUpdateDto.builder().capacity(capacity).status(status).build());
@@ -1444,15 +1444,15 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
     @Test
     void testThatKeyworkerRecordIsUpdated() {
-        final var status = KeyworkerStatus.UNAVAILABLE_ANNUAL_LEAVE;
+        final var status = StaffStatus.UNAVAILABLE_ANNUAL_LEAVE;
 
-        final var existingKeyWorker = LegacyKeyworkerConfig.builder()
+        final var existingKeyWorker = LegacyKeyworkerConfiguration.builder()
             .staffId(TEST_STAFF_ID)
             .capacity(TEST_CAPACITY)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .build();
 
-        when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
+        when(keyworkerRepository.findByStaffId(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
             TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(status).build());
@@ -1465,69 +1465,69 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testThatKeyworkerRecordIsUpdated_activeStatusAutoAllocation() {
 
-        final var existingKeyWorker = LegacyKeyworkerConfig.builder()
+        final var existingKeyWorker = LegacyKeyworkerConfiguration.builder()
             .staffId(TEST_STAFF_ID)
             .capacity(TEST_CAPACITY)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.ACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.ACTIVE.name()))
             .allowAutoAllocation(false)
             .build();
 
-        when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
+        when(keyworkerRepository.findByStaffId(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.ACTIVE).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(StaffStatus.ACTIVE).build());
 
-        assertThat(existingKeyWorker.getStatus().getCode()).isEqualTo(KeyworkerStatus.ACTIVE.name());
+        assertThat(existingKeyWorker.getStatus().getCode()).isEqualTo(StaffStatus.ACTIVE.name());
         //auto allocation flag is updated to true for active status
         assertThat(existingKeyWorker.getAllowAutoAllocation()).isEqualTo(true);
     }
 
     @Test
     void testThatKeyworkerRecordIsUpdated_inactiveStatusAutoAllocation() {
-        final var existingKeyWorker = LegacyKeyworkerConfig.builder()
+        final var existingKeyWorker = LegacyKeyworkerConfiguration.builder()
             .staffId(TEST_STAFF_ID)
             .capacity(TEST_CAPACITY)
-            .status(ReferenceDataMock.getKeyworkerStatuses().get(KeyworkerStatus.INACTIVE.name()))
+            .status(ReferenceDataMock.getKeyworkerStatuses().get(StaffStatus.INACTIVE.name()))
             .allowAutoAllocation(false)
             .build();
 
-        when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
+        when(keyworkerRepository.findByStaffId(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(KeyworkerStatus.INACTIVE).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(TEST_CAPACITY).status(StaffStatus.INACTIVE).build());
 
-        assertThat(existingKeyWorker.getStatus().getCode()).isEqualTo(KeyworkerStatus.INACTIVE.name());
+        assertThat(existingKeyWorker.getStatus().getCode()).isEqualTo(StaffStatus.INACTIVE.name());
         //auto allocation flag remains false for inactive status
         assertThat(existingKeyWorker.getAllowAutoAllocation()).isEqualTo(false);
     }
 
     @Test
     void testkeyworkerStatusChangeBehaviour_removeAllocations() {
-        final var existingKeyWorker = LegacyKeyworkerConfig.builder()
+        final var existingKeyWorker = LegacyKeyworkerConfiguration.builder()
             .staffId(TEST_STAFF_ID)
             .build();
 
-        when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
+        when(keyworkerRepository.findByStaffId(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         final var allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
         when(repository.findByStaffIdAndPrisonIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
 
         service.addOrUpdate(TEST_STAFF_ID,
-            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.UNAVAILABLE_LONG_TERM_ABSENCE).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(StaffStatus.UNAVAILABLE_LONG_TERM_ABSENCE).behaviour(KeyworkerStatusBehaviour.REMOVE_ALLOCATIONS_NO_AUTO).build());
 
         verify(repository, times(1)).findByStaffIdAndPrisonIdAndActive(TEST_STAFF_ID, TEST_AGENCY, true);
     }
 
     @Test
     void testkeyworkerStatusChangeBehaviour_keepAllocations() {
-        final var existingKeyWorker = LegacyKeyworkerConfig.builder()
+        final var existingKeyWorker = LegacyKeyworkerConfiguration.builder()
             .staffId(TEST_STAFF_ID)
             .build();
 
-        when(keyworkerRepository.findById(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
+        when(keyworkerRepository.findByStaffId(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
         service.addOrUpdate(TEST_STAFF_ID,
-            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(KeyworkerStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
+            TEST_AGENCY, KeyworkerUpdateDto.builder().capacity(1).status(StaffStatus.ACTIVE).behaviour(KeyworkerStatusBehaviour.KEEP_ALLOCATIONS).build());
 
         verify(repository, never()).findByStaffIdAndPrisonIdAndActive(any(), any(), anyBoolean());
     }

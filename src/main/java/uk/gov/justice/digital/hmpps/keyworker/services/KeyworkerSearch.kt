@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest.Status.ALL
@@ -15,8 +15,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.forLastMonth
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus.valueOf
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.valueOf
 import java.util.Optional
 
 @Service
@@ -24,7 +24,7 @@ class KeyworkerSearch(
   private val nomisService: NomisService,
   private val caseNoteApi: CaseNotesApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
-  private val keyworkerConfigRepository: KeyworkerConfigRepository,
+  private val keyworkerConfigRepository: StaffConfigRepository,
 ) {
   fun findKeyworkers(
     prisonCode: String,
@@ -71,15 +71,15 @@ class KeyworkerSearch(
     keyworkerSessions: (Long) -> UsageByAuthorIdResponse?,
   ): KeyworkerSummary {
     val kwa = keyworkerConfig(staffId)
-    val status = kwa?.keyworkerConfig?.status
+    val status = kwa?.staffConfig?.status
     return KeyworkerSummary(
       staffId,
       firstName,
       lastName,
       (status?.asKeyworkerStatus() ?: ACTIVE).codedDescription(),
-      kwa?.keyworkerConfig?.capacity ?: prisonConfig.capacity,
+      kwa?.staffConfig?.capacity ?: prisonConfig.capacity,
       kwa?.allocationCount ?: 0,
-      kwa?.keyworkerConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
+      kwa?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       keyworkerSessions(staffId)?.count ?: 0,
     )
   }

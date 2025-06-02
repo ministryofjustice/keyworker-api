@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus;
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus;
 import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
 
 import java.time.LocalDate;
@@ -144,7 +144,7 @@ class KeyworkerTestHelper {
         assertThat(keyworkerDetails.getLastName()).isEqualTo(lastName);
     }
 
-    public static void verifyKeyworkerDto(final long staffId, final Integer capacity, final Integer allocations, final KeyworkerStatus status, final KeyworkerDto keyworkerDetails, final LocalDate activeDate) {
+    public static void verifyKeyworkerDto(final long staffId, final Integer capacity, final Integer allocations, final StaffStatus status, final KeyworkerDto keyworkerDetails, final LocalDate activeDate) {
         assertThat(keyworkerDetails.getStaffId()).isEqualTo(staffId);
         assertThat(keyworkerDetails.getNumberAllocated()).isEqualTo(allocations);
         assertThat(keyworkerDetails.getFirstName()).isEqualTo("First");

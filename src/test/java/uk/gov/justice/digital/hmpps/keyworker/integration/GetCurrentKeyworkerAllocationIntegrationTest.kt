@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageRes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.KeyworkerStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -45,8 +45,8 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
 
     givenPrisonConfig(prisonConfig(prisonCode))
 
-    val previous = givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10))
-    val current = givenKeyworkerConfig(keyworkerConfig(KeyworkerStatus.ACTIVE, capacity = 10))
+    val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
+    val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val keyworkers = listOf(previous, current)
 
     keyworkers.mapIndexed { i, a ->
