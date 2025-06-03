@@ -85,8 +85,11 @@ class StaffSearch(
             { staffId -> roleInfo[staffId] },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffSearchRequest.Status.ACTIVE.name)!! },
           )
-        }.filter {
-          (request.status == ALL || request.status.name == it.status.code) && (!request.hasPolicyStaffRole || it.staffRole != null)
+        }.filter { ss ->
+          (request.status == ALL || request.status.name == ss.status.code) &&
+            request.hasPolicyStaffRole?.let {
+              it && ss.staffRole != null || !it && ss.staffRole == null
+            } ?: true
         },
     )
   }
@@ -128,11 +131,11 @@ class StaffSearch(
       sessions(staffId)?.count ?: 0,
       entries(staffId)?.count ?: 0,
       roleInfo(staffId),
+      username,
+      email,
     )
   }
 }
-
-private fun NomisStaff.rdKeys() = setOf(ReferenceDataDomain.STAFF_STATUS of staffStatus)
 
 private fun NomisStaffRole.rdKeys() =
   setOf(ReferenceDataDomain.STAFF_POSITION of position, ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType)

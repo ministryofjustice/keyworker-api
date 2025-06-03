@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 data class StaffSearchRequest(
   val query: String?,
   val status: Status,
-  val hasPolicyStaffRole: Boolean,
+  val hasPolicyStaffRole: Boolean?,
 ) {
   enum class Status {
     ALL,
@@ -30,4 +30,6 @@ data class StaffSummary(
   val numberOfSessions: Int,
   val numberOfEntries: Int,
   val staffRole: StaffRoleInfo?,
+  val username: String,
+  val email: String,
 )
