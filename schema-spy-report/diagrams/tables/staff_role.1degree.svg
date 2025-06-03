@@ -52,7 +52,7 @@
 <polygon fill="none" stroke="#000000" points="10,-103.2 10,-125.2 146,-125.2 146,-103.2 10,-103.2"/>
 <text text-anchor="start" x="30" y="-110.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">hours_per_week</text>
 <polygon fill="none" stroke="#000000" points="146,-103.2 146,-125.2 240,-125.2 240,-103.2 146,-103.2"/>
-<text text-anchor="start" x="149" y="-110.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">int4[10]</text>
+<text text-anchor="start" x="149" y="-110.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">numeric[0]</text>
 <polygon fill="none" stroke="#000000" points="10,-81.2 10,-103.2 146,-103.2 146,-81.2 10,-81.2"/>
 <text text-anchor="start" x="30" y="-88.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">from_date</text>
 <polygon fill="none" stroke="#000000" points="146,-81.2 146,-103.2 240,-103.2 240,-81.2 146,-81.2"/>
