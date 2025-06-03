@@ -12,6 +12,7 @@ import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 
@@ -27,7 +28,7 @@ class StaffRole(
   @ManyToOne
   @JoinColumn(name = "schedule_type_id")
   var scheduleType: ReferenceData,
-  var hoursPerWeek: Int,
+  var hoursPerWeek: BigDecimal,
   var fromDate: LocalDate,
   var toDate: LocalDate?,
   @Audited(withModifiedFlag = false)
@@ -50,4 +51,9 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     prisonCode: String,
     staffId: Long,
   ): StaffRole?
+
+  fun findAllByPrisonCodeAndStaffIdIn(
+    prisonCode: String,
+    staffIds: Set<Long>,
+  ): List<StaffRole>
 }

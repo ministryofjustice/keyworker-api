@@ -11,9 +11,9 @@ import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.TRANSFER_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
@@ -202,7 +202,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
-                  SESSION_SUBTYPE,
+                  KW_SESSION_SUBTYPE,
                   if (index % 18 == 0) 2 else 1,
                   LatestNote(LocalDateTime.now().minusDays(1)),
                 ),
@@ -213,7 +213,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
-                  ENTRY_SUBTYPE,
+                  KW_ENTRY_SUBTYPE,
                   1,
                   LatestNote(LocalDateTime.now().minusDays(1)),
                 ),
@@ -234,7 +234,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
-                  SESSION_SUBTYPE,
+                  KW_SESSION_SUBTYPE,
                   3 * index / personIdentifiers.size,
                   LatestNote(LocalDateTime.now().minusDays(7)),
                 ),

@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
@@ -29,7 +29,7 @@ class CaseNoteTest {
     text: String,
     personIdentifier: String = personIdentifier(),
     occurredAt: LocalDateTime = now(),
-    subType: String = SESSION_SUBTYPE,
+    subType: String = KW_SESSION_SUBTYPE,
     type: String = KW_TYPE,
     staffId: Long = NomisIdGenerator.newId(),
     staffUsername: String = NomisIdGenerator.username(),

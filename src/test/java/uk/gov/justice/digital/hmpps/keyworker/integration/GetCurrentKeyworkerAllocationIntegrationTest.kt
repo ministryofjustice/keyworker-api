@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -92,7 +92,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
               UsageByPersonIdentifierResponse(
                 prisonNumber,
                 KW_TYPE,
-                SESSION_SUBTYPE,
+                KW_SESSION_SUBTYPE,
                 38,
                 LatestNote(LocalDateTime.now().minusWeeks(2)),
               ),

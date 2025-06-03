@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.TRANSFER_TYPE
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -30,7 +31,7 @@ data class UsageByPersonIdentifierRequest(
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(ENTRY_SUBTYPE, SESSION_SUBTYPE))),
+        setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_ENTRY_SUBTYPE, KW_SESSION_SUBTYPE))),
         from = from.atStartOfDay(),
         to = to.atStartOfDay(),
         authorIds = authorIds,
@@ -46,7 +47,7 @@ data class UsageByPersonIdentifierRequest(
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(SESSION_SUBTYPE))),
+        setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_SESSION_SUBTYPE))),
         from = from.atStartOfDay(),
         to = to.atStartOfDay(),
         prisonCode = prisonCode,
@@ -86,13 +87,23 @@ data class UsageByAuthorIdRequest(
   val dateType: DateType = DateType.CREATED_AT,
 ) {
   companion object {
-    fun forLastMonth(authorIds: Set<String>) =
+    fun lastMonthSessions(authorIds: Set<String>): UsageByAuthorIdRequest =
       UsageByAuthorIdRequest(
         authorIds,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(SESSION_SUBTYPE))),
+        setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_SESSION_SUBTYPE))),
         LocalDate.now().atStartOfDay().minusMonths(1),
         LocalDate.now().atStartOfDay(),
       )
+
+    fun lastMonthEntries(authorIds: Set<String>): UsageByAuthorIdRequest {
+      val entryConfig = AllocationContext.get().policy.entryConfig
+      return UsageByAuthorIdRequest(
+        authorIds,
+        setOf(TypeSubTypeRequest(entryConfig.type, setOf(entryConfig.subType))),
+        LocalDate.now().atStartOfDay().minusMonths(1),
+        LocalDate.now().atStartOfDay(),
+      )
+    }
   }
 }
 
@@ -127,13 +138,13 @@ data class CaseNoteSummary(
 
   init {
     val grouped = data.values.flatten().groupBy { it.type to it.subType }
-    totalSessions = grouped[KW_TYPE to SESSION_SUBTYPE]?.sumOf { it.count } ?: 0
-    totalEntries = grouped[KW_TYPE to ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
+    totalSessions = grouped[KW_TYPE to KW_SESSION_SUBTYPE]?.sumOf { it.count } ?: 0
+    totalEntries = grouped[KW_TYPE to KW_ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
   }
 
   fun findSessionDate(personIdentifier: String): LocalDate? =
     data[personIdentifier]
-      ?.find { it.subType == SESSION_SUBTYPE }
+      ?.find { it.subType == KW_SESSION_SUBTYPE }
       ?.latestNote
       ?.occurredAt
       ?.toLocalDate()
@@ -148,7 +159,7 @@ data class CaseNoteSummary(
   fun personIdentifiersWithSessions() =
     data.values
       .flatten()
-      .filter { it.subType == SESSION_SUBTYPE }
+      .filter { it.subType == KW_SESSION_SUBTYPE }
       .map { it.personIdentifier }
       .toSet()
 }

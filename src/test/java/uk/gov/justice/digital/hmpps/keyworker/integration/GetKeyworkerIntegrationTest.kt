@@ -9,9 +9,9 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
 import uk.gov.justice.digital.hmpps.keyworker.dto.ScheduleType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
@@ -235,7 +235,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
-                  SESSION_SUBTYPE,
+                  KW_SESSION_SUBTYPE,
                   (index % 4) + 1,
                   LatestNote(LocalDateTime.now().minusDays(index * 2L)),
                 ),
@@ -246,7 +246,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
                 UsageByPersonIdentifierResponse(
                   pi,
                   KW_TYPE,
-                  ENTRY_SUBTYPE,
+                  KW_ENTRY_SUBTYPE,
                   (index % 2) + 2,
                   LatestNote(LocalDateTime.now().minusDays(index + 1L)),
                 ),

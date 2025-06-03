@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
@@ -48,6 +47,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
@@ -84,6 +84,7 @@ import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.publish
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -489,9 +490,9 @@ abstract class IntegrationTest {
   protected fun staffRole(
     prisonCode: String,
     staffId: Long,
-    position: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_POS, "PRO"),
-    scheduleType: ReferenceData = withReferenceData(ReferenceDataDomain.SCHEDULE_TYPE, "FT"),
-    hoursPerWeek: Int = 40,
+    position: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
+    scheduleType: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
+    hoursPerWeek: BigDecimal = BigDecimal(37.5),
     fromDate: LocalDate = LocalDate.now().minusDays(7),
     toDate: LocalDate? = null,
   ) = StaffRole(position, scheduleType, hoursPerWeek, fromDate, toDate, prisonCode, staffId)
@@ -510,7 +511,7 @@ abstract class IntegrationTest {
     expiryDateTime: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
     id: Long? = null,
-  ) = KeyworkerAllocation(
+  ) = StaffAllocation(
     personIdentifier,
     prisonCode,
     staffId,
@@ -524,8 +525,7 @@ abstract class IntegrationTest {
     id,
   )
 
-  protected fun givenKeyworkerAllocation(allocation: KeyworkerAllocation): KeyworkerAllocation =
-    keyworkerAllocationRepository.save(allocation)
+  protected fun givenKeyworkerAllocation(allocation: StaffAllocation): StaffAllocation = keyworkerAllocationRepository.save(allocation)
 
   protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
     when (interaction) {

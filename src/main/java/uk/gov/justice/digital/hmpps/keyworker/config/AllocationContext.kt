@@ -1,5 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.config
 
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import java.time.LocalDateTime
 
 data class AllocationContext(
@@ -17,12 +21,18 @@ data class AllocationContext(
 
 enum class AllocationPolicy(
   val nomisUseRoleCode: String?,
+  val entryConfig: EntryConfig,
 ) {
-  KEY_WORKER("KW"),
-  PERSONAL_OFFICER(null),
+  KEY_WORKER("KW", EntryConfig(KW_TYPE, KW_ENTRY_SUBTYPE)),
+  PERSONAL_OFFICER(null, EntryConfig(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)),
   ;
 
   companion object {
     fun of(name: String?): AllocationPolicy = entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: KEY_WORKER
   }
 }
+
+data class EntryConfig(
+  val type: String,
+  val subType: String,
+)

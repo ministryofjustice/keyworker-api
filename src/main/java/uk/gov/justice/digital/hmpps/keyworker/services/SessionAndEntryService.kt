@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asKeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
@@ -48,8 +48,8 @@ class SessionAndEntryService(
 
   fun delete(personInfo: PersonInformation) {
     when (personInfo.info.subType) {
-      SESSION_SUBTYPE -> ksRepository.deleteById(personInfo.info.id)
-      ENTRY_SUBTYPE -> keRepository.deleteById(personInfo.info.id)
+      KW_SESSION_SUBTYPE -> ksRepository.deleteById(personInfo.info.id)
+      KW_ENTRY_SUBTYPE -> keRepository.deleteById(personInfo.info.id)
       else -> {
         ksRepository.deleteById(personInfo.info.id)
         keRepository.deleteById(personInfo.info.id)

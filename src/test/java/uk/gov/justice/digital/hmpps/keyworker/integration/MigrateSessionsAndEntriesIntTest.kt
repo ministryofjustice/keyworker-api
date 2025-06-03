@@ -9,9 +9,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asKeyworkerInteraction
@@ -36,7 +36,7 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
         caseNote(
           personIdentifier,
           now().minusWeeks(it.toLong()),
-          if (it % 3 == 0) ENTRY_SUBTYPE else SESSION_SUBTYPE,
+          if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
         )
       }
     caseNotesMockServer.stubGetKeyworkerCaseNotes(personIdentifier, CaseNotes(caseNotes))
@@ -63,7 +63,7 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
         caseNote(
           personIdentifier,
           now().minusWeeks(it.toLong()),
-          if (it % 3 == 0) ENTRY_SUBTYPE else SESSION_SUBTYPE,
+          if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
         )
       }
     caseNotesMockServer.stubGetKeyworkerCaseNotes(personIdentifier, CaseNotes(caseNotes))
@@ -106,8 +106,8 @@ class MigrateSessionsAndEntriesIntTest : IntegrationTest() {
     assertThat(textLength).isEqualTo(note.textLength())
     assertThat(amendmentCount).isEqualTo(note.amendments.size)
     when (this) {
-      is KeyworkerSession -> assertThat(note.subType).isEqualTo(SESSION_SUBTYPE)
-      is KeyworkerEntry -> assertThat(note.subType).isEqualTo(ENTRY_SUBTYPE)
+      is KeyworkerSession -> assertThat(note.subType).isEqualTo(KW_SESSION_SUBTYPE)
+      is KeyworkerEntry -> assertThat(note.subType).isEqualTo(KW_ENTRY_SUBTYPE)
     }
   }
 
