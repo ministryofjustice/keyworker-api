@@ -27,7 +27,7 @@ class ReferenceDataController(
       schema =
         Schema(
           type = "string",
-          allowableValues = ["keyworker-status", "allocation-reason", "deallocation-reason"],
+          allowableValues = ["staff-status", "allocation-reason", "deallocation-reason"],
         ),
     )
     @PathVariable domain: String,
