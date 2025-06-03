@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -33,9 +33,11 @@ data class CaseNote(
 
   companion object {
     const val KW_TYPE = "KA"
-    const val SESSION_SUBTYPE = "KS"
-    const val ENTRY_SUBTYPE = "KE"
+    const val KW_SESSION_SUBTYPE = "KS"
+    const val KW_ENTRY_SUBTYPE = "KE"
     const val TRANSFER_TYPE = "TRANSFER"
+    const val PO_ENTRY_TYPE = "REPORT"
+    const val PO_ENTRY_SUBTYPE = "POE"
   }
 }
 
@@ -46,7 +48,7 @@ data class CaseNoteAmendment(
 
 fun CaseNote.asKeyworkerInteraction(): KeyworkerInteraction? =
   when (subType) {
-    SESSION_SUBTYPE ->
+    KW_SESSION_SUBTYPE ->
       KeyworkerSession(
         occurredAt,
         personIdentifier,
@@ -59,7 +61,7 @@ fun CaseNote.asKeyworkerInteraction(): KeyworkerInteraction? =
         id,
       )
 
-    ENTRY_SUBTYPE ->
+    KW_ENTRY_SUBTYPE ->
       KeyworkerEntry(
         occurredAt,
         personIdentifier,

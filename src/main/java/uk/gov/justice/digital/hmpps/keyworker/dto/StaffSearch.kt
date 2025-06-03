@@ -1,0 +1,35 @@
+package uk.gov.justice.digital.hmpps.keyworker.dto
+
+data class StaffSearchRequest(
+  val query: String?,
+  val status: Status,
+  val hasPolicyStaffRole: Boolean?,
+) {
+  enum class Status {
+    ALL,
+    ACTIVE,
+    UNAVAILABLE_ANNUAL_LEAVE,
+    UNAVAILABLE_LONG_TERM_ABSENCE,
+    UNAVAILABLE_NO_PRISONER_CONTACT,
+    INACTIVE,
+  }
+}
+
+data class StaffSearchResponse(
+  val content: List<StaffSummary>,
+)
+
+data class StaffSummary(
+  val staffId: Long,
+  val firstName: String,
+  val lastName: String,
+  val status: CodedDescription,
+  val capacity: Int,
+  val numberAllocated: Int,
+  val autoAllocationAllowed: Boolean,
+  val numberOfSessions: Int,
+  val numberOfEntries: Int,
+  val staffRole: StaffRoleInfo?,
+  val username: String,
+  val email: String,
+)

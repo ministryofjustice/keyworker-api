@@ -40,11 +40,11 @@ data class ReferenceDataKey(
 ) : ReferenceDataLookup
 
 enum class ReferenceDataDomain {
-  STAFF_STATUS,
   ALLOCATION_REASON,
   DEALLOCATION_REASON,
-  SCHEDULE_TYPE,
-  STAFF_POS,
+  STAFF_POSITION,
+  STAFF_SCHEDULE_TYPE,
+  STAFF_STATUS,
   ;
 
   companion object {

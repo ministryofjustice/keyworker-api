@@ -16,9 +16,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asKeyworkerInteraction
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
@@ -140,7 +140,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
   @ParameterizedTest
   @MethodSource("sessionEntrySwap")
   fun `swap session for entry and vice versa`(caseNote: CaseNote) {
-    val subType = if (caseNote.subType == SESSION_SUBTYPE) ENTRY_SUBTYPE else SESSION_SUBTYPE
+    val subType = if (caseNote.subType == KW_SESSION_SUBTYPE) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE
     val updateCaseNote = caseNote.copy(subType = subType)
     caseNotesMockServer.stubGetCaseNote(updateCaseNote)
     val event =
@@ -198,8 +198,8 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
   private fun interactionRepository(subType: String): JpaRepository<out KeyworkerInteraction, UUID> =
     when (subType) {
-      SESSION_SUBTYPE -> ksRepository
-      ENTRY_SUBTYPE -> keRepository
+      KW_SESSION_SUBTYPE -> ksRepository
+      KW_ENTRY_SUBTYPE -> keRepository
       else -> throw IllegalArgumentException("Unknown case note sub type")
     }
 
@@ -250,43 +250,43 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     @JvmStatic
     fun caseNoteCreated() =
       listOf(
-        Arguments.of(caseNote(SESSION_SUBTYPE)),
-        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
       )
 
     @JvmStatic
     fun caseNoteUpdated() =
       listOf(
-        Arguments.of(caseNote(SESSION_SUBTYPE)),
-        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
       )
 
     @JvmStatic
     fun caseNoteMoved() =
       listOf(
-        Arguments.of(caseNote(SESSION_SUBTYPE)),
-        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
       )
 
     @JvmStatic
     fun caseNoteDeleted() =
       listOf(
-        Arguments.of(caseNote(SESSION_SUBTYPE)),
-        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
       )
 
     @JvmStatic
     fun caseNoteTypeChanged() =
       listOf(
-        Arguments.of(caseNote(SESSION_SUBTYPE)),
-        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
       )
 
     @JvmStatic
     fun sessionEntrySwap() =
       listOf(
-        Arguments.of(caseNote(SESSION_SUBTYPE)),
-        Arguments.of(caseNote(ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
       )
   }
 }
@@ -302,7 +302,7 @@ private fun KeyworkerInteraction.verifyAgainst(note: CaseNote) {
   assertThat(textLength).isEqualTo(note.textLength())
   assertThat(amendmentCount).isEqualTo(note.amendments.size)
   when (this) {
-    is KeyworkerSession -> assertThat(note.subType).isEqualTo(SESSION_SUBTYPE)
-    is KeyworkerEntry -> assertThat(note.subType).isEqualTo(ENTRY_SUBTYPE)
+    is KeyworkerSession -> assertThat(note.subType).isEqualTo(KW_SESSION_SUBTYPE)
+    is KeyworkerEntry -> assertThat(note.subType).isEqualTo(KW_ENTRY_SUBTYPE)
   }
 }

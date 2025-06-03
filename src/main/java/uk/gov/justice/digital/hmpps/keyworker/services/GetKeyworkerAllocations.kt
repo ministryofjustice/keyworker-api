@@ -98,7 +98,7 @@ class GetKeyworkerAllocations(
     )
   }
 
-  private fun uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation.toModel(
+  private fun uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation.toModel(
     prison: (String) -> CodedDescription,
     keyworker: (Long) -> Keyworker,
     actionedBy: (String?) -> String,

@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 
 @Component
@@ -43,7 +46,22 @@ class PrisonApiClient(
         .block()!!
     }
 
+  fun getKeyworkersForPrison(prisonCode: String): List<NomisStaffRole> =
+    webClient
+      .get()
+      .uri(GET_KEYWORKER_INFO, prisonCode)
+      .header("Page-Offset", "0")
+      .header("Page-Limit", "3000")
+      .header("Sort-Fields", "staffId")
+      .header("Sort-Order", "ASC")
+      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .retrieve()
+      .bodyToMono<List<NomisStaffRole>>()
+      .retryRequestOnTransientException()
+      .block()!!
+
   companion object {
+    const val GET_KEYWORKER_INFO = "/staff/roles/{agencyId}/role/KW"
     const val VERIFY_STAFF_ROLE_URL = "/staff/{staffId}/{prisonCode}/roles/{role}"
     const val STAFF_BY_IDS_URL = "/staff"
   }

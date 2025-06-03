@@ -27,7 +27,7 @@ import java.util.UUID
 @Entity
 @Table(name = "offender_key_worker")
 @EntityListeners(AuditingEntityListener::class)
-class KeyworkerAllocation(
+class StaffAllocation(
   @Column(name = "offender_no")
   val personIdentifier: String,
   @Column(name = "prison_id")
@@ -80,7 +80,7 @@ class KeyworkerAllocation(
   }
 }
 
-interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Long> {
+interface KeyworkerAllocationRepository : JpaRepository<StaffAllocation, Long> {
   @Query(
     """
     with allocations as (select ka.offender_keyworker_id as id, ka.offender_no as personIdentifier, ka.assigned_date_time as assignedAt
@@ -108,10 +108,10 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
 
   @Query(
     """
-    select count(kwa) from KeyworkerAllocation kwa
-     where kwa.prisonCode = :prisonCode
-     and kwa.personIdentifier in :personIdentifiers
-     and kwa.active = true and kwa.allocationType <> 'P'
+    select count(sa) from StaffAllocation sa
+     where sa.prisonCode = :prisonCode
+     and sa.personIdentifier in :personIdentifiers
+     and sa.active = true and sa.allocationType <> 'P'
     """,
   )
   fun countActiveAllocations(
@@ -121,21 +121,21 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
 
   @Query(
     """
-      select kwa from KeyworkerAllocation kwa
-      where kwa.staffId = :staffId and kwa.prisonCode = :prisonCode
-      and kwa.active = true and kwa.allocationType <> 'P'
+      select sa from StaffAllocation sa
+      where sa.staffId = :staffId and sa.prisonCode = :prisonCode
+      and sa.active = true and sa.allocationType <> 'P'
     """,
   )
   fun findActiveForPrisonStaff(
     prisonCode: String,
     staffId: Long,
-  ): List<KeyworkerAllocation>
+  ): List<StaffAllocation>
 
   @Query(
     """
-      select kwa from KeyworkerAllocation kwa
-      where kwa.staffId = :staffId and kwa.prisonCode = :prisonCode
-      and kwa.allocationType <> 'P' and kwa.assignedAt <= :toDate and (kwa.expiryDateTime is null or kwa.expiryDateTime >= :fromDate)
+      select sa from StaffAllocation sa
+      where sa.staffId = :staffId and sa.prisonCode = :prisonCode
+      and sa.allocationType <> 'P' and sa.assignedAt <= :toDate and (sa.expiryDateTime is null or sa.expiryDateTime >= :fromDate)
     """,
   )
   fun findActiveForPrisonStaffBetween(
@@ -143,25 +143,25 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     staffId: Long,
     fromDate: LocalDateTime,
     toDate: LocalDateTime,
-  ): List<KeyworkerAllocation>
+  ): List<StaffAllocation>
 
-  fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<KeyworkerAllocation>
+  fun findAllByPersonIdentifierInAndActiveTrue(personIdentifiers: Set<String>): List<StaffAllocation>
 
-  fun findAllByPersonIdentifier(personIdentifier: String): List<KeyworkerAllocation>
+  fun findAllByPersonIdentifier(personIdentifier: String): List<StaffAllocation>
 
   @Query(
     """
     with summary as (
-        select ka.personIdentifier as pi, sum(case when ka.active then 1 else 0 end) as active, count(ka) as count
-        from KeyworkerAllocation ka
-        where ka.personIdentifier in :personIdentifiers 
-        and ka.prisonCode = :prisonCode
-        and ka.allocationType <> 'P' 
-        group by ka.personIdentifier
+        select sa.personIdentifier as pi, sum(case when sa.active then 1 else 0 end) as active, count(sa) as count
+        from StaffAllocation sa
+        where sa.personIdentifier in :personIdentifiers 
+        and sa.prisonCode = :prisonCode
+        and sa.allocationType <> 'P' 
+        group by sa.personIdentifier
     )
     select sum.pi as personIdentifier, sum.active as activeCount, sum.count as totalCount, cur.staffId as staffId
     from summary sum
-    left join KeyworkerAllocation cur on cur.personIdentifier = sum.pi and cur.active = true
+    left join StaffAllocation cur on cur.personIdentifier = sum.pi and cur.active = true
     """,
   )
   fun summariesFor(
@@ -169,7 +169,7 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     personIdentifiers: Set<String>,
   ): List<AllocationSummary>
 
-  fun findFirstByPersonIdentifierAndActiveIsTrueOrderByAssignedAtDesc(personIdentifier: String): KeyworkerAllocation?
+  fun findFirstByPersonIdentifierAndActiveIsTrueOrderByAssignedAtDesc(personIdentifier: String): StaffAllocation?
 
   @Query(
     """
@@ -182,13 +182,13 @@ interface KeyworkerAllocationRepository : JpaRepository<KeyworkerAllocation, Lon
     """,
     nativeQuery = true,
   )
-  fun findLatestAutoAllocationsFor(staffIds: Set<Long>): List<KeyworkerAllocation>
+  fun findLatestAutoAllocationsFor(staffIds: Set<Long>): List<StaffAllocation>
 
   @Query(
     """
-      select ka.staffId from KeyworkerAllocation ka
-      where ka.personIdentifier = :personIdentifier and ka.prisonCode = :prisonCode and ka.allocationType <> 'P'
-      and ka.staffId in :staffIds
+      select sa.staffId from StaffAllocation sa
+      where sa.personIdentifier = :personIdentifier and sa.prisonCode = :prisonCode and sa.allocationType <> 'P'
+      and sa.staffId in :staffIds
     """,
   )
   fun findPreviousKeyworkerAllocations(

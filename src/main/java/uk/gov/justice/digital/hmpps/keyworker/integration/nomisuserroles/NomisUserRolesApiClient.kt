@@ -11,6 +11,23 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransien
 class NomisUserRolesApiClient(
   @Qualifier("nomisUserRolesWebClient") private val webClient: WebClient,
 ) {
+  fun getUsers(
+    caseload: String,
+    nameFilter: String?,
+  ): NomisStaffMembers =
+    webClient
+      .get()
+      .uri {
+        it.path(GET_USERS_URL)
+        it.queryParam("status", "ACTIVE")
+        it.queryParam("caseload", caseload)
+        nameFilter?.also { q -> it.queryParam("nameFilter", q) }
+        it.build()
+      }.retrieve()
+      .bodyToMono<NomisStaffMembers>()
+      .retryRequestOnTransientException()
+      .block()!!
+
   fun setStaffRole(
     prisonCode: String,
     staffId: Long,
@@ -31,5 +48,6 @@ class NomisUserRolesApiClient(
 
   companion object {
     const val STAFF_ROLE_URL = "/agency/{agencyId}/staff-members/{staffId}/staff-role/{staffRole}"
+    const val GET_USERS_URL = "/users"
   }
 }

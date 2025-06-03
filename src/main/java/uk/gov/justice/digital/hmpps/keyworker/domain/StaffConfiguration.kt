@@ -45,11 +45,11 @@ class StaffConfiguration(
 interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   @Query(
     """
-        with counts as (select kwa.staffId as id, count(kwa) as count
-                        from KeyworkerAllocation kwa
-                        where kwa.active = true and kwa.allocationType <> 'P'
-                        and kwa.prisonCode = :prisonCode and kwa.staffId in :staffIds
-                        group by kwa.staffId
+        with counts as (select sa.staffId as id, count(sa) as count
+                        from StaffAllocation sa
+                        where sa.active = true and sa.allocationType <> 'P'
+                        and sa.prisonCode = :prisonCode and sa.staffId in :staffIds
+                        group by sa.staffId
         )
         select coalesce(ac.id, config.staffId) as staffId, ac.count as allocationCount, config as staffConfig from counts ac
         full outer join StaffConfiguration config on ac.id = config.staffId
@@ -59,7 +59,7 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   fun findAllWithAllocationCount(
     prisonCode: String,
     staffIds: Set<Long>,
-  ): List<KeyworkerWithAllocationCount>
+  ): List<StaffWithAllocationCount>
 
   fun findAllByStaffIdInAndStatusKeyCodeIn(
     staffIds: Set<Long>,
@@ -78,7 +78,7 @@ fun StaffConfigRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
       .toSet(),
   )
 
-interface KeyworkerWithAllocationCount {
+interface StaffWithAllocationCount {
   val staffId: Long
   val staffConfig: StaffConfiguration?
   val allocationCount: Int?

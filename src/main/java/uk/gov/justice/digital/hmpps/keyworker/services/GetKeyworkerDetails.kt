@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
@@ -102,10 +102,10 @@ class GetKeyworkerDetails(
       staffId,
       firstName,
       lastName,
-      referenceDataRepository.getReferenceData(ReferenceDataDomain.SCHEDULE_TYPE of scheduleType).asCodedDescription(),
+      referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType).asCodedDescription(),
     )
 
-  private fun List<KeyworkerAllocation>.keyworkerSessionStats(
+  private fun List<StaffAllocation>.keyworkerSessionStats(
     from: LocalDate,
     to: LocalDate,
     prisonConfig: PrisonConfiguration,
@@ -161,7 +161,7 @@ class GetKeyworkerDetails(
 
 private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
 
-private fun KeyworkerAllocation.asAllocation(
+private fun StaffAllocation.asAllocation(
   prisoner: Prisoner,
   latestSession: LocalDate?,
 ) = Allocation(
@@ -169,7 +169,7 @@ private fun KeyworkerAllocation.asAllocation(
   latestSession?.let { LatestKeyworkerSession(it) },
 )
 
-private fun KeyworkerAllocation.daysAllocatedForStats(
+private fun StaffAllocation.daysAllocatedForStats(
   from: LocalDate,
   to: LocalDate,
 ): Long {

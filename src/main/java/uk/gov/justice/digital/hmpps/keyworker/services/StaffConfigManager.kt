@@ -64,8 +64,8 @@ class StaffConfigManager(
     request: JobClassification,
   ): StaffRole =
     staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
-      position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POS of request.position)
-      scheduleType = referenceDataRepository.getReferenceData(ReferenceDataDomain.SCHEDULE_TYPE of request.scheduleType)
+      position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of request.position)
+      scheduleType = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of request.scheduleType)
       hoursPerWeek = request.hoursPerWeek
       fromDate = request.fromDate
       toDate = request.toDate
@@ -75,8 +75,8 @@ class StaffConfigManager(
     prisonCode: String,
     staffId: Long,
   ) = StaffRole(
-    referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POS of position),
-    referenceDataRepository.getReferenceData(ReferenceDataDomain.SCHEDULE_TYPE of scheduleType),
+    referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of position),
+    referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType),
     hoursPerWeek,
     fromDate,
     toDate,

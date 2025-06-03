@@ -9,17 +9,22 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
+import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonSearch
+import uk.gov.justice.digital.hmpps.keyworker.services.StaffSearch
 
 @RestController
 @RequestMapping(value = ["/search"])
 class SearchController(
   private val keyworkerSearch: KeyworkerSearch,
+  private val staffSearch: StaffSearch,
   private val personSearch: PersonSearch,
 ) {
   @Tag(name = MANAGE_KEYWORKERS)
@@ -29,6 +34,14 @@ class SearchController(
     @PathVariable prisonCode: String,
     @RequestBody request: KeyworkerSearchRequest,
   ): KeyworkerSearchResponse = keyworkerSearch.findKeyworkers(prisonCode, request)
+
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PostMapping("/prisons/{prisonCode}/staff")
+  fun searchStaff(
+    @PathVariable prisonCode: String,
+    @RequestBody request: StaffSearchRequest,
+  ): StaffSearchResponse = staffSearch.findStaff(prisonCode, request)
 
   @Tag(name = ALLOCATE_KEY_WORKERS)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")

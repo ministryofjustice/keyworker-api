@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJo
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class ManageStaffJobClassificationIntTest : IntegrationTest() {
@@ -96,7 +97,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
     val request =
       jobClassificationRequest(
         scheduleType = "PT",
-        hoursPerWeek = 20,
+        hoursPerWeek = BigDecimal(20),
         toDate = LocalDate.now(),
       )
     stubNomisUserRoles(prisonCode, staffId, request, policy)
@@ -157,7 +158,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
   fun jobClassificationRequest(
     position: String = "PRO",
     scheduleType: String = "FT",
-    hoursPerWeek: Int = 40,
+    hoursPerWeek: BigDecimal = BigDecimal(37.5),
     fromDate: LocalDate = LocalDate.now().minusDays(7),
     toDate: LocalDate? = null,
   ) = StaffJobClassificationRequest(position, scheduleType, hoursPerWeek, fromDate, toDate)

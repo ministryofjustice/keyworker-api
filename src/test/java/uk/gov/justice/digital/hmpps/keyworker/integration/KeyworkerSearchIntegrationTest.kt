@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.forLastMonth
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
@@ -73,13 +73,13 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
             UsageByAuthorIdResponse(
               staffId.toString(),
               KW_TYPE,
-              SESSION_SUBTYPE,
+              KW_SESSION_SUBTYPE,
               index,
             )
           }.groupBy { it.authorId },
       )
     caseNotesMockServer.stubUsageByStaffIds(
-      request = forLastMonth(staffIds.map(Long::toString).toSet()),
+      request = lastMonthSessions(staffIds.map(Long::toString).toSet()),
       response = noteUsage,
     )
 
@@ -149,13 +149,13 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
             UsageByAuthorIdResponse(
               staffId.toString(),
               KW_TYPE,
-              SESSION_SUBTYPE,
+              KW_SESSION_SUBTYPE,
               index,
             )
           }.groupBy { it.authorId },
       )
     caseNotesMockServer.stubUsageByStaffIds(
-      request = forLastMonth(staffIds.map(Long::toString).toSet()),
+      request = lastMonthSessions(staffIds.map(Long::toString).toSet()),
       response = noteUsage,
     )
 
@@ -184,11 +184,11 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val noteUsage =
       NoteUsageResponse(
         mapOf(
-          "$staffId" to listOf(UsageByAuthorIdResponse("$staffId", KW_TYPE, SESSION_SUBTYPE, 7)),
+          "$staffId" to listOf(UsageByAuthorIdResponse("$staffId", KW_TYPE, KW_SESSION_SUBTYPE, 7)),
         ),
       )
     caseNotesMockServer.stubUsageByStaffIds(
-      request = forLastMonth(setOf("$staffId")),
+      request = lastMonthSessions(setOf("$staffId")),
       response = noteUsage,
     )
 
