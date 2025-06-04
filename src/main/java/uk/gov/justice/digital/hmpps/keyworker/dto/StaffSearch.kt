@@ -31,5 +31,5 @@ data class StaffSearchResult(
   val numberOfEntries: Int,
   val staffRole: StaffRoleInfo?,
   val username: String,
-  val email: String,
+  val email: String?,
 )
