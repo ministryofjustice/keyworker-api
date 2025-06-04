@@ -76,7 +76,6 @@ class PrisonController(
   ): KeyworkerDetails = keyworkerDetails.getFor(prisonCode, staffId)
 
   @PolicyHeader
-  @CaseloadIdHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/staff/{staffId}")

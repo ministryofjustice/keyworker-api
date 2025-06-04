@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
@@ -23,8 +22,9 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithSchedule
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
@@ -59,10 +59,12 @@ class GetStaffDetails(
     val context = AllocationContext.get()
     val staff =
       if (context.policy == AllocationPolicy.KEY_WORKER) {
-        prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffWithSchedule()
+        prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffWithRole()
       } else {
-        val ss = prisonApi.findStaffSummariesFromIds(setOf(staffId)).first()
-        staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.staffWithSchedule(ss)
+        prisonApi
+          .findStaffSummariesFromIds(setOf(staffId))
+          .firstOrNull()
+          ?.withRole(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
       }
     if (staff == null) {
       throw EntityNotFoundException("Staff member not found")
@@ -115,18 +117,43 @@ class GetStaffDetails(
     )
   }
 
-  private fun NomisStaffRole.staffWithSchedule() =
-    StaffWithSchedule(
+  private fun NomisStaffRole.staffWithRole() =
+    StaffWithRole(
       staffId,
       firstName,
       lastName,
-      referenceDataRepository
-        .getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType)
-        .asCodedDescription(),
+      staffRoleInfo(),
     )
 
-  private fun StaffRole.staffWithSchedule(summary: StaffSummary) =
-    StaffWithSchedule(staffId, summary.firstName, summary.lastName, scheduleType.asCodedDescription())
+  private fun NomisStaffRole.staffRoleInfo(): StaffRoleInfo {
+    val rd =
+      referenceDataRepository
+        .findAllByKeyIn(
+          setOf(
+            ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType,
+            ReferenceDataDomain.STAFF_POSITION of position,
+          ),
+        ).associate { it.key.domain to it.asCodedDescription() }
+
+    return StaffRoleInfo(
+      rd[ReferenceDataDomain.STAFF_POSITION]!!,
+      rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE]!!,
+      hoursPerWeek,
+      fromDate,
+      toDate,
+    )
+  }
+
+  private fun StaffSummary.withRole(roleInfo: StaffRole?) = StaffWithRole(staffId, firstName, lastName, roleInfo?.toModel())
+
+  private fun StaffRole.toModel() =
+    StaffRoleInfo(
+      position.asCodedDescription(),
+      scheduleType.asCodedDescription(),
+      hoursPerWeek,
+      fromDate,
+      toDate,
+    )
 
   private fun List<StaffAllocation>.staffCountStats(
     from: LocalDate,

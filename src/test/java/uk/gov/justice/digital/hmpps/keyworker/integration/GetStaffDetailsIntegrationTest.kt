@@ -15,7 +15,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithSchedule
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
@@ -33,7 +34,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
-import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -79,6 +79,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           staffConfig.staffId,
           withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
           withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
+          BigDecimal(36.5),
+          now().minusWeeks(6),
         ),
       )
     }
@@ -154,7 +156,20 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(response.staffMember)
-      .isEqualTo(StaffWithSchedule(staffConfig.staffId, "First", "Last", CodedDescription("FT", "Full Time")))
+      .isEqualTo(
+        StaffWithRole(
+          staffConfig.staffId,
+          "First",
+          "Last",
+          StaffRoleInfo(
+            CodedDescription("PRO", "Prison Officer"),
+            CodedDescription("FT", "Full Time"),
+            BigDecimal(36.5),
+            now().minusWeeks(6),
+            null,
+          ),
+        ),
+      )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, "Description of $prisonCode"))
     assertThat(response.capacity).isEqualTo(10)
@@ -209,6 +224,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           staff.staffId,
           withReferenceData(ReferenceDataDomain.STAFF_POSITION, "CHAP"),
           withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "PT"),
+          BigDecimal(36.5),
+          now().minusWeeks(6),
         ),
       )
     }
@@ -223,11 +240,17 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     assertThat(response.staffMember)
       .isEqualTo(
-        StaffWithSchedule(
+        StaffWithRole(
           staff.staffId,
           staff.firstName,
           staff.lastName,
-          CodedDescription("PT", "Part Time"),
+          StaffRoleInfo(
+            CodedDescription("CHAP", "Chaplain"),
+            CodedDescription("PT", "Part Time"),
+            BigDecimal(36.5),
+            now().minusWeeks(6),
+            null,
+          ),
         ),
       )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
@@ -267,6 +290,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           staffConfig.staffId,
           withReferenceData(ReferenceDataDomain.STAFF_POSITION, "AO"),
           withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
+          BigDecimal(36.5),
+          now().minusWeeks(6),
         ),
       )
     }
@@ -281,11 +306,17 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     assertThat(response.staffMember)
       .isEqualTo(
-        StaffWithSchedule(
+        StaffWithRole(
           staff.staffId,
           staff.firstName,
           staff.lastName,
-          CodedDescription("FT", "Full Time"),
+          StaffRoleInfo(
+            CodedDescription("AO", "Admin Officer"),
+            CodedDescription("FT", "Full Time"),
+            BigDecimal(36.5),
+            now().minusWeeks(6),
+            null,
+          ),
         ),
       )
     assertThat(response.status).isEqualTo(CodedDescription("UNAVAILABLE_ANNUAL_LEAVE", "Unavailable - annual leave"))
@@ -390,7 +421,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .hoursPerWeek(BigDecimal(36.5))
         .firstName(firstName)
         .lastName(lastName)
-        .fromDate(LocalDate.now().minusWeeks(6))
+        .fromDate(now().minusWeeks(6))
         .build()
 
     @JvmStatic

@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 import java.time.LocalDate
 
 data class StaffDetails(
-  val staffMember: StaffWithSchedule,
+  val staffMember: StaffWithRole,
   val status: CodedDescription,
   val prison: CodedDescription,
   val capacity: Int,
@@ -14,11 +14,11 @@ data class StaffDetails(
   val reactivateOn: LocalDate?,
 )
 
-data class StaffWithSchedule(
+data class StaffWithRole(
   val staffId: Long,
   val firstName: String,
   val lastName: String,
-  val scheduleType: CodedDescription,
+  val staffRoleInfo: StaffRoleInfo?,
 )
 
 data class Allocation(
