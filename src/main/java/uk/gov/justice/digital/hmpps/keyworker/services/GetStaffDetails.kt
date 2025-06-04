@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
@@ -57,16 +56,15 @@ class GetStaffDetails(
     staffId: Long,
   ): StaffDetails {
     val context = AllocationContext.get()
-    val staff =
+    val staffWithRole =
       if (context.policy == AllocationPolicy.KEY_WORKER) {
         prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffWithRole()
       } else {
-        prisonApi
-          .findStaffSummariesFromIds(setOf(staffId))
-          .firstOrNull()
-          ?.withRole(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
+        prisonApi.findStaffSummariesFromIds(setOf(staffId)).firstOrNull()?.let {
+          it to staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.toModel()
+        }
       }
-    if (staff == null) {
+    if (staffWithRole?.first == null) {
       throw EntityNotFoundException("Staff member not found")
     }
 
@@ -98,8 +96,11 @@ class GetStaffDetails(
     val (previous, _) =
       allocations.staffCountStats(previousFromDate, fromDate, prisonConfig, staffId)
 
+    val staff = staffWithRole.first
     return StaffDetails(
-      staff,
+      staff.staffId,
+      staff.firstName,
+      staff.lastName,
       staffInfo?.staffConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
       staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
@@ -114,16 +115,12 @@ class GetStaffDetails(
       StaffStats(current, previous),
       staffInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       staffInfo?.staffConfig?.reactivateOn,
+      staffWithRole.second,
     )
   }
 
-  private fun NomisStaffRole.staffWithRole() =
-    StaffWithRole(
-      staffId,
-      firstName,
-      lastName,
-      staffRoleInfo(),
-    )
+  private fun NomisStaffRole.staffWithRole(): Pair<StaffSummary, StaffRoleInfo> =
+    StaffSummary(staffId, firstName, lastName) to staffRoleInfo()
 
   private fun NomisStaffRole.staffRoleInfo(): StaffRoleInfo {
     val rd =
@@ -143,8 +140,6 @@ class GetStaffDetails(
       toDate,
     )
   }
-
-  private fun StaffSummary.withRole(roleInfo: StaffRole?) = StaffWithRole(staffId, firstName, lastName, roleInfo?.toModel())
 
   private fun StaffRole.toModel() =
     StaffRoleInfo(
@@ -177,7 +172,13 @@ class GetStaffDetails(
             if (context.policy == AllocationPolicy.KEY_WORKER) {
               keyworkerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString()))
             } else {
-              personalOfficerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString()))
+              personalOfficerTypes(
+                prisonConfig.code,
+                personIdentifiers,
+                from,
+                to,
+                setOf(staffId.toString()),
+              )
             },
           ).summary()
       }

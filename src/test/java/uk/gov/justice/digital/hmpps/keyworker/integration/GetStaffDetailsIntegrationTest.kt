@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
@@ -114,7 +113,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       if (policy == AllocationPolicy.KEY_WORKER) {
         keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now(), setOf(staffConfig.staffId.toString()))
       } else {
-        personalOfficerTypes(prisonCode, caseNoteIdentifiers, fromDate, now(), setOf(staffConfig.staffId.toString()))
+        personalOfficerTypes(
+          prisonCode,
+          caseNoteIdentifiers,
+          fromDate,
+          now(),
+          setOf(staffConfig.staffId.toString()),
+        )
       },
       caseNoteResponse(personIdentifiers, policy),
     )
@@ -155,21 +160,15 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    assertThat(response.staffMember)
-      .isEqualTo(
-        StaffWithRole(
-          staffConfig.staffId,
-          "First",
-          "Last",
-          StaffRoleInfo(
-            CodedDescription("PRO", "Prison Officer"),
-            CodedDescription("FT", "Full Time"),
-            BigDecimal(36.5),
-            now().minusWeeks(6),
-            null,
-          ),
-        ),
-      )
+    assertThat(response.staffRole).isEqualTo(
+      StaffRoleInfo(
+        CodedDescription("PRO", "Prison Officer"),
+        CodedDescription("FT", "Full Time"),
+        BigDecimal(36.5),
+        now().minusWeeks(6),
+        null,
+      ),
+    )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, "Description of $prisonCode"))
     assertThat(response.capacity).isEqualTo(10)
@@ -238,19 +237,14 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    assertThat(response.staffMember)
+    assertThat(response.staffRole)
       .isEqualTo(
-        StaffWithRole(
-          staff.staffId,
-          staff.firstName,
-          staff.lastName,
-          StaffRoleInfo(
-            CodedDescription("CHAP", "Chaplain"),
-            CodedDescription("PT", "Part Time"),
-            BigDecimal(36.5),
-            now().minusWeeks(6),
-            null,
-          ),
+        StaffRoleInfo(
+          CodedDescription("CHAP", "Chaplain"),
+          CodedDescription("PT", "Part Time"),
+          BigDecimal(36.5),
+          now().minusWeeks(6),
+          null,
         ),
       )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
@@ -304,22 +298,22 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    assertThat(response.staffMember)
+    assertThat(response.staffRole)
       .isEqualTo(
-        StaffWithRole(
-          staff.staffId,
-          staff.firstName,
-          staff.lastName,
-          StaffRoleInfo(
-            CodedDescription("AO", "Admin Officer"),
-            CodedDescription("FT", "Full Time"),
-            BigDecimal(36.5),
-            now().minusWeeks(6),
-            null,
-          ),
+        StaffRoleInfo(
+          CodedDescription("AO", "Admin Officer"),
+          CodedDescription("FT", "Full Time"),
+          BigDecimal(36.5),
+          now().minusWeeks(6),
+          null,
         ),
       )
-    assertThat(response.status).isEqualTo(CodedDescription("UNAVAILABLE_ANNUAL_LEAVE", "Unavailable - annual leave"))
+    assertThat(response.status).isEqualTo(
+      CodedDescription(
+        "UNAVAILABLE_ANNUAL_LEAVE",
+        "Unavailable - annual leave",
+      ),
+    )
     assertThat(response.reactivateOn).isEqualTo(staffConfig.reactivateOn)
   }
 

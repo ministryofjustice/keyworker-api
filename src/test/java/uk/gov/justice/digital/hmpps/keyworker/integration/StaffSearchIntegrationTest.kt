@@ -146,22 +146,22 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content.map { it.status.code }.toSet()).containsOnly(ACTIVE.name)
 
     assertThat(response.content[0].staffId).isEqualTo(staffIds[0])
-    assertThat(response.content[0].autoAllocationAllowed).isEqualTo(false)
-    assertThat(response.content[0].numberAllocated).isEqualTo(0)
+    assertThat(response.content[0].allowAutoAllocation).isEqualTo(false)
+    assertThat(response.content[0].allocated).isEqualTo(0)
     assertThat(response.content[0].numberOfSessions).isEqualTo(0)
     assertThat(response.content[0].numberOfEntries).isEqualTo(0)
 
     assertThat(response.content.find { it.staffId == staffIds[3] }).isNull()
 
     assertThat(response.content[4].staffId).isEqualTo(staffIds[5])
-    assertThat(response.content[4].autoAllocationAllowed).isEqualTo(false)
-    assertThat(response.content[4].numberAllocated).isEqualTo(0)
+    assertThat(response.content[4].allowAutoAllocation).isEqualTo(false)
+    assertThat(response.content[4].allocated).isEqualTo(0)
     assertThat(response.content[4].numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 5 else 0)
     assertThat(response.content[4].numberOfEntries).isEqualTo(2)
 
     assertThat(response.content[6].staffId).isEqualTo(staffIds[8])
-    assertThat(response.content[6].autoAllocationAllowed).isEqualTo(true)
-    assertThat(response.content[6].numberAllocated).isEqualTo(7)
+    assertThat(response.content[6].allowAutoAllocation).isEqualTo(true)
+    assertThat(response.content[6].allocated).isEqualTo(7)
     assertThat(response.content[6].numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 8 else 0)
     assertThat(response.content[6].numberOfEntries).isEqualTo(4)
   }
@@ -343,7 +343,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val staff = response.content.single()
     assertThat(staff.capacity).isEqualTo(6)
-    assertThat(staff.numberAllocated).isEqualTo(2)
+    assertThat(staff.allocated).isEqualTo(2)
     assertThat(staff.numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 7 else 0)
     assertThat(staff.numberOfEntries).isEqualTo(3)
     assertThat(staff.staffRole).isEqualTo(
