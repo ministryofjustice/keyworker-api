@@ -5,6 +5,8 @@ import java.time.LocalDate
 
 data class NomisStaffRole(
   val staffId: Long,
+  val firstName: String,
+  val lastName: String,
   val position: String,
   val scheduleType: String,
   val hoursPerWeek: BigDecimal,

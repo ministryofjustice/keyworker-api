@@ -49,6 +49,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
   }
 
   fun stubFindPrisonDetails(
+    prisonCode: String,
     prisonNumbers: Set<String>,
     prisoners: List<Prisoner> =
       prisonNumbers.map {
@@ -58,9 +59,9 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
           "Last",
           LocalDate.now().minusDays(30),
           LocalDate.now().plusDays(90),
-          "DEF",
-          "Default Prison",
-          "DEF-A-1",
+          prisonCode,
+          "Description of $prisonCode",
+          "$prisonCode-A-1",
           "STANDARD",
           null,
           null,

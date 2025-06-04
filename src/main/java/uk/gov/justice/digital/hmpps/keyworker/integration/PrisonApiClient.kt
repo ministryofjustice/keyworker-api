@@ -46,11 +46,20 @@ class PrisonApiClient(
         .block()!!
     }
 
-  fun getKeyworkersForPrison(prisonCode: String): List<NomisStaffRole> =
+  fun getKeyworkersForPrison(
+    prisonCode: String,
+    staffId: Long? = null,
+  ): List<NomisStaffRole> =
     webClient
       .get()
-      .uri(GET_KEYWORKER_INFO, prisonCode)
-      .header("Page-Offset", "0")
+      .uri {
+        it.path(GET_KEYWORKER_INFO)
+        staffId?.also { staffId ->
+          it.queryParam("staffId", staffId)
+          it.queryParam("activeOnly", false)
+        }
+        it.build(prisonCode)
+      }.header("Page-Offset", "0")
       .header("Page-Limit", "3000")
       .header("Sort-Fields", "staffId")
       .header("Sort-Order", "ASC")
@@ -59,6 +68,11 @@ class PrisonApiClient(
       .bodyToMono<List<NomisStaffRole>>()
       .retryRequestOnTransientException()
       .block()!!
+
+  fun getKeyworkerForPrison(
+    prisonCode: String,
+    staffId: Long,
+  ): NomisStaffRole? = getKeyworkersForPrison(prisonCode, staffId).firstOrNull()
 
   companion object {
     const val GET_KEYWORKER_INFO = "/staff/roles/{agencyId}/role/KW"

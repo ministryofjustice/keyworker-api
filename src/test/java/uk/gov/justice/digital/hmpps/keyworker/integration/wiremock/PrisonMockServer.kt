@@ -171,7 +171,7 @@ class PrisonMockServer : WireMockServer(9999) {
     )
   }
 
-  fun stubKeyworkerSummaries(staffSummaries: List<StaffSummary>) {
+  fun stubStaffSummaries(staffSummaries: List<StaffSummary>) {
     stubFor(
       WireMock
         .post(WireMock.urlEqualTo("/api/staff"))

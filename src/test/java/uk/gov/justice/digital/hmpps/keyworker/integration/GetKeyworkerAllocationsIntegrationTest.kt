@@ -80,7 +80,7 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
       )
 
     val historic = keyworkers.mapIndexed { i, s -> staffSummary("Forename ${i + 1}", "Surname ${i + 1}", s.staffId) }
-    prisonMockServer.stubKeyworkerSummaries(historic + staffSummary("Current", "Keyworker", currentAllocation.staffId))
+    prisonMockServer.stubStaffSummaries(historic + staffSummary("Current", "Keyworker", currentAllocation.staffId))
     manageUsersMockServer.stubGetUserDetails(currentAllocation.allocatedBy, newId().toString(), "Current Allocator")
 
     val response =

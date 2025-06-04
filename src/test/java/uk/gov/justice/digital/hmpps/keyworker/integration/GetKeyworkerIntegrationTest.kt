@@ -68,7 +68,7 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
       }
 
     val personIdentifiers = allocations.filter { it.active }.map { it.personIdentifier }.toSet()
-    prisonerSearchMockServer.stubFindPrisonDetails(personIdentifiers)
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, personIdentifiers)
     caseNotesMockServer.stubUsageByPersonIdentifier(
       keyworkerTypes(
         prisonCode,
@@ -111,12 +111,12 @@ class GetKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.keyworker)
       .isEqualTo(KeyworkerWithSchedule(keyworker.staffId, "First", "Last", CodedDescription("FT", "Full Time")))
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
-    assertThat(response.prison).isEqualTo(CodedDescription("DEF", "Default Prison"))
+    assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, "Description of $prisonCode"))
     assertThat(response.capacity).isEqualTo(10)
     assertThat(response.allocated).isEqualTo(18)
     assertThat(response.allocations.size).isEqualTo(18)
     assertThat(response.allowAutoAllocation).isFalse
-    assertThat(response.allocations.all { it.prisoner.cellLocation == "DEF-A-1" }).isTrue
+    assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
 
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {

@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
 
 @RestControllerAdvice
 class ExceptionHandler {
-  @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+  @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> =
     ResponseEntity.status(HttpStatus.FORBIDDEN).body(
       ErrorResponse(

@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
@@ -8,24 +11,29 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerPrisoner
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSessionStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerWithSchedule
-import uk.gov.justice.digital.hmpps.keyworker.dto.LatestKeyworkerSession
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
+import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithSchedule
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
@@ -33,29 +41,38 @@ import java.time.temporal.ChronoUnit.DAYS
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 
 @Service
-class GetKeyworkerDetails(
+class GetStaffDetails(
+  private val prisonApi: PrisonApiClient,
+  private val staffRoleRepository: StaffRoleRepository,
   private val prisonConfigRepository: PrisonConfigurationRepository,
-  private val nomisService: NomisService,
   private val staffConfigRepository: StaffConfigRepository,
   private val allocationRepository: KeyworkerAllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
+  private val prisonRegisterApi: PrisonRegisterClient,
   private val caseNotesApiClient: CaseNotesApiClient,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
   fun getFor(
     prisonCode: String,
     staffId: Long,
-  ): KeyworkerDetails {
+  ): StaffDetails {
+    val context = AllocationContext.get()
+    val staff =
+      if (context.policy == AllocationPolicy.KEY_WORKER) {
+        prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffWithSchedule()
+      } else {
+        val ss = prisonApi.findStaffSummariesFromIds(setOf(staffId)).first()
+        staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.staffWithSchedule(ss)
+      }
+    if (staff == null) {
+      throw EntityNotFoundException("Staff member not found")
+    }
+
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
-    val keyworker =
-      nomisService
-        .getStaffKeyWorkerForPrison(prisonCode, staffId)
-        .orElseThrow { IllegalArgumentException("Staff not recognised as a keyworker") }
-        .asKeyworker()
 
     val fromDate = now().minusMonths(1)
     val previousFromDate = fromDate.minusMonths(1)
-    val keyworkerInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
+    val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
     val allocations =
       allocationRepository.findActiveForPrisonStaffBetween(
         prisonCode,
@@ -72,18 +89,19 @@ class GetKeyworkerDetails(
           .filter { it.prisonId == prisonCode }
           .associateBy { it.prisonerNumber }
       }
-    val prisonName = prisonerDetails.values.firstOrNull()?.prisonName ?: nomisService.getAgency(prisonCode).description
+    val prisonName =
+      prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
 
-    val (current, cnSummary) = allocations.keyworkerSessionStats(fromDate, now(), prisonConfig, staffId)
+    val (current, cnSummary) = allocations.staffCountStats(fromDate, now(), prisonConfig, staffId)
     val (previous, _) =
-      allocations.keyworkerSessionStats(previousFromDate, fromDate, prisonConfig, staffId)
+      allocations.staffCountStats(previousFromDate, fromDate, prisonConfig, staffId)
 
-    return KeyworkerDetails(
-      keyworker,
-      keyworkerInfo?.staffConfig?.status.toKeyworkerStatusCodedDescription(),
+    return StaffDetails(
+      staff,
+      staffInfo?.staffConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
-      keyworkerInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
-      keyworkerInfo?.allocationCount ?: 0,
+      staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
+      staffInfo?.allocationCount ?: 0,
       allocations
         .filter { it.active }
         .mapNotNull { alloc ->
@@ -91,26 +109,32 @@ class GetKeyworkerDetails(
             alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
           }
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
-      KeyworkerStats(current, previous),
-      keyworkerInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
-      keyworkerInfo?.staffConfig?.reactivateOn,
+      StaffStats(current, previous),
+      staffInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
+      staffInfo?.staffConfig?.reactivateOn,
     )
   }
 
-  private fun StaffLocationRoleDto.asKeyworker() =
-    KeyworkerWithSchedule(
+  private fun NomisStaffRole.staffWithSchedule() =
+    StaffWithSchedule(
       staffId,
       firstName,
       lastName,
-      referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType).asCodedDescription(),
+      referenceDataRepository
+        .getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType)
+        .asCodedDescription(),
     )
 
-  private fun List<StaffAllocation>.keyworkerSessionStats(
+  private fun StaffRole.staffWithSchedule(summary: StaffSummary) =
+    StaffWithSchedule(staffId, summary.firstName, summary.lastName, scheduleType.asCodedDescription())
+
+  private fun List<StaffAllocation>.staffCountStats(
     from: LocalDate,
     to: LocalDate,
     prisonConfig: PrisonConfiguration,
     staffId: Long,
-  ): Pair<KeyworkerSessionStats, CaseNoteSummary?> {
+  ): Pair<StaffCountStats, CaseNoteSummary?> {
+    val context = AllocationContext.get()
     val applicableAllocations =
       filter {
         (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(from)) &&
@@ -123,10 +147,19 @@ class GetKeyworkerDetails(
       } else {
         caseNotesApiClient
           .getUsageByPersonIdentifier(
-            keyworkerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString())),
+            if (context.policy == AllocationPolicy.KEY_WORKER) {
+              keyworkerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString()))
+            } else {
+              personalOfficerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString()))
+            },
           ).summary()
       }
-    val total = applicableAllocations.sumOf { it.daysAllocatedForStats(from, to) }
+    val total =
+      if (context.policy == AllocationPolicy.KEY_WORKER) {
+        applicableAllocations.sumOf { it.daysAllocatedForStats(from, to) }
+      } else {
+        0
+      }
     val averagePerDay = if (total == 0L) 0 else total / DAYS.between(from, to)
     val projectedSessions =
       if (averagePerDay == 0L) {
@@ -146,12 +179,12 @@ class GetKeyworkerDetails(
       }
 
     return Pair(
-      KeyworkerSessionStats(
+      StaffCountStats(
         from,
         to,
         projectedSessions,
         cnSummary?.keyworkerSessions ?: 0,
-        cnSummary?.keyworkerEntries ?: 0,
+        cnSummary?.totalEntries(context.policy) ?: 0,
         compliance ?: 0.0,
       ),
       cnSummary,
@@ -164,9 +197,9 @@ private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, 
 private fun StaffAllocation.asAllocation(
   prisoner: Prisoner,
   latestSession: LocalDate?,
-) = KeyworkerPrisoner(
+) = Allocation(
   prisoner.asPrisoner(),
-  latestSession?.let { LatestKeyworkerSession(it) },
+  latestSession?.let { LatestSession(it) },
 )
 
 private fun StaffAllocation.daysAllocatedForStats(

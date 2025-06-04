@@ -19,4 +19,6 @@ class PrisonRegisterClient(
       .bodyToMono<List<Prison>>()
       .retryRequestOnTransientException()
       .block()!!
+
+  fun findPrison(code: String): Prison? = findPrisons(setOf(code)).firstOrNull()
 }
