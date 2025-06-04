@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.Actioned
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
@@ -98,7 +99,7 @@ class GetKeyworkerAllocations(
     )
   }
 
-  private fun uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation.toModel(
+  private fun StaffAllocation.toModel(
     prison: (String) -> CodedDescription,
     keyworker: (Long) -> Keyworker,
     actionedBy: (String?) -> String,

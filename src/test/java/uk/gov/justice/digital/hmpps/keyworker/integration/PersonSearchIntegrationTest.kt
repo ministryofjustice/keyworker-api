@@ -67,7 +67,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         .map { it.staffId }
         .distinct()
         .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
-    prisonMockServer.stubKeyworkerSummaries(summaries)
+    prisonMockServer.stubStaffSummaries(summaries)
 
     val response =
       searchPersonSpec(prisonCode, searchRequest(cellLocationPrefix = "$prisonCode-A"))
@@ -145,7 +145,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         .map { it.staffId }
         .distinct()
         .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
-    prisonMockServer.stubKeyworkerSummaries(summaries)
+    prisonMockServer.stubStaffSummaries(summaries)
 
     val response =
       searchPersonSpec(prisonCode, searchRequest(query = "First"))
@@ -186,7 +186,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
     val staffIds = (0..6).map { newId() }
     val summaries = staffIds.map { StaffSummary(it, "Keyworker$it", "Staff$it") }
-    prisonMockServer.stubKeyworkerSummaries(summaries)
+    prisonMockServer.stubStaffSummaries(summaries)
 
     prisoners.content.mapIndexed { index, p ->
       if (index == 0) {

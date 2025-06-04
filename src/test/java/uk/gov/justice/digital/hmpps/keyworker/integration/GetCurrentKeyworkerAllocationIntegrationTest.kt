@@ -75,7 +75,7 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubKeyworkerSummaries(listOf(staffSummary("Current", "Keyworker", currentAllocation.staffId)))
+    prisonMockServer.stubStaffSummaries(listOf(staffSummary("Current", "Keyworker", currentAllocation.staffId)))
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
       sessionTypes(

@@ -16,17 +16,17 @@ data class StaffSearchRequest(
 }
 
 data class StaffSearchResponse(
-  val content: List<StaffSummary>,
+  val content: List<StaffSearchResult>,
 )
 
-data class StaffSummary(
+data class StaffSearchResult(
   val staffId: Long,
   val firstName: String,
   val lastName: String,
   val status: CodedDescription,
   val capacity: Int,
-  val numberAllocated: Int,
-  val autoAllocationAllowed: Boolean,
+  val allocated: Int,
+  val allowAutoAllocation: Boolean,
   val numberOfSessions: Int,
   val numberOfEntries: Int,
   val staffRole: StaffRoleInfo?,

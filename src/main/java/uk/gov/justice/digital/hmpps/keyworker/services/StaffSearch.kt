@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest.Status.ALL
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResult
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
@@ -117,10 +117,10 @@ class StaffSearch(
     entries: (Long) -> UsageByAuthorIdResponse?,
     roleInfo: (Long) -> StaffRoleInfo?,
     activeStatusProvider: Lazy<ReferenceData>,
-  ): StaffSummary {
+  ): StaffSearchResult {
     val kwa = staffConfig(staffId)
     val status = kwa?.staffConfig?.status ?: activeStatusProvider.value
-    return StaffSummary(
+    return StaffSearchResult(
       staffId,
       firstName,
       lastName,

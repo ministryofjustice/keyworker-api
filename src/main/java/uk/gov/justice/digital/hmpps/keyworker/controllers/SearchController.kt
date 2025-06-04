@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
@@ -35,6 +36,7 @@ class SearchController(
     @RequestBody request: KeyworkerSearchRequest,
   ): KeyworkerSearchResponse = keyworkerSearch.findKeyworkers(prisonCode, request)
 
+  @PolicyHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PostMapping("/prisons/{prisonCode}/staff")

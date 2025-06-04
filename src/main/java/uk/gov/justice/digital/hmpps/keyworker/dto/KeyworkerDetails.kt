@@ -8,7 +8,7 @@ data class KeyworkerDetails(
   val prison: CodedDescription,
   val capacity: Int,
   val allocated: Int,
-  val allocations: List<Allocation>,
+  val allocations: List<KeyworkerPrisoner>,
   val stats: KeyworkerStats,
   val allowAutoAllocation: Boolean,
   val reactivateOn: LocalDate?,
@@ -21,18 +21,9 @@ data class KeyworkerWithSchedule(
   val scheduleType: CodedDescription,
 )
 
-data class Allocation(
+data class KeyworkerPrisoner(
   val prisoner: Prisoner,
   val latestSession: LatestKeyworkerSession?,
-)
-
-data class Prisoner(
-  val prisonNumber: String,
-  val firstName: String,
-  val lastName: String,
-  val csra: String?,
-  val cellLocation: String?,
-  val releaseDate: LocalDate?,
 )
 
 data class LatestKeyworkerSession(

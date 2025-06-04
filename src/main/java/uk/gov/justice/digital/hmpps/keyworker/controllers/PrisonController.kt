@@ -23,8 +23,10 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerDetails
+import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonStatsService
 import uk.gov.justice.digital.hmpps.keyworker.services.StaffConfigManager
@@ -36,7 +38,8 @@ class PrisonController(
   private val prisonService: PrisonService,
   private val statsService: PrisonStatsService,
   private val keyworkerDetails: GetKeyworkerDetails,
-  private val keyworkerConfigManager: StaffConfigManager,
+  private val staffDetails: GetStaffDetails,
+  private val staffConfigManager: StaffConfigManager,
 ) {
   @PolicyHeader
   @CaseloadIdHeader
@@ -72,6 +75,15 @@ class PrisonController(
     @PathVariable staffId: Long,
   ): KeyworkerDetails = keyworkerDetails.getFor(prisonCode, staffId)
 
+  @PolicyHeader
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping("/staff/{staffId}")
+  fun getStaffDetails(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+  ): StaffDetails = staffDetails.getFor(prisonCode, staffId)
+
   @Tag(name = MANAGE_KEYWORKERS)
   @CaseloadIdHeader
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RW}')")
@@ -82,7 +94,7 @@ class PrisonController(
     @PathVariable staffId: Long,
     @RequestBody request: StaffConfigRequest,
   ) {
-    keyworkerConfigManager.setStaffConfiguration(prisonCode, staffId, request)
+    staffConfigManager.setStaffConfiguration(prisonCode, staffId, request)
   }
 
   @PolicyHeader
@@ -96,7 +108,7 @@ class PrisonController(
     @PathVariable staffId: Long,
     @RequestBody request: StaffConfigRequest,
   ) {
-    keyworkerConfigManager.setStaffConfiguration(prisonCode, staffId, request)
+    staffConfigManager.setStaffConfiguration(prisonCode, staffId, request)
   }
 
   @PolicyHeader
@@ -110,6 +122,6 @@ class PrisonController(
     @PathVariable staffId: Long,
     @RequestBody request: StaffJobClassificationRequest,
   ) {
-    keyworkerConfigManager.setStaffJobClassification(prisonCode, staffId, request)
+    staffConfigManager.setStaffJobClassification(prisonCode, staffId, request)
   }
 }

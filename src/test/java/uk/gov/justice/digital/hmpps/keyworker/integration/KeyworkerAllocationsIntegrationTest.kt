@@ -63,7 +63,11 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "PRM"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
     val psa = personStaffAllocation()
-    prisonerSearchMockServer.stubFindPrisonDetails(setOf(psa.personIdentifier), listOf(prisoner(psa.personIdentifier)))
+    prisonerSearchMockServer.stubFindPrisonDetails(
+      prisonCode,
+      setOf(psa.personIdentifier),
+      listOf(prisoner(psa.personIdentifier)),
+    )
 
     val res =
       allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)))
@@ -83,7 +87,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisoner = prisoner(prisonCode)
     val staff = staffRole()
     val psa = personStaffAllocation(prisoner.prisonerNumber, staff.staffId)
-    prisonerSearchMockServer.stubFindPrisonDetails(setOf(psa.personIdentifier), listOf(prisoner))
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staffRole()))
 
     val res =
@@ -104,7 +108,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisoner = prisoner(prisonCode)
     val staff = staffRole()
     val psa = personStaffAllocation(prisoner.prisonerNumber, staff.staffId)
-    prisonerSearchMockServer.stubFindPrisonDetails(setOf(psa.personIdentifier), listOf(prisoner))
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
 
     givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staff.staffId))
@@ -127,7 +131,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisoners = listOf(prisoner(prisonCode))
     val staff = staffRole()
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staff.staffId) }
-    prisonerSearchMockServer.stubFindPrisonDetails(prisoners.map { it.prisonerNumber }.toSet(), prisoners)
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
@@ -153,7 +157,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
         staff.staffId,
         recommendedAllocationStaffId = recommendedStaff.staffId,
       )
-    prisonerSearchMockServer.stubFindPrisonDetails(setOf(prisoner.prisonerNumber), listOf(prisoner))
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(prisoner.prisonerNumber), listOf(prisoner))
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa))).expectStatus().isNoContent
@@ -179,7 +183,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisoners = listOf(prisoner(prisonCode))
     val staff = staffRole()
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staff.staffId) }
-    prisonerSearchMockServer.stubFindPrisonDetails(prisoners.map { it.prisonerNumber }.toSet(), prisoners)
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
     val existingAllocations =
       prisoners.map { givenKeyworkerAllocation(keyworkerAllocation(it.prisonerNumber, prisonCode)) }
@@ -207,7 +211,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val prisoners = listOf(prisoner(prisonCode))
     val staff = staffRole()
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staff.staffId) }
-    prisonerSearchMockServer.stubFindPrisonDetails(prisoners.map { it.prisonerNumber }.toSet(), prisoners)
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
     val existingAllocations =
       prisoners.map { givenKeyworkerAllocation(keyworkerAllocation(it.prisonerNumber, prisonCode, staff.staffId)) }
