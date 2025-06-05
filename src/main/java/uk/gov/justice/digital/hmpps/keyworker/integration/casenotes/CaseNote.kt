@@ -35,7 +35,6 @@ data class CaseNote(
     const val KW_TYPE = "KA"
     const val KW_SESSION_SUBTYPE = "KS"
     const val KW_ENTRY_SUBTYPE = "KE"
-    const val TRANSFER_TYPE = "TRANSFER"
     const val PO_ENTRY_TYPE = "REPORT"
     const val PO_ENTRY_SUBTYPE = "POE"
   }

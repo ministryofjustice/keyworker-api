@@ -39,11 +39,9 @@ import java.util.stream.Stream;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
 import static java.util.stream.Collectors.averagingDouble;
-import static java.util.stream.Collectors.averagingLong;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_CASENOTE_TYPE;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_ENTRY_SUB_TYPE;
 import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.KEYWORKER_SESSION_SUB_TYPE;
-import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.TRANSFER_CASENOTE_TYPE;
 
 @Service
 @Transactional(readOnly = true)

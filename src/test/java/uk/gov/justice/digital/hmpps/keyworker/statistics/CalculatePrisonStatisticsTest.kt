@@ -14,19 +14,16 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.TRANSFER_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.transferTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate.now
@@ -69,10 +66,6 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       sessionTypes(prisonCode, peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
       previousSessionsResponse(peopleWithSessions),
     )
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(prisonCode, prisoners.personIdentifiers(), yesterday.minusMonths(6), yesterday.plusDays(1)),
-      transferResponse(prisoners.personIdentifiers()),
-    )
 
     webTestClient
       .post()
@@ -111,11 +104,13 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     val keyworkers =
       (0..10).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
-    val prisoners = prisoners()
+    val prisoners = prisoners(includeComplexNeeds = true)
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
-    val withComplexNeeds: List<ComplexOffender> = prisoners.personIdentifiers().withComplexNeeds()
-    complexityOfNeedMockServer.stubComplexOffenders(prisoners.personIdentifiers(), withComplexNeeds)
-    val eligiblePrisoners = (prisoners.personIdentifiers() - withComplexNeeds.map { it.offenderNo })
+    val eligiblePrisoners =
+      prisoners.content
+        .filter { it.complexityOfNeedLevel != ComplexityOfNeedLevel.HIGH }
+        .map { it.prisonerNumber }
+        .toSet()
     eligiblePrisoners.forEachIndexed { index, pi ->
       if (index % 3 == 0) {
         givenKeyworkerAllocation(
@@ -138,10 +133,6 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     caseNotesMockServer.stubUsageByPersonIdentifier(
       sessionTypes(prisonCode, peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
       previousSessionsResponse(peopleWithSessions),
-    )
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      transferTypes(prisonCode, eligiblePrisoners, yesterday.minusMonths(6), yesterday.plusDays(1)),
-      NoteUsageResponse(emptyMap()),
     )
 
     webTestClient
@@ -170,12 +161,16 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.keyworkerEntries).isEqualTo(7)
 
     assertThat(stats.averageReceptionToAllocationDays).isNull()
-    assertThat(stats.averageReceptionToSessionDays).isNull()
+    assertThat(stats.averageReceptionToSessionDays).isEqualTo(26)
   }
 
-  private fun prisoners(count: Int = 100) =
-    Prisoners(
-      (0..count).map { index ->
+  private fun prisoners(
+    count: Int = 100,
+    includeComplexNeeds: Boolean = false,
+  ): Prisoners {
+    val nonHigh = listOf(ComplexityOfNeedLevel.LOW, ComplexityOfNeedLevel.MEDIUM, null)
+    return Prisoners(
+      (1..count).map { index ->
         Prisoner(
           personIdentifier(),
           "First",
@@ -186,17 +181,24 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           "Default Prison",
           "DEF-A-1",
           "STANDARD",
-          null,
-          null,
+          if (!includeComplexNeeds) {
+            null
+          } else if (index % 5 == 0) {
+            ComplexityOfNeedLevel.HIGH
+          } else {
+            nonHigh.random()
+          },
+          if (index % 2 == 0) null else now().minusDays(index / 2 + 1L),
         )
       },
     )
+  }
 
   private fun noteUsageResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> =
     NoteUsageResponse(
       personIdentifiers
         .mapIndexed { index, pi ->
-          buildSet<UsageByPersonIdentifierResponse> {
+          buildSet {
             if (index % 3 == 0) {
               add(
                 UsageByPersonIdentifierResponse(
@@ -228,7 +230,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     NoteUsageResponse(
       personIdentifiers
         .mapIndexed { index, pi ->
-          buildSet<UsageByPersonIdentifierResponse> {
+          buildSet {
             if (index % 4 == 0) {
               add(
                 UsageByPersonIdentifierResponse(
@@ -245,38 +247,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         .groupBy { it.personIdentifier },
     )
 
-  private fun transferResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> =
-    NoteUsageResponse(
-      personIdentifiers
-        .mapIndexed { index, pi ->
-          buildSet<UsageByPersonIdentifierResponse> {
-            if (index % 2 == 0) {
-              add(
-                UsageByPersonIdentifierResponse(
-                  pi,
-                  TRANSFER_TYPE,
-                  "NE1",
-                  1,
-                  LatestNote(LocalDateTime.now().minusDays(index / 2 + 1L)),
-                ),
-              )
-            }
-          }
-        }.flatten()
-        .groupBy { it.personIdentifier },
-    )
-
   private fun staffRoles(staffIds: List<Long>) =
     staffIds.map {
       StaffLocationRoleDto.builder().staffId(it).build()
-    }
-
-  private fun Set<String>.withComplexNeeds() =
-    mapIndexedNotNull { index, pi ->
-      if (index % 5 == 0) {
-        ComplexOffender(pi, ComplexityOfNeedLevel.HIGH)
-      } else {
-        null
-      }
     }
 }
