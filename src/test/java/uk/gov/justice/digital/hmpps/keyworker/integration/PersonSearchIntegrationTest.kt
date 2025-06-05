@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
@@ -86,7 +85,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     }
     val history = requireNotNull(response.content.find { it.location == "$prisonCode-A-4" })
     with(history) {
-      assertThat(hasHighComplexityOfNeeds).isFalse
+      assertThat(hasHighComplexityOfNeeds).isTrue
       assertThat(hasAllocationHistory).isTrue
       assertThat(keyworker).isNull()
     }
@@ -105,20 +104,6 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
     val prisoners = prisoners(prisonCode, 6)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners, mapOf("term" to "First"))
-
-    complexityOfNeedMockServer.stubComplexOffenders(
-      prisoners.personIdentifiers(),
-      prisoners.personIdentifiers().mapIndexedNotNull { index, personIdentifier ->
-        if (index % 3 == 0) {
-          null
-        } else {
-          ComplexOffender(
-            personIdentifier,
-            if (index % 2 == 0) ComplexityOfNeedLevel.HIGH else ComplexityOfNeedLevel.MEDIUM,
-          )
-        }
-      },
-    )
 
     val staffIds = (0..6).map { newId() }
 
@@ -164,13 +149,13 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     }
     val history = requireNotNull(response.content.find { it.firstName == "First4" })
     with(history) {
-      assertThat(hasHighComplexityOfNeeds).isFalse
+      assertThat(hasHighComplexityOfNeeds).isTrue
       assertThat(hasAllocationHistory).isTrue
       assertThat(keyworker).isNull()
     }
     val active = requireNotNull(response.content.find { it.firstName == "First3" })
     with(active) {
-      assertThat(hasHighComplexityOfNeeds).isTrue
+      assertThat(hasHighComplexityOfNeeds).isFalse
       assertThat(hasAllocationHistory).isTrue
       assertThat(keyworker).isNotNull
     }
@@ -221,7 +206,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     }
     val history = requireNotNull(response.content.find { it.location == "$prisonCode-A-4" })
     with(history) {
-      assertThat(hasHighComplexityOfNeeds).isFalse
+      assertThat(hasHighComplexityOfNeeds).isTrue
       assertThat(hasAllocationHistory).isTrue
       assertThat(keyworker).isNull()
     }
@@ -247,9 +232,10 @@ class PersonSearchIntegrationTest : IntegrationTest() {
   private fun prisoners(
     prisonCode: String,
     count: Int,
-  ) = Prisoners(
-    (1..count)
-      .map {
+  ): Prisoners {
+    val nonHigh = listOf(ComplexityOfNeedLevel.LOW, ComplexityOfNeedLevel.MEDIUM)
+    return Prisoners(
+      (1..count).map {
         Prisoner(
           personIdentifier(),
           "First$it",
@@ -260,11 +246,16 @@ class PersonSearchIntegrationTest : IntegrationTest() {
           "Description of $prisonCode",
           "$prisonCode-A-$it",
           "STANDARD",
-          null,
+          when {
+            it % 3 == 0 -> null
+            it % 2 == 0 -> ComplexityOfNeedLevel.HIGH
+            else -> nonHigh.random()
+          },
           null,
         )
       },
-  )
+    )
+  }
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/prisoners"

@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.TRANSFER_TYPE
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -71,20 +70,6 @@ data class UsageByPersonIdentifierRequest(
         to = to.atStartOfDay(),
         prisonCode = prisonCode,
         authorIds = staffIds,
-      )
-
-    fun transferTypes(
-      prisonCode: String?,
-      personIdentifiers: Set<String>,
-      from: LocalDate,
-      to: LocalDate,
-    ): UsageByPersonIdentifierRequest =
-      UsageByPersonIdentifierRequest(
-        personIdentifiers,
-        setOf(TypeSubTypeRequest(TRANSFER_TYPE, setOf())),
-        from = from.atStartOfDay(),
-        to = to.atStartOfDay(),
-        prisonCode = prisonCode,
       )
   }
 }
@@ -172,13 +157,6 @@ data class CaseNoteSummary(
   fun findSessionDate(personIdentifier: String): LocalDate? =
     data[personIdentifier]
       ?.find { it.subType == KW_SESSION_SUBTYPE }
-      ?.latestNote
-      ?.occurredAt
-      ?.toLocalDate()
-
-  fun findTransferDate(personIdentifier: String): LocalDate? =
-    data[personIdentifier]
-      ?.find { it.type == TRANSFER_TYPE }
       ?.latestNote
       ?.occurredAt
       ?.toLocalDate()

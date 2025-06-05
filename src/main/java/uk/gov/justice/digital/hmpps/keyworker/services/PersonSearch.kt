@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
@@ -16,9 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 
 @Service
 class PersonSearch(
-  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val prisonerSearch: PrisonerSearchClient,
-  private val complexityOfNeed: ComplexityOfNeedGateway,
   private val allocationRepository: KeyworkerAllocationRepository,
   private val prisonApi: PrisonApiClient,
 ) {
@@ -26,16 +23,7 @@ class PersonSearch(
     prisonCode: String,
     request: PersonSearchRequest,
   ): PersonSearchResponse {
-    val prisonConfig = prisonConfigRepository.findByCode(prisonCode)
     val prisoners = prisonerSearch.findFilteredPrisoners(prisonCode, request)
-    val complexNeedsMap =
-      if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {
-        complexityOfNeed
-          .getOffendersWithMeasuredComplexityOfNeed(prisoners.personIdentifiers())
-          .associateBy { it.offenderNo }
-      } else {
-        emptyMap()
-      }
 
     val summaries =
       allocationRepository
@@ -52,14 +40,13 @@ class PersonSearch(
 
     return PersonSearchResponse(
       prisoners.content.mapNotNull {
-        it.summary(request.excludeActiveAllocations, complexNeedsMap::get, summaries::get, keyworkers::get)
+        it.summary(request.excludeActiveAllocations, summaries::get, keyworkers::get)
       },
     )
   }
 
   private fun Prisoner.summary(
     excludeActive: Boolean,
-    complexity: (String) -> ComplexOffender?,
     summary: (String) -> AllocationSummary?,
     staff: (Long) -> StaffSummary?,
   ): PrisonerSummary? {
@@ -72,7 +59,7 @@ class PersonSearch(
         firstName,
         lastName,
         cellLocation,
-        complexity(prisonerNumber)?.level == HIGH,
+        complexityOfNeedLevel == HIGH,
         (summary?.totalCount ?: 0) > 0,
         summary?.staffId?.let { staff(it) }?.asKeyworker(),
       )
