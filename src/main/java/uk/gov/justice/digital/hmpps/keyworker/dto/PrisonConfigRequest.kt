@@ -23,7 +23,7 @@ data class PrisonConfigResponse(
         isEnabled = false,
         hasPrisonersWithHighComplexityNeeds = false,
         allowAutoAllocation = false,
-        capacity = 6,
+        capacity = 9,
         frequencyInWeeks = 1,
       )
   }
