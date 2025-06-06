@@ -29,6 +29,7 @@ class KeyworkerContextConfiguration(
         "/ping",
         "/v3/api-docs/**",
         "/swagger-ui/**",
+        "/swagger-ui.html",
         "/swagger-resources/**",
       )
   }
