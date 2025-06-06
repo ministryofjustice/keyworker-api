@@ -98,7 +98,7 @@ class StaffSearch(
             .findAllByPrisonCodeAndStaffIdIn(prisonCode, staffMembers.map { it.staffId }.toSet())
             .associate { it.staffId to it.roleInfo() }
       }
-    return staffMembers.map {
+    return staffMembers.filter { it.staffStatus == "ACTIVE"}.map {
       StaffWithRole(
         it.staffId,
         it.firstName,
