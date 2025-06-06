@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
+import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
+
 data class RecommendedAllocations(
   val allocations: List<RecommendedAllocation>,
-  val noAvailableKeyworkersFor: List<String>,
+  val noAvailableStaffFor: List<String>,
 )
 
 sealed interface Recommendation {
@@ -15,5 +17,5 @@ data class NoRecommendation(
 
 data class RecommendedAllocation(
   override val personIdentifier: String,
-  val keyworker: Keyworker,
+  val staff: StaffSummary,
 ) : Recommendation

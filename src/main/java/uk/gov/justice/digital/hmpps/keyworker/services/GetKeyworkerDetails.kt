@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
@@ -37,7 +37,7 @@ class GetKeyworkerDetails(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val nomisService: NomisService,
   private val staffConfigRepository: StaffConfigRepository,
-  private val allocationRepository: KeyworkerAllocationRepository,
+  private val allocationRepository: StaffAllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val caseNotesApiClient: CaseNotesApiClient,
   private val referenceDataRepository: ReferenceDataRepository,

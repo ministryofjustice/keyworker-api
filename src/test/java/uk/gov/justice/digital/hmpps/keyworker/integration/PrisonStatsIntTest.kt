@@ -2,17 +2,12 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
-import uk.gov.justice.digital.hmpps.keyworker.services.SessionAndEntryService
 import java.time.LocalDate
 import java.time.LocalDate.now
 
 class PrisonStatsIntTest : IntegrationTest() {
-  @Autowired
-  private lateinit var sessionAndEntryService: SessionAndEntryService
-
   @Test
   fun `401 unathorised without a valid token`() {
     webTestClient

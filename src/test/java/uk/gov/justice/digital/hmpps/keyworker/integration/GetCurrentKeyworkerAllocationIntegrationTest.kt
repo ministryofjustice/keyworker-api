@@ -50,8 +50,8 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
     val keyworkers = listOf(previous, current)
 
     keyworkers.mapIndexed { i, a ->
-      givenKeyworkerAllocation(
-        keyworkerAllocation(
+      givenAllocation(
+        staffAllocation(
           personIdentifier = prisonNumber,
           prisonCode = prisonCode,
           staffId = a.staffId,
@@ -65,8 +65,8 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
     }
 
     val currentAllocation =
-      givenKeyworkerAllocation(
-        keyworkerAllocation(
+      givenAllocation(
+        staffAllocation(
           personIdentifier = prisonNumber,
           prisonCode = prisonCode,
           staffId = newId(),

@@ -62,9 +62,9 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
     val kwContext =
       AllocationContext.get().copy("keyworker-ui", activeCaseloadId = prisonCode, policy = AllocationPolicy.KEY_WORKER)
     val poContext = kwContext.copy(policy = AllocationPolicy.PERSONAL_OFFICER)
-    val kRequest = prisonConfigRequest(capacity = 5, maximumCapacity = 10, frequencyInWeeks = 4)
+    val kRequest = prisonConfigRequest(capacity = 10, frequencyInWeeks = 4)
     val kConfig = setPrisonConfig(prisonCode, kRequest, policy = AllocationPolicy.KEY_WORKER).asPrisonConfig()
-    val pRequest = prisonConfigRequest(capacity = 3, maximumCapacity = 5, frequencyInWeeks = 1)
+    val pRequest = prisonConfigRequest(capacity = 5, frequencyInWeeks = 1)
     val pConfig = setPrisonConfig(prisonCode, pRequest, policy = AllocationPolicy.PERSONAL_OFFICER).asPrisonConfig()
 
     kConfig.verifyAgainst(kRequest)
@@ -91,9 +91,9 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenPrisonConfig(prisonConfig(prisonCode, policy = AllocationPolicy.PERSONAL_OFFICER))
 
-    val kRequest = prisonConfigRequest(capacity = 5, maximumCapacity = 10, frequencyInWeeks = 4)
+    val kRequest = prisonConfigRequest(capacity = 10, frequencyInWeeks = 4)
     val kConfig = setPrisonConfig(prisonCode, kRequest, policy = AllocationPolicy.KEY_WORKER).asPrisonConfig()
-    val pRequest = prisonConfigRequest(capacity = 3, maximumCapacity = 5, frequencyInWeeks = 1)
+    val pRequest = prisonConfigRequest(capacity = 5, frequencyInWeeks = 1)
     val pConfig = setPrisonConfig(prisonCode, pRequest, policy = AllocationPolicy.PERSONAL_OFFICER).asPrisonConfig()
 
     kConfig.verifyAgainst(kRequest)
@@ -142,15 +142,13 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
     private fun prisonConfigRequest(
       isEnabled: Boolean = true,
       allowAutoAllocation: Boolean = true,
-      capacity: Int = 6,
-      maximumCapacity: Int = 9,
+      capacity: Int = 9,
       frequencyInWeeks: Int = 1,
       hasPrisonersWithHighComplexityNeeds: Boolean = false,
     ) = PrisonConfigRequest(
       isEnabled,
       allowAutoAllocation,
       capacity,
-      maximumCapacity,
       frequencyInWeeks,
       hasPrisonersWithHighComplexityNeeds,
     )
@@ -159,12 +157,11 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
     fun setPrisonConfigurationsValidation() =
       listOf(
         Arguments.of(
-          prisonConfigRequest(capacity = 0, maximumCapacity = -1, frequencyInWeeks = -2),
+          prisonConfigRequest(capacity = -1, frequencyInWeeks = -2),
           """
           |Validation failures: 
           |capacity must be greater than 0
           |frequency in weeks must be greater than 0
-          |maximum capacity must be greater than 0
           |
           """.trimMargin(),
         ),
@@ -175,7 +172,6 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
 private fun PrisonConfigResponse.verifyAgainst(request: PrisonConfigRequest) {
   assertThat(isEnabled).isEqualTo(request.isEnabled)
   assertThat(capacity).isEqualTo(request.capacity)
-  assertThat(maximumCapacity).isEqualTo(request.maximumCapacity)
   assertThat(frequencyInWeeks).isEqualTo(request.frequencyInWeeks)
   assertThat(allowAutoAllocation).isEqualTo(request.allowAutoAllocation)
   assertThat(hasPrisonersWithHighComplexityNeeds).isEqualTo(request.hasPrisonersWithHighComplexityNeeds)
@@ -183,8 +179,7 @@ private fun PrisonConfigResponse.verifyAgainst(request: PrisonConfigRequest) {
 
 private fun PrisonConfiguration.verifyAgainst(request: PrisonConfigRequest) {
   assertThat(enabled).isEqualTo(request.isEnabled)
-  assertThat(capacity).isEqualTo(request.capacity)
-  assertThat(maximumCapacity).isEqualTo(request.maximumCapacity)
+  assertThat(maximumCapacity).isEqualTo(request.capacity)
   assertThat(frequencyInWeeks).isEqualTo(request.frequencyInWeeks)
   assertThat(allowAutoAllocation).isEqualTo(request.allowAutoAllocation)
   assertThat(hasPrisonersWithHighComplexityNeeds).isEqualTo(request.hasPrisonersWithHighComplexityNeeds)

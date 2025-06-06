@@ -22,13 +22,13 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest.Status.ALL
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResult
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 
 @Service
@@ -46,7 +46,7 @@ class StaffSearch(
     request: StaffSearchRequest,
   ): StaffSearchResponse {
     val context = AllocationContext.get()
-    val staffMembers = nomisUsersApi.getUsers(prisonCode, request.query).content
+    val staffMembers = findStaffWithRole(prisonCode, request.query)
     val staffIds = staffMembers.map { it.staffId }.toSet()
     val staffIdStrings = staffIds.map { it.toString() }.toSet()
 
@@ -56,15 +56,6 @@ class StaffSearch(
         else -> NoteUsageResponse(emptyMap())
       }
     val entries = caseNoteApi.getUsageByStaffIds(lastMonthEntries(staffIdStrings))
-
-    val roleInfo =
-      when (context.policy) {
-        AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
-        else ->
-          staffRoleRepository
-            .findAllByPrisonCodeAndStaffIdIn(prisonCode, staffIds)
-            .associate { it.staffId to it.roleInfo() }
-      }
 
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val staffDetail =
@@ -82,7 +73,6 @@ class StaffSearch(
             prisonConfig,
             { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
             { staffId -> entries.content[staffId.toString()]?.firstOrNull() },
-            { staffId -> roleInfo[staffId] },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffSearchRequest.Status.ACTIVE.name)!! },
           )
         }.filter { ss ->
@@ -92,6 +82,32 @@ class StaffSearch(
             } ?: true
         },
     )
+  }
+
+  fun findStaffWithRole(
+    prisonCode: String,
+    nameFilter: String? = null,
+  ): List<StaffWithRole> {
+    val context = AllocationContext.get()
+    val staffMembers = nomisUsersApi.getUsers(prisonCode, nameFilter).content
+    val roleInfo =
+      when (context.policy) {
+        AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
+        else ->
+          staffRoleRepository
+            .findAllByPrisonCodeAndStaffIdIn(prisonCode, staffMembers.map { it.staffId }.toSet())
+            .associate { it.staffId to it.roleInfo() }
+      }
+    return staffMembers.map {
+      StaffWithRole(
+        it.staffId,
+        it.firstName,
+        it.lastName,
+        roleInfo[it.staffId],
+        it.username,
+        it.email,
+      )
+    }
   }
 
   private fun getKeyworkerRoleInfo(prisonCode: String): Map<Long, StaffRoleInfo> {
@@ -110,12 +126,11 @@ class StaffSearch(
     }
   }
 
-  private fun NomisStaff.searchResponse(
+  private fun StaffWithRole.searchResponse(
     staffConfig: (Long) -> StaffWithAllocationCount?,
     prisonConfig: PrisonConfiguration,
     sessions: (Long) -> UsageByAuthorIdResponse?,
     entries: (Long) -> UsageByAuthorIdResponse?,
-    roleInfo: (Long) -> StaffRoleInfo?,
     activeStatusProvider: Lazy<ReferenceData>,
   ): StaffSearchResult {
     val kwa = staffConfig(staffId)
@@ -130,7 +145,7 @@ class StaffSearch(
       kwa?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       sessions(staffId)?.count ?: 0,
       entries(staffId)?.count ?: 0,
-      roleInfo(staffId),
+      staffRole,
       username,
       email,
     )

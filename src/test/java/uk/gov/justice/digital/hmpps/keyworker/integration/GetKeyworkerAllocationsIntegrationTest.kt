@@ -39,8 +39,8 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val historicAllocations =
       keyworkers.mapIndexed { i, a ->
         val allocation =
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               personIdentifier = prisonNumber,
               prisonCode = prisonCode,
               staffId = a.staffId,
@@ -68,8 +68,8 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
       }
 
     val currentAllocation =
-      givenKeyworkerAllocation(
-        keyworkerAllocation(
+      givenAllocation(
+        staffAllocation(
           personIdentifier = prisonNumber,
           prisonCode = prisonCode,
           staffId = newId(),

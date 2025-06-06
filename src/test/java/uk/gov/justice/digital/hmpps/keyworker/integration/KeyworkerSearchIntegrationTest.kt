@@ -55,8 +55,8 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     keyworkerConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               personIdentifier(),
               prisonCode,
               kw.staffId,
@@ -131,8 +131,8 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     keyworkerConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               personIdentifier(),
               prisonCode,
               kw.staffId,
@@ -178,8 +178,8 @@ class KeyworkerSearchIntegrationTest : IntegrationTest() {
     val staffId = newId()
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
 
-    givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
-    givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+    givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
+    givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
 
     val noteUsage =
       NoteUsageResponse(

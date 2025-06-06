@@ -48,8 +48,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         if (index == 0) {
           null
         } else {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               p.prisonerNumber,
               prisonCode,
               staffIds.random(),
@@ -112,8 +112,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         if (index == 0) {
           null
         } else {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               p.prisonerNumber,
               prisonCode,
               staffIds.random(),
@@ -177,8 +177,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
       if (index == 0) {
         null
       } else {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(
+        givenAllocation(
+          staffAllocation(
             p.prisonerNumber,
             prisonCode,
             staffIds.random(),

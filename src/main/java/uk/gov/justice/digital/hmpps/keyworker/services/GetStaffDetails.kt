@@ -4,12 +4,12 @@ import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
@@ -45,7 +45,7 @@ class GetStaffDetails(
   private val staffRoleRepository: StaffRoleRepository,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
-  private val allocationRepository: KeyworkerAllocationRepository,
+  private val allocationRepository: StaffAllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val prisonRegisterApi: PrisonRegisterClient,
   private val caseNotesApiClient: CaseNotesApiClient,

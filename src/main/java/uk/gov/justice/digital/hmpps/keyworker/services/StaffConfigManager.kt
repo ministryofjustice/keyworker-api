@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.STAFF_STA
 class StaffConfigManager(
   private val referenceDataRepository: ReferenceDataRepository,
   private val staffConfigRepository: StaffConfigRepository,
-  private val allocationRepository: KeyworkerAllocationRepository,
+  private val allocationRepository: StaffAllocationRepository,
   private val nurApi: NomisUserRolesApiClient,
   private val staffRoleRepository: StaffRoleRepository,
 ) {

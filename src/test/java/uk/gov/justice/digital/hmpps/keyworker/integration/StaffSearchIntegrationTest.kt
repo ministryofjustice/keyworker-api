@@ -88,8 +88,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     staffConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               personIdentifier(),
               prisonCode,
               kw.staffId,
@@ -197,8 +197,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     staffConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               personIdentifier(),
               prisonCode,
               kw.staffId,
@@ -298,8 +298,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       )
     }
 
-    givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
-    givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+    givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
+    givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
 
     if (policy == AllocationPolicy.KEY_WORKER) {
       val sessionUsage =
@@ -388,8 +388,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     staffConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               personIdentifier(),
               prisonCode,
               kw.staffId,

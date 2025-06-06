@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
@@ -48,6 +47,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_S
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
@@ -98,7 +98,7 @@ abstract class IntegrationTest {
   protected lateinit var staffConfigRepository: StaffConfigRepository
 
   @Autowired
-  protected lateinit var keyworkerAllocationRepository: KeyworkerAllocationRepository
+  protected lateinit var keyworkerAllocationRepository: StaffAllocationRepository
 
   @Autowired
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
@@ -400,8 +400,7 @@ abstract class IntegrationTest {
     code: String,
     enabled: Boolean = false,
     allowAutoAllocation: Boolean = false,
-    capacity: Int = 6,
-    maxCapacity: Int = 9,
+    capacity: Int = 9,
     frequencyInWeeks: Int = 1,
     hasPrisonersWithHighComplexityNeeds: Boolean = false,
     policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
@@ -409,8 +408,8 @@ abstract class IntegrationTest {
     code,
     enabled,
     allowAutoAllocation,
+    6,
     capacity,
-    maxCapacity,
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds,
     policy.name,
@@ -499,7 +498,7 @@ abstract class IntegrationTest {
 
   protected fun givenStaffRole(staffRole: StaffRole) = staffRoleRepository.save(staffRole)
 
-  protected fun keyworkerAllocation(
+  protected fun staffAllocation(
     personIdentifier: String,
     prisonCode: String,
     staffId: Long = newId(),
@@ -525,7 +524,7 @@ abstract class IntegrationTest {
     id,
   )
 
-  protected fun givenKeyworkerAllocation(allocation: StaffAllocation): StaffAllocation = keyworkerAllocationRepository.save(allocation)
+  protected fun givenAllocation(allocation: StaffAllocation): StaffAllocation = keyworkerAllocationRepository.save(allocation)
 
   protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
     when (interaction) {

@@ -96,7 +96,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
     val allocations =
       (0..10).map {
-        givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+        givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
       }
 
     val request = keyworkerConfigRequest(status = StaffStatus.ACTIVE, capacity = 6)
@@ -127,7 +127,7 @@ class ManageKeyworkerConfigIntTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 10))
     val allocations =
       (0..10).map {
-        givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+        givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
       }
 
     val request = keyworkerConfigRequest(deactivateActiveAllocations = true)

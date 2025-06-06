@@ -44,8 +44,7 @@ class PrisonConfiguration(
   fun update(request: PrisonConfigRequest) =
     apply {
       enabled = request.isEnabled
-      capacity = request.capacity
-      maximumCapacity = request.maximumCapacity
+      maximumCapacity = request.capacity
       allowAutoAllocation = request.allowAutoAllocation
       frequencyInWeeks = request.frequencyInWeeks
       request.hasPrisonersWithHighComplexityNeeds?.also { hasPrisonersWithHighComplexityNeeds = it }
