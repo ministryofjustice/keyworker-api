@@ -2,15 +2,24 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
+import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -19,7 +28,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
   fun `401 unauthorised without a valid token`() {
     webTestClient
       .get()
-      .uri(GET_KEYWORKER_RECOMMENDATIONS, "NAU")
+      .uri(GET_ALLOCATION_RECOMMENDATIONS, "NAU")
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -27,52 +36,69 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getKeyworkerRecommendations("DNM", "ROLE_ANY__OTHER_RO").expectStatus().isForbidden
+    getKeyworkerRecommendations("DNM", AllocationPolicy.KEY_WORKER, "ROLE_ANY__OTHER_RO")
+      .expectStatus()
+      .isForbidden
   }
 
-  @Test
-  fun `identifies cases that have no recommendations when all keyworkers are at max capacity`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `identifies cases that have no recommendations when all keyworkers are at max capacity`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "FUL"
-    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, maxCapacity = 1))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy))
     val prisoners = prisoners(prisonCode, 10)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (0..2).map { staffDetail() }
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
+    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(staff)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
+    } else {
+      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
+    }
 
     staff.map {
-      givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, it.staffId))
+      givenAllocation(staffAllocation(personIdentifier(), prisonCode, it.staffId))
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode)
+      getKeyworkerRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
         .returnResult()
         .responseBody!!
 
-    assertThat(res.noAvailableKeyworkersFor).containsExactlyInAnyOrderElementsOf(prisoners.content.map { it.prisonerNumber })
+    assertThat(res.noAvailableStaffFor).containsExactlyInAnyOrderElementsOf(prisoners.content.map { it.prisonerNumber })
     assertThat(res.allocations).isEmpty()
   }
 
-  @Test
-  fun `will recommend previous keyworker regardless of capacity`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `will recommend previous keyworker regardless of capacity`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EXI"
-    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, maxCapacity = 1))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy))
     val prisoners = prisoners(prisonCode, 6)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staffWithCapacity = (0..2).map { staffDetail() }
     val staffAtCapacity = (0..2).map { staffDetail() }
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffWithCapacity + staffAtCapacity)
+    val allStaff = staffWithCapacity + staffAtCapacity
+    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(allStaff)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, allStaff)
+    } else {
+      allStaff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
+    }
 
     val prisonersReversed = prisoners.content.reversed()
     val previousAllocations =
       staffAtCapacity
         .mapIndexed { i, s ->
-          givenKeyworkerAllocation(
-            keyworkerAllocation(
+          givenAllocation(
+            staffAllocation(
               prisonersReversed[i].prisonerNumber,
               prisonCode,
               s.staffId,
@@ -83,50 +109,59 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
           )
         }.associateBy { it.staffId }
     staffAtCapacity.map { s ->
-      givenKeyworkerAllocation(
-        keyworkerAllocation(personIdentifier(), prisonCode, s.staffId),
+      givenAllocation(
+        staffAllocation(personIdentifier(), prisonCode, s.staffId),
       )
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode)
+      getKeyworkerRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
         .returnResult()
         .responseBody!!
 
-    assertThat(res.noAvailableKeyworkersFor).isEmpty()
+    assertThat(res.noAvailableStaffFor).isEmpty()
     assertThat(res.allocations).containsAll(
       staffAtCapacity.map { s ->
         RecommendedAllocation(
           previousAllocations[s.staffId]!!.personIdentifier,
-          Keyworker(s.staffId, s.firstName, s.lastName),
+          StaffSummary(s.staffId, s.firstName, s.lastName),
         )
       },
     )
   }
 
-  @Test
-  fun `will balance recommendations based on capacity availability and report when keyworkers are at max capacity`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `will balance recommendations based on capacity availability and report when keyworkers are at max capacity`(
+    policy: AllocationPolicy,
+  ) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "BAL"
-    givenPrisonConfig(prisonConfig(prisonCode, capacity = 6, maxCapacity = 9))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 9, policy = policy))
     val prisoners = prisoners(prisonCode, 16)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (0..4).map { staffDetail() }
-    staff.map { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 4)) }
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
+    staff.map { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 6)) }
+    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(staff)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
+    } else {
+      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
+    }
     staff.mapIndexed { i, s ->
       (1..5 - i).map {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(personIdentifier(), prisonCode, s.staffId),
+        givenAllocation(
+          staffAllocation(personIdentifier(), prisonCode, s.staffId),
         )
       }
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode)
+      getKeyworkerRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
@@ -134,7 +169,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
         .responseBody!!
 
     val sortedPrisoners = prisoners.content.sortedBy { it.lastName }
-    val allocMap = res.allocations.groupBy({ it.keyworker.staffId }, { it.personIdentifier })
+    val allocMap = res.allocations.groupBy({ it.staff.staffId }, { it.personIdentifier })
     assertThat(allocMap.toList()).containsExactlyInAnyOrder(
       staff[0].staffId to listOf(sortedPrisoners[14].prisonerNumber),
       staff[1].staffId to listOf(sortedPrisoners[9].prisonerNumber, sortedPrisoners[13].prisonerNumber),
@@ -160,23 +195,30 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
           sortedPrisoners[10].prisonerNumber,
         ),
     )
-    assertThat(res.noAvailableKeyworkersFor).containsExactly(sortedPrisoners.last().prisonerNumber)
+    assertThat(res.noAvailableStaffFor).containsExactly(sortedPrisoners.last().prisonerNumber)
   }
 
-  @Test
-  fun `will balance recommendations based on capacity availability when capacity is different`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `will balance recommendations based on capacity availability when capacity is different`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "BAL"
-    givenPrisonConfig(prisonConfig(prisonCode, capacity = 6, maxCapacity = 9))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 9, policy = policy))
     val prisoners = prisoners(prisonCode, 16)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (1..2).map { staffDetail() }
-    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[0].staffId, 4))
-    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[1].staffId, 8))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[0].staffId, 6))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[1].staffId, 12))
+    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(staff)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
+    } else {
+      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
+    }
 
     val res =
-      getKeyworkerRecommendations(prisonCode)
+      getKeyworkerRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
@@ -184,7 +226,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
         .responseBody!!
 
     val sortedPrisoners = prisoners.content.sortedBy { it.lastName }
-    val allocMap = res.allocations.groupBy({ it.keyworker.staffId }, { it.personIdentifier })
+    val allocMap = res.allocations.groupBy({ it.staff.staffId }, { it.personIdentifier })
     assertThat(allocMap.toList()).containsExactlyInAnyOrder(
       staff[0].staffId to
         listOf(
@@ -209,18 +251,20 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
           sortedPrisoners[14].prisonerNumber,
         ),
     )
-    assertThat(res.noAvailableKeyworkersFor).isEmpty()
+    assertThat(res.noAvailableStaffFor).isEmpty()
   }
 
   private fun getKeyworkerRecommendations(
     prisonCode: String,
-    role: String? = Roles.KEYWORKER_RO,
+    policy: AllocationPolicy,
+    role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .get()
     .uri {
-      it.path(GET_KEYWORKER_RECOMMENDATIONS)
+      it.path(GET_ALLOCATION_RECOMMENDATIONS)
       it.build(prisonCode)
     }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+    .header(PolicyHeader.NAME, policy.name)
     .exchange()
 
   private fun prisoners(
@@ -255,9 +299,32 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
       .staffId(id)
       .firstName(firstName)
       .lastName(lastName)
+      .position("PRO")
+      .scheduleType("FT")
+      .hoursPerWeek(BigDecimal(37.5))
+      .fromDate(LocalDate.now().minusWeeks(7))
       .build()
 
+  private fun nomisStaff(staff: List<StaffLocationRoleDto>): List<NomisStaff> =
+    staff.map {
+      NomisStaff(
+        "user-${it.staffId}",
+        "user-${it.staffId}@email.co.uk",
+        it.staffId,
+        it.firstName,
+        it.lastName,
+        "ACTIVE",
+      )
+    }
+
   companion object {
-    const val GET_KEYWORKER_RECOMMENDATIONS = "/prisons/{prisonCode}/prisoners/keyworker-recommendations"
+    const val GET_ALLOCATION_RECOMMENDATIONS = "/prisons/{prisonCode}/prisoners/allocation-recommendations"
+
+    @JvmStatic
+    fun policyProvider() =
+      listOf(
+        Arguments.of(AllocationPolicy.KEY_WORKER),
+        Arguments.of(AllocationPolicy.PERSONAL_OFFICER),
+      )
   }
 }

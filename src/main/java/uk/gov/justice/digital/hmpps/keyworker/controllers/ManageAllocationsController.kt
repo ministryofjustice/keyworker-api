@@ -13,15 +13,15 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
+import uk.gov.justice.digital.hmpps.keyworker.services.AllocationRecommender
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAllocationManager
-import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAllocationRecommender
 
 @Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
 @RequestMapping("/prisons/{prisonCode}")
 class ManageAllocationsController(
   private val allocationManager: KeyworkerAllocationManager,
-  private val recommend: KeyworkerAllocationRecommender,
+  private val recommend: AllocationRecommender,
 ) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RW}')")
@@ -33,9 +33,9 @@ class ManageAllocationsController(
     allocationManager.manage(prisonCode, psa)
   }
 
-  @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
-  @GetMapping("/prisoners/keyworker-recommendations")
-  fun getKeyworkerRecommendations(
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping("/prisoners/allocation-recommendations")
+  fun getAllocationRecommendations(
     @PathVariable prisonCode: String,
   ): RecommendedAllocations = recommend.allocations(prisonCode)
 }

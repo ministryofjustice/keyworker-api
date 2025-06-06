@@ -33,3 +33,12 @@ data class StaffSearchResult(
   val username: String,
   val email: String?,
 )
+
+data class StaffWithRole(
+  val staffId: Long,
+  val firstName: String,
+  val lastName: String,
+  val staffRole: StaffRoleInfo?,
+  val username: String,
+  val email: String?,
+)

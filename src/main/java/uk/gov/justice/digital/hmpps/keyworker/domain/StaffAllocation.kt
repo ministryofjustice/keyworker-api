@@ -80,7 +80,7 @@ class StaffAllocation(
   }
 }
 
-interface KeyworkerAllocationRepository : JpaRepository<StaffAllocation, Long> {
+interface StaffAllocationRepository : JpaRepository<StaffAllocation, Long> {
   @Query(
     """
     with allocations as (select ka.offender_keyworker_id as id, ka.offender_no as personIdentifier, ka.assigned_date_time as assignedAt
@@ -191,7 +191,7 @@ interface KeyworkerAllocationRepository : JpaRepository<StaffAllocation, Long> {
       and sa.staffId in :staffIds
     """,
   )
-  fun findPreviousKeyworkerAllocations(
+  fun findPreviousAllocations(
     prisonCode: String,
     personIdentifier: String,
     staffIds: Set<Long>,

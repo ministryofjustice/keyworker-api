@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
@@ -26,7 +26,7 @@ import java.util.Optional
 class PrisonStatisticCalculator(
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
-  private val keyworkerAllocationRepository: KeyworkerAllocationRepository,
+  private val keyworkerAllocationRepository: StaffAllocationRepository,
   private val caseNotesApi: CaseNotesApiClient,
   private val nomisService: NomisService,
   private val keyworkerConfigRepository: StaffConfigRepository,

@@ -16,7 +16,7 @@ class PrisonService(
   private val prisonConfig: PrisonConfigurationRepository,
   private val prisonRegister: PrisonRegisterClient,
 ) {
-  fun getPrisonKeyworkerConfig(prisonCode: String) = prisonConfig.findByCode(prisonCode).prisonConfig()
+  fun getPrisonKeyworkerConfig(prisonCode: String) = prisonConfig.findByCode(prisonCode).prisonKeyworkerConfig()
 
   fun findPrisons(ids: Set<String>): List<Prison> = prisonRegister.findPrisons(ids)
 
@@ -29,6 +29,9 @@ class PrisonService(
     prisonConfig.save(config)
     return config.response()
   }
+
+  fun getPrisonConfig(prisonCode: String): PrisonConfigResponse =
+    prisonConfig.findByCode(prisonCode)?.response() ?: PrisonConfigResponse.DEFAULT
 }
 
 data class PrisonsByIdsRequest(
@@ -40,7 +43,7 @@ data class Prison(
   val prisonName: String,
 )
 
-private fun PrisonConfiguration?.prisonConfig(): PrisonKeyworkerConfiguration =
+private fun PrisonConfiguration?.prisonKeyworkerConfig(): PrisonKeyworkerConfiguration =
   this?.let {
     PrisonKeyworkerConfiguration(
       it.enabled,
@@ -57,7 +60,6 @@ private fun PrisonConfiguration.response(): PrisonConfigResponse =
     enabled,
     hasPrisonersWithHighComplexityNeeds,
     allowAutoAllocation,
-    capacity,
     maximumCapacity,
     frequencyInWeeks,
   )
@@ -67,8 +69,8 @@ private fun PrisonConfigRequest.asPrisonConfig(prisonCode: String) =
     prisonCode,
     isEnabled,
     allowAutoAllocation,
+    6,
     capacity,
-    maximumCapacity,
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds ?: false,
     AllocationContext.get().policy.name,

@@ -186,7 +186,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
     val existingAllocations =
-      prisoners.map { givenKeyworkerAllocation(keyworkerAllocation(it.prisonerNumber, prisonCode)) }
+      prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode)) }
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
 
@@ -214,7 +214,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
     val existingAllocations =
-      prisoners.map { givenKeyworkerAllocation(keyworkerAllocation(it.prisonerNumber, prisonCode, staff.staffId)) }
+      prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode, staff.staffId)) }
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
 
@@ -238,7 +238,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     val staffId = newId()
     val psds = listOf(personStaffDeallocation(staffId = staffId), personStaffDeallocation(staffId = staffId))
-    val existing = psds.map { givenKeyworkerAllocation(keyworkerAllocation(it.personIdentifier, prisonCode, staffId)) }
+    val existing = psds.map { givenAllocation(staffAllocation(it.personIdentifier, prisonCode, staffId)) }
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
 
@@ -259,7 +259,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     val staffId = newId()
     val psds = listOf(personStaffDeallocation(), personStaffDeallocation())
-    val existing = psds.map { givenKeyworkerAllocation(keyworkerAllocation(it.personIdentifier, prisonCode, staffId)) }
+    val existing = psds.map { givenAllocation(staffAllocation(it.personIdentifier, prisonCode, staffId)) }
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
 

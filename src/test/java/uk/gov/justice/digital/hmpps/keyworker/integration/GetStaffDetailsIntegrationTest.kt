@@ -88,8 +88,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val previousFromDate = fromDate.minusMonths(1)
     val allocations =
       (1..20).map {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(
+        givenAllocation(
+          staffAllocation(
             personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = staffConfig.staffId,

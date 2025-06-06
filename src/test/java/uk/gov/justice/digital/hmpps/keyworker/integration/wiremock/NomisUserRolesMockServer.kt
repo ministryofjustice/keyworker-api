@@ -32,6 +32,11 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
     )
   }
 
+  fun stubGetAllStaff(
+    prisonCode: String,
+    response: NomisStaffMembers,
+  ) = stubGetUserStaff(prisonCode, StaffSearchRequest(null, StaffSearchRequest.Status.ACTIVE, null), response)
+
   fun stubGetUserStaff(
     prisonCode: String,
     ssr: StaffSearchRequest,

@@ -45,8 +45,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     prisoners.personIdentifiers().forEachIndexed { index, pi ->
       if (index % 3 == 0) {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(
+        givenAllocation(
+          staffAllocation(
             pi,
             prisonCode,
             (keyworkers + additionalKeyworkers).filter { it.status.code == ACTIVE.name }.random().staffId,
@@ -113,8 +113,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         .toSet()
     eligiblePrisoners.forEachIndexed { index, pi ->
       if (index % 3 == 0) {
-        givenKeyworkerAllocation(
-          keyworkerAllocation(
+        givenAllocation(
+          staffAllocation(
             pi,
             prisonCode,
             keyworkers.filter { it.status.code == ACTIVE.name }.random().staffId,

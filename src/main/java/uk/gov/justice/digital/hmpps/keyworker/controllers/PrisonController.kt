@@ -51,10 +51,18 @@ class PrisonController(
     @Valid @RequestBody request: PrisonConfigRequest,
   ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
 
+  @PolicyHeader
+  @Tag(name = PRISON)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping(value = ["/configurations"])
+  fun getPrisonConfiguration(
+    @PathVariable("prisonCode") prisonCode: String,
+  ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
+
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping(value = ["/configuration/keyworker"])
-  fun getPrisonConfiguration(
+  fun getPrisonKeyworkerConfiguration(
     @PathVariable("prisonCode") prisonCode: String,
   ): PrisonKeyworkerConfiguration = prisonService.getPrisonKeyworkerConfig(prisonCode)
 

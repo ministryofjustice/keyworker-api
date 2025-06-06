@@ -5,7 +5,6 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
@@ -14,6 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOC
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
@@ -37,7 +37,7 @@ class KeyworkerAllocationManager(
   private val nomisService: NomisService,
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
-  private val allocationRepository: KeyworkerAllocationRepository,
+  private val allocationRepository: StaffAllocationRepository,
 ) {
   fun manage(
     prisonCode: String,

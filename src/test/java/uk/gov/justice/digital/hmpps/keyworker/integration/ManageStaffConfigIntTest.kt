@@ -116,7 +116,7 @@ class ManageStaffConfigIntTest : IntegrationTest() {
 
     val allocations =
       (0..10).map {
-        givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+        givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
       }
 
     val request = staffConfigRequest(status = StaffStatus.ACTIVE, capacity = 6)
@@ -149,7 +149,7 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 10))
     val allocations =
       (0..10).map {
-        givenKeyworkerAllocation(keyworkerAllocation(personIdentifier(), prisonCode, staffId))
+        givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
       }
 
     val request = staffConfigRequest(deactivateActiveAllocations = true)
