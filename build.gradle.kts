@@ -38,11 +38,11 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
   implementation("org.apache.commons:commons-text:1.13.1")
   implementation("com.google.guava:guava:32.1.3-jre")
-  implementation("io.opentelemetry:opentelemetry-api:1.50.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.51.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.16.0")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.13.2")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.10")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.11")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
 
