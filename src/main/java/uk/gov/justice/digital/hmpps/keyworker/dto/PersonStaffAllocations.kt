@@ -43,7 +43,6 @@ data class PersonStaffAllocation(
   override val personIdentifier: String,
   override val staffId: Long,
   val allocationReason: String,
-  val recommendedAllocationStaffId: Long?,
 ) : PersonStaff
 
 data class PersonStaffDeallocation(

@@ -407,7 +407,7 @@ abstract class IntegrationTest {
     capacity: Int = 9,
     frequencyInWeeks: Int = 1,
     hasPrisonersWithHighComplexityNeeds: Boolean = false,
-    policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
+    policy: AllocationPolicy = AllocationContext.get().policy,
   ) = PrisonConfiguration(
     code,
     enabled,

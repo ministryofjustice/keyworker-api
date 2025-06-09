@@ -35,15 +35,15 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
   fun stubGetAllStaff(
     prisonCode: String,
     response: NomisStaffMembers,
-  ) = stubGetUserStaff(prisonCode, StaffSearchRequest(null, StaffSearchRequest.Status.ACTIVE, null), response)
+  ) = stubGetUserStaff(prisonCode, response, StaffSearchRequest(null, StaffSearchRequest.Status.ACTIVE, null))
 
   fun stubGetUserStaff(
     prisonCode: String,
-    ssr: StaffSearchRequest,
     response: NomisStaffMembers,
+    ssr: StaffSearchRequest? = null,
   ) {
     val request = WireMock.get(WireMock.urlPathEqualTo("/users"))
-    if (ssr.query?.isNotBlank() == true) {
+    if (ssr?.query?.isNotBlank() == true) {
       request.withQueryParam("nameFilter", equalTo(ssr.query))
     }
     request.withQueryParam("status", equalTo("ACTIVE"))

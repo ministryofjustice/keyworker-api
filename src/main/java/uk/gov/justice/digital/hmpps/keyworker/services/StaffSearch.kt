@@ -41,12 +41,12 @@ class StaffSearch(
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
-  fun findStaff(
+  fun searchForStaff(
     prisonCode: String,
     request: StaffSearchRequest,
   ): StaffSearchResponse {
     val context = AllocationContext.get()
-    val staffMembers = findStaffWithRole(prisonCode, request.query)
+    val staffMembers = findStaff(prisonCode, false, request.query)
     val staffIds = staffMembers.map { it.staffId }.toSet()
     val staffIdStrings = staffIds.map { it.toString() }.toSet()
 
@@ -84,8 +84,9 @@ class StaffSearch(
     )
   }
 
-  fun findStaffWithRole(
+  fun findStaff(
     prisonCode: String,
+    onlyWithRole: Boolean = true,
     nameFilter: String? = null,
   ): List<StaffWithRole> {
     val context = AllocationContext.get()
@@ -98,16 +99,18 @@ class StaffSearch(
             .findAllByPrisonCodeAndStaffIdIn(prisonCode, staffMembers.map { it.staffId }.toSet())
             .associate { it.staffId to it.roleInfo() }
       }
-    return staffMembers.filter { it.staffStatus == "ACTIVE" }.map {
-      StaffWithRole(
-        it.staffId,
-        it.firstName,
-        it.lastName,
-        roleInfo[it.staffId],
-        it.username,
-        it.email,
-      )
-    }
+    return staffMembers
+      .filter { it.staffStatus == "ACTIVE" }
+      .map {
+        StaffWithRole(
+          it.staffId,
+          it.firstName,
+          it.lastName,
+          roleInfo[it.staffId],
+          it.username,
+          it.email,
+        )
+      }.filter { !onlyWithRole || it.staffRole != null }
   }
 
   private fun getKeyworkerRoleInfo(prisonCode: String): Map<Long, StaffRoleInfo> {

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import jakarta.validation.ValidationException
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,26 +14,23 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
+import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
-import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.AUTO
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.OVERRIDE
-import uk.gov.justice.digital.hmpps.keyworker.security.AuthAwareAuthenticationToken
 import java.time.LocalDateTime
-import java.util.Optional
 
 @Transactional
 @Service
-class KeyworkerAllocationManager(
+class AllocationManager(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val prisonerSearch: PrisonerSearchClient,
-  private val nomisService: NomisService,
+  private val staffSearch: StaffSearch,
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
   private val allocationRepository: StaffAllocationRepository,
@@ -48,7 +44,7 @@ class KeyworkerAllocationManager(
     }
     prisonConfig(prisonCode)
     prisoners(prisonCode, psa.personIdentifiersToAllocate)
-    activeKeyworkers(prisonCode, psa.staffIdsToAllocate)
+    activeStaff(prisonCode, psa.staffIdsToAllocate)
     val rdMap = psa.referenceData()
     psa.deallocate { requireNotNull(rdMap[DEALLOCATION_REASON of it]) }
     psa.allocate(prisonCode) { domain, code -> requireNotNull(rdMap[domain of code]) }
@@ -64,34 +60,23 @@ class KeyworkerAllocationManager(
         .associateBy { it.personIdentifier }
 
     val newAllocations =
-      allocations.flatMap {
+      allocations.mapNotNull {
         val existing = existingAllocations[it.personIdentifier]
         if (existing?.staffId == it.staffId) {
-          emptyList()
+          null
         } else {
           existing?.deallocate(rdSupplier(DEALLOCATION_REASON, OVERRIDE.reasonCode))
-
-          val recommended =
-            it.recommendedAllocationStaffId?.let { rsi ->
-              newKeyworkerAllocation(
-                prisonCode,
-                rsi,
-                it.personIdentifier,
-                rdSupplier(ALLOCATION_REASON, AUTO.reasonCode),
-              ).apply { deallocate(rdSupplier(DEALLOCATION_REASON, OVERRIDE.reasonCode)) }
-            }
-
-          val new =
-            newKeyworkerAllocation(
-              prisonCode,
-              it.staffId,
-              it.personIdentifier,
-              rdSupplier(ALLOCATION_REASON, it.allocationReason),
-            )
-          listOfNotNull(recommended, new)
+          newAllocation(
+            prisonCode,
+            it.staffId,
+            it.personIdentifier,
+            rdSupplier(ALLOCATION_REASON, it.allocationReason),
+          )
         }
       }
-    allocationRepository.saveAll(newAllocations)
+    if (newAllocations.isNotEmpty()) {
+      allocationRepository.saveAll(newAllocations)
+    }
   }
 
   private fun PersonStaffAllocations.deallocate(rdSupplier: (String) -> ReferenceData) {
@@ -110,7 +95,7 @@ class KeyworkerAllocationManager(
     prisonConfigRepository
       .findByCode(prisonCode)
       ?.takeIf { it.enabled }
-      ?: throw IllegalArgumentException("Prison not enabled for keyworker service")
+      ?: throw IllegalArgumentException("Prison not enabled")
 
   private fun prisoners(
     prisonCode: String,
@@ -126,35 +111,26 @@ class KeyworkerAllocationManager(
     return prisoners
   }
 
-  private fun activeKeyworkers(
+  private fun activeStaff(
     prisonCode: String,
     staffIds: Set<Long>,
-  ): Map<Long, StaffLocationRoleDto> {
+  ): Map<Long, StaffWithRole> {
     if (staffIds.isEmpty()) {
       return emptyMap()
     }
-    return nomisService
-      .getActiveStaffKeyWorkersForPrison(
-        prisonCode,
-        Optional.empty(),
-        activeStaffKeyWorkersPagingAndSorting(),
-        true,
-      )?.body
-      ?.let { nomisKeyworkers ->
-        val nomisKeyworkerMap = nomisKeyworkers.associateBy { it.staffId }
-        require(nomisKeyworkerMap.keys.containsAll(staffIds)) {
-          "A provided staff id is not a keyworker for the provided prison"
-        }
-        val nonActiveIds =
-          staffConfigRepository
-            .getNonActiveKeyworkers(staffIds)
-            .map { it.staffId }
-            .toSet()
-        require(nonActiveIds.isEmpty()) {
-          "A provided staff id is not an active keyworker"
-        }
-        nomisKeyworkerMap
-      } ?: throw IllegalStateException("No active keyworkers found for the provided prison")
+    val staff = staffSearch.findStaff(prisonCode).associateBy { it.staffId }
+    require(staff.keys.containsAll(staffIds)) {
+      "A provided staff id is not allocatable for the provided prison"
+    }
+    val nonActiveIds =
+      staffConfigRepository
+        .getNonActiveStaff(staffIds)
+        .map { it.staffId }
+        .toSet()
+    require(nonActiveIds.isEmpty()) {
+      "A provided staff id is not an active staff member"
+    }
+    return staff
   }
 
   private fun PersonStaffAllocations.referenceData(): Map<ReferenceDataKey, ReferenceData> {
@@ -172,15 +148,14 @@ class KeyworkerAllocationManager(
     return allocationReasons + deallocationReasons
   }
 
-  private fun authentication(): AuthAwareAuthenticationToken =
-    SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken?
-      ?: throw AccessDeniedException("User is not authenticated")
-
-  private fun AuthAwareAuthenticationToken.username(): String =
-    name.takeIf { it.length <= 64 }
+  private fun allocatingUsername(): String =
+    SecurityContextHolder
+      .getContext()
+      .authentication.name
+      .takeIf { it.length <= 64 }
       ?: throw ValidationException("username for audit exceeds 64 characters")
 
-  private fun newKeyworkerAllocation(
+  private fun newAllocation(
     prisonCode: String,
     staffId: Long,
     personIdentifier: String,
@@ -193,7 +168,7 @@ class KeyworkerAllocationManager(
     active = true,
     allocationReason = allocationReason,
     allocationType = AllocationType.valueOf(allocationReason.code),
-    allocatedBy = authentication().username(),
+    allocatedBy = allocatingUsername(),
     null,
     null,
     null,
