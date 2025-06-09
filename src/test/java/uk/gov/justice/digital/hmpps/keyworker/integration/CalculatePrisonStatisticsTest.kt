@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -8,16 +8,20 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
-import java.time.LocalDate
+import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -25,13 +29,13 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   @Test
   fun `calculate prison statistics for yesterday for a prison without complex needs`() {
     val prisonCode = "CALWOC"
-    val yesterday = LocalDate.now().minusDays(1)
+    val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val keyworkers =
       (0..10).map { index ->
         givenStaffConfig(
           staffConfig(
-            if (index % 2 == 0) StaffStatus.ACTIVE else StaffStatus.INACTIVE,
+            if (index % 2 == 0) ACTIVE else INACTIVE,
             NomisIdGenerator.newId(),
           ),
         )
@@ -41,7 +45,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       (0..5).map { index ->
         givenStaffConfig(
           staffConfig(
-            if (index % 2 == 0) StaffStatus.ACTIVE else StaffStatus.INACTIVE,
+            if (index % 2 == 0) ACTIVE else INACTIVE,
             NomisIdGenerator.newId(),
           ),
         )
@@ -54,9 +58,9 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           staffAllocation(
             pi,
             prisonCode,
-            (keyworkers + additionalKeyworkers).filter { it.status.code == StaffStatus.ACTIVE.name }.random().staffId,
+            (keyworkers + additionalKeyworkers).filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) AllocationType.PROVISIONAL else AllocationType.MANUAL,
+            allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
           ),
         )
       }
@@ -89,33 +93,33 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
       } matches { it != null }
 
-    Assertions.assertThat(stats).isNotNull
-    Assertions.assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
-    Assertions.assertThat(stats.date).isEqualTo(yesterday)
+    assertThat(stats).isNotNull
+    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    assertThat(stats.date).isEqualTo(yesterday)
 
-    Assertions.assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
-    Assertions.assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
+    assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
+    assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
 
-    Assertions.assertThat(stats.assignedKeyworker).isEqualTo(32)
-    Assertions.assertThat(stats.activeKeyworkers).isEqualTo(6)
+    assertThat(stats.assignedKeyworker).isEqualTo(32)
+    assertThat(stats.activeKeyworkers).isEqualTo(6)
 
-    Assertions.assertThat(stats.keyworkerSessions).isEqualTo(40)
-    Assertions.assertThat(stats.keyworkerEntries).isEqualTo(9)
+    assertThat(stats.keyworkerSessions).isEqualTo(40)
+    assertThat(stats.keyworkerEntries).isEqualTo(9)
 
-    Assertions.assertThat(stats.averageReceptionToAllocationDays).isEqualTo(30)
-    Assertions.assertThat(stats.averageReceptionToSessionDays).isEqualTo(24)
+    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(30)
+    assertThat(stats.averageReceptionToSessionDays).isEqualTo(24)
   }
 
   @Test
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
     val prisonCode = "CALWIC"
-    val yesterday = LocalDate.now().minusDays(1)
+    val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
     val keyworkers =
       (0..10).map { index ->
         givenStaffConfig(
           staffConfig(
-            if (index % 2 == 0) StaffStatus.ACTIVE else StaffStatus.INACTIVE,
+            if (index % 2 == 0) ACTIVE else INACTIVE,
             NomisIdGenerator.newId(),
           ),
         )
@@ -134,9 +138,9 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           staffAllocation(
             pi,
             prisonCode,
-            keyworkers.filter { it.status.code == StaffStatus.ACTIVE.name }.random().staffId,
+            keyworkers.filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) AllocationType.PROVISIONAL else AllocationType.MANUAL,
+            allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
           ),
         )
       }
@@ -169,21 +173,21 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
       } matches { it != null }
 
-    Assertions.assertThat(stats).isNotNull
-    Assertions.assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
-    Assertions.assertThat(stats.date).isEqualTo(yesterday)
+    assertThat(stats).isNotNull
+    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    assertThat(stats.date).isEqualTo(yesterday)
 
-    Assertions.assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
-    Assertions.assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
+    assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
+    assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
 
-    Assertions.assertThat(stats.assignedKeyworker).isEqualTo(25)
-    Assertions.assertThat(stats.activeKeyworkers).isEqualTo(6)
+    assertThat(stats.assignedKeyworker).isEqualTo(25)
+    assertThat(stats.activeKeyworkers).isEqualTo(6)
 
-    Assertions.assertThat(stats.keyworkerSessions).isEqualTo(32)
-    Assertions.assertThat(stats.keyworkerEntries).isEqualTo(7)
+    assertThat(stats.keyworkerSessions).isEqualTo(32)
+    assertThat(stats.keyworkerEntries).isEqualTo(7)
 
-    Assertions.assertThat(stats.averageReceptionToAllocationDays).isNull()
-    Assertions.assertThat(stats.averageReceptionToSessionDays).isEqualTo(26)
+    assertThat(stats.averageReceptionToAllocationDays).isNull()
+    assertThat(stats.averageReceptionToSessionDays).isEqualTo(26)
   }
 
   private fun prisoners(
@@ -197,8 +201,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           NomisIdGenerator.personIdentifier(),
           "First",
           "Last",
-          LocalDate.now().minusDays(index / 2 + 1L),
-          LocalDate.now().plusDays(index * 2 + 2L),
+          now().minusDays(index / 2 + 1L),
+          now().plusDays(index * 2 + 2L),
           "DEF",
           "Default Prison",
           "DEF-A-1",
@@ -210,7 +214,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           } else {
             nonHigh.random()
           },
-          if (index % 2 == 0) null else LocalDate.now().minusDays(index / 2 + 1L),
+          if (index % 2 == 0) null else now().minusDays(index / 2 + 1L),
         )
       },
     )
@@ -225,8 +229,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  CaseNote.Companion.KW_TYPE,
-                  CaseNote.Companion.KW_SESSION_SUBTYPE,
+                  KW_TYPE,
+                  KW_SESSION_SUBTYPE,
                   if (index % 18 == 0) 2 else 1,
                   LatestNote(LocalDateTime.now().minusDays(1)),
                 ),
@@ -236,8 +240,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  CaseNote.Companion.KW_TYPE,
-                  CaseNote.Companion.KW_ENTRY_SUBTYPE,
+                  KW_TYPE,
+                  KW_ENTRY_SUBTYPE,
                   1,
                   LatestNote(LocalDateTime.now().minusDays(1)),
                 ),
@@ -257,8 +261,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  CaseNote.Companion.KW_TYPE,
-                  CaseNote.Companion.KW_SESSION_SUBTYPE,
+                  KW_TYPE,
+                  KW_SESSION_SUBTYPE,
                   3 * index / personIdentifiers.size,
                   LatestNote(LocalDateTime.now().minusDays(7)),
                 ),
