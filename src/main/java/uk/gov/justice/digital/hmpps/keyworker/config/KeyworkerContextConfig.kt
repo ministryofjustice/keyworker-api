@@ -4,12 +4,10 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.ValidationException
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
-import uk.gov.justice.digital.hmpps.keyworker.security.AuthAwareAuthenticationToken
 
 @Configuration
 class KeyworkerContextConfiguration(
@@ -51,12 +49,10 @@ class KeyworkerContextInterceptor(
     return true
   }
 
-  private fun authentication(): AuthAwareAuthenticationToken =
-    SecurityContextHolder.getContext().authentication as AuthAwareAuthenticationToken?
-      ?: throw AccessDeniedException("User is not authenticated")
-
   private fun getUsername(): String =
-    authentication()
+    SecurityContextHolder
+      .getContext()
+      .authentication
       .name
       .trim()
       .takeUnless(String::isBlank)

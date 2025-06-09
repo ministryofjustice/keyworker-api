@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
@@ -12,15 +11,11 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
-import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class CaseNoteUsageIntegrationTest : IntegrationTest() {
-  @Autowired
-  internal lateinit var nomisService: NomisService
-
   @Test
   fun `usage by author`() {
     val prisonCode = "UBA"
