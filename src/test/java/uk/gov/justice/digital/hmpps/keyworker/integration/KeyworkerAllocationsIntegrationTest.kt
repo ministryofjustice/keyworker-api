@@ -136,7 +136,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
 
-    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
+    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
@@ -162,7 +162,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa))).expectStatus().isNoContent
 
-    val allocations = keyworkerAllocationRepository.findAllByPersonIdentifier(prisoner.prisonerNumber)
+    val allocations = staffAllocationRepository.findAllByPersonIdentifier(prisoner.prisonerNumber)
     assertThat(allocations).hasSize(2)
     val active = allocations.single { it.active }
     val inactive = allocations.single { !it.active }
@@ -190,13 +190,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
 
-    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
+    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
     }
 
-    keyworkerAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
+    staffAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
       assertThat(allocation.active).isFalse
       assertThat(allocation.expiryDateTime).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
@@ -218,13 +218,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
 
-    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
+    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staff.staffId)
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
     }
 
-    keyworkerAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
+    staffAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
       assertThat(allocation.active).isTrue
       assertThat(allocation.expiryDateTime).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()
@@ -242,10 +242,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
 
-    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isTrue
 
-    keyworkerAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
+    staffAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
       assertThat(allocation.active).isFalse
       assertThat(allocation.expiryDateTime).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
@@ -263,10 +263,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
 
-    val allocations = keyworkerAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isFalse
 
-    keyworkerAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
+    staffAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
       assertThat(allocation.active).isTrue
       assertThat(allocation.expiryDateTime).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()

@@ -67,6 +67,8 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   ): List<StaffConfiguration>
 
   fun findByStaffId(staffId: Long): StaffConfiguration?
+
+  fun deleteByStaffId(staffId: Long)
 }
 
 fun StaffConfigRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
