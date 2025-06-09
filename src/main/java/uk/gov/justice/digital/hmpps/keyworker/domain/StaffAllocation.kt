@@ -10,6 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import org.hibernate.annotations.SQLRestriction
 import org.hibernate.type.YesNoConverter
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
@@ -27,6 +28,7 @@ import java.util.UUID
 @Entity
 @Table(name = "offender_key_worker")
 @EntityListeners(AuditingEntityListener::class)
+@SQLRestriction("alloc_type <> 'P'")
 class StaffAllocation(
   @Column(name = "offender_no")
   val personIdentifier: String,
@@ -123,7 +125,7 @@ interface StaffAllocationRepository : JpaRepository<StaffAllocation, Long> {
     """
       select sa from StaffAllocation sa
       where sa.staffId = :staffId and sa.prisonCode = :prisonCode
-      and sa.active = true and sa.allocationType <> 'P'
+      and sa.active = true
     """,
   )
   fun findActiveForPrisonStaff(
@@ -135,7 +137,7 @@ interface StaffAllocationRepository : JpaRepository<StaffAllocation, Long> {
     """
       select sa from StaffAllocation sa
       where sa.staffId = :staffId and sa.prisonCode = :prisonCode
-      and sa.allocationType <> 'P' and sa.assignedAt <= :toDate and (sa.expiryDateTime is null or sa.expiryDateTime >= :fromDate)
+      and sa.assignedAt <= :toDate and (sa.expiryDateTime is null or sa.expiryDateTime >= :fromDate)
     """,
   )
   fun findActiveForPrisonStaffBetween(
@@ -156,7 +158,6 @@ interface StaffAllocationRepository : JpaRepository<StaffAllocation, Long> {
         from StaffAllocation sa
         where sa.personIdentifier in :personIdentifiers 
         and sa.prisonCode = :prisonCode
-        and sa.allocationType <> 'P' 
         group by sa.personIdentifier
     )
     select sum.pi as personIdentifier, sum.active as activeCount, sum.count as totalCount, cur.staffId as staffId
@@ -187,7 +188,7 @@ interface StaffAllocationRepository : JpaRepository<StaffAllocation, Long> {
   @Query(
     """
       select sa.staffId from StaffAllocation sa
-      where sa.personIdentifier = :personIdentifier and sa.prisonCode = :prisonCode and sa.allocationType <> 'P'
+      where sa.personIdentifier = :personIdentifier and sa.prisonCode = :prisonCode
       and sa.staffId in :staffIds
     """,
   )
