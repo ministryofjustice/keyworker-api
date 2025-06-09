@@ -71,6 +71,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
+import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -98,7 +99,7 @@ abstract class IntegrationTest {
   protected lateinit var staffConfigRepository: StaffConfigRepository
 
   @Autowired
-  protected lateinit var keyworkerAllocationRepository: StaffAllocationRepository
+  protected lateinit var staffAllocationRepository: StaffAllocationRepository
 
   @Autowired
   protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
@@ -111,6 +112,9 @@ abstract class IntegrationTest {
 
   @Autowired
   protected lateinit var prisonStatisticRepository: PrisonStatisticRepository
+
+  @Autowired
+  protected lateinit var nomisService: NomisService
 
   @Autowired
   lateinit var flyway: Flyway
@@ -524,7 +528,7 @@ abstract class IntegrationTest {
     id,
   )
 
-  protected fun givenAllocation(allocation: StaffAllocation): StaffAllocation = keyworkerAllocationRepository.save(allocation)
+  protected fun givenAllocation(allocation: StaffAllocation): StaffAllocation = staffAllocationRepository.save(allocation)
 
   protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
     when (interaction) {

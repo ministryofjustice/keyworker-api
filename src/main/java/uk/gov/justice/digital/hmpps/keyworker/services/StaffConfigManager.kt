@@ -40,11 +40,7 @@ class StaffConfigManager(
     )
 
     if (request.deactivateActiveAllocations) {
-      val deallocationReason =
-        requireNotNull(referenceDataRepository.findByKey(DEALLOCATION_REASON of STAFF_STATUS_CHANGE.reasonCode))
-      allocationRepository.findActiveForPrisonStaff(prisonCode, staffId).forEach {
-        it.deallocate(deallocationReason)
-      }
+      deallocateAllocationsFor(prisonCode, staffId)
     }
   }
 
@@ -56,6 +52,21 @@ class StaffConfigManager(
     AllocationContext.get().policy.nomisUseRoleCode?.let {
       nurApi.setStaffRole(prisonCode, staffId, it, request)
     } ?: setStaffRole(prisonCode, staffId, request)
+    if (request.toDate != null) {
+      staffConfigRepository.deleteByStaffId(staffId)
+      deallocateAllocationsFor(prisonCode, staffId)
+    }
+  }
+
+  private fun deallocateAllocationsFor(
+    prisonCode: String,
+    staffId: Long,
+  ) {
+    val deallocationReason =
+      requireNotNull(referenceDataRepository.findByKey(DEALLOCATION_REASON of STAFF_STATUS_CHANGE.reasonCode))
+    allocationRepository.findActiveForPrisonStaff(prisonCode, staffId).forEach { allocation ->
+      allocation.deallocate(deallocationReason)
+    }
   }
 
   private fun setStaffRole(
@@ -65,7 +76,8 @@ class StaffConfigManager(
   ): StaffRole =
     staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
       position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of request.position)
-      scheduleType = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of request.scheduleType)
+      scheduleType =
+        referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of request.scheduleType)
       hoursPerWeek = request.hoursPerWeek
       fromDate = request.fromDate
       toDate = request.toDate

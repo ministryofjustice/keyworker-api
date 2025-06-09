@@ -1,6 +1,6 @@
-package uk.gov.justice.digital.hmpps.keyworker.statistics
+package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -8,25 +8,16 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
-import java.time.LocalDate.now
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -34,13 +25,27 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   @Test
   fun `calculate prison statistics for yesterday for a prison without complex needs`() {
     val prisonCode = "CALWOC"
-    val yesterday = now().minusDays(1)
+    val yesterday = LocalDate.now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val keyworkers =
-      (0..10).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..10).map { index ->
+        givenStaffConfig(
+          staffConfig(
+            if (index % 2 == 0) StaffStatus.ACTIVE else StaffStatus.INACTIVE,
+            NomisIdGenerator.newId(),
+          ),
+        )
+      }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
     val additionalKeyworkers =
-      (0..5).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..5).map { index ->
+        givenStaffConfig(
+          staffConfig(
+            if (index % 2 == 0) StaffStatus.ACTIVE else StaffStatus.INACTIVE,
+            NomisIdGenerator.newId(),
+          ),
+        )
+      }
     val prisoners = prisoners()
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     prisoners.personIdentifiers().forEachIndexed { index, pi ->
@@ -49,21 +54,26 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           staffAllocation(
             pi,
             prisonCode,
-            (keyworkers + additionalKeyworkers).filter { it.status.code == ACTIVE.name }.random().staffId,
+            (keyworkers + additionalKeyworkers).filter { it.status.code == StaffStatus.ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
+            allocationType = if (index % 25 == 0) AllocationType.PROVISIONAL else AllocationType.MANUAL,
           ),
         )
       }
     }
     val noteUsageResponse = noteUsageResponse(prisoners.personIdentifiers())
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      keyworkerTypes(prisonCode, prisoners.personIdentifiers(), yesterday),
+      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, prisoners.personIdentifiers(), yesterday),
       noteUsageResponse,
     )
     val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      sessionTypes(prisonCode, peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      UsageByPersonIdentifierRequest.Companion.sessionTypes(
+        prisonCode,
+        peopleWithSessions,
+        yesterday.minusMonths(6),
+        yesterday.minusDays(1),
+      ),
       previousSessionsResponse(peopleWithSessions),
     )
 
@@ -79,30 +89,37 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
       } matches { it != null }
 
-    assertThat(stats).isNotNull
-    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
-    assertThat(stats.date).isEqualTo(yesterday)
+    Assertions.assertThat(stats).isNotNull
+    Assertions.assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    Assertions.assertThat(stats.date).isEqualTo(yesterday)
 
-    assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
-    assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
+    Assertions.assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
+    Assertions.assertThat(stats.eligiblePrisoners).isEqualTo(prisoners.size)
 
-    assertThat(stats.assignedKeyworker).isEqualTo(32)
-    assertThat(stats.activeKeyworkers).isEqualTo(6)
+    Assertions.assertThat(stats.assignedKeyworker).isEqualTo(32)
+    Assertions.assertThat(stats.activeKeyworkers).isEqualTo(6)
 
-    assertThat(stats.keyworkerSessions).isEqualTo(40)
-    assertThat(stats.keyworkerEntries).isEqualTo(9)
+    Assertions.assertThat(stats.keyworkerSessions).isEqualTo(40)
+    Assertions.assertThat(stats.keyworkerEntries).isEqualTo(9)
 
-    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(30)
-    assertThat(stats.averageReceptionToSessionDays).isEqualTo(24)
+    Assertions.assertThat(stats.averageReceptionToAllocationDays).isEqualTo(30)
+    Assertions.assertThat(stats.averageReceptionToSessionDays).isEqualTo(24)
   }
 
   @Test
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
     val prisonCode = "CALWIC"
-    val yesterday = now().minusDays(1)
+    val yesterday = LocalDate.now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
     val keyworkers =
-      (0..10).map { index -> givenStaffConfig(staffConfig(if (index % 2 == 0) ACTIVE else INACTIVE, newId())) }
+      (0..10).map { index ->
+        givenStaffConfig(
+          staffConfig(
+            if (index % 2 == 0) StaffStatus.ACTIVE else StaffStatus.INACTIVE,
+            NomisIdGenerator.newId(),
+          ),
+        )
+      }
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
     val prisoners = prisoners(includeComplexNeeds = true)
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
@@ -117,21 +134,26 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           staffAllocation(
             pi,
             prisonCode,
-            keyworkers.filter { it.status.code == ACTIVE.name }.random().staffId,
+            keyworkers.filter { it.status.code == StaffStatus.ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
+            allocationType = if (index % 25 == 0) AllocationType.PROVISIONAL else AllocationType.MANUAL,
           ),
         )
       }
     }
     val noteUsageResponse = noteUsageResponse(eligiblePrisoners)
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      keyworkerTypes(prisonCode, eligiblePrisoners, yesterday),
+      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, eligiblePrisoners, yesterday),
       noteUsageResponse,
     )
     val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      sessionTypes(prisonCode, peopleWithSessions, yesterday.minusMonths(6), yesterday.minusDays(1)),
+      UsageByPersonIdentifierRequest.Companion.sessionTypes(
+        prisonCode,
+        peopleWithSessions,
+        yesterday.minusMonths(6),
+        yesterday.minusDays(1),
+      ),
       previousSessionsResponse(peopleWithSessions),
     )
 
@@ -147,21 +169,21 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
       } matches { it != null }
 
-    assertThat(stats).isNotNull
-    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
-    assertThat(stats.date).isEqualTo(yesterday)
+    Assertions.assertThat(stats).isNotNull
+    Assertions.assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    Assertions.assertThat(stats.date).isEqualTo(yesterday)
 
-    assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
-    assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
+    Assertions.assertThat(stats.totalPrisoners).isEqualTo(prisoners.size)
+    Assertions.assertThat(stats.eligiblePrisoners).isEqualTo(eligiblePrisoners.size)
 
-    assertThat(stats.assignedKeyworker).isEqualTo(25)
-    assertThat(stats.activeKeyworkers).isEqualTo(6)
+    Assertions.assertThat(stats.assignedKeyworker).isEqualTo(25)
+    Assertions.assertThat(stats.activeKeyworkers).isEqualTo(6)
 
-    assertThat(stats.keyworkerSessions).isEqualTo(32)
-    assertThat(stats.keyworkerEntries).isEqualTo(7)
+    Assertions.assertThat(stats.keyworkerSessions).isEqualTo(32)
+    Assertions.assertThat(stats.keyworkerEntries).isEqualTo(7)
 
-    assertThat(stats.averageReceptionToAllocationDays).isNull()
-    assertThat(stats.averageReceptionToSessionDays).isEqualTo(26)
+    Assertions.assertThat(stats.averageReceptionToAllocationDays).isNull()
+    Assertions.assertThat(stats.averageReceptionToSessionDays).isEqualTo(26)
   }
 
   private fun prisoners(
@@ -172,11 +194,11 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     return Prisoners(
       (1..count).map { index ->
         Prisoner(
-          personIdentifier(),
+          NomisIdGenerator.personIdentifier(),
           "First",
           "Last",
-          now().minusDays(index / 2 + 1L),
-          now().plusDays(index * 2 + 2L),
+          LocalDate.now().minusDays(index / 2 + 1L),
+          LocalDate.now().plusDays(index * 2 + 2L),
           "DEF",
           "Default Prison",
           "DEF-A-1",
@@ -188,7 +210,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           } else {
             nonHigh.random()
           },
-          if (index % 2 == 0) null else now().minusDays(index / 2 + 1L),
+          if (index % 2 == 0) null else LocalDate.now().minusDays(index / 2 + 1L),
         )
       },
     )
@@ -203,8 +225,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  KW_TYPE,
-                  KW_SESSION_SUBTYPE,
+                  CaseNote.Companion.KW_TYPE,
+                  CaseNote.Companion.KW_SESSION_SUBTYPE,
                   if (index % 18 == 0) 2 else 1,
                   LatestNote(LocalDateTime.now().minusDays(1)),
                 ),
@@ -214,8 +236,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  KW_TYPE,
-                  KW_ENTRY_SUBTYPE,
+                  CaseNote.Companion.KW_TYPE,
+                  CaseNote.Companion.KW_ENTRY_SUBTYPE,
                   1,
                   LatestNote(LocalDateTime.now().minusDays(1)),
                 ),
@@ -235,8 +257,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
               add(
                 UsageByPersonIdentifierResponse(
                   pi,
-                  KW_TYPE,
-                  KW_SESSION_SUBTYPE,
+                  CaseNote.Companion.KW_TYPE,
+                  CaseNote.Companion.KW_SESSION_SUBTYPE,
                   3 * index / personIdentifiers.size,
                   LatestNote(LocalDateTime.now().minusDays(7)),
                 ),

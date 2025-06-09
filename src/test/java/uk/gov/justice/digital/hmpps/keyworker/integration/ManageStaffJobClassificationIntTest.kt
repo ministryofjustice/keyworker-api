@@ -20,7 +20,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -57,7 +59,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `staff config is created if it does not exist`(policy: AllocationPolicy) {
+  fun `staff classification is created if it does not exist`(policy: AllocationPolicy) {
     val prisonCode = "CSP"
     val staffId = newId()
     val request = jobClassificationRequest()
@@ -85,7 +87,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `staff config is updated if it exists`(policy: AllocationPolicy) {
+  fun `staff classification is updated if it exists`(policy: AllocationPolicy) {
     val prisonCode = "USP"
     val staffId = newId()
     val username = username()
@@ -124,7 +126,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `staff config management does not audit no change requests`(policy: AllocationPolicy) {
+  fun `staff classification does not audit no-change requests`(policy: AllocationPolicy) {
     val prisonCode = "NBP"
     val staffId = newId()
     val username = username()
@@ -155,7 +157,59 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
     }
   }
 
-  fun jobClassificationRequest(
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `expiring staff classification removes config and deallocates`(policy: AllocationPolicy) {
+    val prisonCode = "ESC"
+    val staffId = newId()
+    val username = username()
+    setContext(AllocationContext.get().copy(policy = policy))
+    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
+      givenStaffRole(staffRole(prisonCode, staffId))
+    }
+
+    val allocations =
+      (0..5).map {
+        givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
+      }
+
+    val request =
+      jobClassificationRequest(
+        scheduleType = "PT",
+        hoursPerWeek = BigDecimal(20),
+        toDate = LocalDate.now(),
+      )
+    stubNomisUserRoles(prisonCode, staffId, request, policy)
+
+    manageStaffJobClassification(prisonCode, staffId, request, policy, username = username)
+      .expectStatus()
+      .isNoContent
+
+    setContext(AllocationContext.get().copy(policy = policy))
+    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
+      val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
+      staffRole.verifyAgainst(request)
+      verifyAudit(
+        staffRole,
+        staffRole.id,
+        RevisionType.MOD,
+        setOf(StaffRole::class.simpleName!!),
+        AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
+      )
+    } else {
+      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", request)
+    }
+
+    val staffConfig = staffConfigRepository.findByStaffId(staffId)
+    assertThat(staffConfig).isNull()
+
+    staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
+      assertThat(it.active).isFalse
+      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
+    }
+  }
+
+  private fun jobClassificationRequest(
     position: String = "PRO",
     scheduleType: String = "FT",
     hoursPerWeek: BigDecimal = BigDecimal(37.5),
@@ -163,7 +217,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
     toDate: LocalDate? = null,
   ) = StaffJobClassificationRequest(position, scheduleType, hoursPerWeek, fromDate, toDate)
 
-  fun manageStaffJobClassification(
+  private fun manageStaffJobClassification(
     prisonCode: String,
     staffId: Long,
     request: StaffJobClassificationRequest,
