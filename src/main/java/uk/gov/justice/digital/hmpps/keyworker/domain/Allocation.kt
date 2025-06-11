@@ -26,6 +26,7 @@ import java.util.UUID
 @Table(name = "allocation")
 @SQLRestriction("allocation_type <> 'P'")
 class Allocation(
+  @Audited(withModifiedFlag = true)
   @Column(name = "person_identifier")
   val personIdentifier: String,
   @Column(name = "prison_code")

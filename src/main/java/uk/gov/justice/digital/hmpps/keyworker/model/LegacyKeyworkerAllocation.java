@@ -34,6 +34,7 @@ public class LegacyKeyworkerAllocation {
     @Column(name = "id", nullable = false)
     private UUID id;
 
+    @Audited(withModifiedFlag = true)
     @NotNull
     @Length(max = 10)
     @Column(name = "PERSON_IDENTIFIER", nullable = false)
