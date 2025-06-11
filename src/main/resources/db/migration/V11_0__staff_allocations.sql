@@ -199,3 +199,41 @@ end;
 $$ language plpgsql;
 
 
+create or replace function delete_fake_allocations(keyworker_allocation_id bigint) returns void as
+$$
+declare
+    rev_id bigint;
+begin
+    rev_id = nextval('audit_revision_id_seq');
+    insert into audit_revision(id, timestamp, username, caseload_id, affected_entities)
+    values (rev_id, current_timestamp, 'SYS', null, '{LegacyKeyworkerAllocation}');
+
+    insert into allocation_audit(rev_id, rev_type, id, prison_code, staff_id, policy_code, person_identifier,
+                                 allocated_at, allocation_type, allocated_by, allocation_reason_id, deallocated_at,
+                                 deallocation_reason_id, deallocated_by, is_active, deallocated_at_modified,
+                                 deallocated_by_modified, deallocation_reason_modified, is_active_modified)
+    select rev_id,
+           2,
+           id,
+           prison_code,
+           staff_id,
+           policy_code,
+           person_identifier,
+           allocated_at,
+           allocation_type,
+           allocated_by,
+           allocation_reason_id,
+           deallocated_at,
+           deallocation_reason_id,
+           deallocated_by,
+           is_active,
+           false,
+           false,
+           false,
+           false
+    from allocation
+    where legacy_id = keyworker_allocation_id;
+
+    delete from allocation where legacy_id = keyworker_allocation_id;
+end;
+$$ language plpgsql;
