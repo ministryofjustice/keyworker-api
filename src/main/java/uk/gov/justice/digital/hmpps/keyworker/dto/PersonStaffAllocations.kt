@@ -7,32 +7,16 @@ data class PersonStaffAllocations(
   val deallocations: List<PersonStaffDeallocation>,
 ) {
   @JsonIgnore
-  val personIdentifiersToAllocate: Set<String>
+  val personIdentifiersToAllocate: Set<String> = allocations.identifiers()
 
   @JsonIgnore
-  val staffIdsToAllocate: Set<Long>
-
-  @JsonIgnore
-  val personIdentifiersToDeallocate: Set<String>
-
-  @JsonIgnore
-  val staffIdsToDeallocate: Set<Long>
-
-  init {
-    val toAllocate = allocations.peopleAndStaff()
-    personIdentifiersToAllocate = toAllocate.keys
-    staffIdsToAllocate = toAllocate.values.toSet()
-
-    val toDeallocate = deallocations.peopleAndStaff()
-    personIdentifiersToDeallocate = toDeallocate.keys
-    staffIdsToDeallocate = toDeallocate.values.toSet()
-  }
+  val personIdentifiersToDeallocate: Set<String> = deallocations.identifiers()
 
   @JsonIgnore
   fun isEmpty() = allocations.isEmpty() && deallocations.isEmpty()
 }
 
-fun List<PersonStaff>.peopleAndStaff() = associate { it.personIdentifier to it.staffId }
+fun List<PersonStaff>.identifiers() = map { it.personIdentifier }.toSet()
 
 interface PersonStaff {
   val personIdentifier: String

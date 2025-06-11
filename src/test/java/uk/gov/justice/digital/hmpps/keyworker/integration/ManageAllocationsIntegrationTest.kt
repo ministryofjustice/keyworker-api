@@ -153,7 +153,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not an active staff member")
+    assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not configured correctly for the allocation reason")
   }
 
   @ParameterizedTest
