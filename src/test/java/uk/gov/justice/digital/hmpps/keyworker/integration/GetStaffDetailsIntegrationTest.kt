@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageRes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
@@ -88,24 +89,27 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val previousFromDate = fromDate.minusMonths(1)
     val allocations =
       (1..20).map {
+        val activeAllocation = it % 9 != 0
         givenAllocation(
           staffAllocation(
             personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = staffConfig.staffId,
             assignedAt = LocalDateTime.now().minusDays(it * 3L),
-            active = it % 9 != 0,
-            expiryDateTime = if (it % 9 == 0) LocalDateTime.now().minusDays(10) else null,
+            active = activeAllocation,
+            deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(10),
+            deallocatedBy = if (activeAllocation) null else "T357",
+            deallocationReason = if (activeAllocation) null else DeallocationReason.TRANSFER,
           ),
         )
       }
 
-    val personIdentifiers = allocations.filter { it.active }.map { it.personIdentifier }.toSet()
+    val personIdentifiers = allocations.filter { it.isActive }.map { it.personIdentifier }.toSet()
     val caseNoteIdentifiers =
       allocations
         .filter {
-          (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(fromDate)) &&
-            it.assignedAt.toLocalDate().isBefore(now())
+          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(fromDate)) &&
+            it.allocatedAt.toLocalDate().isBefore(now())
         }.map { it.personIdentifier }
         .toSet()
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, personIdentifiers)
@@ -127,8 +131,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val prevCaseNoteIdentifiers =
       allocations
         .filter {
-          (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(previousFromDate)) &&
-            it.assignedAt.toLocalDate().isBefore(fromDate)
+          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(previousFromDate)) &&
+            it.allocatedAt.toLocalDate().isBefore(fromDate)
         }.map { it.personIdentifier }
         .toSet()
     caseNotesMockServer.stubUsageByPersonIdentifier(

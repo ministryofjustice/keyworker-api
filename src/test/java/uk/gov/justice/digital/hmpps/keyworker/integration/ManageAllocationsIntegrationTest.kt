@@ -1,7 +1,14 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
@@ -18,12 +25,17 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaf
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
 import java.time.LocalDate
 
-class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
+class ManageAllocationsIntegrationTest : IntegrationTest() {
+  @AfterEach
+  fun resetContext() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+  }
+
   @Test
   fun `401 unauthorised without a valid token`() {
     webTestClient
       .put()
-      .uri(KEYWORKER_ALLOCATIONS_URL, "NEP")
+      .uri(MANAGE_ALLOCATIONS_URL, "NEP")
       .bodyValue(personStaffAllocations())
       .exchange()
       .expectStatus()
@@ -32,13 +44,19 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    allocationAndDeallocate("DNM", personStaffAllocations(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    allocationAndDeallocate(
+      "DNM",
+      personStaffAllocations(),
+      AllocationPolicy.PERSONAL_OFFICER,
+      "ROLE_ANY__OTHER_RW",
+    ).expectStatus().isForbidden
   }
 
-  @Test
-  fun `400 bad request - person staff allocations is empty`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `400 bad request - person staff allocations is empty`(policy: AllocationPolicy) {
     val res =
-      allocationAndDeallocate("NEN", personStaffAllocations())
+      allocationAndDeallocate("NEN", personStaffAllocations(), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -47,10 +65,12 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(res.userMessage).isEqualTo("Validation failure: At least one allocation or deallocation must be provided")
   }
 
-  @Test
-  fun `400 bad request - prison not enabled`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `400 bad request - prison not enabled`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val res =
-      allocationAndDeallocate("NEN", personStaffAllocations(listOf(personStaffAllocation())))
+      allocationAndDeallocate("NEN", personStaffAllocations(listOf(personStaffAllocation())), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -59,8 +79,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(res.userMessage).isEqualTo("Validation failure: Prison not enabled")
   }
 
-  @Test
-  fun `400 bad request - prisoner not at provided prison`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `400 bad request - prisoner not at provided prison`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "PRM"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
     val psa = personStaffAllocation()
@@ -71,7 +93,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     )
 
     val res =
-      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)))
+      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -80,8 +102,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(res.userMessage).isEqualTo("Validation failure: A provided person identifier is not currently at the provided prison")
   }
 
-  @Test
-  fun `400 bad request - staff id not a keyworker at provided prison`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `400 bad request - staff id not allocatable at provided prison`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "SNK"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -93,7 +117,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf()))
 
     val res =
-      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)))
+      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -102,8 +126,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not allocatable for the provided prison")
   }
 
-  @Test
-  fun `400 bad request - staff id not an active keyworker`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `400 bad request - staff id not an active staff member`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "SIK"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -112,12 +138,16 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val psa = personStaffAllocation(prisoner.prisonerNumber, staffId)
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    } else {
+      givenStaffRole(staffRole(prisonCode, staffId))
+    }
 
     givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staffId))
 
     val res =
-      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)))
+      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -126,8 +156,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not an active staff member")
   }
 
-  @Test
-  fun `204 no content - new allocations`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `204 no content - new allocations`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "NAL"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -136,9 +168,13 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    } else {
+      givenStaffRole(staffRole(prisonCode, staffId))
+    }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
+    allocationAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
@@ -147,8 +183,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     }
   }
 
-  @Test
-  fun `204 no content - new allocations and existing allocations deallocated`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `204 no content - new allocations and existing allocations deallocated`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EAL"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -157,11 +195,15 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    } else {
+      givenStaffRole(staffRole(prisonCode, staffId))
+    }
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
+    allocationAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
@@ -176,8 +218,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     }
   }
 
-  @Test
-  fun `204 no content - no changes if already allocated to same staff`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `204 no content - no changes if already allocated to same staff`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "NNA"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -186,11 +230,15 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    } else {
+      givenStaffRole(staffRole(prisonCode, staffId))
+    }
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode, staffId)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
+    allocationAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
@@ -205,8 +253,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     }
   }
 
-  @Test
-  fun `204 no content - deallocate existing allocations`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `204 no content - deallocate existing allocations`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "DAL"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -214,7 +264,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val psds = listOf(personStaffDeallocation(staffId = staffId), personStaffDeallocation(staffId = staffId))
     val existing = psds.map { givenAllocation(staffAllocation(it.personIdentifier, prisonCode, staffId)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
+    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isTrue
@@ -226,8 +276,10 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     }
   }
 
-  @Test
-  fun `204 no content - doesn't deallocate unless person and staff match`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `204 no content - doesn't deallocate unless person and staff match`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "DDA"
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
@@ -235,7 +287,7 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val psds = listOf(personStaffDeallocation(), personStaffDeallocation())
     val existing = psds.map { givenAllocation(staffAllocation(it.personIdentifier, prisonCode, staffId)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds)).expectStatus().isNoContent
+    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isFalse
@@ -285,15 +337,24 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
   private fun allocationAndDeallocate(
     prisonCode: String,
     request: PersonStaffAllocations,
-    role: String? = Roles.KEYWORKER_RW,
+    policy: AllocationPolicy,
+    role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .put()
-    .uri(KEYWORKER_ALLOCATIONS_URL, prisonCode)
+    .uri(MANAGE_ALLOCATIONS_URL, prisonCode)
     .bodyValue(request)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+    .header(PolicyHeader.NAME, policy.name)
     .exchange()
 
   companion object {
-    const val KEYWORKER_ALLOCATIONS_URL = "/prisons/{prisonCode}/prisoners/keyworkers"
+    const val MANAGE_ALLOCATIONS_URL = "/prisons/{prisonCode}/prisoners/allocations"
+
+    @JvmStatic
+    fun policyProvider() =
+      listOf(
+        Arguments.of(AllocationPolicy.KEY_WORKER),
+        Arguments.of(AllocationPolicy.PERSONAL_OFFICER),
+      )
   }
 }

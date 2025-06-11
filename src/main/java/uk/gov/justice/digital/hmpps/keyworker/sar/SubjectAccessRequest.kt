@@ -30,10 +30,10 @@ class SubjectAccessRequest(
     return if (result.isEmpty()) null else SubjectAccessResponse(prn, result)
   }
 
-  private fun uk.gov.justice.digital.hmpps.keyworker.sar.internal.SarKeyWorker.forSarReport(getStaff: (Long) -> StaffMember) =
+  private fun uk.gov.justice.digital.hmpps.keyworker.sar.internal.SarAllocation.forSarReport(getStaff: (Long) -> StaffMember) =
     SarKeyWorker(
-      assignedAt,
-      expiredAt,
+      allocatedAt,
+      deallocatedAt,
       prisonCode,
       when (allocationType) {
         AllocationType.AUTO -> "Automatic"

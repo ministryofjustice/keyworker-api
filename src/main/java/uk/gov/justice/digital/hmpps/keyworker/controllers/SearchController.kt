@@ -43,7 +43,7 @@ class SearchController(
   fun searchStaff(
     @PathVariable prisonCode: String,
     @RequestBody request: StaffSearchRequest,
-  ): StaffSearchResponse = staffSearch.findStaff(prisonCode, request)
+  ): StaffSearchResponse = staffSearch.searchForStaff(prisonCode, request)
 
   @Tag(name = ALLOCATE_KEY_WORKERS)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")

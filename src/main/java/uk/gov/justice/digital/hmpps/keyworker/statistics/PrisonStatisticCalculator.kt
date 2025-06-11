@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveKeyworkers
+import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
@@ -100,7 +100,7 @@ class PrisonStatisticCalculator(
             val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
             val nonActiveIds =
               keyworkerConfigRepository
-                .getNonActiveKeyworkers(keyworkerIds)
+                .getNonActiveStaff(keyworkerIds)
                 .map { it.staffId }
                 .toSet()
             (keyworkerIds - nonActiveIds).size

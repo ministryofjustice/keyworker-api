@@ -12,8 +12,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
@@ -29,7 +30,7 @@ public class KeyworkerMigrationService {
     private final NomisService nomisService;
     private final LegacyPrisonConfigurationRepository repository;
     private final PrisonSupportedService prisonSupportedService;
-    private final OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private final LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
     private final ReferenceDataRepository referenceDataRepository;
 
     @PreAuthorize("hasRole('KW_MIGRATION')")
@@ -43,12 +44,10 @@ public class KeyworkerMigrationService {
         offenderKeyworkerRepository.saveAll(translate(allocations));
 
         // Mark prison as migrated
-        repository.findByPrisonCode(prisonId).ifPresent(prison -> {
-            prison.setEnabled(true);
-        });
+        repository.findByPrisonCode(prisonId).ifPresent(prison -> prison.setEnabled(true));
     }
 
-    private Set<OffenderKeyworker> translate(final List<OffenderKeyworkerDto> dtos) {
+    private Set<LegacyKeyworkerAllocation> translate(final List<OffenderKeyworkerDto> dtos) {
         Validate.notNull(dtos);
 
         final var okwList = ConversionHelper.INSTANCE.convertOffenderKeyworkerDto2Model(dtos);
@@ -56,9 +55,16 @@ public class KeyworkerMigrationService {
         final var reason = referenceDataRepository.findByKey(
             new ReferenceDataKey(ReferenceDataDomain.ALLOCATION_REASON, AllocationReason.MANUAL.getReasonCode())
         );
+
+        final var dReason = referenceDataRepository.findByKey(
+            new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.MANUAL.getReasonCode())
+        );
         okwList.forEach(item -> {
             item.setAllocationType(AllocationType.MANUAL);
             item.setAllocationReason(reason);
+            if (!item.isActive()) {
+                item.deallocate(item.getDeallocatedAt(), dReason);
+            }
         });
 
         return okwList;

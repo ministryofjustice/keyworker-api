@@ -5,7 +5,7 @@ import org.apache.commons.lang3.Validate;
 import org.springframework.util.ObjectUtils;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -32,7 +32,7 @@ public class KeyworkerPool {
     static final String OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY = "All available Key workers are at full capacity.";
 
     private final SortedSet<KeyworkerDto> keyworkerPool;
-    private final Map<Long,List<OffenderKeyworker>> keyworkerAllocations;
+    private final Map<Long,List<LegacyKeyworkerAllocation>> keyworkerAllocations;
     private final SortedSet<Integer> capacityTiers;
     private final Set<Long> keyworkerStaffIds;
 
@@ -96,10 +96,10 @@ public class KeyworkerPool {
         };
 
         final Comparator<Long> staffIdComparator = (id1, id2) -> {
-            final var keyWorkerAllocationComparator = Comparator.comparing(OffenderKeyworker::getAssignedDateTime);
+            final var keyWorkerAllocationComparator = Comparator.comparing(LegacyKeyworkerAllocation::getAssignedDateTime);
 
-            final SortedSet<OffenderKeyworker> id1Allocations = new TreeSet<>(keyWorkerAllocationComparator);
-            final SortedSet<OffenderKeyworker> id2Allocations = new TreeSet<>(keyWorkerAllocationComparator);
+            final SortedSet<LegacyKeyworkerAllocation> id1Allocations = new TreeSet<>(keyWorkerAllocationComparator);
+            final SortedSet<LegacyKeyworkerAllocation> id2Allocations = new TreeSet<>(keyWorkerAllocationComparator);
 
             Optional.ofNullable(keyworkerAllocations.get(id1)).ifPresent(id1Allocations::addAll);
             Optional.ofNullable(keyworkerAllocations.get(id2)).ifPresent(id2Allocations::addAll);
@@ -216,7 +216,7 @@ public class KeyworkerPool {
         reinstateKeyworker(keyworker, savedOldAllocationsList);
     }
 
-    private Optional<KeyworkerDto> findPreviousAllocation(final String offenderNo, final List<OffenderKeyworker> keyWorkerAllocations) {
+    private Optional<KeyworkerDto> findPreviousAllocation(final String offenderNo, final List<LegacyKeyworkerAllocation> keyWorkerAllocations) {
         log.debug("Assessing previous allocations for offender with offenderNo [{}].", offenderNo);
 
         final Optional<KeyworkerDto> previousKeyworker;
@@ -226,8 +226,8 @@ public class KeyworkerPool {
             previousKeyworker = Optional.empty();
         } else {
             final var latestAllocation = keyWorkerAllocations.stream()
-                    .filter(kwa -> kwa.getOffenderNo().equals(offenderNo) && keyworkerStaffIds.contains(kwa.getStaffId()))
-                    .max(Comparator.comparing(OffenderKeyworker::getAssignedDateTime));
+                    .filter(kwa -> kwa.getPersonIdentifier().equals(offenderNo) && keyworkerStaffIds.contains(kwa.getStaffId()))
+                    .max(Comparator.comparing(LegacyKeyworkerAllocation::getAssignedDateTime));
 
             if (latestAllocation.isPresent()) {
                 // Key worker staff id of latest allocation
@@ -295,7 +295,7 @@ public class KeyworkerPool {
         return keyworker;
     }
 
-    private void reinstateKeyworker(final KeyworkerDto keyworker, final List<OffenderKeyworker> allocations) {
+    private void reinstateKeyworker(final KeyworkerDto keyworker, final List<LegacyKeyworkerAllocation> allocations) {
         final var staffId = keyworker.getStaffId();
 
         log.debug("Reinstating Key worker with staffId [{}], and having [{}] allocations, to pool.",

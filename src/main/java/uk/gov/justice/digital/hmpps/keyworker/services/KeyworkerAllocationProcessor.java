@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ConversionHelper;
 
 import java.util.List;
@@ -15,14 +15,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Utility class to perform various processing tasks relating to {@link uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker} data.
+ * Utility class to perform various processing tasks relating to {@link LegacyKeyworkerAllocation} data.
  */
 @Service
 @Slf4j
 public class KeyworkerAllocationProcessor {
-    private final OffenderKeyworkerRepository repository;
+    private final LegacyKeyworkerAllocationRepository repository;
 
-    public KeyworkerAllocationProcessor(final OffenderKeyworkerRepository repository) {
+    public KeyworkerAllocationProcessor(final LegacyKeyworkerAllocationRepository repository) {
         this.repository = repository;
     }
 
@@ -44,15 +44,15 @@ public class KeyworkerAllocationProcessor {
         final var offenderNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // Obtain list of active Keyworker allocations for these offenders, if any
-        final var allocs = repository.findByActiveAndOffenderNoIn(true, offenderNos);
+        final var allocs = repository.findByActiveAndPersonIdentifierIn(true, offenderNos);
 
         // Extract offender numbers having active allocation
         final var activeOffenderNos = allocs.stream()
             .collect(Collectors.toMap(
-                OffenderKeyworker::getOffenderNo,
+                LegacyKeyworkerAllocation::getPersonIdentifier,
                 Function.identity(),
                 (offender1, offender2) -> {
-                    log.error("Prisoner {} has multiple active allocations", offender1.getOffenderNo());
+                    log.error("Prisoner {} has multiple active allocations", offender1.getPersonIdentifier());
                     return offender1;
                 }
             ));
@@ -64,7 +64,7 @@ public class KeyworkerAllocationProcessor {
             .collect(Collectors.toList());
     }
 
-    public List<KeyworkerAllocationDetailsDto> decorateAllocated(final List<OffenderKeyworker> allocations, final List<OffenderLocationDto> allOffenders) {
+    public List<KeyworkerAllocationDetailsDto> decorateAllocated(final List<LegacyKeyworkerAllocation> allocations, final List<OffenderLocationDto> allOffenders) {
         final var duplicates = allOffenders.stream()
             .map(OffenderLocationDto::getOffenderNo)
             .collect(Collectors.groupingBy(string -> string, Collectors.counting()));
@@ -79,11 +79,11 @@ public class KeyworkerAllocationProcessor {
             .collect(Collectors.toList());
     }
 
-    private KeyworkerAllocationDetailsDto transformToAllocationDetails(final OffenderKeyworker allocation, final List<OffenderLocationDto> allOffenders) {
+    private KeyworkerAllocationDetailsDto transformToAllocationDetails(final LegacyKeyworkerAllocation allocation, final List<OffenderLocationDto> allOffenders) {
         final var keyworkerAllocationDetailsDto = ConversionHelper.INSTANCE.convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(allocation);
 
         final var offenderLocationDto = allOffenders.stream()
-            .filter(offender -> offender.getOffenderNo().equals(allocation.getOffenderNo()))
+            .filter(offender -> offender.getOffenderNo().equals(allocation.getPersonIdentifier()))
             .findFirst()
             .orElse(null);
 

@@ -58,8 +58,9 @@ class GetCurrentKeyworkerAllocationIntegrationTest : IntegrationTest() {
           assignedAt = LocalDateTime.now().minusWeeks(12L - (3 * i)),
           allocatedBy = "AS$i",
           active = false,
-          expiryDateTime = LocalDateTime.now().minusWeeks(i.toLong()),
+          deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
           deallocationReason = DeallocationReason.entries.random(),
+          deallocatedBy = "DE$i",
         ),
       )
     }

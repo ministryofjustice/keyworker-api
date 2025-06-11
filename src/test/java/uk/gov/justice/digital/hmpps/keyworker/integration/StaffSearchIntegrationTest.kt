@@ -23,13 +23,14 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageRes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -67,7 +68,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val staffIds = (0..10).map { newId() }
     val request = searchRequest(query = "First")
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, request, NomisStaffMembers(nomisStaff(staffIds)))
+    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds.filter { it % 2 != 0L }))
     } else {
@@ -176,7 +177,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val staffIds = (0..10).map { newId() }
     val request = searchRequest(status = StaffSearchRequest.Status.ALL)
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, request, NomisStaffMembers(nomisStaff(staffIds)))
+    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
     } else {
@@ -267,8 +268,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val request = searchRequest()
     nomisUserRolesMockServer.stubGetUserStaff(
       prisonCode,
+      NomisStaffMembers(fromStaffIds(listOf(staffId))),
       request,
-      NomisStaffMembers(nomisStaff(listOf(staffId))),
     )
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(
@@ -367,7 +368,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val staffIds = (0..5).map { newId() }
     val request = searchRequest(hasPolicyStaffRole = true)
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, request, NomisStaffMembers(nomisStaff(staffIds)))
+    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds.filter { it % 2 == 0L }))
     } else {
@@ -474,35 +475,6 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
     .exchange()
-
-  private fun nomisStaff(staffIds: List<Long>): List<NomisStaff> =
-    staffIds.map {
-      NomisStaff(
-        "user-$it",
-        "user-$it@email.co.uk",
-        it,
-        "First$it",
-        "Last$it",
-        "ACTIVE",
-      )
-    }
-
-  private fun staffRoles(staffIds: List<Long>): List<StaffLocationRoleDto> {
-    val positionTypes = listOf("AA", "AO", "PPO", "PRO", "CHAP")
-    val scheduleTypes = listOf("FT", "PT", "SESS", "VOL")
-    return staffIds.map {
-      StaffLocationRoleDto
-        .builder()
-        .staffId(it)
-        .firstName("First Name $it")
-        .lastName("Last Name $it")
-        .position(positionTypes.random())
-        .scheduleType(scheduleTypes.random())
-        .hoursPerWeek(BigDecimal.valueOf(37.5))
-        .fromDate(LocalDate.now().minusDays(it * 64))
-        .build()
-    }
-  }
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/staff"

@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,13 +76,13 @@ class ConversionHelperTest {
                 .build();
     }
 
-    static void verifyConversion(final OffenderKeyworkerDto dto, final OffenderKeyworker okw) {
-        assertThat(okw.getOffenderNo()).isEqualTo(dto.getOffenderNo());
+    static void verifyConversion(final OffenderKeyworkerDto dto, final LegacyKeyworkerAllocation okw) {
+        assertThat(okw.getPersonIdentifier()).isEqualTo(dto.getOffenderNo());
         assertThat(okw.getStaffId()).isEqualTo(dto.getStaffId());
         assertThat(okw.isActive()).isEqualTo(StringUtils.equals("Y", dto.getActive()));
-        assertThat(okw.getPrisonId()).isEqualTo(dto.getAgencyId());
+        assertThat(okw.getPrisonCode()).isEqualTo(dto.getAgencyId());
         assertThat(okw.getAssignedDateTime()).isEqualTo(dto.getAssigned());
-        assertThat(okw.getUserId()).isEqualTo(dto.getUserId());
-        assertThat(okw.getExpiryDateTime()).isEqualTo(dto.getExpired());
+        assertThat(okw.getAllocatedBy()).isEqualTo(dto.getUserId());
+        assertThat(okw.getDeallocatedAt()).isEqualTo(dto.getExpired());
     }
 }

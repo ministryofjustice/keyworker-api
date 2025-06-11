@@ -7,10 +7,12 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class PersonSearchIntegrationTest : IntegrationTest() {
   @Test
@@ -48,13 +50,17 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         if (index == 0) {
           null
         } else {
+          val activeAllocation = index % 3 != 0
           givenAllocation(
             staffAllocation(
               p.prisonerNumber,
               prisonCode,
               staffIds.random(),
               allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
-              active = index % 3 != 0,
+              active = activeAllocation,
+              deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
+              deallocatedBy = if (activeAllocation) null else "DA$index",
+              deallocationReason = if (activeAllocation) null else DeallocationReason.TRANSFER,
             ),
           )
         }
@@ -62,7 +68,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
     val summaries =
       allocations
-        .filter { it.active && it.allocationType != AllocationType.PROVISIONAL }
+        .filter { it.isActive && it.allocationType != AllocationType.PROVISIONAL }
         .map { it.staffId }
         .distinct()
         .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
@@ -112,13 +118,17 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         if (index == 0) {
           null
         } else {
+          val activeAllocation = index % 3 != 0
           givenAllocation(
             staffAllocation(
               p.prisonerNumber,
               prisonCode,
               staffIds.random(),
               allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
-              active = index % 3 != 0,
+              active = activeAllocation,
+              deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
+              deallocatedBy = if (activeAllocation) null else "DA$index",
+              deallocationReason = if (activeAllocation) null else DeallocationReason.TRANSFER,
             ),
           )
         }
@@ -126,7 +136,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
     val summaries =
       allocations
-        .filter { it.active && it.allocationType != AllocationType.PROVISIONAL }
+        .filter { it.isActive && it.allocationType != AllocationType.PROVISIONAL }
         .map { it.staffId }
         .distinct()
         .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
@@ -177,13 +187,17 @@ class PersonSearchIntegrationTest : IntegrationTest() {
       if (index == 0) {
         null
       } else {
+        val activeAllocation = index % 3 != 0
         givenAllocation(
           staffAllocation(
             p.prisonerNumber,
             prisonCode,
             staffIds.random(),
             allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
-            active = index % 3 != 0,
+            active = activeAllocation,
+            deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
+            deallocatedBy = if (activeAllocation) null else "DA$index",
+            deallocationReason = if (activeAllocation) null else DeallocationReason.TRANSFER,
           ),
         )
       }

@@ -17,8 +17,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,7 +42,7 @@ public class KeyworkerAutoAllocationService {
 
     private final KeyworkerService keyworkerService;
     private final KeyworkerPoolFactory keyworkerPoolFactory;
-    private final OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private final LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
     private final ComplexityOfNeed complexityOfNeedService;
     private final ReferenceDataRepository referenceDataRepository;
@@ -159,11 +159,11 @@ public class KeyworkerAutoAllocationService {
         log.info(OUTCOME_AUTO_ALLOCATION_SUCCESS, offender.getBookingId(), keyworker.getStaffId());
     }
 
-    private OffenderKeyworker buildKeyWorkerAllocation(final OffenderLocationDto offender, final KeyworkerDto keyworker) {
+    private LegacyKeyworkerAllocation buildKeyWorkerAllocation(final OffenderLocationDto offender, final KeyworkerDto keyworker) {
         final var reason = referenceDataRepository.findByKey(
             new ReferenceDataKey(ReferenceDataDomain.ALLOCATION_REASON, AllocationReason.AUTO.getReasonCode())
         );
-        return OffenderKeyworker.builder()
+        return LegacyKeyworkerAllocation.builder()
             .offenderNo(offender.getOffenderNo())
             .staffId(keyworker.getStaffId())
             .prisonId(offender.getAgencyId())

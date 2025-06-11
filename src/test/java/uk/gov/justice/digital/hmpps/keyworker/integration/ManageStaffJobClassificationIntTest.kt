@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
@@ -193,7 +194,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
         staffRole,
         staffRole.id,
         RevisionType.MOD,
-        setOf(StaffRole::class.simpleName!!),
+        setOf(StaffRole::class.simpleName!!, Allocation::class.simpleName!!),
         AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
       )
     } else {
@@ -204,7 +205,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
     assertThat(staffConfig).isNull()
 
     staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
-      assertThat(it.active).isFalse
+      assertThat(it.isActive).isFalse
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }

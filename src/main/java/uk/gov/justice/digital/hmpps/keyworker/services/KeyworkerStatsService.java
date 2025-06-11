@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +12,9 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyWorkerAggregatedStats;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStatsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SummaryStatistic;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
 
 import java.math.BigDecimal;
@@ -24,17 +22,13 @@ import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.WEEKS;
@@ -50,7 +44,7 @@ import static uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerService.K
 public class KeyworkerStatsService {
 
     private final NomisService nomisService;
-    private final OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private final LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
     private final PrisonKeyWorkerStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
 
@@ -64,13 +58,13 @@ public class KeyworkerStatsService {
         final var range = new CalcDateRange(fromDate, toDate);
         final var nextEndDate = range.getEndDate().atStartOfDay().plusDays(1);
 
-        final var applicableAssignments = offenderKeyworkerRepository.findByStaffIdAndPrisonId(staffId, prisonId).stream()
+        final var applicableAssignments = offenderKeyworkerRepository.findByStaffIdAndPrisonCode(staffId, prisonId).stream()
                 .filter(kw ->
                         kw.getAssignedDateTime().isBefore(nextEndDate) &&
-                                (kw.getExpiryDateTime() == null || !kw.getExpiryDateTime().isBefore(range.getStartDate().atStartOfDay())))
+                                (kw.getDeallocatedAt() == null || !kw.getDeallocatedAt().isBefore(range.getStartDate().atStartOfDay())))
                 .collect(Collectors.toList());
 
-        final var prisonerNosList = applicableAssignments.stream().map(OffenderKeyworker::getOffenderNo).distinct().collect(Collectors.toList());
+        final var prisonerNosList = applicableAssignments.stream().map(LegacyKeyworkerAllocation::getPersonIdentifier).distinct().collect(Collectors.toList());
 
         if (!prisonerNosList.isEmpty()) {
             final var caseNoteSummary = new KeyWorkingCaseNoteSummary(
@@ -290,10 +284,10 @@ public class KeyworkerStatsService {
         return complianceRate;
     }
 
-    private int getProjectedKeyworkerSessions(final List<OffenderKeyworker> filteredAllocations, final Long staffId, final String prisonId, final LocalDate fromDate, final LocalDateTime nextEndDate) {
+    private int getProjectedKeyworkerSessions(final List<LegacyKeyworkerAllocation> filteredAllocations, final Long staffId, final String prisonId, final LocalDate fromDate, final LocalDateTime nextEndDate) {
         final var kwResults = filteredAllocations.stream()
                 .collect(
-                        Collectors.groupingBy(OffenderKeyworker::getStaffId, Collectors.summarizingLong(k -> k.getDaysAllocated(fromDate, nextEndDate.toLocalDate()))
+                        Collectors.groupingBy(LegacyKeyworkerAllocation::getStaffId, Collectors.summarizingLong(k -> k.getDaysAllocated(fromDate, nextEndDate.toLocalDate()))
                         ));
         final var longSummaryStatistics = kwResults.get(staffId);
         if (longSummaryStatistics != null) {

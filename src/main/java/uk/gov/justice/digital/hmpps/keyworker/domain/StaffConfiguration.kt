@@ -46,8 +46,8 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   @Query(
     """
         with counts as (select sa.staffId as id, count(sa) as count
-                        from StaffAllocation sa
-                        where sa.active = true and sa.allocationType <> 'P'
+                        from Allocation sa
+                        where sa.isActive = true and sa.allocationType <> 'P'
                         and sa.prisonCode = :prisonCode and sa.staffId in :staffIds
                         group by sa.staffId
         )
@@ -71,7 +71,7 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   fun deleteByStaffId(staffId: Long)
 }
 
-fun StaffConfigRepository.getNonActiveKeyworkers(staffIds: Set<Long>) =
+fun StaffConfigRepository.getNonActiveStaff(staffIds: Set<Long>) =
   findAllByStaffIdInAndStatusKeyCodeIn(
     staffIds,
     StaffStatus.entries

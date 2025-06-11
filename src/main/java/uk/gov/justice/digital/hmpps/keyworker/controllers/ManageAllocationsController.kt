@@ -11,21 +11,35 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
+import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
+import uk.gov.justice.digital.hmpps.keyworker.services.AllocationManager
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationRecommender
-import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerAllocationManager
 
 @Tag(name = ALLOCATE_KEY_WORKERS)
 @RestController
 @RequestMapping("/prisons/{prisonCode}")
 class ManageAllocationsController(
-  private val allocationManager: KeyworkerAllocationManager,
+  private val allocationManager: AllocationManager,
   private val recommend: AllocationRecommender,
 ) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RW}')")
   @PutMapping("/prisoners/keyworkers")
+  fun manageKeyworkerAllocations(
+    @PathVariable prisonCode: String,
+    @RequestBody psa: PersonStaffAllocations,
+  ) {
+    allocationManager.manage(prisonCode, psa)
+  }
+
+  @PolicyHeader
+  @CaseloadIdHeader
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping("/prisoners/allocations")
   fun manageAllocations(
     @PathVariable prisonCode: String,
     @RequestBody psa: PersonStaffAllocations,
