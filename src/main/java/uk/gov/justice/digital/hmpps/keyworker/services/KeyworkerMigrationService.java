@@ -43,8 +43,6 @@ public class KeyworkerMigrationService {
         // persist all allocations
         offenderKeyworkerRepository.saveAll(translate(allocations));
 
-        offenderKeyworkerRepository.flush();
-
         // Mark prison as migrated
         repository.findByPrisonCode(prisonId).ifPresent(prison -> prison.setEnabled(true));
     }
