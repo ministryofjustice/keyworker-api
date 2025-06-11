@@ -1,7 +1,7 @@
 policy
 prison_migration_date_history
-audit_revision
 reference_data
+audit_revision
 keyworker_entry
 keyworker_session
 offender_key_worker
@@ -9,7 +9,9 @@ prison_configuration
 staff_configuration
 staff_configuration_audit
 staff_role
+allocation_audit
 prison_configuration_audit
 staff_role_audit
+allocation
 batch_history
 keyworker_stats

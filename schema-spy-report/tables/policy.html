@@ -118,6 +118,16 @@
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                             <tr>
+                                                <td title="allocation.policy_code references policy.code via allocation_policy_code_fkey"><a href='allocation.html'>allocation</a><span class='relatedKey'>.policy_code</span></td>
+                                                <td class="constraint detail">allocation_policy_code_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="allocation_audit.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='allocation_audit.html'>allocation_audit</a><span class='relatedKey'>.policy_code</span></td>
+                                                <td class="constraint detail">Implied Constraint</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
                                                 <td title="prison_configuration.policy_code references policy.code via prison_configuration_policy_code_fkey"><a href='prison_configuration.html'>prison_configuration</a><span class='relatedKey'>.policy_code</span></td>
                                                 <td class="constraint detail">prison_configuration_policy_code_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>

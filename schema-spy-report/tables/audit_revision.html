@@ -118,6 +118,11 @@
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                             <tr>
+                                                <td title="allocation_audit.rev_id references audit_revision.id via allocation_audit_rev_id_fkey"><a href='allocation_audit.html'>allocation_audit</a><span class='relatedKey'>.rev_id</span></td>
+                                                <td class="constraint detail">allocation_audit_rev_id_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
                                                 <td title="prison_configuration_audit.rev_id references audit_revision.id via prison_configuration_audit_rev_id_fkey"><a href='prison_configuration_audit.html'>prison_configuration_audit</a><span class='relatedKey'>.rev_id</span></td>
                                                 <td class="constraint detail">prison_configuration_audit_rev_id_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>

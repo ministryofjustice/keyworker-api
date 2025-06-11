@@ -7,8 +7,87 @@
       <sequence increment="1" name="reference_data_id_seq" startValue="1"/>
    </sequences>
    <tables>
+      <table name="allocation" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <parent column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="person_identifier" nullable="false" remarks="" size="10" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="4" name="allocated_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="allocation_type" nullable="false" remarks="" size="1" type="bpchar" typeCode="1"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="allocated_by" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="allocation_reason_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="8" name="deallocated_at" nullable="true" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="deallocation_reason_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="deallocated_by" nullable="true" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="is_active" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
+            <parent column="code" foreignKey="allocation_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="13" name="legacy_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="pk_allocation" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_allocation_people_at" unique="false">
+            <column ascending="true" name="staff_id"/>
+            <column ascending="true" name="person_identifier"/>
+            <column ascending="true" name="allocated_at"/>
+            <column ascending="true" name="policy_code"/>
+         </index>
+         <index name="uq_allocation" unique="true">
+            <column ascending="true" name="person_identifier"/>
+            <column ascending="true" name="policy_code"/>
+         </index>
+         <index name="uq_legacy_allocation" unique="true">
+            <column ascending="true" name="legacy_id"/>
+         </index>
+         <checkConstraint constraint="((allocation_type = ANY (ARRAY['A'::bpchar, 'M'::bpchar, 'P'::bpchar])))" name="allocation_allocation_type"/>
+         <checkConstraint constraint="((NOT ((is_active = true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))" name="ch_allocation_is_active"/>
+         <checkConstraint constraint="((NOT ((is_active = false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))" name="ch_allocation_is_not_active"/>
+      </table>
+      <table name="allocation_audit" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="rev_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="allocation_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="audit_revision"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="rev_type" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <parent column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="person_identifier" nullable="false" remarks="" size="10" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="allocated_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="allocation_type" nullable="false" remarks="" size="1" type="bpchar" typeCode="1"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="allocated_by" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="allocation_reason_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="10" name="deallocated_at" nullable="true" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="deallocation_reason_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="deallocated_by" nullable="true" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="13" name="is_active" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="14" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
+            <parent column="code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="policy"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="15" name="person_identifier_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="16" name="deallocated_at_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="17" name="deallocation_reason_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="18" name="deallocated_by_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="19" name="is_active_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <primaryKey column="rev_id" sequenceNumberInPK="1"/>
+         <primaryKey column="id" sequenceNumberInPK="2"/>
+         <index name="allocation_audit_pkey" unique="true">
+            <column ascending="true" name="rev_id"/>
+            <column ascending="true" name="id"/>
+         </index>
+      </table>
       <table name="audit_revision" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('audit_revision_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="rev_id" foreignKey="allocation_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation_audit"/>
             <child column="rev_id" foreignKey="prison_configuration_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
             <child column="rev_id" foreignKey="staff_configuration_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration_audit"/>
             <child column="rev_id" foreignKey="staff_role_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_role_audit"/>
@@ -154,6 +233,8 @@
       </table>
       <table name="policy" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
+            <child column="policy_code" foreignKey="allocation_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
+            <child column="policy_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation_audit"/>
             <child column="policy_code" foreignKey="prison_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_configuration"/>
             <child column="policy_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
             <child column="policy_code" foreignKey="staff_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration"/>
@@ -223,6 +304,8 @@
       </table>
       <table name="prison_migration_date_history" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation"/>
+            <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation_audit"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_entry"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_session"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration"/>
@@ -238,6 +321,8 @@
       </table>
       <table name="reference_data" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
+            <child column="allocation_reason_id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
+            <child column="deallocation_reason_id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child column="allocation_reason_id" foreignKey="offender_key_worker_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="offender_key_worker"/>
             <child column="deallocation_reason_id" foreignKey="offender_key_worker_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="offender_key_worker"/>
             <child column="status_id" foreignKey="key_worker_status_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration"/>
