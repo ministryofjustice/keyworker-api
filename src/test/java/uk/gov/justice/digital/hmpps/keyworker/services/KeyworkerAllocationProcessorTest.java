@@ -9,8 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +28,7 @@ class KeyworkerAllocationProcessorTest {
     private static final String TEST_AGENCY = "ABC";
 
     @Mock
-    private OffenderKeyworkerRepository repository;
+    private LegacyKeyworkerAllocationRepository repository;
 
     @InjectMocks
     private KeyworkerAllocationProcessor processor;
@@ -61,11 +61,11 @@ class KeyworkerAllocationProcessorTest {
         final var offNos = dtos.stream().map(OffenderLocationDto::getOffenderNo).collect(Collectors.toSet());
 
         // Mock remote to return no active allocations for specified offender numbers.
-        final var ok = OffenderKeyworker.builder()
+        final var ok = LegacyKeyworkerAllocation.builder()
             .offenderNo(offNos.iterator().next())
             .allocationType(AllocationType.PROVISIONAL)
             .build();
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(Collections.singletonList(ok));
+        when(repository.findByActiveAndPersonIdentifierIn(eq(true), anyCollection())).thenReturn(Collections.singletonList(ok));
 
         // Invoke service
         final var results = processor.filterByUnallocated(dtos);
@@ -73,7 +73,7 @@ class KeyworkerAllocationProcessorTest {
         // Verify
         assertThat(results).isEqualTo(dtos);
 
-        verify(repository).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+        verify(repository).findByActiveAndPersonIdentifierIn(eq(true), eq(offNos));
     }
 
     // When offender summary allocation filter processing requested with a list of 5 offender summary dtos
@@ -89,7 +89,7 @@ class KeyworkerAllocationProcessorTest {
         // Mock remote to return active allocations for all offender numbers.
         final var allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offNos);
 
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
+        when(repository.findByActiveAndPersonIdentifierIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
         final var results = processor.filterByUnallocated(dtos);
@@ -97,7 +97,7 @@ class KeyworkerAllocationProcessorTest {
         // Verify
         assertThat(results).isEmpty();
 
-        verify(repository).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+        verify(repository).findByActiveAndPersonIdentifierIn(eq(true), eq(offNos));
     }
 
     //should be resilient if duplicate allocations exist
@@ -113,7 +113,7 @@ class KeyworkerAllocationProcessorTest {
 
         allocs.add(allocs.get(0));
 
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
+        when(repository.findByActiveAndPersonIdentifierIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
         final var results = processor.filterByUnallocated(dtos);
@@ -121,7 +121,7 @@ class KeyworkerAllocationProcessorTest {
         // Verify
         assertThat(results).isEmpty();
 
-        verify(repository).findByActiveAndOffenderNoIn(eq(true), eq(offNos));
+        verify(repository).findByActiveAndPersonIdentifierIn(eq(true), eq(offNos));
     }
 
     // When offender summary allocation filter processing requested with a list of 5 offender summary dtos
@@ -141,7 +141,7 @@ class KeyworkerAllocationProcessorTest {
         // Mock remote to return active allocations for 3 offender numbers.
         final var allocs = KeyworkerTestHelper.getAllocations(TEST_AGENCY, allocatedOffNos);
 
-        when(repository.findByActiveAndOffenderNoIn(eq(true), anyCollection())).thenReturn(allocs);
+        when(repository.findByActiveAndPersonIdentifierIn(eq(true), anyCollection())).thenReturn(allocs);
 
         // Invoke service
         final var results = processor.filterByUnallocated(dtos);
@@ -150,7 +150,7 @@ class KeyworkerAllocationProcessorTest {
         assertThat(results.size()).isEqualTo(unallocatedOffNos.size());
         assertThat(results).extracting(OffenderLocationDto::getOffenderNo).hasSameElementsAs(unallocatedOffNos);
 
-        verify(repository).findByActiveAndOffenderNoIn(true, Sets.union(allocatedOffNos, unallocatedOffNos));
+        verify(repository).findByActiveAndPersonIdentifierIn(true, Sets.union(allocatedOffNos, unallocatedOffNos));
     }
 
     @Test
@@ -158,7 +158,7 @@ class KeyworkerAllocationProcessorTest {
         final var OFFENDER_NO = "A12345";
 
         final var offenderKeyworkers = List.of(
-            OffenderKeyworker.builder().offenderNo(OFFENDER_NO).build()
+            LegacyKeyworkerAllocation.builder().offenderNo(OFFENDER_NO).build()
         );
 
         final var offenderLocations = List.of(

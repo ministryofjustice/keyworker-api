@@ -30,12 +30,12 @@ class MergePrisonerIntTest : IntegrationTest() {
     val okw = givenOffenderKeyWorker()
     val newNoms = personIdentifier()
 
-    publishEventToTopic(mergeEvent(newNoms, okw.offenderNo))
+    publishEventToTopic(mergeEvent(newNoms, okw.personIdentifier))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val merged = requireNotNull(offenderKeyworkerRepository.findByIdOrNull(okw.offenderKeyworkerId))
-    assertThat(merged.offenderNo).isEqualTo(newNoms)
+    val merged = requireNotNull(offenderKeyworkerRepository.findByIdOrNull(okw.id))
+    assertThat(merged.personIdentifier).isEqualTo(newNoms)
   }
 
   @Test
@@ -44,12 +44,12 @@ class MergePrisonerIntTest : IntegrationTest() {
     val okw = givenOffenderKeyWorker(staffId = staffId)
     val nkw = givenOffenderKeyWorker(staffId = staffId)
 
-    publishEventToTopic(mergeEvent(nkw.offenderNo, okw.offenderNo))
+    publishEventToTopic(mergeEvent(nkw.personIdentifier, okw.personIdentifier))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val merged = requireNotNull(offenderKeyworkerRepository.findByIdOrNull(okw.offenderKeyworkerId))
-    assertThat(merged.offenderNo).isEqualTo(nkw.offenderNo)
+    val merged = requireNotNull(offenderKeyworkerRepository.findByIdOrNull(okw.id))
+    assertThat(merged.personIdentifier).isEqualTo(nkw.personIdentifier)
     assertThat(merged.isActive).isFalse()
     assertThat(merged.deallocationReason.code).isEqualTo(DeallocationReason.MERGED.reasonCode)
   }

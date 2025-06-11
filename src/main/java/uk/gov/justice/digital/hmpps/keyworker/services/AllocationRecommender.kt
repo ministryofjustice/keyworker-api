@@ -71,7 +71,7 @@ class AllocationRecommender(
           StaffSummary(it.staffId, it.firstName, it.lastName),
           staffInfo?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
           staffInfo?.allocationCount ?: 0,
-          autoAllocations[it.staffId]?.assignedAt,
+          autoAllocations[it.staffId]?.allocatedAt,
         )
       }.sortedForAllocation()
   }

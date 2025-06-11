@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.Actioned
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -48,7 +48,7 @@ class GetKeyworkerAllocations(
       ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(prisonNumber, true, null, null)
       else ->
         allocationRepository
-          .findFirstByPersonIdentifierAndActiveIsTrueOrderByAssignedAtDesc(prisonNumber)
+          .findFirstByPersonIdentifierAndIsActiveIsTrueOrderByAllocatedAtDesc(prisonNumber)
           ?.let { allocation ->
             val cns =
               caseNotesApiClient.getUsageByPersonIdentifier(
@@ -77,7 +77,7 @@ class GetKeyworkerAllocations(
 
   fun historyFor(prisonNumber: String): PersonStaffAllocationHistory {
     val allocations = allocationRepository.findAllByPersonIdentifier(prisonNumber)
-    val usernames = allocations.flatMap { listOfNotNull(it.allocatedBy, it.lastModifiedBy) }.toSet()
+    val usernames = allocations.flatMap { listOfNotNull(it.allocatedBy, it.deallocatedBy) }.toSet()
     val users = manageUsers.getUsersDetails(usernames).associateBy { it.username }
     check(users.keys.containsAll(usernames))
     val prisons = prisonService.findPrisons(allocations.map { it.prisonCode }.toSet()).associateBy { it.prisonId }
@@ -99,20 +99,20 @@ class GetKeyworkerAllocations(
     )
   }
 
-  private fun StaffAllocation.toModel(
+  private fun Allocation.toModel(
     prison: (String) -> CodedDescription,
     keyworker: (Long) -> Keyworker,
     actionedBy: (String?) -> String,
   ): KeyworkerAllocation =
     KeyworkerAllocation(
-      active,
+      isActive,
       keyworker(staffId),
       prison(prisonCode),
-      Actioned(assignedAt, actionedBy(allocatedBy), allocationReason.asCodedDescription()),
+      Actioned(allocatedAt, actionedBy(allocatedBy), allocationReason.asCodedDescription()),
       deallocationReason?.let {
         Actioned(
-          expiryDateTime!!,
-          actionedBy(lastModifiedBy),
+          deallocatedAt!!,
+          actionedBy(deallocatedBy),
           it.asCodedDescription(),
         )
       },

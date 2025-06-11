@@ -31,6 +31,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
 import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
@@ -46,7 +47,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
@@ -67,11 +67,12 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearc
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
+import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
@@ -102,7 +103,7 @@ abstract class IntegrationTest {
   protected lateinit var staffAllocationRepository: StaffAllocationRepository
 
   @Autowired
-  protected lateinit var offenderKeyworkerRepository: OffenderKeyworkerRepository
+  protected lateinit var offenderKeyworkerRepository: LegacyKeyworkerAllocationRepository
 
   @Autowired
   protected lateinit var prisonSupportedRepository: LegacyPrisonConfigurationRepository
@@ -458,19 +459,20 @@ abstract class IntegrationTest {
     deallocationReason: DeallocationReason? = null,
     active: Boolean = true,
     prisonCode: String = "MDI",
-  ): OffenderKeyworker =
+  ): LegacyKeyworkerAllocation =
     offenderKeyworkerRepository.save(
-      OffenderKeyworker().apply {
-        offenderNo = prisonNumber
+      LegacyKeyworkerAllocation().apply {
+        this.personIdentifier = prisonNumber
         this.staffId = staffId
-        assignedDateTime = assignedAt
+        this.assignedDateTime = assignedAt
         this.allocationType = allocationType
         this.allocationReason = allocationReason.asReferenceData()
-        this.userId = userId
-        expiryDateTime = expiredAt
+        this.allocatedBy = userId
+        this.deallocatedAt = expiredAt
         this.deallocationReason = deallocationReason?.asReferenceData()
-        isActive = active
-        prisonId = prisonCode
+        this.isActive = active
+        this.prisonCode = prisonCode
+        this.id = IdGenerator.newUuid()
       },
     )
 
@@ -500,7 +502,7 @@ abstract class IntegrationTest {
     toDate: LocalDate? = null,
   ) = StaffRole(position, scheduleType, hoursPerWeek, fromDate, toDate, prisonCode, staffId)
 
-  protected fun givenStaffRole(staffRole: StaffRole) = staffRoleRepository.save(staffRole)
+  protected fun givenStaffRole(staffRole: StaffRole): StaffRole = staffRoleRepository.save(staffRole)
 
   protected fun staffAllocation(
     personIdentifier: String,
@@ -511,10 +513,10 @@ abstract class IntegrationTest {
     allocationReason: AllocationReason = AllocationReason.AUTO,
     allocationType: AllocationType = AllocationType.AUTO,
     allocatedBy: String = "T357",
-    expiryDateTime: LocalDateTime? = null,
+    deallocatedAt: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
-    id: Long? = null,
-  ) = StaffAllocation(
+    deallocatedBy: String? = null,
+  ) = Allocation(
     personIdentifier,
     prisonCode,
     staffId,
@@ -523,12 +525,12 @@ abstract class IntegrationTest {
     allocationReason.asReferenceData(),
     allocationType,
     allocatedBy,
-    expiryDateTime,
+    deallocatedAt,
     deallocationReason?.asReferenceData(),
-    id,
+    deallocatedBy,
   )
 
-  protected fun givenAllocation(allocation: StaffAllocation): StaffAllocation = staffAllocationRepository.save(allocation)
+  protected fun givenAllocation(allocation: Allocation): Allocation = staffAllocationRepository.save(allocation)
 
   protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
     when (interaction) {

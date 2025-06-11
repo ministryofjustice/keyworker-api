@@ -134,8 +134,8 @@ class ManageStaffConfigIntTest : IntegrationTest() {
       AllocationContext(username = "SYS", activeCaseloadId = null),
     )
     staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
-      assertThat(it.active).isTrue
-      assertThat(it.expiryDateTime).isNull()
+      assertThat(it.isActive).isTrue
+      assertThat(it.deallocatedAt).isNull()
       assertThat(it.deallocationReason).isNull()
     }
   }
@@ -161,8 +161,8 @@ class ManageStaffConfigIntTest : IntegrationTest() {
     staffConfig.verifyAgainst(request)
 
     staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
-      assertThat(it.active).isFalse
-      assertThat(it.expiryDateTime?.toLocalDate()).isEqualTo(LocalDate.now())
+      assertThat(it.isActive).isFalse
+      assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }

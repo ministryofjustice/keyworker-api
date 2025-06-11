@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -196,28 +196,28 @@ class KeyworkerTestHelper {
         return dtos;
     }
 
-    public static void verifyAutoAllocation(final OffenderKeyworker kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
+    public static void verifyAutoAllocation(final LegacyKeyworkerAllocation kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
         verifyNewAllocation(kwAlloc, prisonId, offenderNo, staffId);
 
         assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
         assertThat(kwAlloc.getAllocationReason().getCode()).isEqualTo(AllocationReason.AUTO.getReasonCode());
     }
 
-    public static void verifyNewAllocation(final OffenderKeyworker kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
-        assertThat(kwAlloc.getOffenderNo()).isEqualTo(offenderNo);
+    public static void verifyNewAllocation(final LegacyKeyworkerAllocation kwAlloc, final String prisonId, final String offenderNo, final long staffId) {
+        assertThat(kwAlloc.getPersonIdentifier()).isEqualTo(offenderNo);
         assertThat(kwAlloc.getStaffId()).isEqualTo(staffId);
         assertThat(kwAlloc.getAllocationType()).isNotNull();
         assertThat(kwAlloc.getAllocationReason()).isNotNull();
         assertThat(kwAlloc.getAssignedDateTime()).isNotNull();
         assertThat(kwAlloc.isActive()).isTrue();
-        assertThat(kwAlloc.getPrisonId()).isEqualTo(prisonId);
+        assertThat(kwAlloc.getPrisonCode()).isEqualTo(prisonId);
         assertThat(kwAlloc.getDeallocationReason()).isNull();
-        assertThat(kwAlloc.getExpiryDateTime()).isNull();
+        assertThat(kwAlloc.getDeallocatedAt()).isNull();
     }
 
     public static void mockPrisonerAllocationHistory(final KeyworkerService keyworkerService,
-                                                     final OffenderKeyworker... allocations) {
-        final List<OffenderKeyworker> allocationHistory =
+                                                     final LegacyKeyworkerAllocation... allocations) {
+        final List<LegacyKeyworkerAllocation> allocationHistory =
                 (allocations == null) ? Collections.emptyList() : List.of(allocations);
 
         when(keyworkerService.getAllocationHistoryForPrisoner(anyString())).thenReturn(allocationHistory);
@@ -232,15 +232,15 @@ class KeyworkerTestHelper {
 
     // Provides a previous Key worker allocation between specified offender and Key worker with an assigned datetime 7
     // days prior to now.
-    public static OffenderKeyworker getPreviousKeyworkerAutoAllocation(final String prisonId, final String offenderNo, final long staffId) {
+    public static LegacyKeyworkerAllocation getPreviousKeyworkerAutoAllocation(final String prisonId, final String offenderNo, final long staffId) {
         return getPreviousKeyworkerAutoAllocation(prisonId, offenderNo, staffId, LocalDateTime.now().minusDays(7));
     }
 
     // Provides a previous Key worker allocation between specified offender and Key worker, assigned at specified datetime.
-    public static OffenderKeyworker getPreviousKeyworkerAutoAllocation(final String prisonId, final String offenderNo, final long staffId, final LocalDateTime assigned) {
+    public static LegacyKeyworkerAllocation getPreviousKeyworkerAutoAllocation(final String prisonId, final String offenderNo, final long staffId, final LocalDateTime assigned) {
         Validate.notNull(assigned, "Allocation must have assigned datetime.");
 
-        return OffenderKeyworker.builder()
+        return LegacyKeyworkerAllocation.builder()
                 .prisonId(prisonId)
                 .offenderNo(offenderNo)
                 .staffId(staffId)
@@ -251,11 +251,11 @@ class KeyworkerTestHelper {
                 .build();
     }
 
-    public static List<OffenderKeyworker> getAllocations(final String prisonId, final Set<String> offNos) {
+    public static List<LegacyKeyworkerAllocation> getAllocations(final String prisonId, final Set<String> offNos) {
         Validate.notBlank(prisonId);
         Validate.notEmpty(offNos);
 
-        final List<OffenderKeyworker> allocs = new ArrayList<>();
+        final List<LegacyKeyworkerAllocation> allocs = new ArrayList<>();
 
         offNos.forEach(offNo -> allocs.add(getPreviousKeyworkerAutoAllocation(prisonId, offNo, 1)));
 

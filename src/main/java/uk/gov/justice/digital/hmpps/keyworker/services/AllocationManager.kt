@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import jakarta.validation.ValidationException
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.ALLOCAT
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
@@ -56,7 +55,7 @@ class AllocationManager(
   ) {
     val existingAllocations =
       allocationRepository
-        .findAllByPersonIdentifierInAndActiveTrue(personIdentifiersToAllocate)
+        .findAllByPersonIdentifierInAndIsActiveTrue(personIdentifiersToAllocate)
         .associateBy { it.personIdentifier }
 
     val newAllocations =
@@ -75,6 +74,7 @@ class AllocationManager(
         }
       }
     if (newAllocations.isNotEmpty()) {
+      allocationRepository.flush()
       allocationRepository.saveAll(newAllocations)
     }
   }
@@ -82,7 +82,7 @@ class AllocationManager(
   private fun PersonStaffAllocations.deallocate(rdSupplier: (String) -> ReferenceData) {
     val existingAllocations =
       allocationRepository
-        .findAllByPersonIdentifierInAndActiveTrue(personIdentifiersToDeallocate)
+        .findAllByPersonIdentifierInAndIsActiveTrue(personIdentifiersToDeallocate)
         .associateBy { it.personIdentifier }
     deallocations.forEach { psd ->
       existingAllocations[psd.personIdentifier]
@@ -148,27 +148,20 @@ class AllocationManager(
     return allocationReasons + deallocationReasons
   }
 
-  private fun allocatingUsername(): String =
-    SecurityContextHolder
-      .getContext()
-      .authentication.name
-      .takeIf { it.length <= 64 }
-      ?: throw ValidationException("username for audit exceeds 64 characters")
-
   private fun newAllocation(
     prisonCode: String,
     staffId: Long,
     personIdentifier: String,
     allocationReason: ReferenceData,
-  ) = StaffAllocation(
+  ) = Allocation(
     personIdentifier = personIdentifier,
     prisonCode = prisonCode,
     staffId = staffId,
-    assignedAt = LocalDateTime.now(),
-    active = true,
+    allocatedAt = LocalDateTime.now(),
+    isActive = true,
     allocationReason = allocationReason,
     allocationType = AllocationType.valueOf(allocationReason.code),
-    allocatedBy = allocatingUsername(),
+    allocatedBy = AllocationContext.get().username,
     null,
     null,
     null,

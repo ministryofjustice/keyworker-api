@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
@@ -85,7 +85,7 @@ class GetKeyworkerDetails(
       keyworkerInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       keyworkerInfo?.allocationCount ?: 0,
       allocations
-        .filter { it.active }
+        .filter { it.isActive }
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
             alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
@@ -105,7 +105,7 @@ class GetKeyworkerDetails(
       referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType).asCodedDescription(),
     )
 
-  private fun List<StaffAllocation>.keyworkerSessionStats(
+  private fun List<Allocation>.keyworkerSessionStats(
     from: LocalDate,
     to: LocalDate,
     prisonConfig: PrisonConfiguration,
@@ -113,8 +113,8 @@ class GetKeyworkerDetails(
   ): Pair<KeyworkerSessionStats, CaseNoteSummary?> {
     val applicableAllocations =
       filter {
-        (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(from)) &&
-          it.assignedAt.toLocalDate().isBefore(to)
+        (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(from)) &&
+          it.allocatedAt.toLocalDate().isBefore(to)
       }
     val personIdentifiers = applicableAllocations.map { it.personIdentifier }.toSet()
     val cnSummary =
@@ -161,7 +161,7 @@ class GetKeyworkerDetails(
 
 private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
 
-private fun StaffAllocation.asAllocation(
+private fun Allocation.asAllocation(
   prisoner: Prisoner,
   latestSession: LocalDate?,
 ) = KeyworkerPrisoner(
@@ -169,11 +169,11 @@ private fun StaffAllocation.asAllocation(
   latestSession?.let { LatestKeyworkerSession(it) },
 )
 
-private fun StaffAllocation.daysAllocatedForStats(
+private fun Allocation.daysAllocatedForStats(
   from: LocalDate,
   to: LocalDate,
 ): Long {
-  val endTime: LocalDateTime = expiryDateTime ?: to.atStartOfDay()
-  val startTime: LocalDateTime = maxOf(assignedAt, from.atStartOfDay())
+  val endTime: LocalDateTime = deallocatedAt ?: to.atStartOfDay()
+  val startTime: LocalDateTime = maxOf(allocatedAt, from.atStartOfDay())
   return DAYS.between(startTime, endTime)
 }

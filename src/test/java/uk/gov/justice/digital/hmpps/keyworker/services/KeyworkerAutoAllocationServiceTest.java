@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
@@ -18,8 +17,8 @@ import uk.gov.justice.digital.hmpps.keyworker.exception.AllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ReferenceDataHelper;
 
 import java.time.LocalDateTime;
@@ -28,8 +27,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,7 +76,7 @@ class KeyworkerAutoAllocationServiceTest {
     private PrisonSupportedService prisonSupportedService;
 
     @Mock
-    private OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
 
     @Mock
     private ComplexityOfNeedService complexityOfNeedService;
@@ -125,7 +122,7 @@ class KeyworkerAutoAllocationServiceTest {
         // Verify collaborator interactions
         verify(keyworkerService, never()).getUnallocatedOffenders(anyString(), isNull(), isNull());
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
-        verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
+        verify(keyworkerService, never()).allocate(any(LegacyKeyworkerAllocation.class));
 
         assertThat(thrown).isInstanceOf(PrisonNotSupportedException.class);
     }
@@ -150,7 +147,7 @@ class KeyworkerAutoAllocationServiceTest {
             .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, never()).getAvailableKeyworkers(anyString(), eq(false));
-        verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
+        verify(keyworkerService, never()).allocate(any(LegacyKeyworkerAllocation.class));
     }
 
     // Given there are one or more offenders at an agency that are not allocated to a KW
@@ -182,7 +179,7 @@ class KeyworkerAutoAllocationServiceTest {
             .getUnallocatedOffenders(eq(TEST_AGENCY_ID), isNull(), isNull());
 
         verify(keyworkerService, times(1)).getKeyworkersAvailableForAutoAllocation(TEST_AGENCY_ID);
-        verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
+        verify(keyworkerService, never()).allocate(any(LegacyKeyworkerAllocation.class));
 
         verifyException(thrown, AllocationException.class, KeyworkerAutoAllocationService.OUTCOME_NO_AVAILABLE_KEY_WORKERS);
     }
@@ -227,7 +224,7 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(anyString());
 
-        verify(keyworkerService, never()).allocate(any(OffenderKeyworker.class));
+        verify(keyworkerService, never()).allocate(any(LegacyKeyworkerAllocation.class));
         verifyException(thrown, AllocationException.class, KeyworkerPool.OUTCOME_ALL_KEY_WORKERS_AT_CAPACITY);
     }
 
@@ -283,7 +280,7 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
 
         // Expecting allocation to succeed - verify request includes expected values
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -351,7 +348,7 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(eq(allocOffenderNo));
 
         // Expecting allocation to succeed - verify request includes expected values
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -405,7 +402,7 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerPoolFactory, times(1)).getKeyworkerPool(TEST_AGENCY_ID, someKeyworkers);
         verify(keyworkerService, times(1)).getAllocationHistoryForPrisoner(anyString());
         // Expecting allocation to succeed - verify request includes expected values
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -479,7 +476,7 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(2)).getAllocationsForKeyworker(anyLong());
 
         // Expecting allocation to succeed - verify request includes expected values
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
 
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
 
@@ -529,12 +526,12 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, times(totalOffenders)).getAllocationHistoryForPrisoner(anyString());
 
         // Expecting allocation to succeed - verify request includes expected values
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
 
         verify(keyworkerService, times(totalOffenders)).allocate(kwaArg.capture());
 
         kwaArg.getAllValues().forEach(kwAlloc -> {
-            assertThat(kwAlloc.getOffenderNo()).isNotNull();
+            assertThat(kwAlloc.getPersonIdentifier()).isNotNull();
             assertThat(kwAlloc.getStaffId()).isBetween(1L, totalKeyworkers);
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason().getCode()).isEqualTo(AllocationReason.AUTO.getReasonCode());
@@ -590,12 +587,12 @@ class KeyworkerAutoAllocationServiceTest {
         verify(keyworkerService, atLeast(totalCapacity)).getAllocationHistoryForPrisoner(anyString());
 
         // Expecting allocation to succeed - verify request includes expected values
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
 
         verify(keyworkerService, times(totalCapacity)).allocate(kwaArg.capture());
 
         kwaArg.getAllValues().forEach(kwAlloc -> {
-            assertThat(kwAlloc.getOffenderNo()).isNotNull();
+            assertThat(kwAlloc.getPersonIdentifier()).isNotNull();
             assertThat(kwAlloc.getStaffId()).isBetween(1L, (long) totalKeyworkers);
             assertThat(kwAlloc.getAllocationType()).isEqualTo(AllocationType.PROVISIONAL);
             assertThat(kwAlloc.getAllocationReason().getCode()).isEqualTo(AllocationReason.AUTO.getReasonCode());
@@ -611,7 +608,7 @@ class KeyworkerAutoAllocationServiceTest {
 
         keyworkerAutoAllocationService.autoAllocate(TEST_AGENCY_ID);
 
-        final var kwaArg = ArgumentCaptor.forClass(OffenderKeyworker.class);
+        final var kwaArg = ArgumentCaptor.forClass(LegacyKeyworkerAllocation.class);
         verify(keyworkerService, times(1)).allocate(kwaArg.capture());
     }
 
@@ -681,8 +678,8 @@ class KeyworkerAutoAllocationServiceTest {
         when(keyworkerPoolFactory.getKeyworkerPool(prisonId, keyworkers)).thenReturn(keyworkerPool);
     }
 
-    private void mockPrisonerAllocationHistory(final String offenderNo, final OffenderKeyworker... allocations) {
-        final List<OffenderKeyworker> allocationHistory =
+    private void mockPrisonerAllocationHistory(final String offenderNo, final LegacyKeyworkerAllocation... allocations) {
+        final List<LegacyKeyworkerAllocation> allocationHistory =
             (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         if (StringUtils.isBlank(offenderNo)) {
@@ -692,8 +689,8 @@ class KeyworkerAutoAllocationServiceTest {
         }
     }
 
-    private void mockKeyworkerAllocationHistory(final Long staffId, final OffenderKeyworker... allocations) {
-        final List<OffenderKeyworker> allocationHistory =
+    private void mockKeyworkerAllocationHistory(final Long staffId, final LegacyKeyworkerAllocation... allocations) {
+        final List<LegacyKeyworkerAllocation> allocationHistory =
             (allocations == null) ? Collections.emptyList() : Arrays.asList(allocations);
 
         when(keyworkerService.getAllocationsForKeyworker(eq(staffId))).thenReturn(allocationHistory);

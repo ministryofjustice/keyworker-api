@@ -4,11 +4,11 @@ import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
@@ -37,6 +36,7 @@ import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
+import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation as AllocationModel
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 
 @Service
@@ -106,7 +106,7 @@ class GetStaffDetails(
       staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       staffInfo?.allocationCount ?: 0,
       allocations
-        .filter { it.active }
+        .filter { it.isActive }
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
             alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
@@ -150,7 +150,7 @@ class GetStaffDetails(
       toDate,
     )
 
-  private fun List<StaffAllocation>.staffCountStats(
+  private fun List<Allocation>.staffCountStats(
     from: LocalDate,
     to: LocalDate,
     prisonConfig: PrisonConfiguration,
@@ -159,8 +159,8 @@ class GetStaffDetails(
     val context = AllocationContext.get()
     val applicableAllocations =
       filter {
-        (it.expiryDateTime == null || !it.expiryDateTime!!.toLocalDate().isBefore(from)) &&
-          it.assignedAt.toLocalDate().isBefore(to)
+        (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(from)) &&
+          it.allocatedAt.toLocalDate().isBefore(to)
       }
     val personIdentifiers = applicableAllocations.map { it.personIdentifier }.toSet()
     val cnSummary =
@@ -222,19 +222,19 @@ class GetStaffDetails(
 
 private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
 
-private fun StaffAllocation.asAllocation(
+private fun Allocation.asAllocation(
   prisoner: Prisoner,
   latestSession: LocalDate?,
-) = Allocation(
+) = AllocationModel(
   prisoner.asPrisoner(),
   latestSession?.let { LatestSession(it) },
 )
 
-private fun StaffAllocation.daysAllocatedForStats(
+private fun Allocation.daysAllocatedForStats(
   from: LocalDate,
   to: LocalDate,
 ): Long {
-  val endTime: LocalDateTime = expiryDateTime ?: to.atStartOfDay()
-  val startTime: LocalDateTime = maxOf(assignedAt, from.atStartOfDay())
+  val endTime: LocalDateTime = deallocatedAt ?: to.atStartOfDay()
+  val startTime: LocalDateTime = maxOf(allocatedAt, from.atStartOfDay())
   return DAYS.between(startTime, endTime)
 }

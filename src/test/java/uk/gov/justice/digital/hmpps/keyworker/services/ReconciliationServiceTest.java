@@ -8,8 +8,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
-import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderBooking;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerDetail;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
@@ -17,8 +15,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.utils.ReferenceDataHelper;
 
 import java.util.Collections;
@@ -43,7 +41,7 @@ class ReconciliationServiceTest {
     private NomisService nomisService;
 
     @Mock
-    private OffenderKeyworkerRepository repository;
+    private LegacyKeyworkerAllocationRepository repository;
 
     @Mock
     private TelemetryClient telemetryClient;
@@ -65,16 +63,16 @@ class ReconciliationServiceTest {
     void testReconciliation() {
         whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
 
-        when(repository.findByActiveAndPrisonId(true, TEST_AGENCY_ID)).thenReturn(
+        when(repository.findByActiveAndPrisonCode(true, TEST_AGENCY_ID)).thenReturn(
                 List.of(
-                        OffenderKeyworker.builder().offenderNo(OFFENDER_NO).build(), //correct
-                        OffenderKeyworker.builder().offenderNo("A1234AB").build(), //merged
-                        OffenderKeyworker.builder().offenderNo("A1234AC").build(), //merged new now active
-                        OffenderKeyworker.builder().offenderNo("A1234AD").build(), //released
-                        OffenderKeyworker.builder().offenderNo("A1234AE").build(), //transferred
-                        OffenderKeyworker.builder().offenderNo("A1234AF").build(), //cannot find
-                        OffenderKeyworker.builder().offenderNo("A1234AG").build(), //merged now released
-                        OffenderKeyworker.builder().offenderNo("A1234AH").build() //merged now transferred
+                        LegacyKeyworkerAllocation.builder().offenderNo(OFFENDER_NO).build(), //correct
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AB").build(), //merged
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AC").build(), //merged new now active
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AD").build(), //released
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AE").build(), //transferred
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AF").build(), //cannot find
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AG").build(), //merged now released
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AH").build() //merged now transferred
                         )
         );
 
@@ -108,30 +106,30 @@ class ReconciliationServiceTest {
                 PrisonerIdentifier.builder().offenderNo("B1234AH").build()
         ));
 
-        when(repository.findByOffenderNo("A1234AB")).thenReturn(
+        when(repository.findByPersonIdentifier("A1234AB")).thenReturn(
                 List.of(
-                        OffenderKeyworker.builder().offenderKeyworkerId(1L).offenderNo("A1234AB").active(true).build(),
-                        OffenderKeyworker.builder().offenderKeyworkerId(2L).offenderNo("A1234AB").active(false).build(),
-                        OffenderKeyworker.builder().offenderKeyworkerId(3L).offenderNo("A1234AB").active(false).build()
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AB").active(true).build(),
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AB").active(false).build(),
+                        LegacyKeyworkerAllocation.builder().offenderNo("A1234AB").active(false).build()
                 )
         );
 
-        when(repository.findByOffenderNo("A1234AC")).thenReturn(
-                List.of(OffenderKeyworker.builder().offenderKeyworkerId(4L).offenderNo("A1234AC").active(true).build())
+        when(repository.findByPersonIdentifier("A1234AC")).thenReturn(
+                List.of(LegacyKeyworkerAllocation.builder().offenderNo("A1234AC").active(true).build())
         );
 
-        when(repository.findByOffenderNo("A1234AG")).thenReturn(
-                List.of(OffenderKeyworker.builder().offenderKeyworkerId(5L).offenderNo("A1234AG").active(true).build())
+        when(repository.findByPersonIdentifier("A1234AG")).thenReturn(
+                List.of(LegacyKeyworkerAllocation.builder().offenderNo("A1234AG").active(true).build())
         );
 
-        when(repository.findByOffenderNo("A1234AH")).thenReturn(
-                List.of(OffenderKeyworker.builder().offenderKeyworkerId(6L).offenderNo("A1234AH").active(true).build())
+        when(repository.findByPersonIdentifier("A1234AH")).thenReturn(
+                List.of(LegacyKeyworkerAllocation.builder().offenderNo("A1234AH").active(true).build())
         );
 
-        when(repository.findByActiveAndOffenderNo(true,"B1234AB")).thenReturn(Collections.emptyList());
-        when(repository.findByActiveAndOffenderNo(true,"B1234AC")).thenReturn(List.of(OffenderKeyworker.builder().offenderNo("B1234AC").active(true).build()));
-        when(repository.findByActiveAndOffenderNo(true,"B1234AG")).thenReturn(Collections.emptyList());
-        when(repository.findByActiveAndOffenderNo(true,"B1234AH")).thenReturn(Collections.emptyList());
+        when(repository.findByActiveAndPersonIdentifier(true,"B1234AB")).thenReturn(Collections.emptyList());
+        when(repository.findByActiveAndPersonIdentifier(true,"B1234AC")).thenReturn(List.of(LegacyKeyworkerAllocation.builder().offenderNo("B1234AC").active(true).build()));
+        when(repository.findByActiveAndPersonIdentifier(true,"B1234AG")).thenReturn(Collections.emptyList());
+        when(repository.findByActiveAndPersonIdentifier(true,"B1234AH")).thenReturn(Collections.emptyList());
 
         when(nomisService.getPrisonerDetail("B1234AB", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AB").latestLocationId("LEI").currentlyInPrison("Y").build()));
         when(nomisService.getPrisonerDetail("B1234AC", true)).thenReturn(Optional.of(PrisonerDetail.builder().offenderNo("B1234AC").latestLocationId("LEI").currentlyInPrison("Y").build()));
@@ -156,23 +154,22 @@ class ReconciliationServiceTest {
         whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
 
         final var now = now();
-        final var offenderKw = OffenderKeyworker.builder()
+        final var offenderKw = LegacyKeyworkerAllocation.builder()
                 .offenderNo(OFFENDER_NO)
                 .prisonId("LEI")
                 .active(true)
                 .assignedDateTime(now)
                 .allocationType(AllocationType.AUTO)
-                .offenderKeyworkerId(-100L)
                 .build();
 
-        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+        when(repository.findByActiveAndPersonIdentifier(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(offenderKw));
 
         when(nomisService.isPrison(eq("MDI"))).thenReturn(true);
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
-        assertThat(offenderKw.getExpiryDateTime()).isNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNull();
 
         final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "TRN",
                 null, "OUT", null, "LEI", "MDI");
@@ -181,7 +178,7 @@ class ReconciliationServiceTest {
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason().getCode()).isEqualTo(DeallocationReason.TRANSFER.getReasonCode());
-        assertThat(offenderKw.getExpiryDateTime()).isNotNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNotNull();
 
     }
 
@@ -191,48 +188,46 @@ class ReconciliationServiceTest {
 
         final var now = now();
 
-        final var offenderKw = OffenderKeyworker.builder()
+        final var offenderKw = LegacyKeyworkerAllocation.builder()
                 .offenderNo(OFFENDER_NO)
                 .prisonId("LEI")
                 .active(true)
                 .assignedDateTime(now)
                 .allocationType(AllocationType.AUTO)
-                .offenderKeyworkerId(-100L)
                 .build();
 
-        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+        when(repository.findByActiveAndPersonIdentifier(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(offenderKw));
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
-        assertThat(offenderKw.getExpiryDateTime()).isNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNull();
 
         final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "ADM", null, "IN", null, "CRTTRN", "MDI");
         service.checkMovementAndDeallocate(movement);
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason().getCode()).isEqualTo(DeallocationReason.TRANSFER.getReasonCode());
-        assertThat(offenderKw.getExpiryDateTime()).isNotNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNotNull();
     }
     @Test
     void testCheckWhenAdmittedIntoSamePrisonNoDeallocationOccurs() {
         final var now = now();
 
-        final var offenderKw = OffenderKeyworker.builder()
+        final var offenderKw = LegacyKeyworkerAllocation.builder()
                 .offenderNo(OFFENDER_NO)
                 .prisonId("LEI")
                 .active(true)
                 .assignedDateTime(now)
                 .allocationType(AllocationType.AUTO)
-                .offenderKeyworkerId(-100L)
                 .build();
 
-        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+        when(repository.findByActiveAndPersonIdentifier(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(offenderKw));
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
-        assertThat(offenderKw.getExpiryDateTime()).isNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNull();
 
         final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "ADM",
                 null, "IN", null, "CRTTRN", "LEI");
@@ -240,7 +235,7 @@ class ReconciliationServiceTest {
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
-        assertThat(offenderKw.getExpiryDateTime()).isNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNull();
     }
 
     @Test
@@ -248,21 +243,20 @@ class ReconciliationServiceTest {
         whenever(referenceDataRepository.findByKey(any())).thenAnswer(args -> ReferenceDataHelper.referenceDataOf(args.getArgument(0)));
         final var now = now();
 
-        final var offenderKw = OffenderKeyworker.builder()
+        final var offenderKw = LegacyKeyworkerAllocation.builder()
                 .offenderNo(OFFENDER_NO)
                 .prisonId("LEI")
                 .active(true)
                 .assignedDateTime(now)
                 .allocationType(AllocationType.AUTO)
-                .offenderKeyworkerId(-100L)
                 .build();
 
-        when(repository.findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO)))
+        when(repository.findByActiveAndPersonIdentifier(eq(true), eq(OFFENDER_NO)))
                 .thenReturn(List.of(offenderKw));
 
         assertThat(offenderKw.isActive()).isTrue();
         assertThat(offenderKw.getDeallocationReason()).isNull();
-        assertThat(offenderKw.getExpiryDateTime()).isNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNull();
 
 
         final var movement = new OffenderEvent(-1L, 1L, OFFENDER_NO, now, "REL",
@@ -271,7 +265,7 @@ class ReconciliationServiceTest {
 
         assertThat(offenderKw.isActive()).isFalse();
         assertThat(offenderKw.getDeallocationReason().getCode()).isEqualTo(DeallocationReason.RELEASED.getReasonCode());
-        assertThat(offenderKw.getExpiryDateTime()).isNotNull();
+        assertThat(offenderKw.getDeallocatedAt()).isNotNull();
 
     }
 
@@ -283,7 +277,7 @@ class ReconciliationServiceTest {
                 null, "OUT", null, "MDI", "HOS1");
         service.checkMovementAndDeallocate(movement);
 
-        verify(repository, never()).findByActiveAndOffenderNo(eq(true), eq(OFFENDER_NO));
+        verify(repository, never()).findByActiveAndPersonIdentifier(eq(true), eq(OFFENDER_NO));
 
     }
 }

@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.SortOrder;
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEventListener.OffenderEvent;
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason;
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class ReconciliationService {
 
     private final NomisService nomisService;
-    private final OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private final LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
     private final TelemetryClient telemetryClient;
     private final ReferenceDataRepository referenceDataRepository;
 
@@ -44,24 +44,24 @@ public class ReconciliationService {
         Validate.notNull(prisonId,"prisonId");
 
         // get all prisoners with an active key worker in prison
-        final var assignedPrisonersToKW = offenderKeyworkerRepository.findByActiveAndPrisonId(true, prisonId);
+        final var assignedPrisonersToKW = offenderKeyworkerRepository.findByActiveAndPrisonCode(true, prisonId);
         log.info("There are {} active key-worker allocations in {}", assignedPrisonersToKW.size(), prisonId);
 
         final var offenderNosInPrison = getOffenderNosInPrison(prisonId);
 
         // find allocations no longer in this prison
         final var missingOffenders = assignedPrisonersToKW.stream()
-                .filter(kw -> !offenderNosInPrison.contains(kw.getOffenderNo()))
+                .filter(kw -> !offenderNosInPrison.contains(kw.getPersonIdentifier()))
                 .collect(Collectors.toList());
         log.info("There are {} missing prisoners from {}", missingOffenders.size(), prisonId);
 
         final var reconMetrics = new ReconMetrics(prisonId, assignedPrisonersToKW.size(), missingOffenders.size());
 
-        missingOffenders.forEach(notFoundOffender -> nomisService.getPrisonerDetail(notFoundOffender.getOffenderNo(), true).ifPresentOrElse(
+        missingOffenders.forEach(notFoundOffender -> nomisService.getPrisonerDetail(notFoundOffender.getPersonIdentifier(), true).ifPresentOrElse(
                 prisonerDetail -> deallocateIfMoved(prisonId, notFoundOffender, prisonerDetail, reconMetrics),
                 () -> {
                     // check if its a merge
-                    log.info("{} not found - Checking if it has been merged", notFoundOffender.getOffenderNo());
+                    log.info("{} not found - Checking if it has been merged", notFoundOffender.getPersonIdentifier());
                     reconMetrics.notFoundOffenders.getAndIncrement();
                     checkAndMerge(prisonId, reconMetrics, notFoundOffender);
                 }
@@ -71,25 +71,25 @@ public class ReconciliationService {
         return reconMetrics;
     }
 
-    private void checkAndMerge(final String prisonId, final ReconMetrics reconMetrics, final OffenderKeyworker notFoundOffender) {
-        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getOffenderNo());
+    private void checkAndMerge(final String prisonId, final ReconMetrics reconMetrics, final LegacyKeyworkerAllocation notFoundOffender) {
+        final var mergeData = nomisService.getIdentifierByTypeAndValue("MERGED", notFoundOffender.getPersonIdentifier());
         mergeData.stream().map(PrisonerIdentifier::getOffenderNo).findFirst().ifPresentOrElse(
-                newOffenderNo -> offenderKeyworkerRepository.findByOffenderNo(notFoundOffender.getOffenderNo()).forEach(
-                        offenderKeyWorker -> mergeRecord(prisonId, notFoundOffender.getOffenderNo(), newOffenderNo, offenderKeyWorker, reconMetrics)
+                newOffenderNo -> offenderKeyworkerRepository.findByPersonIdentifier(notFoundOffender.getPersonIdentifier()).forEach(
+                        offenderKeyWorker -> mergeRecord(prisonId, notFoundOffender.getPersonIdentifier(), newOffenderNo, offenderKeyWorker, reconMetrics)
                 ),
                 () -> removeMissingRecord(reconMetrics, notFoundOffender)
         );
     }
 
-    private void removeMissingRecord(final ReconMetrics reconMetrics, final OffenderKeyworker notFoundOffender) {
+    private void removeMissingRecord(final ReconMetrics reconMetrics, final LegacyKeyworkerAllocation notFoundOffender) {
         // can't find but remove anyway.
-        log.warn("Cannot find this prisoner {}, de-allocating...", notFoundOffender.getOffenderNo());
+        log.warn("Cannot find this prisoner {}, de-allocating...", notFoundOffender.getPersonIdentifier());
         notFoundOffender.deallocate(LocalDateTime.now(), getDeallocationReason(DeallocationReason.MISSING));
         reconMetrics.deAllocatedOffenders.getAndIncrement();
         reconMetrics.missingOffenders.getAndIncrement();
     }
 
-    private void mergeRecord(final String prisonId, final String oldOffenderNo, final String newOffenderNo, final OffenderKeyworker offenderKeyWorker, final ReconMetrics reconMetrics) {
+    private void mergeRecord(final String prisonId, final String oldOffenderNo, final String newOffenderNo, final LegacyKeyworkerAllocation offenderKeyWorker, final ReconMetrics reconMetrics) {
         mergeOffenders(oldOffenderNo, newOffenderNo, offenderKeyWorker, reconMetrics);
 
         nomisService.getPrisonerDetail(newOffenderNo, true).ifPresent(
@@ -97,13 +97,13 @@ public class ReconciliationService {
         );
     }
 
-    private void mergeOffenders(final String oldOffenderNo, final String newOffenderNo, final OffenderKeyworker offenderKeyWorker, final ReconMetrics reconMetrics) {
-        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getOffenderKeyworkerId(), oldOffenderNo, newOffenderNo);
-        if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndOffenderNo(true, newOffenderNo).isEmpty()) {
-            log.info("Offender already re-allocated - de-allocating {}", offenderKeyWorker.getOffenderNo());
+    private void mergeOffenders(final String oldOffenderNo, final String newOffenderNo, final LegacyKeyworkerAllocation offenderKeyWorker, final ReconMetrics reconMetrics) {
+        log.info("Allocation ID {} - Offender Merged from {} to {}", offenderKeyWorker.getId(), oldOffenderNo, newOffenderNo);
+        if (offenderKeyWorker.isActive() && !offenderKeyworkerRepository.findByActiveAndPersonIdentifier(true, newOffenderNo).isEmpty()) {
+            log.info("Offender already re-allocated - de-allocating {}", offenderKeyWorker.getPersonIdentifier());
             offenderKeyWorker.deallocate(LocalDateTime.now(), getDeallocationReason(DeallocationReason.MERGED));
         }
-        offenderKeyWorker.setOffenderNo(newOffenderNo);
+        offenderKeyWorker.setPersonIdentifier(newOffenderNo);
         reconMetrics.mergedRecords.put(oldOffenderNo, newOffenderNo);
     }
 
@@ -121,7 +121,7 @@ public class ReconciliationService {
         return activePrisoners.stream().map(OffenderLocationDto::getOffenderNo).distinct().collect(Collectors.toList());
     }
 
-    private void deallocateIfMoved(final String prisonId, final OffenderKeyworker offenderKeyWorker, final PrisonerDetail prisonerDetail, final ReconMetrics reconMetrics) {
+    private void deallocateIfMoved(final String prisonId, final LegacyKeyworkerAllocation offenderKeyWorker, final PrisonerDetail prisonerDetail, final ReconMetrics reconMetrics) {
         if (!prisonerDetail.getLatestLocationId().equals(prisonId)) {
             // deallocate
             log.info("Offender {} no longer in {}, now {}, in prison? = {}", prisonerDetail.getOffenderNo(), prisonId, prisonerDetail.getLatestLocationId(), prisonerDetail.isInPrison());
@@ -144,17 +144,17 @@ public class ReconciliationService {
         if (("OUT".equals(movement.getDirectionCode()) && ("TRN".equals(movement.getMovementType()) || "REL".equals(movement.getMovementType())))
           || ("IN".equals(movement.getDirectionCode()) && "ADM".equals(movement.getMovementType())) ) {
             // check if prisoner is in this system if so, deallocate
-            offenderKeyworkerRepository.findByActiveAndOffenderNo(true, movement.getOffenderIdDisplay())
+            offenderKeyworkerRepository.findByActiveAndPersonIdentifier(true, movement.getOffenderIdDisplay())
                     .forEach(offenderKeyWorker -> checkValidTransferOrRelease(movement, offenderKeyWorker));
         }
 
     }
 
-    private void checkValidTransferOrRelease(final OffenderEvent movement, final OffenderKeyworker offenderKeyWorker) {
+    private void checkValidTransferOrRelease(final OffenderEvent movement, final LegacyKeyworkerAllocation offenderKeyWorker) {
         log.debug("Offender {} moved from {} to {} (type {})", movement.getOffenderIdDisplay(), movement.getFromAgencyLocationId(), movement.getToAgencyLocationId(), movement.getMovementType());
 
         // check that FROM agency is from where the key-worker / prisoner relationship resides and the TO agency is not the same prison!
-        if (!offenderKeyWorker.getPrisonId().equals(movement.getToAgencyLocationId())) {
+        if (!offenderKeyWorker.getPrisonCode().equals(movement.getToAgencyLocationId())) {
             // check if its a transfer then its to another prison
             if ("TRN".equals(movement.getMovementType())) {
                 if (nomisService.isPrison(movement.getToAgencyLocationId())) {

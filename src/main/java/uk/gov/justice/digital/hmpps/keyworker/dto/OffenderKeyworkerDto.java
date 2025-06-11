@@ -5,14 +5,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Objects;
+
 import org.springframework.format.annotation.DateTimeFormat;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OffenderKeyworkerDto {
-
-    @Schema(required = true, description = "Id of offender allocation.")
-    @NotNull
-    private Long offenderKeyworkerId;
 
     @Schema(required = true, description = "The offender's unique offender number (aka NOMS Number in the UK).")
     @NotBlank
@@ -43,8 +41,7 @@ public class OffenderKeyworkerDto {
     @NotBlank
     private String active;
 
-    public OffenderKeyworkerDto(@NotNull Long offenderKeyworkerId, @NotBlank String offenderNo, @NotNull Long staffId, @NotBlank String agencyId, @NotNull LocalDateTime assigned, LocalDateTime expired, @NotBlank String userId, @NotBlank String active) {
-        this.offenderKeyworkerId = offenderKeyworkerId;
+    public OffenderKeyworkerDto(@NotBlank String offenderNo, @NotNull Long staffId, @NotBlank String agencyId, @NotNull LocalDateTime assigned, LocalDateTime expired, @NotBlank String userId, @NotBlank String active) {
         this.offenderNo = offenderNo;
         this.staffId = staffId;
         this.agencyId = agencyId;
@@ -59,14 +56,6 @@ public class OffenderKeyworkerDto {
 
     public static OffenderKeyworkerDtoBuilder builder() {
         return new OffenderKeyworkerDtoBuilder();
-    }
-
-    public @NotNull Long getOffenderKeyworkerId() {
-        return this.offenderKeyworkerId;
-    }
-
-    public void setOffenderKeyworkerId(@NotNull Long offenderKeyworkerId) {
-        this.offenderKeyworkerId = offenderKeyworkerId;
     }
 
     public @NotBlank String getOffenderNo() {
@@ -130,32 +119,28 @@ public class OffenderKeyworkerDto {
         if (!(o instanceof OffenderKeyworkerDto)) return false;
         final OffenderKeyworkerDto other = (OffenderKeyworkerDto) o;
         if (!other.canEqual(this)) return false;
-        final Object this$offenderKeyworkerId = this.getOffenderKeyworkerId();
-        final Object other$offenderKeyworkerId = other.getOffenderKeyworkerId();
-        if (this$offenderKeyworkerId == null ? other$offenderKeyworkerId != null : !this$offenderKeyworkerId.equals(other$offenderKeyworkerId))
-            return false;
         final Object this$offenderNo = this.getOffenderNo();
         final Object other$offenderNo = other.getOffenderNo();
-        if (this$offenderNo == null ? other$offenderNo != null : !this$offenderNo.equals(other$offenderNo))
+        if (!Objects.equals(this$offenderNo, other$offenderNo))
             return false;
         final Object this$staffId = this.getStaffId();
         final Object other$staffId = other.getStaffId();
-        if (this$staffId == null ? other$staffId != null : !this$staffId.equals(other$staffId)) return false;
+        if (!Objects.equals(this$staffId, other$staffId)) return false;
         final Object this$agencyId = this.getAgencyId();
         final Object other$agencyId = other.getAgencyId();
-        if (this$agencyId == null ? other$agencyId != null : !this$agencyId.equals(other$agencyId)) return false;
+        if (!Objects.equals(this$agencyId, other$agencyId)) return false;
         final Object this$assigned = this.getAssigned();
         final Object other$assigned = other.getAssigned();
-        if (this$assigned == null ? other$assigned != null : !this$assigned.equals(other$assigned)) return false;
+        if (!Objects.equals(this$assigned, other$assigned)) return false;
         final Object this$expired = this.getExpired();
         final Object other$expired = other.getExpired();
-        if (this$expired == null ? other$expired != null : !this$expired.equals(other$expired)) return false;
+        if (!Objects.equals(this$expired, other$expired)) return false;
         final Object this$userId = this.getUserId();
         final Object other$userId = other.getUserId();
-        if (this$userId == null ? other$userId != null : !this$userId.equals(other$userId)) return false;
+        if (!Objects.equals(this$userId, other$userId)) return false;
         final Object this$active = this.getActive();
         final Object other$active = other.getActive();
-        return this$active == null ? other$active == null : this$active.equals(other$active);
+        return Objects.equals(this$active, other$active);
     }
 
     protected boolean canEqual(final Object other) {
@@ -165,8 +150,6 @@ public class OffenderKeyworkerDto {
     public int hashCode() {
         final int PRIME = 59;
         int result = 1;
-        final Object $offenderKeyworkerId = this.getOffenderKeyworkerId();
-        result = result * PRIME + ($offenderKeyworkerId == null ? 43 : $offenderKeyworkerId.hashCode());
         final Object $offenderNo = this.getOffenderNo();
         result = result * PRIME + ($offenderNo == null ? 43 : $offenderNo.hashCode());
         final Object $staffId = this.getStaffId();
@@ -184,12 +167,7 @@ public class OffenderKeyworkerDto {
         return result;
     }
 
-    public String toString() {
-        return "OffenderKeyworkerDto(offenderKeyworkerId=" + this.getOffenderKeyworkerId() + ", offenderNo=" + this.getOffenderNo() + ", staffId=" + this.getStaffId() + ", agencyId=" + this.getAgencyId() + ", assigned=" + this.getAssigned() + ", expired=" + this.getExpired() + ", userId=" + this.getUserId() + ", active=" + this.getActive() + ")";
-    }
-
     public static class OffenderKeyworkerDtoBuilder {
-        private @NotNull Long offenderKeyworkerId;
         private @NotBlank String offenderNo;
         private @NotNull Long staffId;
         private @NotBlank String agencyId;
@@ -199,11 +177,6 @@ public class OffenderKeyworkerDto {
         private @NotBlank String active;
 
         OffenderKeyworkerDtoBuilder() {
-        }
-
-        public OffenderKeyworkerDto.OffenderKeyworkerDtoBuilder offenderKeyworkerId(@NotNull Long offenderKeyworkerId) {
-            this.offenderKeyworkerId = offenderKeyworkerId;
-            return this;
         }
 
         public OffenderKeyworkerDto.OffenderKeyworkerDtoBuilder offenderNo(@NotBlank String offenderNo) {
@@ -242,11 +215,7 @@ public class OffenderKeyworkerDto {
         }
 
         public OffenderKeyworkerDto build() {
-            return new OffenderKeyworkerDto(offenderKeyworkerId, offenderNo, staffId, agencyId, assigned, expired, userId, active);
-        }
-
-        public String toString() {
-            return "OffenderKeyworkerDto.OffenderKeyworkerDtoBuilder(offenderKeyworkerId=" + this.offenderKeyworkerId + ", offenderNo=" + this.offenderNo + ", staffId=" + this.staffId + ", agencyId=" + this.agencyId + ", assigned=" + this.assigned + ", expired=" + this.expired + ", userId=" + this.userId + ", active=" + this.active + ")";
+            return new OffenderKeyworkerDto(offenderNo, staffId, agencyId, assigned, expired, userId, active);
         }
     }
 }

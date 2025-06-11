@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration;
-import uk.gov.justice.digital.hmpps.keyworker.repository.OffenderKeyworkerRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ class KeyworkerMigrationServiceTest extends AbstractServiceTest {
     private LegacyPrisonConfigurationRepository prisonSupportedRepository;
 
     @MockitoBean
-    private OffenderKeyworkerRepository offenderKeyworkerRepository;
+    private LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
 
     @MockitoBean
     private PrisonSupportedService prisonSupportedService;

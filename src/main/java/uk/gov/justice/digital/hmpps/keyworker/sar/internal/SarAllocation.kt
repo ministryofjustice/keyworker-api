@@ -14,20 +14,21 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationTypeConvertor
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Immutable
 @Entity
-@Table(name = "offender_key_worker")
-class SarKeyWorker(
-  @Column(name = "offender_no")
+@Table(name = "allocation")
+class SarAllocation(
+  @Column(name = "person_identifier")
   val personIdentifier: String,
-  @Column(name = "prison_id")
+  @Column(name = "prison_code")
   val prisonCode: String,
-  @Column(name = "assigned_date_time")
-  val assignedAt: LocalDateTime,
-  @Column(name = "expiry_date_time")
-  val expiredAt: LocalDateTime?,
-  @Column(name = "alloc_type")
+  @Column(name = "allocated_at")
+  val allocatedAt: LocalDateTime,
+  @Column(name = "deallocated_at")
+  val deallocatedAt: LocalDateTime?,
+  @Column(name = "allocation_type")
   @Convert(converter = AllocationTypeConvertor::class)
   val allocationType: AllocationType,
   @ManyToOne
@@ -39,22 +40,22 @@ class SarKeyWorker(
   @Column(name = "staff_id")
   val staffId: Long,
   @Id
-  @Column(name = "offender_keyworker_id")
-  val id: Long,
+  @Column(name = "id")
+  val id: UUID,
 )
 
-interface SarKeyWorkerRepository : JpaRepository<SarKeyWorker, Long> {
+interface SarKeyWorkerRepository : JpaRepository<SarAllocation, UUID> {
   @Query(
     """
-    select skw from SarKeyWorker skw
+    select skw from SarAllocation skw
     where skw.personIdentifier = :personIdentifier
-    and (cast(:from as LocalDateTime) is null or :from <= skw.assignedAt)
-    and (cast(:to as LocalDateTime) is null or :to >= skw.assignedAt)
+    and (cast(:from as LocalDateTime) is null or :from <= skw.allocatedAt)
+    and (cast(:to as LocalDateTime) is null or :to >= skw.allocatedAt)
     """,
   )
   fun findSarContent(
     personIdentifier: String,
     from: LocalDateTime?,
     to: LocalDateTime?,
-  ): List<SarKeyWorker>
+  ): List<SarAllocation>
 }

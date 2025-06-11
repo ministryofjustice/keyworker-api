@@ -47,24 +47,17 @@ class GetKeyworkerAllocationsIntegrationTest : IntegrationTest() {
               assignedAt = LocalDateTime.now().minusWeeks(i + 1L),
               allocatedBy = "AS$i",
               active = false,
-              expiryDateTime = LocalDateTime.now().minusWeeks(i.toLong()),
+              deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
               deallocationReason = DeallocationReason.entries.random(),
-            ).apply {
-              if (i != 3) {
-                lastModifiedBy = "DS$i"
-              }
-            },
+              deallocatedBy = "DS$i",
+            ),
           )
         manageUsersMockServer.stubGetUserDetails(allocation.allocatedBy, newId().toString(), "Allocating User $i")
-        if (i == 2) {
-          manageUsersMockServer.stubGetUserDetailsNotFound(allocation.lastModifiedBy!!)
-        } else {
-          manageUsersMockServer.stubGetUserDetails(
-            allocation.lastModifiedBy!!,
-            newId().toString(),
-            "Deallocating User $i",
-          )
-        }
+        manageUsersMockServer.stubGetUserDetails(
+          allocation.deallocatedBy!!,
+          newId().toString(),
+          "Deallocating User $i",
+        )
       }
 
     val currentAllocation =

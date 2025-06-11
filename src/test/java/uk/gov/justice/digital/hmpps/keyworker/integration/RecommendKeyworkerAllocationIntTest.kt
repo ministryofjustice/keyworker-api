@@ -103,8 +103,9 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
               prisonCode,
               s.staffId,
               active = false,
-              expiryDateTime = LocalDateTime.now().minusDays(1),
+              deallocatedAt = LocalDateTime.now().minusDays(1),
               deallocationReason = DeallocationReason.STAFF_STATUS_CHANGE,
+              deallocatedBy = "d34ll",
             ),
           )
         }.associateBy { it.staffId }

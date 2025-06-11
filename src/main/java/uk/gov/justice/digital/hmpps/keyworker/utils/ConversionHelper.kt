@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
-import uk.gov.justice.digital.hmpps.keyworker.model.OffenderKeyworker
+import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation
 import java.time.LocalDateTime
 import java.util.stream.Collectors
 
@@ -16,42 +16,41 @@ import java.util.stream.Collectors
  * Helper to convert model objects to DTOs and vice versa.
  */
 object ConversionHelper {
-  fun convertOffenderKeyworkerDto2Model(dtos: List<OffenderKeyworkerDto>): Set<OffenderKeyworker> {
+  fun convertOffenderKeyworkerDto2Model(dtos: List<OffenderKeyworkerDto>): Set<LegacyKeyworkerAllocation> {
     Validate.notNull(dtos)
     return dtos.stream().map { convertOffenderKeyworkerDto2Model(it) }.collect(Collectors.toSet())
   }
 
-  fun convertOffenderKeyworkerDto2Model(dto: OffenderKeyworkerDto): OffenderKeyworker {
+  fun convertOffenderKeyworkerDto2Model(dto: OffenderKeyworkerDto): LegacyKeyworkerAllocation {
     Validate.notNull(dto)
-    return OffenderKeyworker
+    return LegacyKeyworkerAllocation
       .builder()
       .offenderNo(dto.offenderNo)
       .staffId(dto.staffId)
       .prisonId(dto.agencyId)
       .active(StringUtils.equals("Y", dto.active))
       .assignedDateTime(dto.assigned)
-      .expiryDateTime(dto.expired)
+      .deallocatedAt(dto.expired)
       .userId(dto.userId)
       .build()
   }
 
-  fun convertOffenderKeyworkerModel2Dto(models: List<OffenderKeyworker>): List<OffenderKeyworkerDto> {
+  fun convertOffenderKeyworkerModel2Dto(models: List<LegacyKeyworkerAllocation>): List<OffenderKeyworkerDto> {
     Validate.notNull(models)
     return models.stream().map { convertOffenderKeyworkerModel2Dto(it) }.collect(Collectors.toList())
   }
 
-  private fun convertOffenderKeyworkerModel2Dto(model: OffenderKeyworker): OffenderKeyworkerDto {
+  private fun convertOffenderKeyworkerModel2Dto(model: LegacyKeyworkerAllocation): OffenderKeyworkerDto {
     Validate.notNull(model)
     return OffenderKeyworkerDto
       .builder()
-      .offenderKeyworkerId(model.offenderKeyworkerId)
-      .offenderNo(model.offenderNo)
+      .offenderNo(model.personIdentifier)
       .staffId(model.staffId)
-      .agencyId(model.prisonId)
+      .agencyId(model.prisonCode)
       .active(if (model.isActive) "Y" else "N")
       .assigned(model.assignedDateTime)
-      .expired(model.expiryDateTime)
-      .userId(model.userId)
+      .expired(model.deallocatedAt)
+      .userId(model.allocatedBy)
       .build()
   }
 
@@ -59,8 +58,8 @@ object ConversionHelper {
     allocationReason: ReferenceData,
     newAllocation: KeyworkerAllocationDto,
     userId: String?,
-  ): OffenderKeyworker =
-    OffenderKeyworker
+  ): LegacyKeyworkerAllocation =
+    LegacyKeyworkerAllocation
       .builder()
       .offenderNo(newAllocation.offenderNo)
       .staffId(newAllocation.staffId)
@@ -72,14 +71,14 @@ object ConversionHelper {
       .userId(userId)
       .build()
 
-  fun convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(model: OffenderKeyworker): KeyworkerAllocationDetailsDto {
+  fun convertOffenderKeyworkerModel2KeyworkerAllocationDetailsDto(model: LegacyKeyworkerAllocation): KeyworkerAllocationDetailsDto {
     Validate.notNull(model)
     return KeyworkerAllocationDetailsDto
       .builder()
-      .offenderNo(model.offenderNo)
+      .offenderNo(model.personIdentifier)
       .staffId(model.staffId)
-      .agencyId(model.prisonId) // TODO: remove
-      .prisonId(model.prisonId)
+      .agencyId(model.prisonCode) // TODO: remove
+      .prisonId(model.prisonCode)
       .assigned(model.assignedDateTime)
       .allocationType(model.allocationType)
       .build()
@@ -103,9 +102,9 @@ object ConversionHelper {
       null
     }
 
-  fun getOffenderKeyworker(model: KeyworkerAllocationDetailsDto): OffenderKeyworker {
+  fun getOffenderKeyworker(model: KeyworkerAllocationDetailsDto): LegacyKeyworkerAllocation {
     Validate.notNull(model)
-    return OffenderKeyworker
+    return LegacyKeyworkerAllocation
       .builder()
       .offenderNo(model.offenderNo)
       .staffId(model.staffId)

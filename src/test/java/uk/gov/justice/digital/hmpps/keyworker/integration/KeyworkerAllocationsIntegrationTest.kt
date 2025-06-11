@@ -170,8 +170,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     }
 
     staffAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
-      assertThat(allocation.active).isFalse
-      assertThat(allocation.expiryDateTime).isNotNull
+      assertThat(allocation.isActive).isFalse
+      assertThat(allocation.deallocatedAt).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
     }
   }
@@ -199,8 +199,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     }
 
     staffAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
-      assertThat(allocation.active).isTrue
-      assertThat(allocation.expiryDateTime).isNull()
+      assertThat(allocation.isActive).isTrue
+      assertThat(allocation.deallocatedAt).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()
     }
   }
@@ -220,8 +220,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(allocations.isEmpty()).isTrue
 
     staffAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
-      assertThat(allocation.active).isFalse
-      assertThat(allocation.expiryDateTime).isNotNull
+      assertThat(allocation.isActive).isFalse
+      assertThat(allocation.deallocatedAt).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }
@@ -241,8 +241,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     assertThat(allocations.isEmpty()).isFalse
 
     staffAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
-      assertThat(allocation.active).isTrue
-      assertThat(allocation.expiryDateTime).isNull()
+      assertThat(allocation.isActive).isTrue
+      assertThat(allocation.deallocatedAt).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()
     }
   }

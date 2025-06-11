@@ -24,10 +24,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
 @ToString(exclude = {"firstName", "lastName"})
 public class LegacyKeyWorkerAllocation {
 
-    @Schema(required = true, description = "Id of offender allocation.")
-    @NotNull
-    private Long offenderKeyworkerId;
-
     @Schema(required = true, description = "The offender's Key worker staff Id.")
     @NotNull
     private Long staffId;

@@ -7,7 +7,6 @@
   },
   "allocationHistory": [
     {
-      "offenderKeyworkerId": 2,
       "staffId": 1001,
       "firstName": "Another",
       "lastName": "CUser",
@@ -20,17 +19,7 @@
       },
       "active": true,
       "allocationType": "M",
-      "allocationReason": "Manual",
-      "createdByUser": {
-        "firstName": "User",
-        "lastName": "ITAG_USER",
-        "username": "ITAG_USER"
-      },
-      "lastModifiedByUser": {
-        "firstName": "User",
-        "lastName": "ITAG_USER",
-        "username": "ITAG_USER"
-      }
+      "allocationReason": "Manual"
     }
   ]
 }
