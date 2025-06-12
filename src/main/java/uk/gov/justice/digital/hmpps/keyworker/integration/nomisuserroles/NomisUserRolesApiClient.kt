@@ -21,6 +21,7 @@ class NomisUserRolesApiClient(
         it.path(GET_USERS_URL)
         it.queryParam("size", "3000")
         it.queryParam("status", "ACTIVE")
+        it.queryParam("userType", "GENERAL")
         it.queryParam("caseload", caseload)
         nameFilter?.also { q -> it.queryParam("nameFilter", q) }
         it.build()
