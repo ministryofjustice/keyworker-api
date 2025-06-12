@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import java.time.LocalDateTime
 import java.util.SortedSet
@@ -55,6 +56,7 @@ class AllocationRecommender(
     return RecommendedAllocations(
       recommendations.filterIsInstance<RecommendedAllocation>(),
       recommendations.filterIsInstance<NoRecommendation>().map { it.personIdentifier },
+      staff.filter { it.status == StaffStatus.ACTIVE }.map { it.staff },
     )
   }
 
@@ -72,6 +74,7 @@ class AllocationRecommender(
           staffInfo?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
           staffInfo?.allocationCount ?: 0,
           autoAllocations[it.staffId]?.allocatedAt,
+          staffInfo?.staffConfig?.status?.let { ss -> StaffStatus[ss.code] } ?: StaffStatus.ACTIVE,
         )
       }.sortedForAllocation()
   }
@@ -82,6 +85,7 @@ private class StaffCapacity(
   val autoAllocationCapacity: Int,
   var allocationCount: Int,
   val lastAutoAllocationAt: LocalDateTime?,
+  val status: StaffStatus,
 ) {
   fun availability(): Double =
     if (allocationCount == 0 || autoAllocationCapacity == 0) 0.0 else allocationCount / autoAllocationCapacity.toDouble()
