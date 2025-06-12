@@ -194,7 +194,8 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
   @Query(
     """
     delete from allocation where person_identifier in :personIdentifiers and allocation_type = 'P'
-    """, nativeQuery = true
+    """,
+    nativeQuery = true,
   )
   fun deleteProvisionalFor(personIdentifiers: List<String>)
 }
