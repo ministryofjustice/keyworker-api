@@ -68,6 +68,8 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
 
   fun findByStaffId(staffId: Long): StaffConfiguration?
 
+  fun findAllByStaffIdIn(staffIds: Set<Long>): List<StaffConfiguration>
+
   fun deleteByStaffId(staffId: Long)
 }
 

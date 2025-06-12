@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
@@ -153,7 +155,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
-    assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not an active staff member")
+    assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not configured correctly for the allocation reason")
   }
 
   @ParameterizedTest
@@ -180,6 +182,15 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
+    }
+    allocations.forEach { a ->
+      verifyAudit(
+        a,
+        a.id,
+        RevisionType.ADD,
+        setOf(Allocation::class.simpleName!!),
+        AllocationContext.get().copy(username = "keyworker-ui", policy = policy),
+      )
     }
   }
 
@@ -215,6 +226,13 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       assertThat(allocation.isActive).isFalse
       assertThat(allocation.deallocatedAt).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
+      verifyAudit(
+        allocation,
+        allocation.id,
+        RevisionType.MOD,
+        setOf(Allocation::class.simpleName!!),
+        AllocationContext.get().copy(username = "keyworker-ui", policy = policy),
+      )
     }
   }
 
@@ -250,6 +268,13 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       assertThat(allocation.isActive).isTrue
       assertThat(allocation.deallocatedAt).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()
+      verifyAudit(
+        allocation,
+        allocation.id,
+        RevisionType.ADD,
+        setOf(Allocation::class.simpleName!!),
+        AllocationContext.get().copy(username = "SYS", policy = policy),
+      )
     }
   }
 
@@ -273,6 +298,13 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       assertThat(allocation.isActive).isFalse
       assertThat(allocation.deallocatedAt).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
+      verifyAudit(
+        allocation,
+        allocation.id,
+        RevisionType.MOD,
+        setOf(Allocation::class.simpleName!!),
+        AllocationContext.get().copy(username = "keyworker-ui", policy = policy),
+      )
     }
   }
 
@@ -296,6 +328,13 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       assertThat(allocation.isActive).isTrue
       assertThat(allocation.deallocatedAt).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()
+      verifyAudit(
+        allocation,
+        allocation.id,
+        RevisionType.ADD,
+        setOf(Allocation::class.simpleName!!),
+        AllocationContext.get().copy(username = "SYS", policy = policy),
+      )
     }
   }
 

@@ -13,15 +13,17 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.AUTO
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.OVERRIDE
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import java.time.LocalDateTime
 
 @Transactional
@@ -43,7 +45,7 @@ class AllocationManager(
     }
     prisonConfig(prisonCode)
     prisoners(prisonCode, psa.personIdentifiersToAllocate)
-    activeStaff(prisonCode, psa.staffIdsToAllocate)
+    psa.staffValidation(prisonCode)
     val rdMap = psa.referenceData()
     psa.deallocate { requireNotNull(rdMap[DEALLOCATION_REASON of it]) }
     psa.allocate(prisonCode) { domain, code -> requireNotNull(rdMap[domain of code]) }
@@ -111,27 +113,30 @@ class AllocationManager(
     return prisoners
   }
 
-  private fun activeStaff(
-    prisonCode: String,
-    staffIds: Set<Long>,
-  ): Map<Long, StaffWithRole> {
-    if (staffIds.isEmpty()) {
-      return emptyMap()
-    }
+  private fun PersonStaffAllocations.staffValidation(prisonCode: String) {
+    val staffIds = allocations.map { it.staffId }.toSet()
+    if (staffIds.isEmpty()) return
+
     val staff = staffSearch.findStaff(prisonCode).associateBy { it.staffId }
     require(staff.keys.containsAll(staffIds)) {
       "A provided staff id is not allocatable for the provided prison"
     }
-    val nonActiveIds =
-      staffConfigRepository
-        .getNonActiveStaff(staffIds)
-        .map { it.staffId }
-        .toSet()
-    require(nonActiveIds.isEmpty()) {
-      "A provided staff id is not an active staff member"
+    val staffConfig = staffConfigRepository.findAllByStaffIdIn(staffIds).associateBy { it.staffId }
+    val fails = allocations.mapNotNull { allocation -> staffConfig[allocation.staffId].validateFor(allocation) }
+    require(fails.isEmpty()) {
+      "A provided staff id is not configured correctly for the allocation reason"
     }
-    return staff
   }
+
+  private fun StaffConfiguration?.validateFor(allocation: PersonStaffAllocation): StaffConfiguration? =
+    if (this == null ||
+      (allocation.allocationReason == MANUAL.reasonCode && status.code == StaffStatus.ACTIVE.statusCode) ||
+      (allocation.allocationReason == AUTO.reasonCode && allowAutoAllocation)
+    ) {
+      null
+    } else {
+      this
+    }
 
   private fun PersonStaffAllocations.referenceData(): Map<ReferenceDataKey, ReferenceData> {
     val rdKeys = referenceDataKeys()
