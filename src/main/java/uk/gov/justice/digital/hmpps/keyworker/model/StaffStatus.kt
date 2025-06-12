@@ -18,6 +18,6 @@ enum class StaffStatus(
   companion object {
     private val lookup = entries.associateBy(StaffStatus::statusCode)
 
-    fun get(statusCode: String): StaffStatus? = lookup[statusCode]
+    operator fun get(statusCode: String): StaffStatus? = lookup[statusCode]
   }
 }

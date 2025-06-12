@@ -76,6 +76,7 @@ class AllocationManager(
         }
       }
     if (newAllocations.isNotEmpty()) {
+      allocationRepository.deleteProvisionalFor(newAllocations.map { it.personIdentifier })
       allocationRepository.flush()
       allocationRepository.saveAll(newAllocations)
     }
@@ -130,7 +131,7 @@ class AllocationManager(
 
   private fun StaffConfiguration?.validateFor(allocation: PersonStaffAllocation): StaffConfiguration? =
     if (this == null ||
-      (allocation.allocationReason == MANUAL.reasonCode && status.code == StaffStatus.ACTIVE.statusCode) ||
+      (allocation.allocationReason == MANUAL.reasonCode && status.code == StaffStatus.ACTIVE.name) ||
       (allocation.allocationReason == AUTO.reasonCode && allowAutoAllocation)
     ) {
       null
