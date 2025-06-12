@@ -37,7 +37,6 @@ jobs:
     secrets: inherit
   build:
     name: Build docker image from hmpps-github-actions
-    if: github.ref == 'refs/heads/main'
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     needs:
       - kotlin_validate
@@ -47,20 +46,8 @@ jobs:
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
       push: ${{ inputs.push || true }}
       docker_multiplatform: false
-  schema_spy:
-    uses: ./.github/workflows/schema-spy.yml
-    if: github.ref == 'refs/heads/main'
-    with:
-      docker_compose_file: 'docker-compose-schema-spy.yml'
-      init_db_cli: './gradlew initialiseDatabase'
-      database_name: 'keyworker-api-db'
-      database_schema: 'public'
-      database_user: 'admin'
-      database_password: 'admin_password'
-    secrets: inherit
   deploy_dev:
     name: Deploy to the dev environment
-    if: github.ref == 'refs/heads/main'
     needs:
     - build
     - helm_lint
@@ -71,7 +58,6 @@ jobs:
       app_version: '${{ needs.build.outputs.app_version }}'
   deploy_preprod:
     name: Deploy to the preprod environment
-    if: github.ref == 'refs/heads/main'
     needs:
     - build
     - helm_lint
@@ -79,16 +65,4 @@ jobs:
     secrets: inherit
     with:
       environment: 'preprod'
-      app_version: '${{ needs.build.outputs.app_version }}'
-  deploy_prod:
-    name: Deploy to the prod environment
-    needs:
-    - build
-    - helm_lint
-    - deploy_dev
-    - deploy_preprod
-    uses: ministryofjustice/hmpps-github-actions/.github/workflows/deploy_env.yml@v2 # WORKFLOW_VERSION
-    secrets: inherit
-    with:
-      environment: 'prod'
       app_version: '${{ needs.build.outputs.app_version }}'
