@@ -287,6 +287,7 @@ public class KeyworkerService {
             allocation.setAllocatedBy(authenticationFacade.getCurrentUsername());
         }
 
+        repository.flush();
         repository.save(allocation);
     }
 
