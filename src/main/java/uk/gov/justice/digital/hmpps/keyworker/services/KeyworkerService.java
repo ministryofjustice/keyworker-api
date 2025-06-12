@@ -350,6 +350,10 @@ public class KeyworkerService {
                             .deallocationReason(deallocationReason == null ? null : deallocationReason.getDescription())
                             .prisonId(kw.getPrisonCode())
                             .userId(nomisService.getStaffDetailByUserId(kw.getAllocatedBy()))
+                            .createdByUser(nomisService.getStaffDetailByUserId(kw.getAllocatedBy()))
+                            .creationDateTime(kw.getAssignedDateTime())
+                            .lastModifiedByUser(nomisService.getStaffDetailByUserId(kw.getDeallocatedBy() == null ? kw.getAllocatedBy() : kw.getDeallocatedBy() ))
+                            .modifyDateTime(kw.getDeallocatedAt() == null ? kw.getAssignedDateTime() : kw.getDeallocatedAt())
                             .build();
                     }
 
