@@ -55,6 +55,7 @@ class AllocationRecommender(
     return RecommendedAllocations(
       recommendations.filterIsInstance<RecommendedAllocation>(),
       recommendations.filterIsInstance<NoRecommendation>().map { it.personIdentifier },
+      staff.map { it.staff },
     )
   }
 

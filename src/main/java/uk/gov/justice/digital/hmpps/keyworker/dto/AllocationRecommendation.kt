@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 data class RecommendedAllocations(
   val allocations: List<RecommendedAllocation>,
   val noAvailableStaffFor: List<String>,
+  val staff: List<StaffSummary>,
 )
 
 sealed interface Recommendation {

@@ -23,7 +23,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
+class RecommendAllocationIntTest : IntegrationTest() {
   @Test
   fun `401 unauthorised without a valid token`() {
     webTestClient
@@ -36,14 +36,14 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getKeyworkerRecommendations("DNM", AllocationPolicy.KEY_WORKER, "ROLE_ANY__OTHER_RO")
+    getAllocationRecommendations("DNM", AllocationPolicy.KEY_WORKER, "ROLE_ANY__OTHER_RO")
       .expectStatus()
       .isForbidden
   }
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `identifies cases that have no recommendations when all keyworkers are at max capacity`(policy: AllocationPolicy) {
+  fun `identifies cases that have no recommendations when all staff are at max capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "FUL"
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy))
@@ -63,7 +63,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode, policy)
+      getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
@@ -72,11 +72,12 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
 
     assertThat(res.noAvailableStaffFor).containsExactlyInAnyOrderElementsOf(prisoners.content.map { it.prisonerNumber })
     assertThat(res.allocations).isEmpty()
+    assertThat(res.staff.map { it.staffId }).containsExactlyInAnyOrderElementsOf(staff.map { it.staffId })
   }
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `will recommend previous keyworker regardless of capacity`(policy: AllocationPolicy) {
+  fun `will recommend previous staff regardless of capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EXI"
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy))
@@ -116,7 +117,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode, policy)
+      getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
@@ -136,9 +137,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `will balance recommendations based on capacity availability and report when keyworkers are at max capacity`(
-    policy: AllocationPolicy,
-  ) {
+  fun `will balance recommendations based on capacity availability and report when staff are at max capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "BAL"
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 9, policy = policy))
@@ -162,7 +161,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode, policy)
+      getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
@@ -219,7 +218,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     }
 
     val res =
-      getKeyworkerRecommendations(prisonCode, policy)
+      getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
         .expectBody(RecommendedAllocations::class.java)
@@ -255,7 +254,7 @@ class RecommendKeyworkerAllocationIntTest : IntegrationTest() {
     assertThat(res.noAvailableStaffFor).isEmpty()
   }
 
-  private fun getKeyworkerRecommendations(
+  private fun getAllocationRecommendations(
     prisonCode: String,
     policy: AllocationPolicy,
     role: String? = Roles.ALLOCATIONS_UI,
