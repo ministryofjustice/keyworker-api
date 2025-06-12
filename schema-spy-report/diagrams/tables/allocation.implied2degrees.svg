@@ -24,6 +24,7 @@
 <text text-anchor="start" x="322" y="-1008.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
 <polygon fill="none" stroke="#000000" points="476,-1001.7 476,-1023.7 570,-1023.7 570,-1001.7 476,-1001.7"/>
 <text text-anchor="start" x="478.9758" y="-1009.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">uuid[2147483647]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-979.7 302,-1001.7 476,-1001.7 476,-979.7 302,-979.7"/>
 <polygon fill="none" stroke="#000000" points="302,-979.7 302,-1001.7 476,-1001.7 476,-979.7 302,-979.7"/>
 <image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="307" y="-996.7"/>
 <text text-anchor="start" x="322" y="-986.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">prison_code</text>

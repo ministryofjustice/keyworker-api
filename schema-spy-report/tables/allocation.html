@@ -403,10 +403,28 @@
                                     <td>id</td>
                                 </tr>
                                 <tr>
+                                    <td title='Indexed'>idx_active_staff_allocations</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>staff_id + prison_code + policy_code</td>
+                                </tr>
+                                <tr>
                                     <td title='Indexed'>idx_allocation_people_at</td>
                                     <td>Performance</td>
                                     <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
                                     <td>staff_id + person_identifier + allocated_at + policy_code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>idx_allocation_person_identifier</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>person_identifier + policy_code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>idx_allocation_prison_code</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>prison_code + policy_code</td>
                                 </tr>
                                 <tr>
                                     <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> uq_allocation</td>
@@ -453,12 +471,12 @@
                                     <td>((allocation_type &#61; ANY (ARRAY[&#39;A&#39;::bpchar, &#39;M&#39;::bpchar, &#39;P&#39;::bpchar])))</td>
                                 </tr>
                                 <tr>
-                                    <td>ch_allocation_is_not_active</td>
-                                    <td>((NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))</td>
-                                </tr>
-                                <tr>
                                     <td>ch_allocation_is_active</td>
                                     <td>((NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))</td>
+                                </tr>
+                                <tr>
+                                    <td>ch_allocation_is_not_active</td>
+                                    <td>((NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))</td>
                                 </tr>
                                 </tbody>
                             </table>

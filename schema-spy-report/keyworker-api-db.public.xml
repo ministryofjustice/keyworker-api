@@ -34,10 +34,23 @@
          <index name="pk_allocation" unique="true">
             <column ascending="true" name="id"/>
          </index>
+         <index name="idx_active_staff_allocations" unique="false">
+            <column ascending="true" name="staff_id"/>
+            <column ascending="true" name="prison_code"/>
+            <column ascending="true" name="policy_code"/>
+         </index>
          <index name="idx_allocation_people_at" unique="false">
             <column ascending="true" name="staff_id"/>
             <column ascending="true" name="person_identifier"/>
             <column ascending="true" name="allocated_at"/>
+            <column ascending="true" name="policy_code"/>
+         </index>
+         <index name="idx_allocation_person_identifier" unique="false">
+            <column ascending="true" name="person_identifier"/>
+            <column ascending="true" name="policy_code"/>
+         </index>
+         <index name="idx_allocation_prison_code" unique="false">
+            <column ascending="true" name="prison_code"/>
             <column ascending="true" name="policy_code"/>
          </index>
          <index name="uq_allocation" unique="true">
