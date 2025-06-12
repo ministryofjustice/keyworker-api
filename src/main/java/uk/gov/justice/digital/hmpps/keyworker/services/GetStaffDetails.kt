@@ -73,28 +73,29 @@ class GetStaffDetails(
     val fromDate = now().minusMonths(1)
     val previousFromDate = fromDate.minusMonths(1)
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
-    val allocations =
+    val allAllocations =
       allocationRepository.findActiveForPrisonStaffBetween(
         prisonCode,
         staffId,
         previousFromDate.atStartOfDay(),
-        now().atStartOfDay(),
+        now().atStartOfDay().plusDays(1),
       )
+    val activeAllocations = allAllocations.filter { it.isActive }
     val prisonerDetails =
-      if (allocations.isEmpty()) {
+      if (activeAllocations.isEmpty()) {
         emptyMap()
       } else {
         prisonerSearch
-          .findPrisonerDetails(allocations.map { it.personIdentifier }.toSet())
+          .findPrisonerDetails(activeAllocations.map { it.personIdentifier }.toSet())
           .filter { it.prisonId == prisonCode }
           .associateBy { it.prisonerNumber }
       }
     val prisonName =
       prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
 
-    val (current, cnSummary) = allocations.staffCountStats(fromDate, now(), prisonConfig, staffId)
+    val (current, cnSummary) = allAllocations.staffCountStats(fromDate, now(), prisonConfig, staffId)
     val (previous, _) =
-      allocations.staffCountStats(previousFromDate, fromDate, prisonConfig, staffId)
+      allAllocations.staffCountStats(previousFromDate, fromDate, prisonConfig, staffId)
 
     val staff = staffWithRole.first
     return StaffDetails(
@@ -105,8 +106,7 @@ class GetStaffDetails(
       CodedDescription(prisonCode, prisonName),
       staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       staffInfo?.allocationCount ?: 0,
-      allocations
-        .filter { it.isActive }
+      activeAllocations
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
             alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))

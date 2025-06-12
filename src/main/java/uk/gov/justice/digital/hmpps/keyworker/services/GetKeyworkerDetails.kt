@@ -56,27 +56,28 @@ class GetKeyworkerDetails(
     val fromDate = now().minusMonths(1)
     val previousFromDate = fromDate.minusMonths(1)
     val keyworkerInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
-    val allocations =
+    val allAllocations =
       allocationRepository.findActiveForPrisonStaffBetween(
         prisonCode,
         staffId,
         previousFromDate.atStartOfDay(),
-        now().atStartOfDay(),
+        now().atStartOfDay().plusDays(1),
       )
+    val activeAllocations = allAllocations.filter { it.isActive }
     val prisonerDetails =
-      if (allocations.isEmpty()) {
+      if (activeAllocations.isEmpty()) {
         emptyMap()
       } else {
         prisonerSearch
-          .findPrisonerDetails(allocations.map { it.personIdentifier }.toSet())
+          .findPrisonerDetails(activeAllocations.map { it.personIdentifier }.toSet())
           .filter { it.prisonId == prisonCode }
           .associateBy { it.prisonerNumber }
       }
     val prisonName = prisonerDetails.values.firstOrNull()?.prisonName ?: nomisService.getAgency(prisonCode).description
 
-    val (current, cnSummary) = allocations.keyworkerSessionStats(fromDate, now(), prisonConfig, staffId)
+    val (current, cnSummary) = allAllocations.keyworkerSessionStats(fromDate, now(), prisonConfig, staffId)
     val (previous, _) =
-      allocations.keyworkerSessionStats(previousFromDate, fromDate, prisonConfig, staffId)
+      allAllocations.keyworkerSessionStats(previousFromDate, fromDate, prisonConfig, staffId)
 
     return KeyworkerDetails(
       keyworker,
@@ -84,8 +85,7 @@ class GetKeyworkerDetails(
       CodedDescription(prisonCode, prisonName),
       keyworkerInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       keyworkerInfo?.allocationCount ?: 0,
-      allocations
-        .filter { it.isActive }
+      activeAllocations
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
             alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
