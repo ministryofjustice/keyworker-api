@@ -12,6 +12,7 @@ import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
@@ -188,6 +189,14 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
     personIdentifier: String,
     staffIds: Set<Long>,
   ): Set<Long>
+
+  @Modifying
+  @Query(
+    """
+    delete from allocation where person_identifier in :personIdentifiers and allocation_type = 'P'
+    """, nativeQuery = true
+  )
+  fun deleteProvisionalFor(personIdentifiers: List<String>)
 }
 
 interface NewAllocation {
