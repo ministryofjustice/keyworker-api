@@ -9,10 +9,8 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
@@ -80,7 +78,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
   fun `will recommend previous staff regardless of capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EXI"
-    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy))
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy, allowAutoAllocation = true))
     val prisoners = prisoners(prisonCode, 6)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
@@ -125,14 +123,10 @@ class RecommendAllocationIntTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(res.noAvailableStaffFor).isEmpty()
-    assertThat(res.allocations).containsAll(
-      staffAtCapacity.map { s ->
-        RecommendedAllocation(
-          previousAllocations[s.staffId]!!.personIdentifier,
-          StaffSummary(s.staffId, s.firstName, s.lastName),
-        )
-      },
-    )
+    staffAtCapacity.forEach { s ->
+      assertThat(res.allocations.filter { it.staff.staffId == s.staffId }.map { it.personIdentifier }.single())
+        .isEqualTo(previousAllocations[s.staffId]?.personIdentifier)
+    }
   }
 
   @ParameterizedTest
