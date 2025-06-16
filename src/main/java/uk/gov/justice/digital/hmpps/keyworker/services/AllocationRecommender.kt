@@ -93,10 +93,12 @@ private class StaffCapacity(
   val staff: StaffSummary,
   val allowAutoAllocation: Boolean,
   val autoAllocationCapacity: Int,
-  var allocationCount: Int,
+  val initialAllocationCount: Int,
   val lastAutoAllocationAt: LocalDateTime?,
   val status: ReferenceData,
 ) {
+  var allocationCount: Int = initialAllocationCount
+
   fun availability(): Double =
     if (allocationCount == 0 || autoAllocationCapacity == 0) 0.0 else allocationCount / autoAllocationCapacity.toDouble()
 }
@@ -109,7 +111,7 @@ private fun StaffCapacity.asAllocationStaff() =
     status = status.asCodedDescription(),
     allowAutoAllocation = allowAutoAllocation,
     capacity = autoAllocationCapacity,
-    allocated = allocationCount,
+    allocated = initialAllocationCount,
   )
 
 private fun List<StaffCapacity>.sortedForAllocation(): TreeSet<StaffCapacity> =

@@ -260,7 +260,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
         CodedDescription("ACTIVE", "Active"),
         true,
         6,
-        6,
+        0,
       ),
       AllocationStaff(
         staff[1].staffId,
@@ -269,7 +269,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
         CodedDescription("ACTIVE", "Active"),
         true,
         12,
-        10,
+        0,
       ),
     )
   }
