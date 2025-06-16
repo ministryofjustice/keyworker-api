@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import java.time.LocalDateTime
 import java.util.SortedSet
 import java.util.TreeSet

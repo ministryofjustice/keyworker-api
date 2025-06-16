@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatusCode
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 
 class KeyworkerServiceIntegrationTest : IntegrationTest() {
   companion object {

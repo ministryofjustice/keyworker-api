@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 
 data class RecommendedAllocations(
   val allocations: List<RecommendedAllocation>,

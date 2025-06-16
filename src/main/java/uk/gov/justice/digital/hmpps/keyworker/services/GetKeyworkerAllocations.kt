@@ -12,13 +12,13 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocationHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import java.time.LocalDate.now
 
 @Service

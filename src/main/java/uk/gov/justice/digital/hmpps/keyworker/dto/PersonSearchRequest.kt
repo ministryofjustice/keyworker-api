@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+
 data class PersonSearchRequest(
   val query: String? = null,
   val cellLocationPrefix: String? = null,
@@ -17,5 +19,5 @@ data class PrisonerSummary(
   val location: String?,
   val hasHighComplexityOfNeeds: Boolean,
   val hasAllocationHistory: Boolean,
-  val keyworker: Keyworker?,
+  val staffMember: StaffSummary?,
 )

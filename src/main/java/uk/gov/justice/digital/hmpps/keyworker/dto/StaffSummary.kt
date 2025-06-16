@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.sar
+package uk.gov.justice.digital.hmpps.keyworker.dto
 
 data class StaffSummary(
   val staffId: Long,

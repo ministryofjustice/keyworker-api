@@ -2,13 +2,19 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
@@ -28,11 +34,18 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    searchPersonSpec("DNM", searchRequest(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    searchPersonSpec(
+      "DNM",
+      searchRequest(),
+      AllocationPolicy.PERSONAL_OFFICER,
+      "ROLE_ANY__OTHER_RW",
+    ).expectStatus().isForbidden
   }
 
-  @Test
-  fun `can filter people and decorate with keyworker`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `can filter people and decorate with staff member`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "FIND"
     givenPrisonConfig(prisonConfig(prisonCode))
 
@@ -75,7 +88,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(summaries)
 
     val response =
-      searchPersonSpec(prisonCode, searchRequest(cellLocationPrefix = "$prisonCode-A"))
+      searchPersonSpec(prisonCode, searchRequest(cellLocationPrefix = "$prisonCode-A"), policy)
         .expectStatus()
         .isOk
         .expectBody(PersonSearchResponse::class.java)
@@ -87,24 +100,26 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     with(none) {
       assertThat(hasHighComplexityOfNeeds).isFalse
       assertThat(hasAllocationHistory).isFalse
-      assertThat(keyworker).isNull()
+      assertThat(staffMember).isNull()
     }
     val history = requireNotNull(response.content.find { it.location == "$prisonCode-A-4" })
     with(history) {
       assertThat(hasHighComplexityOfNeeds).isTrue
       assertThat(hasAllocationHistory).isTrue
-      assertThat(keyworker).isNull()
+      assertThat(staffMember).isNull()
     }
     val active = requireNotNull(response.content.find { it.location == "$prisonCode-A-3" })
     with(active) {
       assertThat(hasHighComplexityOfNeeds).isFalse
       assertThat(hasAllocationHistory).isTrue
-      assertThat(keyworker).isNotNull
+      assertThat(staffMember).isNotNull
     }
   }
 
-  @Test
-  fun `can filter complex needs people and decorate with keyworker`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `can filter complex needs people and decorate with staff member`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "COMP"
     givenPrisonConfig(prisonConfig(prisonCode, hasPrisonersWithHighComplexityNeeds = true))
 
@@ -143,7 +158,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(summaries)
 
     val response =
-      searchPersonSpec(prisonCode, searchRequest(query = "First"))
+      searchPersonSpec(prisonCode, searchRequest(query = "First"), policy)
         .expectStatus()
         .isOk
         .expectBody(PersonSearchResponse::class.java)
@@ -155,24 +170,26 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     with(none) {
       assertThat(hasHighComplexityOfNeeds).isFalse
       assertThat(hasAllocationHistory).isFalse
-      assertThat(keyworker).isNull()
+      assertThat(staffMember).isNull()
     }
     val history = requireNotNull(response.content.find { it.firstName == "First4" })
     with(history) {
       assertThat(hasHighComplexityOfNeeds).isTrue
       assertThat(hasAllocationHistory).isTrue
-      assertThat(keyworker).isNull()
+      assertThat(staffMember).isNull()
     }
     val active = requireNotNull(response.content.find { it.firstName == "First3" })
     with(active) {
       assertThat(hasHighComplexityOfNeeds).isFalse
       assertThat(hasAllocationHistory).isTrue
-      assertThat(keyworker).isNotNull
+      assertThat(staffMember).isNotNull
     }
   }
 
-  @Test
-  fun `can exclude active and decorate with keyworker`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `can exclude active and decorate with staff member`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EXAC"
     givenPrisonConfig(prisonConfig(prisonCode))
 
@@ -204,25 +221,25 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     }
 
     val response =
-      searchPersonSpec(prisonCode, searchRequest(excludeActiveAllocations = true))
+      searchPersonSpec(prisonCode, searchRequest(excludeActiveAllocations = true), policy)
         .expectStatus()
         .isOk
         .expectBody(PersonSearchResponse::class.java)
         .returnResult()
         .responseBody!!
 
-    assertThat(response.content.filter { it.keyworker != null }).isEmpty()
+    assertThat(response.content.filter { it.staffMember != null }).isEmpty()
     val none = requireNotNull(response.content.find { it.location == "$prisonCode-A-1" })
     with(none) {
       assertThat(hasHighComplexityOfNeeds).isFalse
       assertThat(hasAllocationHistory).isFalse
-      assertThat(keyworker).isNull()
+      assertThat(staffMember).isNull()
     }
     val history = requireNotNull(response.content.find { it.location == "$prisonCode-A-4" })
     with(history) {
       assertThat(hasHighComplexityOfNeeds).isTrue
       assertThat(hasAllocationHistory).isTrue
-      assertThat(keyworker).isNull()
+      assertThat(staffMember).isNull()
     }
   }
 
@@ -235,12 +252,14 @@ class PersonSearchIntegrationTest : IntegrationTest() {
   private fun searchPersonSpec(
     prisonCode: String,
     request: PersonSearchRequest,
-    role: String? = Roles.KEYWORKER_RO,
+    policy: AllocationPolicy,
+    role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .post()
     .uri(SEARCH_URL, prisonCode)
     .bodyValue(request)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+    .header(PolicyHeader.NAME, policy.name)
     .exchange()
 
   private fun prisoners(
@@ -273,5 +292,12 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/prisoners"
+
+    @JvmStatic
+    fun policyProvider() =
+      listOf(
+        Arguments.of(AllocationPolicy.KEY_WORKER),
+        Arguments.of(AllocationPolicy.PERSONAL_OFFICER),
+      )
   }
 }

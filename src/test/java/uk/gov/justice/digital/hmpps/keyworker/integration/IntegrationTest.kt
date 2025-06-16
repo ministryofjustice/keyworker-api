@@ -306,6 +306,7 @@ abstract class IntegrationTest {
   fun resetDb() {
     flyway.clean()
     flyway.migrate()
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
   }
 
   internal fun setOmicAdminHeaders(): (HttpHeaders) -> Unit = setHeaders(roles = listOf("ROLE_OMIC_ADMIN"))

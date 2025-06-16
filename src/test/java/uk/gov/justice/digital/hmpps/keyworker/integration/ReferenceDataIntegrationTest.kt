@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -26,11 +25,10 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
     getReferenceDataSpec("any-domain", "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = [Roles.KEYWORKER_RO, Roles.KEYWORKER_RW])
-  fun `200 ok - can retrieve staff status`(role: String) {
+  @Test
+  fun `200 ok - can retrieve staff status`() {
     val rd =
-      getReferenceDataSpec("staff-status", role)
+      getReferenceDataSpec("staff-status")
         .expectStatus()
         .isOk
         .expectBodyList(CodedDescription::class.java)
@@ -49,22 +47,20 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
   @ParameterizedTest
   @MethodSource("referenceDataDomains")
   fun `200 ok - can retrieve reference data domains with correct role`(domain: String) {
-    ReferenceDataDomain.entries.forEach {
-      val rd =
-        getReferenceDataSpec(domain)
-          .expectStatus()
-          .isOk
-          .expectBodyList(CodedDescription::class.java)
-          .returnResult()
-          .responseBody
+    val rd =
+      getReferenceDataSpec(domain)
+        .expectStatus()
+        .isOk
+        .expectBodyList(CodedDescription::class.java)
+        .returnResult()
+        .responseBody
 
-      assertThat(rd).isNotEmpty
-    }
+    assertThat(rd).isNotEmpty
   }
 
   private fun getReferenceDataSpec(
     domain: String,
-    role: String? = Roles.KEYWORKER_RO,
+    role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .get()
     .uri(REFERENCE_DATA_URL, domain)
