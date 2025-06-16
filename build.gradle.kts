@@ -50,7 +50,7 @@ dependencies {
   runtimeOnly("com.h2database:h2:2.3.232")
   implementation("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  runtimeOnly("org.postgresql:postgresql")
+  runtimeOnly("org.postgresql:postgresql:42.7.7")
   testImplementation("org.codehaus.groovy:groovy-all:3.0.25")
   testImplementation("org.spockframework:spock-spring:$spockVersion") // Upgrade breaks groovy
   testImplementation("org.spockframework:spock-core:$spockVersion") {
