@@ -349,23 +349,6 @@
                                     </td>
                                     <td></td>
                                 </tr>
-                                <tr>
-                                    <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="legacy_id">legacy_id</span></td>
-                                    <td>int8</td>
-                                    <td>19</td>
-                                    <td title='nullable'>√</td>
-                                    <td title=''></td>
-                                    <td>null</td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
-                                        </table>
-                                    </td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
-                                        </table>
-                                    </td>
-                                    <td></td>
-                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -432,12 +415,6 @@
                                     <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
                                     <td>person_identifier + policy_code</td>
                                 </tr>
-                                <tr>
-                                    <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> uq_legacy_allocation</td>
-                                    <td>Must be unique</td>
-                                    <td><span title='Ascending'>Asc</span></td>
-                                    <td>legacy_id</td>
-                                </tr>
                                 </tbody>
                             </table>
                         </div><!-- /.box-body -->
@@ -471,12 +448,12 @@
                                     <td>((allocation_type &#61; ANY (ARRAY[&#39;A&#39;::bpchar, &#39;M&#39;::bpchar, &#39;P&#39;::bpchar])))</td>
                                 </tr>
                                 <tr>
-                                    <td>ch_allocation_is_active</td>
-                                    <td>((NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))</td>
-                                </tr>
-                                <tr>
                                     <td>ch_allocation_is_not_active</td>
                                     <td>((NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))</td>
+                                </tr>
+                                <tr>
+                                    <td>ch_allocation_is_active</td>
+                                    <td>((NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))</td>
                                 </tr>
                                 </tbody>
                             </table>

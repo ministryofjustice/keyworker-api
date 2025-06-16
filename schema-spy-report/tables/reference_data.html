@@ -128,18 +128,18 @@
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
                                             <tr>
-                                                <td title="offender_key_worker.allocation_reason_id references reference_data.id via offender_key_worker_allocation_reason_id_fkey"><a href='offender_key_worker.html'>offender_key_worker</a><span class='relatedKey'>.allocation_reason_id</span></td>
+                                                <td title="staff_configuration.status_id references reference_data.id via key_worker_status_id_fkey"><a href='staff_configuration.html'>staff_configuration</a><span class='relatedKey'>.status_id</span></td>
+                                                <td class="constraint detail">key_worker_status_id_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="zz_archived_legacy_keyworker_allocation.allocation_reason_id references reference_data.id via offender_key_worker_allocation_reason_id_fkey"><a href='zz_archived_legacy_keyworker_allocation.html'>zz_archived_legacy_keyworker_allocation</a><span class='relatedKey'>.allocation_reason_id</span></td>
                                                 <td class="constraint detail">offender_key_worker_allocation_reason_id_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
                                             <tr>
-                                                <td title="offender_key_worker.deallocation_reason_id references reference_data.id via offender_key_worker_deallocation_reason_id_fkey"><a href='offender_key_worker.html'>offender_key_worker</a><span class='relatedKey'>.deallocation_reason_id</span></td>
+                                                <td title="zz_archived_legacy_keyworker_allocation.deallocation_reason_id references reference_data.id via offender_key_worker_deallocation_reason_id_fkey"><a href='zz_archived_legacy_keyworker_allocation.html'>zz_archived_legacy_keyworker_allocation</a><span class='relatedKey'>.deallocation_reason_id</span></td>
                                                 <td class="constraint detail">offender_key_worker_deallocation_reason_id_fkey</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="staff_configuration.status_id references reference_data.id via key_worker_status_id_fkey"><a href='staff_configuration.html'>staff_configuration</a><span class='relatedKey'>.status_id</span></td>
-                                                <td class="constraint detail">key_worker_status_id_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
                                         </table>

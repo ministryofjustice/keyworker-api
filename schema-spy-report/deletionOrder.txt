@@ -4,11 +4,11 @@ allocation
 staff_role_audit
 prison_configuration_audit
 allocation_audit
+zz_archived_legacy_keyworker_allocation
 staff_role
 staff_configuration_audit
 staff_configuration
 prison_configuration
-offender_key_worker
 keyworker_session
 keyworker_entry
 audit_revision

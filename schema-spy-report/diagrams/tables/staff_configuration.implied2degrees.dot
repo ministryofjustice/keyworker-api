@@ -4,8 +4,6 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   "allocation":"elipses":w -> "reference_data":"id":e [arrowhead=none dir=back arrowtail=crowodot];
   "allocation":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "allocation_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "offender_key_worker":"elipses":w -> "reference_data":"id":e [arrowhead=none dir=back arrowtail=crowodot];
-  "offender_key_worker":"elipses":w -> "reference_data":"id":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_configuration":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_configuration_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "staff_configuration":"policy_code":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
@@ -13,6 +11,8 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   "staff_configuration_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "staff_role":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "staff_role_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "zz_archived_legacy_keyworker_allocation":"elipses":w -> "reference_data":"id":e [arrowhead=none dir=back arrowtail=crowodot];
+  "zz_archived_legacy_keyworker_allocation":"elipses":w -> "reference_data":"id":e [arrowhead=none dir=back arrowtail=crowodot];
   "allocation" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -34,17 +34,6 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     URL="../../tables/allocation_audit.html"
     target="_top"
     tooltip="allocation_audit"
-  ];
-  "offender_key_worker" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="141" HEIGHT="16"><B>offender_key_worker</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
-    </TABLE>>
-    URL="../../tables/offender_key_worker.html"
-    target="_top"
-    tooltip="offender_key_worker"
   ];
   "policy" [
    label=<
@@ -144,5 +133,16 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     URL="../../tables/staff_role_audit.html"
     target="_top"
     tooltip="staff_role_audit"
+  ];
+  "zz_archived_legacy_keyworker_allocation" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="277" HEIGHT="16"><B>zz_archived_legacy_keyworker_allocation</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
+    </TABLE>>
+    URL="../../tables/zz_archived_legacy_keyworker_allocation.html"
+    target="_top"
+    tooltip="zz_archived_legacy_keyworker_allocation"
   ];
 }
