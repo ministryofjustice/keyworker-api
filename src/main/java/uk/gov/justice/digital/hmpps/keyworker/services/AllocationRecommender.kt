@@ -3,15 +3,21 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.NoRecommendation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import java.time.LocalDateTime
 import java.util.SortedSet
 import java.util.TreeSet
@@ -23,6 +29,7 @@ class AllocationRecommender(
   private val staffSearch: StaffSearch,
   private val staffConfigRepository: StaffConfigRepository,
   private val staffAllocationRepository: StaffAllocationRepository,
+  private val referenceDataRepository: ReferenceDataRepository,
 ) {
   fun allocations(prisonCode: String): RecommendedAllocations {
     val people =
@@ -42,21 +49,21 @@ class AllocationRecommender(
           if (previousAllocations.isNotEmpty()) {
             staff.first { it.staff.staffId in previousAllocations }
           } else {
-            staff.firstOrNull { it.allocationCount < it.autoAllocationCapacity }
+            staff.firstOrNull { it.allowAutoAllocation && it.allocationCount < it.autoAllocationCapacity }
           }?.also {
             staff.remove(it)
             it.allocationCount++
             staff.add(it)
           }
 
-        recommended?.let { RecommendedAllocation(person.personIdentifier, it.staff) }
+        recommended?.let { RecommendedAllocation(person.personIdentifier, it.asAllocationStaff()) }
           ?: NoRecommendation(person.personIdentifier)
       }
 
     return RecommendedAllocations(
       recommendations.filterIsInstance<RecommendedAllocation>(),
       recommendations.filterIsInstance<NoRecommendation>().map { it.personIdentifier },
-      staff.filter { it.status == StaffStatus.ACTIVE }.map { it.staff },
+      staff.filter { it.status.code == ACTIVE.name }.map { it.asAllocationStaff() },
     )
   }
 
@@ -66,15 +73,17 @@ class AllocationRecommender(
     val staffIds = staff.map { it.staffId }.toSet()
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, staffIds).associateBy { it.staffId }
     val autoAllocations = staffAllocationRepository.findLatestAutoAllocationsFor(staffIds).associateBy { it.staffId }
+    val activeStatus = lazy { requireNotNull(referenceDataRepository.findByKey(STAFF_STATUS of ACTIVE.name)) }
     return staff
       .map {
         val staffInfo = staffInfo[it.staffId]
         StaffCapacity(
           StaffSummary(it.staffId, it.firstName, it.lastName),
+          staffInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
           staffInfo?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
           staffInfo?.allocationCount ?: 0,
           autoAllocations[it.staffId]?.allocatedAt,
-          staffInfo?.staffConfig?.status?.let { ss -> StaffStatus[ss.code] } ?: StaffStatus.ACTIVE,
+          staffInfo?.staffConfig?.status ?: activeStatus.value,
         )
       }.sortedForAllocation()
   }
@@ -82,14 +91,28 @@ class AllocationRecommender(
 
 private class StaffCapacity(
   val staff: StaffSummary,
+  val allowAutoAllocation: Boolean,
   val autoAllocationCapacity: Int,
-  var allocationCount: Int,
+  val initialAllocationCount: Int,
   val lastAutoAllocationAt: LocalDateTime?,
-  val status: StaffStatus,
+  val status: ReferenceData,
 ) {
+  var allocationCount: Int = initialAllocationCount
+
   fun availability(): Double =
     if (allocationCount == 0 || autoAllocationCapacity == 0) 0.0 else allocationCount / autoAllocationCapacity.toDouble()
 }
+
+private fun StaffCapacity.asAllocationStaff() =
+  AllocationStaff(
+    staffId = staff.staffId,
+    firstName = staff.firstName,
+    lastName = staff.lastName,
+    status = status.asCodedDescription(),
+    allowAutoAllocation = allowAutoAllocation,
+    capacity = autoAllocationCapacity,
+    allocated = initialAllocationCount,
+  )
 
 private fun List<StaffCapacity>.sortedForAllocation(): TreeSet<StaffCapacity> =
   TreeSet(
