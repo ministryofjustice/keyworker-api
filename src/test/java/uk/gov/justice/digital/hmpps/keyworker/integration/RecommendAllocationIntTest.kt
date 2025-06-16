@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationStaff
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
@@ -124,8 +126,12 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
     assertThat(res.noAvailableStaffFor).isEmpty()
     staffAtCapacity.forEach { s ->
-      assertThat(res.allocations.filter { it.staff.staffId == s.staffId }.map { it.personIdentifier }.single())
-        .isEqualTo(previousAllocations[s.staffId]?.personIdentifier)
+      assertThat(
+        res.allocations
+          .filter { it.staff.staffId == s.staffId }
+          .map { it.personIdentifier }
+          .single(),
+      ).isEqualTo(previousAllocations[s.staffId]?.personIdentifier)
     }
   }
 
@@ -246,6 +252,26 @@ class RecommendAllocationIntTest : IntegrationTest() {
         ),
     )
     assertThat(res.noAvailableStaffFor).isEmpty()
+    assertThat(res.staff).containsExactlyInAnyOrder(
+      AllocationStaff(
+        staff[0].staffId,
+        staff[0].firstName,
+        staff[0].lastName,
+        CodedDescription("ACTIVE", "Active"),
+        true,
+        6,
+        6,
+      ),
+      AllocationStaff(
+        staff[1].staffId,
+        staff[1].firstName,
+        staff[1].lastName,
+        CodedDescription("ACTIVE", "Active"),
+        true,
+        12,
+        10,
+      ),
+    )
   }
 
   private fun getAllocationRecommendations(
