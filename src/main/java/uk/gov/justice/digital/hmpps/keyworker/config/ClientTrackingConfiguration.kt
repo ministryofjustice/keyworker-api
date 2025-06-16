@@ -33,8 +33,10 @@ class ClientTrackingInterceptor : HandlerInterceptor {
     handler: Any,
   ): Boolean {
     val (user, clientId) = findUserAndClient(request)
-    user?.let { Span.current().setAttribute("username", user) }
-    clientId?.let { Span.current().setAttribute("clientId", clientId) }
+    user?.also { Span.current().setAttribute("username", it) }
+    clientId?.also { Span.current().setAttribute("clientId", it) }
+    request.getHeader(PolicyHeader.NAME)?.also { Span.current().setAttribute(PolicyHeader.NAME, it) }
+    request.getHeader(CaseloadIdHeader.NAME)?.also { Span.current().setAttribute(CaseloadIdHeader.NAME, it) }
     return true
   }
 

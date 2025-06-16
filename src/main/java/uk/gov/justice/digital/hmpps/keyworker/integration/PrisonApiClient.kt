@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 
 @Component
 class PrisonApiClient(

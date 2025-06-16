@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
@@ -31,7 +32,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPerso
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime

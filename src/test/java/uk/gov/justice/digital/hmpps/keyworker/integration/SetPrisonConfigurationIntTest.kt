@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.envers.RevisionType
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -19,11 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 
 class SetPrisonConfigurationIntTest : IntegrationTest() {
-  @AfterEach
-  fun resetContext() {
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
-  }
-
   @Test
   fun `401 not authorised without token`() {
     webTestClient

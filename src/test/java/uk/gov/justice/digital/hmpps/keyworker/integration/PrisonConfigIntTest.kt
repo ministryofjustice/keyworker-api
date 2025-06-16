@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -54,11 +53,6 @@ class PrisonConfigIntTest : IntegrationTest() {
         policy = AllocationPolicy.PERSONAL_OFFICER,
       ),
     ).map { givenPrisonConfig(it) }
-  }
-
-  @AfterEach
-  fun resetContext() {
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
   }
 
   @ParameterizedTest

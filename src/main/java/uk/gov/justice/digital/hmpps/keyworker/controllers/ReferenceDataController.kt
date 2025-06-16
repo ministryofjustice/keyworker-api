@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.RetrieveReferenceData
 class ReferenceDataController(
   val referenceData: RetrieveReferenceData,
 ) {
-  @PreAuthorize("hasAnyRole('${Roles.KEYWORKER_RO}', '${Roles.KEYWORKER_RW}')")
+  @PreAuthorize("hasAnyRole('${Roles.KEYWORKER_RO}', '${Roles.KEYWORKER_RW}', '${Roles.ALLOCATIONS_UI}')")
   @GetMapping
   fun findReferenceDataForDomain(
     @Parameter(

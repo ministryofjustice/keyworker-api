@@ -12,11 +12,11 @@ import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.sar.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.math.BigDecimal

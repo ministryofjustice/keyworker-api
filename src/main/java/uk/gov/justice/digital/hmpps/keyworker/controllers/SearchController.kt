@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
+import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -45,8 +45,9 @@ class SearchController(
     @RequestBody request: StaffSearchRequest,
   ): StaffSearchResponse = staffSearch.searchForStaff(prisonCode, request)
 
-  @Tag(name = ALLOCATE_KEY_WORKERS)
-  @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
+  @PolicyHeader
+  @Tag(name = MANAGE_ALLOCATIONS)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PostMapping("/prisons/{prisonCode}/prisoners")
   fun searchPeople(
     @PathVariable prisonCode: String,
