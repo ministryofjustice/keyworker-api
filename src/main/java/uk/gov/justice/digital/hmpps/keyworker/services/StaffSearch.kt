@@ -15,13 +15,17 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest.Status.ALL
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResult
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
@@ -73,14 +77,63 @@ class StaffSearch(
             prisonConfig,
             { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
             { staffId -> entries.content[staffId.toString()]?.firstOrNull() },
-            lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffSearchRequest.Status.ACTIVE.name)!! },
+            lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
           )
         }.filter { ss ->
-          (request.status == ALL || request.status.name == ss.status.code) &&
+          (request.status == StaffStatus.ALL || request.status.name == ss.status.code) &&
             request.hasPolicyStaffRole?.let {
               it && ss.staffRole != null || !it && ss.staffRole == null
             } ?: true
         },
+    )
+  }
+
+  fun searchForAllocatableStaff(
+    prisonCode: String,
+    request: AllocatableSearchRequest,
+  ): AllocatableSearchResponse {
+    val policy = AllocationContext.get().policy
+    val roleInfo =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
+        else -> staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
+      }
+
+    val staffMembers =
+      prisonApi
+        .findStaffSummariesFromIds(roleInfo.map { it.key }.toSet())
+        .filter { it.matches(request.query) }
+        .associateBy { it.staffId }
+
+    val staffIdStrings = staffMembers.keys.map { it.toString() }.toSet()
+
+    val sessions =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> caseNoteApi.getUsageByStaffIds(lastMonthSessions(staffIdStrings))
+        else -> NoteUsageResponse(emptyMap())
+      }
+    val entries = caseNoteApi.getUsageByStaffIds(lastMonthEntries(staffIdStrings))
+
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
+    val staffDetail =
+      if (staffMembers.keys.isEmpty()) {
+        emptyMap()
+      } else {
+        staffConfigRepository.findAllWithAllocationCount(prisonCode, staffMembers.keys).associateBy { it.staffId }
+      }
+
+    return AllocatableSearchResponse(
+      staffMembers.values
+        .map {
+          it.allocatableSummary(
+            prisonConfig,
+            { staffId -> staffDetail[staffId] },
+            { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
+            { staffId -> entries.content[staffId.toString()]?.firstOrNull() },
+            lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
+            checkNotNull(roleInfo[it.staffId]),
+          )
+        }.filter { ss -> (request.status == StaffStatus.ALL || request.status.name == ss.status.code) },
     )
   }
 
@@ -129,6 +182,14 @@ class StaffSearch(
     }
   }
 
+  private fun StaffSummary.matches(query: String?): Boolean {
+    if (query == null) return true
+    val parts = query.split("\\s+".toRegex())
+    return parts.all { part ->
+      firstName.lowercase().startsWith(part.lowercase()) || lastName.lowercase().startsWith(part.lowercase())
+    }
+  }
+
   private fun StaffWithRole.searchResponse(
     staffConfig: (Long) -> StaffWithAllocationCount?,
     prisonConfig: PrisonConfiguration,
@@ -151,6 +212,30 @@ class StaffSearch(
       staffRole,
       username,
       email,
+    )
+  }
+
+  private fun StaffSummary.allocatableSummary(
+    prisonConfig: PrisonConfiguration,
+    staffConfig: (Long) -> StaffWithAllocationCount?,
+    sessions: (Long) -> UsageByAuthorIdResponse?,
+    entries: (Long) -> UsageByAuthorIdResponse?,
+    activeStatusProvider: Lazy<ReferenceData>,
+    staffRole: StaffRoleInfo,
+  ): AllocatableSummary {
+    val config = staffConfig(staffId)
+    val status = config?.staffConfig?.status ?: activeStatusProvider.value
+    return AllocatableSummary(
+      staffId,
+      firstName,
+      lastName,
+      status.asCodedDescription(),
+      config?.staffConfig?.capacity ?: prisonConfig.capacity,
+      config?.allocationCount ?: 0,
+      config?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
+      sessions(staffId)?.count ?: 0,
+      entries(staffId)?.count ?: 0,
+      staffRole,
     )
   }
 }
