@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
@@ -116,8 +117,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val staffId = newId()
     val psa = personStaffAllocation(prisoner.prisonerNumber, staffId)
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubStaffSummaries(listOf(StaffSummary(staffId, "First$staffId", "Last$staffId")))
 
     givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staffId))
 
@@ -140,8 +141,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val staffId = newId()
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubStaffSummaries(listOf(StaffSummary(staffId, "First$staffId", "Last$staffId")))
 
     allocationAndDeallocate(prisonCode, personStaffAllocations(psas)).expectStatus().isNoContent
 
@@ -170,8 +171,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val staffId = newId()
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubStaffSummaries(listOf(StaffSummary(staffId, "First$staffId", "Last$staffId")))
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode)) }
 
@@ -206,8 +207,8 @@ class KeyworkerAllocationsIntegrationTest : IntegrationTest() {
     val staffId = newId()
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
-    nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubStaffSummaries(listOf(StaffSummary(staffId, "First$staffId", "Last$staffId")))
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode, staffId)) }
 

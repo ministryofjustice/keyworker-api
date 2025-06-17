@@ -13,12 +13,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffSummaries
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -51,7 +50,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (0..2).map { staffDetail() }
-    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(staff)))
+    prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
     } else {
@@ -87,7 +86,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     val staffWithCapacity = (0..2).map { staffDetail() }
     val staffAtCapacity = (0..2).map { staffDetail() }
     val allStaff = staffWithCapacity + staffAtCapacity
-    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(allStaff)))
+    prisonMockServer.stubStaffSummaries(staffSummaries(allStaff.map { it.staffId }.toSet()))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, allStaff)
     } else {
@@ -146,7 +145,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
     val staff = (0..4).map { staffDetail() }
     staff.map { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 6)) }
-    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(staff)))
+    prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
     } else {
@@ -210,7 +209,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     val staff = (1..2).map { staffDetail() }
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[0].staffId, 6))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[1].staffId, 12))
-    nomisUserRolesMockServer.stubGetAllStaff(prisonCode, NomisStaffMembers(nomisStaff(staff)))
+    prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
     } else {
@@ -311,8 +310,8 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
   private fun staffDetail(
     id: Long = newId(),
-    firstName: String = "First $id",
-    lastName: String = "Last $id",
+    firstName: String = "First$id",
+    lastName: String = "Last$id",
   ): StaffLocationRoleDto =
     StaffLocationRoleDto
       .builder()
@@ -324,18 +323,6 @@ class RecommendAllocationIntTest : IntegrationTest() {
       .hoursPerWeek(BigDecimal(37.5))
       .fromDate(LocalDate.now().minusWeeks(7))
       .build()
-
-  private fun nomisStaff(staff: List<StaffLocationRoleDto>): List<NomisStaff> =
-    staff.map {
-      NomisStaff(
-        "user-${it.staffId}",
-        "user-${it.staffId}@email.co.uk",
-        it.staffId,
-        it.firstName,
-        it.lastName,
-        "ACTIVE",
-      )
-    }
 
   companion object {
     const val GET_ALLOCATION_RECOMMENDATIONS = "/prisons/{prisonCode}/prisoners/allocation-recommendations"
