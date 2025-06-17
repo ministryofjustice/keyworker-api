@@ -2,17 +2,17 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 
 data class StaffSearchRequest(
   val query: String?,
-  val status: Status,
+  val status: StaffStatus,
   val hasPolicyStaffRole: Boolean?,
-) {
-  enum class Status {
-    ALL,
-    ACTIVE,
-    UNAVAILABLE_ANNUAL_LEAVE,
-    UNAVAILABLE_LONG_TERM_ABSENCE,
-    UNAVAILABLE_NO_PRISONER_CONTACT,
-    INACTIVE,
-  }
+)
+
+enum class StaffStatus {
+  ALL,
+  ACTIVE,
+  UNAVAILABLE_ANNUAL_LEAVE,
+  UNAVAILABLE_LONG_TERM_ABSENCE,
+  UNAVAILABLE_NO_PRISONER_CONTACT,
+  INACTIVE,
 }
 
 data class StaffSearchResponse(

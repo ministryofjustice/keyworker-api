@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.asKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchRequest.Status.ALL
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto
@@ -60,7 +59,7 @@ class KeyworkerSearch(
             { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
           )
         }.filter {
-          request.status == ALL || valueOf(request.status.name).statusCode == it.status.code
+          request.status == KeyworkerSearchRequest.Status.ALL || valueOf(request.status.name).statusCode == it.status.code
         },
     )
   }

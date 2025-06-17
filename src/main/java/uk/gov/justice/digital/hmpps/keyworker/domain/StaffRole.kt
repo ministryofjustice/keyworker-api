@@ -56,4 +56,6 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     prisonCode: String,
     staffIds: Set<Long>,
   ): List<StaffRole>
+
+  fun findAllByPrisonCode(prisonCode: String): List<StaffRole>
 }
