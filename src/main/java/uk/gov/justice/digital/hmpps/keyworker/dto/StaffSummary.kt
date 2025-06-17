@@ -5,3 +5,8 @@ data class StaffSummary(
   val firstName: String,
   val lastName: String,
 )
+
+data class AllocatableStaff(
+  val staffMember: StaffSummary,
+  val staffRole: StaffRoleInfo,
+)

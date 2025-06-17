@@ -118,8 +118,8 @@ class AllocationManager(
     val staffIds = allocations.map { it.staffId }.toSet()
     if (staffIds.isEmpty()) return
 
-    val staff = staffSearch.findStaff(prisonCode).associateBy { it.staffId }
-    require(staff.keys.containsAll(staffIds)) {
+    val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staffMember.staffId }
+    require(staff.containsAll(staffIds)) {
       "A provided staff id is not allocatable for the provided prison"
     }
     val staffConfig = staffConfigRepository.findAllByStaffIdIn(staffIds).associateBy { it.staffId }

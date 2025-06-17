@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -37,4 +38,6 @@ object NomisStaffGenerator {
         .build()
     }
   }
+
+  fun staffSummaries(staffIds: Set<Long>): List<StaffSummary> = staffIds.map { StaffSummary(it, "First$it", "Last$it") }
 }

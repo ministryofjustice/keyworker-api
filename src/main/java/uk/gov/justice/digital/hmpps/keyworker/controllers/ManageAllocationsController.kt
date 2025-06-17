@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
+import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
@@ -37,6 +38,7 @@ class ManageAllocationsController(
 
   @PolicyHeader
   @CaseloadIdHeader
+  @Tag(name = MANAGE_ALLOCATIONS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping("/prisoners/allocations")
@@ -47,6 +49,8 @@ class ManageAllocationsController(
     allocationManager.manage(prisonCode, psa)
   }
 
+  @PolicyHeader
+  @Tag(name = MANAGE_ALLOCATIONS)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/prisoners/allocation-recommendations")
   fun getAllocationRecommendations(

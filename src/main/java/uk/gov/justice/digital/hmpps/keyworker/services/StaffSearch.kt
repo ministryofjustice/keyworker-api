@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
@@ -50,7 +51,7 @@ class StaffSearch(
     request: StaffSearchRequest,
   ): StaffSearchResponse {
     val context = AllocationContext.get()
-    val staffMembers = findStaff(prisonCode, false, request.query)
+    val staffMembers = searchStaff(prisonCode, request.query)
     val staffIds = staffMembers.map { it.staffId }.toSet()
     val staffIdStrings = staffIds.map { it.toString() }.toSet()
 
@@ -88,22 +89,44 @@ class StaffSearch(
     )
   }
 
+  private fun searchStaff(
+    prisonCode: String,
+    nameFilter: String? = null,
+  ): List<StaffWithRole> {
+    val context = AllocationContext.get()
+    val staffMembers = nomisUsersApi.getUsers(prisonCode, nameFilter).content
+    val roleInfo =
+      when (context.policy) {
+        AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
+        else ->
+          staffRoleRepository
+            .findAllByPrisonCodeAndStaffIdIn(prisonCode, staffMembers.map { it.staffId }.toSet())
+            .associate { it.staffId to it.roleInfo() }
+      }
+    return staffMembers
+      .filter { it.staffStatus == "ACTIVE" }
+      .map {
+        StaffWithRole(
+          it.staffId,
+          it.firstName,
+          it.lastName,
+          roleInfo[it.staffId],
+          it.username,
+          it.email,
+        )
+      }
+  }
+
   fun searchForAllocatableStaff(
     prisonCode: String,
     request: AllocatableSearchRequest,
   ): AllocatableSearchResponse {
     val policy = AllocationContext.get().policy
-    val roleInfo =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
-        else -> staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
-      }
 
     val staffMembers =
-      prisonApi
-        .findStaffSummariesFromIds(roleInfo.map { it.key }.toSet())
-        .filter { it.matches(request.query) }
-        .associateBy { it.staffId }
+      findAllocatableStaff(prisonCode)
+        .filter { it.staffMember.matches(request.query) }
+        .associateBy { it.staffMember.staffId }
 
     val staffIdStrings = staffMembers.keys.map { it.toString() }.toSet()
 
@@ -131,39 +154,22 @@ class StaffSearch(
             { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
             { staffId -> entries.content[staffId.toString()]?.firstOrNull() },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
-            checkNotNull(roleInfo[it.staffId]),
           )
         }.filter { ss -> (request.status == StaffStatus.ALL || request.status.name == ss.status.code) },
     )
   }
 
-  fun findStaff(
-    prisonCode: String,
-    onlyWithRole: Boolean = true,
-    nameFilter: String? = null,
-  ): List<StaffWithRole> {
-    val context = AllocationContext.get()
-    val staffMembers = nomisUsersApi.getUsers(prisonCode, nameFilter).content
+  fun findAllocatableStaff(prisonCode: String): List<AllocatableStaff> {
+    val policy = AllocationContext.get().policy
     val roleInfo =
-      when (context.policy) {
+      when (policy) {
         AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
-        else ->
-          staffRoleRepository
-            .findAllByPrisonCodeAndStaffIdIn(prisonCode, staffMembers.map { it.staffId }.toSet())
-            .associate { it.staffId to it.roleInfo() }
+        else -> staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
       }
-    return staffMembers
-      .filter { it.staffStatus == "ACTIVE" }
-      .map {
-        StaffWithRole(
-          it.staffId,
-          it.firstName,
-          it.lastName,
-          roleInfo[it.staffId],
-          it.username,
-          it.email,
-        )
-      }.filter { !onlyWithRole || it.staffRole != null }
+
+    val staff = prisonApi.findStaffSummariesFromIds(roleInfo.map { it.key }.toSet())
+
+    return staff.map { AllocatableStaff(it, requireNotNull(roleInfo[it.staffId])) }
   }
 
   private fun getKeyworkerRoleInfo(prisonCode: String): Map<Long, StaffRoleInfo> {
@@ -215,26 +221,25 @@ class StaffSearch(
     )
   }
 
-  private fun StaffSummary.allocatableSummary(
+  private fun AllocatableStaff.allocatableSummary(
     prisonConfig: PrisonConfiguration,
     staffConfig: (Long) -> StaffWithAllocationCount?,
     sessions: (Long) -> UsageByAuthorIdResponse?,
     entries: (Long) -> UsageByAuthorIdResponse?,
     activeStatusProvider: Lazy<ReferenceData>,
-    staffRole: StaffRoleInfo,
   ): AllocatableSummary {
-    val config = staffConfig(staffId)
+    val config = staffConfig(staffMember.staffId)
     val status = config?.staffConfig?.status ?: activeStatusProvider.value
     return AllocatableSummary(
-      staffId,
-      firstName,
-      lastName,
+      staffMember.staffId,
+      staffMember.firstName,
+      staffMember.lastName,
       status.asCodedDescription(),
       config?.staffConfig?.capacity ?: prisonConfig.capacity,
       config?.allocationCount ?: 0,
       config?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
-      sessions(staffId)?.count ?: 0,
-      entries(staffId)?.count ?: 0,
+      sessions(staffMember.staffId)?.count ?: 0,
+      entries(staffMember.staffId)?.count ?: 0,
       staffRole,
     )
   }

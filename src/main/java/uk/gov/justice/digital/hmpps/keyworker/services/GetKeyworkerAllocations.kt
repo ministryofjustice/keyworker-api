@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocationHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
@@ -75,7 +75,7 @@ class GetKeyworkerAllocations(
     }
   }
 
-  fun historyFor(prisonNumber: String): PersonStaffAllocationHistory {
+  fun historyFor(prisonNumber: String): KeyworkerAllocationHistory {
     val allocations = allocationRepository.findAllByPersonIdentifier(prisonNumber)
     val usernames = allocations.flatMap { listOfNotNull(it.allocatedBy, it.deallocatedBy) }.toSet()
     val users = manageUsers.getUsersDetails(usernames).associateBy { it.username }
@@ -86,7 +86,7 @@ class GetKeyworkerAllocations(
     val staff = prisonApi.findStaffSummariesFromIds(staffIds).associateBy { it.staffId }
     check(staff.keys.containsAll(staffIds))
 
-    return PersonStaffAllocationHistory(
+    return KeyworkerAllocationHistory(
       prisonNumber,
       allocations
         .map {

@@ -69,7 +69,7 @@ class AllocationRecommender(
 
   private fun getStaffCapacities(prisonCode: String): SortedSet<StaffCapacity> {
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
-    val staff = staffSearch.findStaff(prisonCode)
+    val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staffMember }
     val staffIds = staff.map { it.staffId }.toSet()
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, staffIds).associateBy { it.staffId }
     val autoAllocations = staffAllocationRepository.findLatestAutoAllocationsFor(staffIds).associateBy { it.staffId }
