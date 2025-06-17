@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.ALLOCATE_KEY_WORKERS
+import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerAllocations
 
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerAllocations
 class CurrentKeyworkerController(
   private val allocations: GetKeyworkerAllocations,
 ) {
+  @Tag(name = MANAGE_ALLOCATIONS)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping("prisons/{prisonCode}/prisoners/{prisonNumber}/keyworkers/current")
   fun getCurrentKeyworker(

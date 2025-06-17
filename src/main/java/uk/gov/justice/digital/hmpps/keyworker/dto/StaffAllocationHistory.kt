@@ -2,23 +2,17 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 
 import java.time.LocalDateTime
 
-data class PersonStaffAllocationHistory(
+data class StaffAllocationHistory(
   val prisonNumber: String,
-  val allocations: List<KeyworkerAllocation>,
+  val allocations: List<StaffAllocation>,
 )
 
-data class KeyworkerAllocation(
+data class StaffAllocation(
   val active: Boolean,
-  val keyworker: Keyworker,
+  val staffMember: StaffSummary,
   val prison: CodedDescription,
   val allocated: Actioned,
   val deallocated: Actioned?,
-)
-
-data class Keyworker(
-  val staffId: Long,
-  val firstName: String,
-  val lastName: String,
 )
 
 data class Actioned(
