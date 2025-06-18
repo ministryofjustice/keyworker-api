@@ -26,10 +26,10 @@ import java.util.Optional
 class PrisonStatisticCalculator(
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
-  private val keyworkerAllocationRepository: StaffAllocationRepository,
+  private val staffAllocationRepository: StaffAllocationRepository,
   private val caseNotesApi: CaseNotesApiClient,
   private val nomisService: NomisService,
-  private val keyworkerConfigRepository: StaffConfigRepository,
+  private val staffConfigRepository: StaffConfigRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
@@ -69,9 +69,9 @@ class PrisonStatisticCalculator(
         return
       }
 
-      val activeAllocations = keyworkerAllocationRepository.countActiveAllocations(prisonCode, eligiblePrisoners)
+      val activeAllocations = staffAllocationRepository.countActiveAllocations(prisonCode, eligiblePrisoners)
       val newAllocations =
-        keyworkerAllocationRepository
+        staffAllocationRepository
           .findNewAllocationsAt(prisonCode, date, date.plusDays(1))
           .associateBy { it.personIdentifier }
 
@@ -99,7 +99,7 @@ class PrisonStatisticCalculator(
           ?.let { nomisKeyworkers ->
             val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
             val nonActiveIds =
-              keyworkerConfigRepository
+              staffConfigRepository
                 .getNonActiveStaff(keyworkerIds)
                 .map { it.staffId }
                 .toSet()

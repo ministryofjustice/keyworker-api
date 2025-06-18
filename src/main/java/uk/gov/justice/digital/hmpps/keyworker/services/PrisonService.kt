@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
@@ -16,6 +17,11 @@ class PrisonService(
   private val prisonConfig: PrisonConfigurationRepository,
   private val prisonRegister: PrisonRegisterClient,
 ) {
+  fun findPolicyEnabledPrisons(policyCode: String): Set<String> =
+    AllocationPolicy.of(policyCode)?.name?.let { policyCode ->
+      prisonConfig.findEnabledPrisonsForPolicyCode(policyCode).map { it.code }.toSet()
+    } ?: emptySet()
+
   fun getPrisonKeyworkerConfig(prisonCode: String) = prisonConfig.findByCode(prisonCode).prisonKeyworkerConfig()
 
   fun findPrisons(ids: Set<String>): List<Prison> = prisonRegister.findPrisons(ids)
