@@ -58,3 +58,5 @@ spring:
 api.health-timeout-ms: 400
 
 logging.level.org.springframework.security.oauth2: DEBUG
+
+keyworker-enabled-for-prisons: "KEF"

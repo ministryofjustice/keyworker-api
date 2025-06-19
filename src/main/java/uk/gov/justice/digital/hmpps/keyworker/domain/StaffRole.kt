@@ -10,6 +10,7 @@ import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.math.BigDecimal
@@ -58,4 +59,15 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
   ): List<StaffRole>
 
   fun findAllByPrisonCode(prisonCode: String): List<StaffRole>
+
+  @Query(
+    """
+        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and to_date is null
+    """,
+    nativeQuery = true,
+  )
+  fun findByPrisonCodeAndStaffIdAndPolicyIn(
+    prisonCode: String,
+    staffId: Long,
+  ): List<StaffRole>
 }
