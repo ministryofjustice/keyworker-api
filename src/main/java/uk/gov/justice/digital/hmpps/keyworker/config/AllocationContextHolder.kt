@@ -14,5 +14,9 @@ class AllocationContextHolder {
       ThreadLocal.withInitial { AllocationContext(SYSTEM_USER_NAME) }
 
     fun getContext(): AllocationContext = context.get()
+
+    fun setContext(context: AllocationContext) {
+      AllocationContextHolder.context.set(context)
+    }
   }
 }

@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
@@ -51,7 +52,28 @@ class GetStaffDetails(
   private val caseNotesApiClient: CaseNotesApiClient,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
-  fun getFor(
+  fun getJobClassificationsFor(
+    prisonCode: String,
+    staffId: Long,
+  ): JobClassificationResponse {
+    val policies: Set<AllocationPolicy> =
+      buildSet {
+        if (prisonApi.getKeyworkerForPrison(prisonCode, staffId) != null) add(AllocationPolicy.KEY_WORKER)
+        addAll(
+          staffRoleRepository
+            .findByPrisonCodeAndStaffIdAndPolicyIn(
+              prisonCode,
+              staffId,
+              AllocationPolicy.entries.map { it.name }.toSet(),
+            ).mapNotNull {
+              AllocationPolicy.of(it.policy)
+            },
+        )
+      }
+    return JobClassificationResponse(policies)
+  }
+
+  fun getDetailsFor(
     prisonCode: String,
     staffId: Long,
   ): StaffDetails {
