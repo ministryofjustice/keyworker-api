@@ -40,7 +40,7 @@ dependencies {
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.51.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.16.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.13.3")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.14.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.1")
   implementation("org.hibernate.orm:hibernate-envers")
@@ -69,8 +69,8 @@ dependencies {
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
   testImplementation("io.jsonwebtoken:jjwt:0.12.6")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.21.1")
-  testImplementation("org.testcontainers:localstack:1.21.1")
+  testImplementation("org.testcontainers:postgresql:1.21.2")
+  testImplementation("org.testcontainers:localstack:1.21.2")
 }
 
 allOpen {
