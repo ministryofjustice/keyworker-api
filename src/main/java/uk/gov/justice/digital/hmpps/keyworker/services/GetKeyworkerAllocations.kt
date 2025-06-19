@@ -1,17 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.dto.Actioned
-import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
@@ -74,55 +67,6 @@ class GetKeyworkerAllocations(
           } ?: CurrentPersonStaffAllocation(prisonNumber, false, null, null)
     }
   }
-
-  fun historyFor(prisonNumber: String): KeyworkerAllocationHistory {
-    val allocations = allocationRepository.findAllByPersonIdentifier(prisonNumber)
-    val usernames = allocations.flatMap { listOfNotNull(it.allocatedBy, it.deallocatedBy) }.toSet()
-    val users = manageUsers.getUsersDetails(usernames).associateBy { it.username }
-    check(users.keys.containsAll(usernames))
-    val prisons = prisonService.findPrisons(allocations.map { it.prisonCode }.toSet()).associateBy { it.prisonId }
-    check(prisons.keys.containsAll(allocations.map { it.prisonCode }.toSet()))
-    val staffIds = allocations.map { it.staffId }.toSet()
-    val staff = prisonApi.findStaffSummariesFromIds(staffIds).associateBy { it.staffId }
-    check(staff.keys.containsAll(staffIds))
-
-    return KeyworkerAllocationHistory(
-      prisonNumber,
-      allocations
-        .map {
-          it.toModel(
-            { prisons[it]!!.asCodedDescription() },
-            { staff[it]!!.asKeyworker() },
-            { username -> username?.let { users[it]?.name } ?: "User" },
-          )
-        }.sortedByDescending { it.allocated.at },
-    )
-  }
-
-  private fun Allocation.toModel(
-    prison: (String) -> CodedDescription,
-    keyworker: (Long) -> Keyworker,
-    actionedBy: (String?) -> String,
-  ): KeyworkerAllocation =
-    KeyworkerAllocation(
-      isActive,
-      keyworker(staffId),
-      prison(prisonCode),
-      Actioned(allocatedAt, actionedBy(allocatedBy), allocationReason.asCodedDescription()),
-      deallocationReason?.let {
-        Actioned(
-          deallocatedAt!!,
-          actionedBy(deallocatedBy),
-          it.asCodedDescription(),
-        )
-      },
-    )
-
-  private fun StaffSummary.asKeyworker() = Keyworker(staffId, firstName, lastName)
-
-  private fun Prison.asCodedDescription() = CodedDescription(prisonId, prisonName)
-
-  private fun ReferenceData.asCodedDescription() = CodedDescription(code, description)
 
   private fun StaffSummary.asCurrentKeyworker() = CurrentKeyworker(firstName, lastName)
 }

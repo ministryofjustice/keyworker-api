@@ -36,7 +36,7 @@ class ManageStaffConfigIntTest : IntegrationTest() {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = [Roles.KEYWORKER_RO, Roles.KEYWORKER_RW])
+  @ValueSource(strings = [Roles.KEYWORKER_RO])
   @NullSource
   fun `403 forbidden`(role: String?) {
     manageStaffConfig("NA2", newId(), staffConfigRequest(), AllocationPolicy.entries.random(), role = role)

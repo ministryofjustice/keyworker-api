@@ -40,7 +40,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = [Roles.KEYWORKER_RO, Roles.KEYWORKER_RW])
+  @ValueSource(strings = [Roles.KEYWORKER_RO])
   @NullSource
   fun `403 forbidden`(role: String?) {
     manageStaffJobClassification(
