@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
+import java.time.LocalDate
 
 class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   @Test
@@ -73,6 +74,25 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(res.policies).containsOnly(AllocationPolicy.PERSONAL_OFFICER)
+  }
+
+  @Test
+  fun `only retrieve active job classification policies for a staff member`() {
+    val prisonCode = "AJC"
+    val staffId = newId()
+    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    givenStaffRole(staffRole(prisonCode, staffId, toDate = LocalDate.now()))
+
+    val res =
+      getStaffJobClassifications(prisonCode, staffId)
+        .expectStatus()
+        .isOk
+        .expectBody<JobClassificationResponse>()
+        .returnResult()
+        .responseBody!!
+
+    assertThat(res.policies).containsOnly(AllocationPolicy.KEY_WORKER)
   }
 
   private fun getStaffJobClassifications(
