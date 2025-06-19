@@ -14,20 +14,16 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
-import uk.gov.justice.digital.hmpps.keyworker.services.GetKeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonStatsService
@@ -39,7 +35,6 @@ import java.time.LocalDate
 class PrisonController(
   private val prisonService: PrisonService,
   private val statsService: PrisonStatsService,
-  private val keyworkerDetails: GetKeyworkerDetails,
   private val staffDetails: GetStaffDetails,
   private val staffConfigManager: StaffConfigManager,
 ) {
@@ -63,27 +58,12 @@ class PrisonController(
 
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
-  @GetMapping(value = ["/configuration/keyworker"])
-  fun getPrisonKeyworkerConfiguration(
-    @PathVariable("prisonCode") prisonCode: String,
-  ): PrisonKeyworkerConfiguration = prisonService.getPrisonKeyworkerConfig(prisonCode)
-
-  @Tag(name = PRISON)
-  @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping(value = ["/statistics/keyworker"])
   fun getPrisonStatistics(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
     @RequestParam to: LocalDate,
   ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to)
-
-  @Tag(name = MANAGE_KEYWORKERS)
-  @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
-  @GetMapping("/keyworkers/{staffId}")
-  fun getKeyworkerDetails(
-    @PathVariable prisonCode: String,
-    @PathVariable staffId: Long,
-  ): KeyworkerDetails = keyworkerDetails.getFor(prisonCode, staffId)
 
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
@@ -100,19 +80,6 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
   ): JobClassificationResponse = staffDetails.getJobClassificationsFor(prisonCode, staffId)
-
-  @Tag(name = MANAGE_KEYWORKERS)
-  @CaseloadIdHeader
-  @PreAuthorize("hasRole('${Roles.KEYWORKER_RW}')")
-  @PutMapping("/keyworkers/{staffId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  fun modifyKeyworkerConfig(
-    @PathVariable prisonCode: String,
-    @PathVariable staffId: Long,
-    @RequestBody request: StaffConfigRequest,
-  ) {
-    staffConfigManager.setStaffConfiguration(prisonCode, staffId, request)
-  }
 
   @PolicyHeader
   @CaseloadIdHeader
