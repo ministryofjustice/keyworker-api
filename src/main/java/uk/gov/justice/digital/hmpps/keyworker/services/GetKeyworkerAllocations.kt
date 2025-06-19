@@ -1,17 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.dto.Actioned
-import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.Keyworker
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
