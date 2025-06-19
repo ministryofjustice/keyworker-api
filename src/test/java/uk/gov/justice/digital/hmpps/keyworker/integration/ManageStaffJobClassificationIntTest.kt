@@ -231,7 +231,7 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
       .exchange()
 
   companion object {
-    const val STAFF_JOB_URL = "/prisons/{prisonCode}/staff/{staffId}/job-classification"
+    const val STAFF_JOB_URL = "/prisons/{prisonCode}/staff/{staffId}/job-classifications"
     const val TEST_USERNAME = "T35TUS3R"
 
     @JvmStatic
