@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_KEYWORKERS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
+import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
@@ -90,7 +92,14 @@ class PrisonController(
   fun getStaffDetails(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
-  ): StaffDetails = staffDetails.getFor(prisonCode, staffId)
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId)
+
+  @Operation(hidden = true)
+  @GetMapping("/staff/{staffId}/job-classifications")
+  fun getStaffJobClassification(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+  ): JobClassificationResponse = staffDetails.getJobClassificationsFor(prisonCode, staffId)
 
   @Tag(name = MANAGE_KEYWORKERS)
   @CaseloadIdHeader
@@ -123,7 +132,7 @@ class PrisonController(
   @CaseloadIdHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
-  @PutMapping("/staff/{staffId}/job-classification")
+  @PutMapping("/staff/{staffId}/job-classifications", "/staff/{staffId}/job-classification")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun modifyStaffJob(
     @PathVariable prisonCode: String,

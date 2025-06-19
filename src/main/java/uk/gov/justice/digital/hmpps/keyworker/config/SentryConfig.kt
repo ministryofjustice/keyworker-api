@@ -40,12 +40,13 @@ class SentryConfig {
     }
 
   private fun String.isAdministrativeRequest(): Boolean =
-    this.startsWith("GET /health") or this.startsWith("GET /info") or this.startsWith("GET /swagger-ui")
+    this.startsWith("GET /health") or this.endsWith("/info") or this.startsWith("GET /swagger-ui")
 
   private fun Throwable.is4xxClientError(): Boolean =
     (this is EntityNotFoundException) or ((this as? WebClientResponseException)?.statusCode?.is4xxClientError ?: false)
 
   private fun String.isHighUsage(): Boolean =
     matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", this) or
-      matches("/prisons/[A-Z]{3}/prisoners/[A-Z][0-9]{4}[A-Z]{2}/keyworkers/current", this)
+      matches("/prisons/[A-Z]{3}/prisoners/[A-Z][0-9]{4}[A-Z]{2}/keyworkers/current", this) or
+      matches("/prisons/[A-Z]{3}/staff/\\d+/job-classifications", this)
 }

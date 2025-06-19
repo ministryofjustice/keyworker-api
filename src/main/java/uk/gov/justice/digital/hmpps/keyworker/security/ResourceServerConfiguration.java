@@ -25,7 +25,7 @@ public class ResourceServerConfiguration {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(httpRequest -> httpRequest.requestMatchers(
                 "/webjars/**", "/favicon.ico", "/csrf",
-                "/health/**", "/info", "/ping",
+                "/health/**", "/*/info", "/info", "/ping",
                 "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
                 "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
                 "/queue-admin/retry-all-dlqs",

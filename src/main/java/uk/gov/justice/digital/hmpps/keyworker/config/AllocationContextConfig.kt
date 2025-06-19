@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy.KEY_WORKER
 
 @Configuration
 class KeyworkerContextConfiguration(
@@ -61,5 +62,5 @@ class KeyworkerContextInterceptor(
 
   private fun HttpServletRequest.caseloadId(): String? = getHeader(CaseloadIdHeader.NAME)
 
-  private fun HttpServletRequest.policy(): AllocationPolicy = AllocationPolicy.of(getHeader(PolicyHeader.NAME))
+  private fun HttpServletRequest.policy(): AllocationPolicy = AllocationPolicy.of(getHeader(PolicyHeader.NAME)) ?: KEY_WORKER
 }

@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.utils.asKeyword
 import java.time.LocalDateTime
 
 data class AllocationContext(
@@ -13,7 +14,7 @@ data class AllocationContext(
   val policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
 ) {
   companion object {
-    const val SYSTEM_USER_NAME = "SYS"
+    const val SYSTEM_USERNAME = "SYS"
 
     fun get(): AllocationContext = AllocationContextHolder.getContext()
   }
@@ -28,7 +29,7 @@ enum class AllocationPolicy(
   ;
 
   companion object {
-    fun of(name: String?): AllocationPolicy = entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: KEY_WORKER
+    fun of(name: String?): AllocationPolicy? = entries.firstOrNull { it.name.asKeyword() == name?.asKeyword() }
   }
 }
 
