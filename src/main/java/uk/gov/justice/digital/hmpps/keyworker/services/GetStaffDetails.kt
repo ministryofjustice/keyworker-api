@@ -64,7 +64,6 @@ class GetStaffDetails(
             .findByPrisonCodeAndStaffIdAndPolicyIn(
               prisonCode,
               staffId,
-              AllocationPolicy.entries.map { it.name }.toSet(),
             ).mapNotNull {
               AllocationPolicy.of(it.policy)
             },

@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
 import java.util.UUID
 
 @Component
@@ -23,7 +24,7 @@ class ManageUsersClient(
         .fromIterable(usernames)
         .flatMap({ getUserDetailsMono(it) }, 10)
         .collectList()
-        .block()!!
+        .block()!! + UserDetails(SYSTEM_USERNAME, true, "Sys", "DPS", "0", null, null)
     }
 
   private fun getUserDetailsMono(username: String): Mono<UserDetails> =

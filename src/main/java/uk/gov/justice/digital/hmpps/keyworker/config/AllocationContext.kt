@@ -14,7 +14,7 @@ data class AllocationContext(
   val policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
 ) {
   companion object {
-    const val SYSTEM_USER_NAME = "SYS"
+    const val SYSTEM_USERNAME = "SYS"
 
     fun get(): AllocationContext = AllocationContextHolder.getContext()
   }

@@ -62,13 +62,12 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
 
   @Query(
     """
-        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and policy_code in :policies
+        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and to_date is null
     """,
     nativeQuery = true,
   )
   fun findByPrisonCodeAndStaffIdAndPolicyIn(
     prisonCode: String,
     staffId: Long,
-    policies: Set<String>,
   ): List<StaffRole>
 }

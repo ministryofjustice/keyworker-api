@@ -132,7 +132,7 @@ class PrisonController(
   @CaseloadIdHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
-  @PutMapping("/staff/{staffId}/job-classification", "/staff/{staffId}/job-classification")
+  @PutMapping("/staff/{staffId}/job-classifications", "/staff/{staffId}/job-classification")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun modifyStaffJob(
     @PathVariable prisonCode: String,
