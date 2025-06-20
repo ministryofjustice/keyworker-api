@@ -131,8 +131,10 @@ class AllocationManager(
 
   private fun StaffConfiguration?.validateFor(allocation: PersonStaffAllocation): StaffConfiguration? =
     if (this == null ||
-      (allocation.allocationReason == MANUAL.reasonCode && status.code == StaffStatus.ACTIVE.name) ||
-      (allocation.allocationReason == AUTO.reasonCode && allowAutoAllocation)
+      (
+        status.code == StaffStatus.ACTIVE.name &&
+          (allocation.allocationReason == MANUAL.reasonCode || allowAutoAllocation)
+      )
     ) {
       null
     } else {
