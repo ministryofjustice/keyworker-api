@@ -6,7 +6,6 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
@@ -21,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -272,9 +272,4 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         }.flatten()
         .groupBy { it.personIdentifier },
     )
-
-  private fun staffRoles(staffIds: List<Long>) =
-    staffIds.map {
-      StaffLocationRoleDto.builder().staffId(it).build()
-    }
 }

@@ -89,10 +89,6 @@ public class NomisServiceImpl implements NomisService {
         new ParameterizedTypeReference<>() {
         };
 
-    private static final ParameterizedTypeReference<List<BookingIdentifier>> BOOKING_IDENTIFIER_LIST =
-        new ParameterizedTypeReference<>() {
-        };
-
     private final RestCallHelper restCallHelper;
     private final CaseNotesApiClient caseNotesApiClient;
 

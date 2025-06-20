@@ -64,7 +64,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val staffConfig =
       givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(prisonCode, staffDetail(staffConfig.staffId, "FT", "PRO"))
+      prisonMockServer.stubKeyworkerDetails(prisonCode, staffConfig.staffId, staffDetail(staffConfig.staffId, "FT", "PRO"))
     } else {
       prisonMockServer.stubStaffSummaries(listOf(staffSummary(id = staffConfig.staffId)))
       givenStaffRole(
@@ -212,7 +212,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val staff = staffDetail(newId(), "PT", "CHAP", "Noah", "Locations")
     prisonRegisterMockServer.stubGetPrisons(setOf(prison))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(prisonCode, staff)
+      prisonMockServer.stubKeyworkerDetails(prisonCode, staff.staffId, staff)
     } else {
       prisonMockServer.stubStaffSummaries(listOf(staffSummary("Noah", "Locations", staff.staffId)))
       givenStaffRole(
@@ -273,7 +273,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         ),
       )
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(prisonCode, staff)
+      prisonMockServer.stubKeyworkerDetails(prisonCode, staff.staffId, staff)
     } else {
       prisonMockServer.stubStaffSummaries(listOf(staffSummary("On", "Holiday", staffConfig.staffId)))
       givenStaffRole(

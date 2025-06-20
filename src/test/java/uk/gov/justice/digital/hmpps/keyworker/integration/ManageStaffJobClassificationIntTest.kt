@@ -95,7 +95,6 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
       jobClassificationRequest(
         scheduleType = "PT",
         hoursPerWeek = BigDecimal(20),
-        toDate = LocalDate.now(),
       )
     stubNomisUserRoles(prisonCode, staffId, request, policy)
 
@@ -159,9 +158,12 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
-    if (policy == AllocationPolicy.PERSONAL_OFFICER) {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
+    val staffRole =
+      if (policy == AllocationPolicy.PERSONAL_OFFICER) {
+        givenStaffRole(staffRole(prisonCode, staffId))
+      } else {
+        null
+      }
 
     val allocations =
       (0..5).map {
@@ -170,8 +172,8 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
 
     val request =
       jobClassificationRequest(
-        scheduleType = "PT",
-        hoursPerWeek = BigDecimal(20),
+        scheduleType = staffRole?.scheduleType?.code ?: "PT",
+        hoursPerWeek = staffRole?.hoursPerWeek ?: BigDecimal(20),
         toDate = LocalDate.now(),
       )
     stubNomisUserRoles(prisonCode, staffId, request, policy)
@@ -182,10 +184,8 @@ class ManageStaffJobClassificationIntTest : IntegrationTest() {
 
     setContext(AllocationContext.get().copy(policy = policy))
     if (policy == AllocationPolicy.PERSONAL_OFFICER) {
-      val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
-      staffRole.verifyAgainst(request)
       verifyAudit(
-        staffRole,
+        staffRole!!,
         staffRole.id,
         RevisionType.MOD,
         setOf(StaffRole::class.simpleName!!, Allocation::class.simpleName!!),

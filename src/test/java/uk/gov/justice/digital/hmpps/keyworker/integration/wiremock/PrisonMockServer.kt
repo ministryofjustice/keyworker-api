@@ -5,9 +5,9 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.dto.Agency
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.GetStaffDetailsIntegrationTest.Companion.staffDetail
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 class PrisonMockServer : WireMockServer(9999) {
@@ -188,18 +188,19 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubKeyworkerDetails(
     prisonCode: String,
-    staffDetail: StaffLocationRoleDto,
+    staffId: Long,
+    staffDetail: StaffLocationRoleDto?,
   ) {
     stubFor(
       WireMock
         .get(WireMock.urlPathMatching("/api/staff/roles/$prisonCode/role/KW"))
-        .withQueryParam("staffId", equalTo(staffDetail.staffId.toString()))
+        .withQueryParam("staffId", equalTo(staffId.toString()))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(listOf(staffDetail))),
+            .withBody(objectMapper.writeValueAsString(listOfNotNull(staffDetail))),
         ),
     )
   }
@@ -253,23 +254,6 @@ class PrisonMockServer : WireMockServer(9999) {
             .withHeader("Content-Type", "application/json")
             .withStatus(status.value())
             .withBody(isKeyworker.toString()),
-        ),
-    )
-  }
-
-  fun stubGetAgency(
-    agencyId: String,
-    agency: Agency = Agency(agencyId, "Description of $agencyId"),
-  ) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/agencies/$agencyId"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(agency)),
         ),
     )
   }

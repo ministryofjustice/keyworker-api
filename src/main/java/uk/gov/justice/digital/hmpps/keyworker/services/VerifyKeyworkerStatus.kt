@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
@@ -13,13 +12,16 @@ class VerifyKeyworkerStatus(
   fun isKeyworker(
     username: String,
     prisonCode: String,
-    role: String = "KW",
   ): UsernameKeyworker {
     val userDetails = checkNotNull(manageUsersClient.getUserDetails(username)) { "Username not recognised" }
-    val roleCheck =
-      prisonApiClient.staffRoleCheck(userDetails.userId, prisonCode, role)
-        ?: throw EntityNotFoundException("Staff not found")
-    return UsernameKeyworker(username, roleCheck)
+    val nsr =
+      userDetails.userId
+        .toLongOrNull()
+        ?.let {
+          prisonApiClient.getKeyworkerForPrison(prisonCode, it)
+        }?.takeIf { !it.isExpired() }
+
+    return UsernameKeyworker(username, nsr != null)
   }
 }
 

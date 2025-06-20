@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
-import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto.activeStaffKeyWorkersPagingAndSorting
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -16,11 +16,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS
-import java.util.Optional
 
 @Service
 class PrisonStatisticCalculator(
@@ -28,7 +26,7 @@ class PrisonStatisticCalculator(
   private val prisonerSearch: PrisonerSearchClient,
   private val staffAllocationRepository: StaffAllocationRepository,
   private val caseNotesApi: CaseNotesApiClient,
-  private val nomisService: NomisService,
+  private val prisonApi: PrisonApiClient,
   private val staffConfigRepository: StaffConfigRepository,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -89,22 +87,15 @@ class PrisonStatisticCalculator(
         }
 
       val activeKeyworkers =
-        nomisService
-          .getActiveStaffKeyWorkersForPrison(
-            prisonCode,
-            Optional.empty(),
-            activeStaffKeyWorkersPagingAndSorting(),
-            true,
-          )?.body
-          ?.let { nomisKeyworkers ->
-            val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
-            val nonActiveIds =
-              staffConfigRepository
-                .getNonActiveStaff(keyworkerIds)
-                .map { it.staffId }
-                .toSet()
-            (keyworkerIds - nonActiveIds).size
-          } ?: 0
+        prisonApi.getKeyworkersForPrison(prisonCode).let { nomisKeyworkers ->
+          val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
+          val nonActiveIds =
+            staffConfigRepository
+              .getNonActiveStaff(keyworkerIds)
+              .map { it.staffId }
+              .toSet()
+          (keyworkerIds - nonActiveIds).size
+        }
 
       val summaries =
         PeopleSummaries(
