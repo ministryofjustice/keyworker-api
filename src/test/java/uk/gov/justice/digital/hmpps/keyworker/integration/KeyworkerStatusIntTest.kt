@@ -61,7 +61,7 @@ class KeyworkerStatusIntTest : IntegrationTest() {
     val username = "mrs.smith"
     val userId = "4567"
     manageUsersMockServer.stubGetUserDetails(username, userId, "Mrs Smith")
-    prisonMockServer.stubKeyworkerDetails(prisonCode, userId.toLong(), staffLocationRole(userId.toLong(), LocalDate.now().minusDays(1)))
+    prisonMockServer.stubKeyworkerDetails(prisonCode, userId.toLong(), staffLocationRole(userId.toLong(), LocalDate.now()))
     val res =
       getKeyworkerStatusSpec(username, prisonCode)
         .expectStatus()
