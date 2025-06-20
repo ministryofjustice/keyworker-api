@@ -12,4 +12,6 @@ data class NomisStaffRole(
   val hoursPerWeek: BigDecimal,
   val fromDate: LocalDate,
   val toDate: LocalDate?,
-)
+) {
+  fun isExpired(): Boolean = toDate?.isAfter(LocalDate.now()) == false
+}

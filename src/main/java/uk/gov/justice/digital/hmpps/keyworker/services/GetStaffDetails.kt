@@ -58,7 +58,7 @@ class GetStaffDetails(
   ): JobClassificationResponse {
     val policies: Set<AllocationPolicy> =
       buildSet {
-        if (prisonApi.getKeyworkerForPrison(prisonCode, staffId) != null) add(AllocationPolicy.KEY_WORKER)
+        if (prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.takeIf { !it.isExpired() } != null) add(AllocationPolicy.KEY_WORKER)
         addAll(
           staffRoleRepository
             .findByPrisonCodeAndStaffIdAndPolicyIn(
