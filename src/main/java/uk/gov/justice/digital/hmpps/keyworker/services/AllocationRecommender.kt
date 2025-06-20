@@ -49,7 +49,7 @@ class AllocationRecommender(
           if (previousAllocations.isNotEmpty()) {
             staff.first { it.staff.staffId in previousAllocations }
           } else {
-            staff.firstOrNull { it.allowAutoAllocation && it.allocationCount < it.autoAllocationCapacity }
+            staff.firstOrNull { it.allocationCount < it.autoAllocationCapacity }
           }?.also {
             staff.remove(it)
             it.allocationCount++

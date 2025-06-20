@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
@@ -15,12 +16,10 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.AUTO
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.OVERRIDE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
@@ -43,7 +42,7 @@ class AllocationManager(
     check(!psa.isEmpty()) {
       "At least one allocation or deallocation must be provided"
     }
-    prisonConfig(prisonCode)
+    prisonConfig(prisonCode, psa.hasAutoAllocations())
     prisoners(prisonCode, psa.personIdentifiersToAllocate)
     psa.staffValidation(prisonCode)
     val rdMap = psa.referenceData()
@@ -94,11 +93,19 @@ class AllocationManager(
     }
   }
 
-  private fun prisonConfig(prisonCode: String) =
-    prisonConfigRepository
-      .findByCode(prisonCode)
-      ?.takeIf { it.enabled }
-      ?: throw IllegalArgumentException("Prison not enabled")
+  private fun prisonConfig(
+    prisonCode: String,
+    autoAllocations: Boolean,
+  ): PrisonConfiguration {
+    val prisonConfig =
+      prisonConfigRepository
+        .findByCode(prisonCode)
+        ?.takeIf { it.enabled }
+        ?: throw IllegalArgumentException("Prison not enabled")
+
+    return prisonConfig.takeIf { !autoAllocations || it.allowAutoAllocation }
+      ?: throw IllegalArgumentException("Prison does not allow auto-allocation")
+  }
 
   private fun prisoners(
     prisonCode: String,
@@ -123,19 +130,14 @@ class AllocationManager(
       "A provided staff id is not allocatable for the provided prison"
     }
     val staffConfig = staffConfigRepository.findAllByStaffIdIn(staffIds).associateBy { it.staffId }
-    val fails = allocations.mapNotNull { allocation -> staffConfig[allocation.staffId].validateFor(allocation) }
+    val fails = allocations.mapNotNull { allocation -> staffConfig[allocation.staffId].validate() }
     require(fails.isEmpty()) {
       "A provided staff id is not configured correctly for the allocation reason"
     }
   }
 
-  private fun StaffConfiguration?.validateFor(allocation: PersonStaffAllocation): StaffConfiguration? =
-    if (this == null ||
-      (
-        status.code == StaffStatus.ACTIVE.name &&
-          (allocation.allocationReason == MANUAL.reasonCode || allowAutoAllocation)
-      )
-    ) {
+  private fun StaffConfiguration?.validate(): StaffConfiguration? =
+    if (this == null || status.code == StaffStatus.ACTIVE.name) {
       null
     } else {
       this

@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentKeyworker
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
@@ -18,7 +17,6 @@ import java.time.LocalDate.now
 class GetKeyworkerAllocations(
   private val complexityOfNeed: ComplexityOfNeedGateway,
   private val allocationRepository: StaffAllocationRepository,
-  private val manageUsers: ManageUsersClient,
   private val prisonApi: PrisonApiClient,
   private val prisonService: PrisonService,
   private val caseNotesApiClient: CaseNotesApiClient,
