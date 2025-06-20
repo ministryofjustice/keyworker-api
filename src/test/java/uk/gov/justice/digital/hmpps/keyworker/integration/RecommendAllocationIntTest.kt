@@ -42,6 +42,37 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
+  fun `will not recommend staff who are not active`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
+    val prisonCode = "NAS"
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 10, policy = policy))
+    val prisoners = prisoners(prisonCode, 10)
+    prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
+
+    val staff = staffDetail()
+    prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staff.staffId)))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
+    } else {
+      givenStaffRole(staffRole(prisonCode, staff.staffId))
+    }
+    givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staff.staffId, 10, allowAutoAllocation = true))
+
+    val res =
+      getAllocationRecommendations(prisonCode, policy)
+        .expectStatus()
+        .isOk
+        .expectBody(RecommendedAllocations::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(res.noAvailableStaffFor).containsExactlyInAnyOrderElementsOf(prisoners.content.map { it.prisonerNumber })
+    assertThat(res.allocations).isEmpty()
+    assertThat(res.staff).isEmpty()
+  }
+
+  @ParameterizedTest
+  @MethodSource("policyProvider")
   fun `identifies cases that have no recommendations when all staff are at max capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "FUL"

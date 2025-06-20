@@ -49,7 +49,7 @@ class AllocationRecommender(
           if (previousAllocations.isNotEmpty()) {
             staff.first { it.staff.staffId in previousAllocations }
           } else {
-            staff.firstOrNull { it.allowAutoAllocation && it.allocationCount < it.autoAllocationCapacity }
+            staff.firstOrNull { it.allocationCount < it.autoAllocationCapacity }
           }?.also {
             staff.remove(it)
             it.allocationCount++
@@ -63,7 +63,7 @@ class AllocationRecommender(
     return RecommendedAllocations(
       recommendations.filterIsInstance<RecommendedAllocation>(),
       recommendations.filterIsInstance<NoRecommendation>().map { it.personIdentifier },
-      staff.filter { it.status.code == ACTIVE.name }.map { it.asAllocationStaff() },
+      staff.map { it.asAllocationStaff() },
     )
   }
 
@@ -85,7 +85,8 @@ class AllocationRecommender(
           autoAllocations[it.staffId]?.allocatedAt,
           staffInfo?.staffConfig?.status ?: activeStatus.value,
         )
-      }.sortedForAllocation()
+      }.filter { it.status.code == ACTIVE.name }
+      .sortedForAllocation()
   }
 }
 

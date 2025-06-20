@@ -41,7 +41,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    allocationAndDeallocate(
+    allocateAndDeallocate(
       "DNM",
       personStaffAllocations(),
       AllocationPolicy.PERSONAL_OFFICER,
@@ -53,7 +53,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `400 bad request - person staff allocations is empty`(policy: AllocationPolicy) {
     val res =
-      allocationAndDeallocate("NEN", personStaffAllocations(), policy)
+      allocateAndDeallocate("NEN", personStaffAllocations(), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -67,13 +67,32 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   fun `400 bad request - prison not enabled`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val res =
-      allocationAndDeallocate("NEN", personStaffAllocations(listOf(personStaffAllocation())), policy)
+      allocateAndDeallocate("NEN", personStaffAllocations(listOf(personStaffAllocation())), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: Prison not enabled")
+  }
+
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `400 bad request - prison does not allow auto allocations`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
+    val prisonCode = "NCA"
+    givenPrisonConfig(prisonConfig(prisonCode, true))
+    val res =
+      allocateAndDeallocate(
+        prisonCode,
+        personStaffAllocations(listOf(personStaffAllocation(allocationReason = AllocationReason.AUTO.name))),
+        policy,
+      ).expectStatus()
+        .isBadRequest
+        .expectBody(ErrorResponse::class.java)
+        .returnResult()
+        .responseBody!!
+    assertThat(res.userMessage).isEqualTo("Validation failure: Prison does not allow auto-allocation")
   }
 
   @ParameterizedTest
@@ -90,7 +109,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     )
 
     val res =
-      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
+      allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -114,7 +133,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf()))
 
     val res =
-      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
+      allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -144,7 +163,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staffId))
 
     val res =
-      allocationAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
+      allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
         .expectBody(ErrorResponse::class.java)
@@ -171,7 +190,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       givenStaffRole(staffRole(prisonCode, staffId))
     }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
+    allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
@@ -209,7 +228,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
+    allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
@@ -251,7 +270,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode, staffId)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
+    allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
@@ -284,7 +303,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psds = listOf(personStaffDeallocation(staffId = staffId), personStaffDeallocation(staffId = staffId))
     val existing = psds.map { givenAllocation(staffAllocation(it.personIdentifier, prisonCode, staffId)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
+    allocateAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isTrue
@@ -314,7 +333,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psds = listOf(personStaffDeallocation(), personStaffDeallocation())
     val existing = psds.map { givenAllocation(staffAllocation(it.personIdentifier, prisonCode, staffId)) }
 
-    allocationAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
+    allocateAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
 
     val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isFalse
@@ -368,7 +387,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     deallocations: List<PersonStaffDeallocation> = emptyList(),
   ) = PersonStaffAllocations(allocations, deallocations)
 
-  private fun allocationAndDeallocate(
+  private fun allocateAndDeallocate(
     prisonCode: String,
     request: PersonStaffAllocations,
     policy: AllocationPolicy,

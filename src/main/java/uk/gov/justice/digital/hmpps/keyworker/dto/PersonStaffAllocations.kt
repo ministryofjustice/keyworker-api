@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 
 data class PersonStaffAllocations(
   val allocations: List<PersonStaffAllocation>,
@@ -14,6 +15,9 @@ data class PersonStaffAllocations(
 
   @JsonIgnore
   fun isEmpty() = allocations.isEmpty() && deallocations.isEmpty()
+
+  @JsonIgnore
+  fun hasAutoAllocations() = allocations.any { it.allocationReason == AllocationReason.AUTO.name }
 }
 
 fun List<PersonStaff>.identifiers() = map { it.personIdentifier }.toSet()
