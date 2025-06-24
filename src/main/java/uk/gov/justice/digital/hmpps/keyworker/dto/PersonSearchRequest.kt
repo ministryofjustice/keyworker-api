@@ -9,20 +9,10 @@ data class PersonSearchRequest(
 )
 
 data class PersonSearchResponse(
-  val content: List<PrisonerSummaryWithAlertDetails>,
+  val content: List<PrisonerSummary>,
 )
 
 data class PrisonerSummary(
-  val personIdentifier: String,
-  val firstName: String,
-  val lastName: String,
-  val location: String?,
-  val hasHighComplexityOfNeeds: Boolean,
-  val hasAllocationHistory: Boolean,
-  val staffMember: StaffSummary?,
-)
-
-data class PrisonerSummaryWithAlertDetails(
   val personIdentifier: String,
   val firstName: String,
   val lastName: String,

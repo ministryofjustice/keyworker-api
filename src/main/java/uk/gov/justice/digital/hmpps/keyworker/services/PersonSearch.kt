@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummaryWithAlertDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
@@ -50,12 +50,12 @@ class PersonSearch(
     excludeActive: Boolean,
     summary: (String) -> AllocationSummary?,
     staff: (Long) -> StaffSummary?,
-  ): PrisonerSummaryWithAlertDetails? {
+  ): PrisonerSummary? {
     val summary = summary(prisonerNumber)
     return if (excludeActive && (summary?.activeCount ?: 0) > 0) {
       null
     } else {
-      PrisonerSummaryWithAlertDetails(
+      PrisonerSummary(
         prisonerNumber,
         firstName,
         lastName,
