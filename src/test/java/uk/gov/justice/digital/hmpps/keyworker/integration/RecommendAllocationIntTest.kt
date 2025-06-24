@@ -335,6 +335,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
           "STANDARD",
           null,
           LocalDate.now().minusWeeks(it.toLong()),
+          listOf(),
         )
       },
   )

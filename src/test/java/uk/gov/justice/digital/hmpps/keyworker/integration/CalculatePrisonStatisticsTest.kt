@@ -215,6 +215,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
             nonHigh.random()
           },
           if (index % 2 == 0) null else now().minusDays(index / 2 + 1L),
+          listOf(),
         )
       },
     )
