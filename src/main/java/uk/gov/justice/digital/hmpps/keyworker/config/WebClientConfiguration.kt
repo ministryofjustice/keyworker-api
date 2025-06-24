@@ -32,6 +32,7 @@ class WebClientConfiguration(
   @Value("\${case-notes.api.uri.root}") private val caseNotesApiRootUri: String,
   @Value("\${prison.uri.root}") private val healthRootUri: String,
   @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
+  @Value("\${alerts_api_url}") private val alertsApiRootUri: String,
   @Value("\${prisoner-search.api.uri.root}") private val prisonerSearchApiRootUri: String,
   @Value("\${prison-register.api.uri.root}") private val prisonRegisterApiRootUri: String,
   @Value("\${nomis-user-roles.api.uri.root}") private val nomisUserRolesApiRootUri: String,
@@ -119,6 +120,12 @@ class WebClientConfiguration(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, "$complexityOfNeedUri/v1")
+
+  @Bean
+  fun alertsWebClient(
+    authorizedClientManager: OAuth2AuthorizedClientManager,
+    builder: Builder,
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, alertsApiRootUri)
 
   @Bean
   fun webClient(builder: Builder): WebClient =

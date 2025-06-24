@@ -22,6 +22,11 @@ data class Allocation(
   val latestSession: LatestSession?,
 )
 
+data class AlertDetails(
+  val code: String,
+  val description: String,
+)
+
 data class Prisoner(
   val prisonNumber: String,
   val firstName: String,
@@ -29,6 +34,7 @@ data class Prisoner(
   val csra: String?,
   val cellLocation: String?,
   val releaseDate: LocalDate?,
+  val alerts: List<AlertDetails>,
 )
 
 data class StaffStats(

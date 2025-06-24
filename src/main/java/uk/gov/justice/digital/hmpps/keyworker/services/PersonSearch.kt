@@ -3,13 +3,16 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.dto.AlertDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummaryWithAlertDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonalerts.AlertsApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 
 @Service
@@ -17,6 +20,7 @@ class PersonSearch(
   private val prisonerSearch: PrisonerSearchClient,
   private val allocationRepository: StaffAllocationRepository,
   private val prisonApi: PrisonApiClient,
+  private val alertDescriptionService: AlertDescriptionService,
 ) {
   fun findPeople(
     prisonCode: String,
@@ -48,12 +52,12 @@ class PersonSearch(
     excludeActive: Boolean,
     summary: (String) -> AllocationSummary?,
     staff: (Long) -> StaffSummary?,
-  ): PrisonerSummary? {
+  ): PrisonerSummaryWithAlertDetails? {
     val summary = summary(prisonerNumber)
     return if (excludeActive && (summary?.activeCount ?: 0) > 0) {
       null
     } else {
-      PrisonerSummary(
+      PrisonerSummaryWithAlertDetails(
         prisonerNumber,
         firstName,
         lastName,
@@ -61,6 +65,9 @@ class PersonSearch(
         complexityOfNeedLevel == HIGH,
         (summary?.totalCount ?: 0) > 0,
         summary?.staffId?.let { staff(it) },
+        alerts.map {
+          AlertDetails(it.alertCode, alertDescriptionService.getDescription(it.alertCode))
+        }
       )
     }
   }
