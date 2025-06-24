@@ -10,7 +10,6 @@ generic-service:
     AUTH_URI_ROOT: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
     COMPLEXITY_OF_NEED_URI: https://complexity-of-need.hmpps.service.justice.gov.uk
-    ALERTS_API_URL: "https://alerts-api.hmpps.service.justice.gov.uk"
     NOMIS_USER_ROLES_API_URI_ROOT: "https://nomis-user-roles-api.prison.service.justice.gov.uk"
     KEYWORKER_ENABLED_FOR_PRISONS: ""
 

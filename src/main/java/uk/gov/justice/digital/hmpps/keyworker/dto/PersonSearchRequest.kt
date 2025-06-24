@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonAlert
 
 data class PersonSearchRequest(
   val query: String? = null,
@@ -30,5 +31,5 @@ data class PrisonerSummaryWithAlertDetails(
   val hasHighComplexityOfNeeds: Boolean,
   val hasAllocationHistory: Boolean,
   val staffMember: StaffSummary?,
-  val alerts: List<AlertDetails>,
+  val alerts: List<PrisonAlert>,
 )

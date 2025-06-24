@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.AlertDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
@@ -52,7 +51,6 @@ class GetStaffDetails(
   private val prisonRegisterApi: PrisonRegisterClient,
   private val caseNotesApiClient: CaseNotesApiClient,
   private val referenceDataRepository: ReferenceDataRepository,
-  private val alertDescriptionService: AlertDescriptionService,
 ) {
   fun getJobClassificationsFor(
     prisonCode: String,
@@ -132,7 +130,7 @@ class GetStaffDetails(
       activeAllocations
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
-            alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber), alertDescriptionService)
+            alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
           }
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
       StaffStats(current, previous),
@@ -243,7 +241,7 @@ class GetStaffDetails(
   }
 }
 
-private fun Prisoner.asPrisoner(alertDescriptionService: AlertDescriptionService) =
+private fun Prisoner.asPrisoner() =
   Person(
     prisonerNumber,
     firstName,
@@ -251,20 +249,14 @@ private fun Prisoner.asPrisoner(alertDescriptionService: AlertDescriptionService
     csra,
     cellLocation,
     releaseDate,
-    alerts.map {
-      AlertDetails(
-        it.alertCode,
-        alertDescriptionService.getDescription(it.alertCode),
-      )
-    },
+    alerts,
   )
 
 private fun Allocation.asAllocation(
   prisoner: Prisoner,
   latestSession: LocalDate?,
-  alertDescriptionService: AlertDescriptionService,
 ) = AllocationModel(
-  prisoner.asPrisoner(alertDescriptionService),
+  prisoner.asPrisoner(),
   latestSession?.let { LatestSession(it) },
 )
 
