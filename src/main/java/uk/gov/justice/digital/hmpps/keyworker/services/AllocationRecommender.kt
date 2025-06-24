@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.NoRecommendation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummaryWithAlertDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
@@ -37,7 +37,13 @@ class AllocationRecommender(
         .findPeople(prisonCode, PersonSearchRequest(excludeActiveAllocations = true))
         .content
         .filter { !it.hasHighComplexityOfNeeds }
-        .sortedWith(compareBy(PrisonerSummary::lastName, PrisonerSummary::firstName, PrisonerSummary::personIdentifier))
+        .sortedWith(
+          compareBy(
+            PrisonerSummaryWithAlertDetails::lastName,
+            PrisonerSummaryWithAlertDetails::firstName,
+            PrisonerSummaryWithAlertDetails::personIdentifier,
+          ),
+        )
     val staff = getStaffCapacities(prisonCode)
     val staffIds = staff.map { it.staff.staffId }.toSet()
 

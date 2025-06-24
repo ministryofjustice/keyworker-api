@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonAlert
 import java.time.LocalDate
 
 data class StaffDetails(
@@ -30,7 +29,8 @@ data class Prisoner(
   val csra: String?,
   val cellLocation: String?,
   val releaseDate: LocalDate?,
-  val alerts: List<PrisonAlert>,
+  val relevantAlertCodes: List<String>,
+  val remainingAlertCount: Int,
 )
 
 data class StaffStats(

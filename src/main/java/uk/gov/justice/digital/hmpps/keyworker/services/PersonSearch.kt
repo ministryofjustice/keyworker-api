@@ -10,6 +10,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
+import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
+import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 
 @Service
@@ -61,7 +63,8 @@ class PersonSearch(
         complexityOfNeedLevel == HIGH,
         (summary?.totalCount ?: 0) > 0,
         summary?.staffId?.let { staff(it) },
-        alerts,
+        alerts.getRelevantAlertCodes(),
+        alerts.getRemainingAlertCount(),
       )
     }
   }

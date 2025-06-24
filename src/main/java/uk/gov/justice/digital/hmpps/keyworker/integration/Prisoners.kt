@@ -40,3 +40,10 @@ data class Prisoner(
   val lastAdmissionDate: LocalDate?,
   val alerts: List<PrisonAlert>,
 )
+
+fun List<PrisonAlert>.getRelevantAlertCodes() =
+  filter {
+    it.active && (it.alertCode == "XRF" || it.alertCode == "RNO121")
+  }.map { it.alertCode }
+
+fun List<PrisonAlert>.getRemainingAlertCount() = filter { it.active && it.alertCode != "XRF" && it.alertCode != "RNO121" }.size
