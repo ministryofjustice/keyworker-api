@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
+import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -106,7 +107,31 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             it.allocatedAt.toLocalDate().isBefore(now())
         }.map { it.personIdentifier }
         .toSet()
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, personIdentifiers)
+    prisonerSearchMockServer.stubFindPrisonDetails(
+      prisonCode,
+      personIdentifiers,
+      personIdentifiers.map {
+        Prisoner(
+          it,
+          "First",
+          "Last",
+          LocalDate.now().minusDays(30),
+          LocalDate.now().plusDays(90),
+          prisonCode,
+          "Description of $prisonCode",
+          "$prisonCode-A-1",
+          "STANDARD",
+          null,
+          null,
+          listOf(
+            PrisonAlert("Type", "XRF", true, false),
+            PrisonAlert("Type", "RNO121", false, true),
+            PrisonAlert("Type", "OTHER1", true, false),
+            PrisonAlert("Type", "OTHER2", true, false),
+          ),
+        )
+      },
+    )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
         keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now(), setOf(staffConfig.staffId.toString()))
@@ -172,6 +197,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.capacity).isEqualTo(10)
     assertThat(response.allocated).isEqualTo(18)
     assertThat(response.allocations.size).isEqualTo(18)
+    assertThat(
+      response.allocations
+        .get(0)
+        .prisoner.relevantAlertCodes,
+    ).containsExactlyInAnyOrder("XRF")
+    assertThat(
+      response.allocations
+        .get(0)
+        .prisoner.remainingAlertCount,
+    ).isEqualTo(2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
 

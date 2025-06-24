@@ -29,6 +29,8 @@ data class Prisoner(
   val csra: String?,
   val cellLocation: String?,
   val releaseDate: LocalDate?,
+  val relevantAlertCodes: List<String>,
+  val remainingAlertCount: Int,
 )
 
 data class StaffStats(

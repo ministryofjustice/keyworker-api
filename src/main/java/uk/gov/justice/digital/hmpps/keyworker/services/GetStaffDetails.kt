@@ -32,6 +32,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
+import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
+import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import java.time.LocalDate
 import java.time.LocalDate.now
@@ -241,7 +243,17 @@ class GetStaffDetails(
   }
 }
 
-private fun Prisoner.asPrisoner() = Person(prisonerNumber, firstName, lastName, csra, cellLocation, releaseDate)
+private fun Prisoner.asPrisoner() =
+  Person(
+    prisonerNumber,
+    firstName,
+    lastName,
+    csra,
+    cellLocation,
+    releaseDate,
+    alerts.getRelevantAlertCodes(),
+    alerts.getRemainingAlertCount(),
+  )
 
 private fun Allocation.asAllocation(
   prisoner: Prisoner,

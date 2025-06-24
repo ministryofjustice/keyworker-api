@@ -368,6 +368,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       null,
       ComplexityOfNeedLevel.LOW,
       LocalDate.now().minusDays(10),
+      listOf(),
     )
 
   private fun personStaffAllocation(

@@ -114,6 +114,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
       assertThat(hasAllocationHistory).isTrue
       assertThat(staffMember).isNotNull
     }
+    assertThat(response.content.get(0).relevantAlertCodes).containsExactlyInAnyOrder("RNO121")
+    assertThat(response.content.get(0).remainingAlertCount).isEqualTo(1)
   }
 
   @ParameterizedTest
@@ -285,6 +287,11 @@ class PersonSearchIntegrationTest : IntegrationTest() {
             else -> nonHigh.random()
           },
           null,
+          listOf(
+            PrisonAlert("Type", "XRF", false, true),
+            PrisonAlert("Type", "RNO121", true, false),
+            PrisonAlert("Type", "OTHER1", true, false),
+          ),
         )
       },
     )

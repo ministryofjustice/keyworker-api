@@ -37,7 +37,13 @@ class AllocationRecommender(
         .findPeople(prisonCode, PersonSearchRequest(excludeActiveAllocations = true))
         .content
         .filter { !it.hasHighComplexityOfNeeds }
-        .sortedWith(compareBy(PrisonerSummary::lastName, PrisonerSummary::firstName, PrisonerSummary::personIdentifier))
+        .sortedWith(
+          compareBy(
+            PrisonerSummary::lastName,
+            PrisonerSummary::firstName,
+            PrisonerSummary::personIdentifier,
+          ),
+        )
     val staff = getStaffCapacities(prisonCode)
     val staffIds = staff.map { it.staff.staffId }.toSet()
 
