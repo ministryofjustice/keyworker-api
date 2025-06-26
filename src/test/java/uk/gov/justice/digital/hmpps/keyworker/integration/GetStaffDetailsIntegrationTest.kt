@@ -80,7 +80,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       )
     }
 
-    val fromDate = now().minusMonths(1)
+    val fromDate = now().minusMonths(1).atStartOfDay()
     val previousFromDate = fromDate.minusMonths(1)
     val allocations =
       (1..20).map {
@@ -103,7 +103,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val caseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(fromDate)) &&
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(fromDate)) &&
             it.allocatedAt.toLocalDate().isBefore(now())
         }.map { it.personIdentifier }
         .toSet()
@@ -134,13 +134,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now(), setOf(staffConfig.staffId.toString()))
+        keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now().atStartOfDay().plusDays(1), setOf(staffConfig.staffId.toString()))
       } else {
         personalOfficerTypes(
           prisonCode,
           caseNoteIdentifiers,
           fromDate,
-          now(),
+          now().atStartOfDay().plusDays(1),
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -150,8 +150,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val prevCaseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(previousFromDate)) &&
-            it.allocatedAt.toLocalDate().isBefore(fromDate)
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(previousFromDate)) &&
+            it.allocatedAt.isBefore(fromDate)
         }.map { it.personIdentifier }
         .toSet()
     caseNotesMockServer.stubUsageByPersonIdentifier(
@@ -160,7 +160,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           prisonCode,
           prevCaseNoteIdentifiers,
           previousFromDate,
-          fromDate,
+          fromDate.plusDays(1),
           setOf(staffConfig.staffId.toString()),
         )
       } else {
@@ -168,7 +168,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           prisonCode,
           prevCaseNoteIdentifiers,
           previousFromDate,
-          fromDate,
+          fromDate.plusDays(1),
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -212,8 +212,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      val projectedSessions = DAYS.between(from, to) * 2 + 2
-      assertThat(projectedSessions).isEqualTo(projectedSessions)
+      assertThat(projectedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) DAYS.between(from, to) * 2 else 0)
       assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 0)
       assertThat(recordedEntries).isEqualTo(15)
       assertThat(complianceRate).isEqualTo(

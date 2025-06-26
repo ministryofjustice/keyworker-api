@@ -27,15 +27,15 @@ data class UsageByPersonIdentifierRequest(
     fun keyworkerTypes(
       prisonCode: String?,
       personIdentifiers: Set<String>,
-      from: LocalDate,
-      to: LocalDate = from.plusDays(1),
+      from: LocalDateTime,
+      to: LocalDateTime = from.plusDays(1),
       authorIds: Set<String> = setOf(),
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_ENTRY_SUBTYPE, KW_SESSION_SUBTYPE))),
-        from = from.atStartOfDay(),
-        to = to.atStartOfDay(),
+        from = from,
+        to = to,
         authorIds = authorIds,
         prisonCode = prisonCode,
       )
@@ -43,15 +43,15 @@ data class UsageByPersonIdentifierRequest(
     fun personalOfficerTypes(
       prisonCode: String?,
       personIdentifiers: Set<String>,
-      from: LocalDate,
-      to: LocalDate = from.plusDays(1),
+      from: LocalDateTime,
+      to: LocalDateTime = from.plusDays(1),
       authorIds: Set<String> = setOf(),
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(PO_ENTRY_TYPE, setOf(PO_ENTRY_SUBTYPE))),
-        from = from.atStartOfDay(),
-        to = to.atStartOfDay(),
+        from = from,
+        to = to,
         authorIds = authorIds,
         prisonCode = prisonCode,
       )

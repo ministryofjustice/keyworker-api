@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
@@ -116,9 +117,9 @@ class GetStaffDetails(
     val prisonName =
       prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
 
-    val (current, cnSummary) = allAllocations.staffCountStats(fromDate, now(), prisonConfig, staffId)
+    val (current, cnSummary) = allAllocations.staffCountStats(ReportingPeriod.currentMonth(), prisonConfig, staffId)
     val (previous, _) =
-      allAllocations.staffCountStats(previousFromDate, fromDate, prisonConfig, staffId)
+      allAllocations.staffCountStats(ReportingPeriod.currentMonth().minusMonths(1), prisonConfig, staffId)
 
     val staff = staffWithRole.first
     return StaffDetails(
@@ -174,16 +175,15 @@ class GetStaffDetails(
     )
 
   private fun List<Allocation>.staffCountStats(
-    from: LocalDate,
-    to: LocalDate,
+    reportingPeriod: ReportingPeriod,
     prisonConfig: PrisonConfiguration,
     staffId: Long,
   ): Pair<StaffCountStats, CaseNoteSummary?> {
     val context = AllocationContext.get()
     val applicableAllocations =
       filter {
-        (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(from)) &&
-          it.allocatedAt.toLocalDate().isBefore(to)
+        (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(reportingPeriod.from)) &&
+          it.allocatedAt.isBefore(reportingPeriod.to)
       }
     val personIdentifiers = applicableAllocations.map { it.personIdentifier }.toSet()
     val cnSummary =
@@ -193,13 +193,13 @@ class GetStaffDetails(
         caseNotesApiClient
           .getUsageByPersonIdentifier(
             if (context.policy == AllocationPolicy.KEY_WORKER) {
-              keyworkerTypes(prisonConfig.code, personIdentifiers, from, to, setOf(staffId.toString()))
+              keyworkerTypes(prisonConfig.code, personIdentifiers, reportingPeriod.from, reportingPeriod.to, setOf(staffId.toString()))
             } else {
               personalOfficerTypes(
                 prisonConfig.code,
                 personIdentifiers,
-                from,
-                to,
+                reportingPeriod.from,
+                reportingPeriod.to,
                 setOf(staffId.toString()),
               )
             },
@@ -207,16 +207,16 @@ class GetStaffDetails(
       }
     val total =
       if (context.policy == AllocationPolicy.KEY_WORKER) {
-        applicableAllocations.sumOf { it.daysAllocatedForStats(from, to) }
+        applicableAllocations.sumOf { it.daysAllocatedForStats(reportingPeriod) }
       } else {
         0
       }
-    val averagePerDay = if (total == 0L) 0 else total / DAYS.between(from, to)
+    val averagePerDay = if (total == 0L) 0 else total / DAYS.between(reportingPeriod.from, reportingPeriod.to)
     val projectedSessions =
       if (averagePerDay == 0L) {
         0
       } else {
-        val sessionMultiplier = (DAYS.between(from, to.plusDays(1)) / (prisonConfig.frequencyInWeeks * 7.0))
+        val sessionMultiplier = (DAYS.between(reportingPeriod.from, reportingPeriod.to) / (prisonConfig.frequencyInWeeks * 7.0))
         (averagePerDay * sessionMultiplier).toInt()
       }
     val compliance =
@@ -231,8 +231,8 @@ class GetStaffDetails(
 
     return Pair(
       StaffCountStats(
-        from,
-        to,
+        reportingPeriod.from.toLocalDate(),
+        reportingPeriod.to.toLocalDate(),
         projectedSessions,
         cnSummary?.keyworkerSessions ?: 0,
         cnSummary?.totalEntries(context.policy) ?: 0,
@@ -263,11 +263,8 @@ private fun Allocation.asAllocation(
   latestSession?.let { LatestSession(it) },
 )
 
-private fun Allocation.daysAllocatedForStats(
-  from: LocalDate,
-  to: LocalDate,
-): Long {
-  val endTime: LocalDateTime = deallocatedAt ?: to.atStartOfDay()
-  val startTime: LocalDateTime = maxOf(allocatedAt, from.atStartOfDay())
+private fun Allocation.daysAllocatedForStats(reportingPeriod: ReportingPeriod): Long {
+  val endTime: LocalDateTime = deallocatedAt ?: reportingPeriod.to
+  val startTime: LocalDateTime = maxOf(allocatedAt, reportingPeriod.from)
   return DAYS.between(startTime, endTime)
 }
