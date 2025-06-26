@@ -90,7 +90,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = staffConfig.staffId,
-            assignedAt = LocalDateTime.now().minusDays(it * 3L),
+            allocatedAt = LocalDateTime.now().minusDays(31L),
             active = activeAllocation,
             deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(10),
             deallocatedBy = if (activeAllocation) null else "T357",
@@ -209,10 +209,9 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     ).isEqualTo(2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
-
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) DAYS.between(from, to) * 2 else 0)
+      assertThat(projectedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 78 else 0)
       assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 0)
       assertThat(recordedEntries).isEqualTo(15)
       assertThat(complianceRate).isEqualTo(
