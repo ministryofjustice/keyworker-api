@@ -72,7 +72,9 @@ class PrisonController(
   fun getStaffDetails(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
-  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId)
+    @RequestParam(required = false) from: LocalDate?,
+    @RequestParam(required = false) to: LocalDate?,
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to)
 
   @Operation(hidden = true)
   @GetMapping("/staff/{staffId}/job-classifications")

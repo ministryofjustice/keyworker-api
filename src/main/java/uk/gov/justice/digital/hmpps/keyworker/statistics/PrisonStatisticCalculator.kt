@@ -74,7 +74,7 @@ class PrisonStatisticCalculator(
           .associateBy { it.personIdentifier }
 
       val cnSummary =
-        caseNotesApi.getUsageByPersonIdentifier(keyworkerTypes(prisonCode, eligiblePrisoners, date)).summary()
+        caseNotesApi.getUsageByPersonIdentifier(keyworkerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay())).summary()
       val peopleWithSessions = cnSummary.personIdentifiersWithSessions()
       val previousSessions =
         if (peopleWithSessions.isNotEmpty()) {

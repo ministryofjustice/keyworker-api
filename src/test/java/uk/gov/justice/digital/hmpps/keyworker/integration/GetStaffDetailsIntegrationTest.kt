@@ -80,7 +80,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       )
     }
 
-    val fromDate = now().minusMonths(1)
+    val fromDate = now().minusMonths(1).atStartOfDay()
     val previousFromDate = fromDate.minusMonths(1)
     val allocations =
       (1..20).map {
@@ -90,7 +90,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = staffConfig.staffId,
-            assignedAt = LocalDateTime.now().minusDays(it * 3L),
+            allocatedAt = LocalDateTime.now().minusDays(31L),
             active = activeAllocation,
             deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(10),
             deallocatedBy = if (activeAllocation) null else "T357",
@@ -103,7 +103,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val caseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(fromDate)) &&
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(fromDate)) &&
             it.allocatedAt.toLocalDate().isBefore(now())
         }.map { it.personIdentifier }
         .toSet()
@@ -134,13 +134,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now(), setOf(staffConfig.staffId.toString()))
+        keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now().atStartOfDay().plusDays(1), setOf(staffConfig.staffId.toString()))
       } else {
         personalOfficerTypes(
           prisonCode,
           caseNoteIdentifiers,
           fromDate,
-          now(),
+          now().atStartOfDay().plusDays(1),
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -150,8 +150,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val prevCaseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(previousFromDate)) &&
-            it.allocatedAt.toLocalDate().isBefore(fromDate)
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(previousFromDate)) &&
+            it.allocatedAt.isBefore(fromDate)
         }.map { it.personIdentifier }
         .toSet()
     caseNotesMockServer.stubUsageByPersonIdentifier(
@@ -160,7 +160,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           prisonCode,
           prevCaseNoteIdentifiers,
           previousFromDate,
-          fromDate,
+          fromDate.plusDays(1),
           setOf(staffConfig.staffId.toString()),
         )
       } else {
@@ -168,7 +168,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           prisonCode,
           prevCaseNoteIdentifiers,
           previousFromDate,
-          fromDate,
+          fromDate.plusDays(1),
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -209,23 +209,25 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     ).isEqualTo(2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
-
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      val projectedSessions = DAYS.between(from, to) * 2 + 2
-      assertThat(projectedSessions).isEqualTo(projectedSessions)
-      assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 0)
+      assertThat(projectedSessions).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
+      assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
       assertThat(recordedEntries).isEqualTo(15)
       assertThat(complianceRate).isEqualTo(
-        if (policy == AllocationPolicy.KEY_WORKER) {
-          BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
-            .setScale(2, HALF_EVEN)
-            .toDouble()
-        } else {
-          0.0
-        },
+        BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
+          .setScale(2, HALF_EVEN)
+          .toDouble(),
       )
     }
+
+    assertThat(response.stats.current.from).isEqualTo(
+      response.stats.previous.to
+        .plusDays(1),
+    )
+    assertThat(
+      DAYS.between(response.stats.current.from, response.stats.current.to),
+    ).isEqualTo(DAYS.between(response.stats.previous.from, response.stats.previous.to))
 
     assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {
