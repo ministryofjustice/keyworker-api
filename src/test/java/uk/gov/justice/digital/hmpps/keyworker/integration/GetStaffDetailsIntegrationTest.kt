@@ -211,19 +211,23 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 78 else 0)
-      assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 0)
+      assertThat(projectedSessions).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
+      assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
       assertThat(recordedEntries).isEqualTo(15)
       assertThat(complianceRate).isEqualTo(
-        if (policy == AllocationPolicy.KEY_WORKER) {
-          BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
-            .setScale(2, HALF_EVEN)
-            .toDouble()
-        } else {
-          0.0
-        },
+        BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
+          .setScale(2, HALF_EVEN)
+          .toDouble(),
       )
     }
+
+    assertThat(response.stats.current.from).isEqualTo(
+      response.stats.previous.to
+        .plusDays(1),
+    )
+    assertThat(
+      DAYS.between(response.stats.current.from, response.stats.current.to),
+    ).isEqualTo(DAYS.between(response.stats.previous.from, response.stats.previous.to))
 
     assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {

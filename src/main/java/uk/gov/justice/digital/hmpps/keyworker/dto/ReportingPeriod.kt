@@ -2,15 +2,16 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.DAYS
 
 data class ReportingPeriod(
   val from: LocalDateTime,
   val to: LocalDateTime,
 ) {
-  fun minusMonths(monthsToSubtract: Long): ReportingPeriod =
+  fun previousPeriod(): ReportingPeriod =
     ReportingPeriod(
-      from.minusMonths(monthsToSubtract),
-      to.minusMonths(monthsToSubtract),
+      from.minusDays(DAYS.between(from, to)),
+      from,
     )
 
   companion object {

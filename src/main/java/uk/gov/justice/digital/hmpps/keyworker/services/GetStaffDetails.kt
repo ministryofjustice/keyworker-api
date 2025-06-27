@@ -129,7 +129,7 @@ class GetStaffDetails(
 
     val (current, cnSummary) = allAllocations.staffCountStats(statsReportingPeriod, prisonConfig, staffId)
     val (previous, _) =
-      allAllocations.staffCountStats(statsReportingPeriod.minusMonths(1), prisonConfig, staffId)
+      allAllocations.staffCountStats(statsReportingPeriod.previousPeriod(), prisonConfig, staffId)
 
     val staff = staffWithRole.first
     return StaffDetails(
@@ -216,7 +216,7 @@ class GetStaffDetails(
           ).summary()
       }
     val projectedSessions =
-      if (context.policy == AllocationPolicy.KEY_WORKER && count() > 0) {
+      if (count() > 0) {
         val sessionPerDay = 1 / (prisonConfig.frequencyInWeeks * 7.0)
         applicableAllocations.sumOf {
           round(it.daysAllocatedForStats(reportingPeriod) * sessionPerDay).toInt()
@@ -229,7 +229,7 @@ class GetStaffDetails(
         null
       } else {
         Statistic.percentage(
-          cnSummary.keyworkerSessions,
+          cnSummary.totalComplianceEvents(context.policy),
           projectedSessions,
         )
       }
@@ -239,7 +239,7 @@ class GetStaffDetails(
         reportingPeriod.from.toLocalDate(),
         reportingPeriod.to.toLocalDate().minusDays(1),
         projectedSessions,
-        cnSummary?.keyworkerSessions ?: 0,
+        cnSummary?.totalComplianceEvents(context.policy) ?: 0,
         cnSummary?.totalEntries(context.policy) ?: 0,
         compliance ?: 0.0,
       ),

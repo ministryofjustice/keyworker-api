@@ -148,6 +148,12 @@ data class CaseNoteSummary(
     poEntries = grouped[PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
   }
 
+  fun totalComplianceEvents(policy: AllocationPolicy) =
+    when (policy) {
+      AllocationPolicy.KEY_WORKER -> keyworkerSessions
+      AllocationPolicy.PERSONAL_OFFICER -> poEntries
+    }
+
   fun totalEntries(policy: AllocationPolicy) =
     when (policy) {
       AllocationPolicy.KEY_WORKER -> keyworkerEntries
