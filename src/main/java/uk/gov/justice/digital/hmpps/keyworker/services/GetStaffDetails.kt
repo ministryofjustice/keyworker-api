@@ -240,7 +240,7 @@ class GetStaffDetails(
         reportingPeriod.to.toLocalDate().minusDays(1),
         projectedSessions,
         cnSummary?.totalComplianceEvents(context.policy) ?: 0,
-        cnSummary?.totalEntries(context.policy) ?: 0,
+        cnSummary?.countEvents(context.policy) ?: listOf(),
         compliance ?: 0.0,
       ),
       cnSummary,
