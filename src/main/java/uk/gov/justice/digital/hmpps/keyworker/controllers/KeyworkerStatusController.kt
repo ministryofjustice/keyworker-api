@@ -20,6 +20,9 @@ import uk.gov.justice.digital.hmpps.keyworker.services.VerifyKeyworkerStatus
 class KeyworkerStatusController(
   private val verify: VerifyKeyworkerStatus,
 ) {
+  @Deprecated(
+    message = "Key worker job responsibility can be determined by frontend via hmpps-connect-dps-components"
+  )
   @Operation(description = "To determine if a user is a keyworker")
   @ApiResponses(
     value =
