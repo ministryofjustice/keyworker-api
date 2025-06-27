@@ -12,6 +12,9 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
@@ -211,11 +214,22 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      assertThat(projectedSessions).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
-      assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
-      assertThat(recordedEntries).isEqualTo(15)
+      assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
+      assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
+      assertThat(recordedEvents).isEqualTo(
+        if (policy == AllocationPolicy.KEY_WORKER) {
+          listOf(
+            RecordedEventCount(SESSION, 38),
+            RecordedEventCount(ENTRY, 15),
+          )
+        } else {
+          listOf(
+            RecordedEventCount(ENTRY, 15),
+          )
+        },
+      )
       assertThat(complianceRate).isEqualTo(
-        BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
+        BigDecimal(recordedComplianceEvents / projectedComplianceEvents.toDouble() * 100)
           .setScale(2, HALF_EVEN)
           .toDouble(),
       )
@@ -233,8 +247,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     with(response.stats.previous) {
       val projectedSessions = DAYS.between(from, to) * 2 + 2
       assertThat(projectedSessions).isEqualTo(projectedSessions)
-      assertThat(recordedSessions).isEqualTo(0)
-      assertThat(recordedEntries).isEqualTo(0)
+      assertThat(recordedComplianceEvents).isEqualTo(0)
+      assertThat(recordedEvents).isEqualTo(emptyList<RecordedEventCount>())
       assertThat(complianceRate).isEqualTo(0.0)
     }
   }

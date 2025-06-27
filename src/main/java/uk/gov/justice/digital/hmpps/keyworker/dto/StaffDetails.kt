@@ -41,11 +41,21 @@ data class StaffStats(
 data class StaffCountStats(
   val from: LocalDate,
   val to: LocalDate,
-  val projectedSessions: Int,
-  val recordedSessions: Int,
-  val recordedEntries: Int,
+  val projectedComplianceEvents: Int,
+  val recordedComplianceEvents: Int,
+  val recordedEvents: List<RecordedEventCount>,
   val complianceRate: Double,
 )
+
+data class RecordedEventCount(
+  val type: RecordedEventType,
+  val count: Int,
+)
+
+enum class RecordedEventType {
+  SESSION,
+  ENTRY,
+}
 
 data class LatestSession(
   val occurredAt: LocalDate,
