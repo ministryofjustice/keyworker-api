@@ -4,9 +4,9 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.2.0"
-  kotlin("plugin.spring") version "2.1.21"
-  kotlin("plugin.jpa") version "2.1.21"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.0"
+  kotlin("plugin.spring") version "2.2.0"
+  kotlin("plugin.jpa") version "2.2.0"
   jacoco
 }
 
@@ -27,7 +27,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
   implementation("org.springframework:spring-jms")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.5")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.6")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("javax.xml.bind:jaxb-api:2.3.1")
   implementation("com.sun.xml.bind:jaxb-impl")
@@ -39,8 +39,8 @@ dependencies {
   implementation("org.apache.commons:commons-text:1.13.1")
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.51.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.16.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.14.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.17.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.16.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.1")
   implementation("org.hibernate.orm:hibernate-envers")
@@ -69,8 +69,8 @@ dependencies {
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
   testImplementation("io.jsonwebtoken:jjwt:0.12.6")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.21.2")
-  testImplementation("org.testcontainers:localstack:1.21.2")
+  testImplementation("org.testcontainers:postgresql:1.21.3")
+  testImplementation("org.testcontainers:localstack:1.21.3")
 }
 
 allOpen {
