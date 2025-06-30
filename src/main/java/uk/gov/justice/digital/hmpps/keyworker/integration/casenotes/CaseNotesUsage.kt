@@ -2,6 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
@@ -12,6 +15,7 @@ import java.time.LocalDateTime
 
 enum class DateType {
   CREATED_AT,
+  OCCURRED_AT,
 }
 
 data class UsageByPersonIdentifierRequest(
@@ -21,7 +25,7 @@ data class UsageByPersonIdentifierRequest(
   val to: LocalDateTime? = null,
   val authorIds: Set<String> = setOf(),
   val prisonCode: String? = null,
-  val dateType: DateType = DateType.CREATED_AT,
+  val dateType: DateType = DateType.OCCURRED_AT,
 ) {
   companion object {
     fun keyworkerTypes(
@@ -152,6 +156,16 @@ data class CaseNoteSummary(
     when (policy) {
       AllocationPolicy.KEY_WORKER -> keyworkerSessions
       AllocationPolicy.PERSONAL_OFFICER -> poEntries
+    }
+
+  fun countEvents(policy: AllocationPolicy) =
+    when (policy) {
+      AllocationPolicy.KEY_WORKER ->
+        listOf(
+          RecordedEventCount(SESSION, keyworkerSessions),
+          RecordedEventCount(ENTRY, keyworkerEntries),
+        )
+      AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, poEntries))
     }
 
   fun totalEntries(policy: AllocationPolicy) =
