@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "uk.gov.justice.digital.hmpps.gradle"
@@ -18,6 +19,8 @@ kotlin {
 
 tasks {
   withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_21.toString()
+    compilerOptions {
+      jvmTarget = JVM_21
+    }
   }
 }
