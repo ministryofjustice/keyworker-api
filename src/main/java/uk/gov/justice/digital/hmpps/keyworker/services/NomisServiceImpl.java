@@ -363,7 +363,7 @@ public class NomisServiceImpl implements NomisService {
             to,
             staffIds,
             prisonId,
-            DateType.CREATED_AT
+            DateType.OCCURRED_AT
         );
 
         return caseNotesApiClient.getUsageByPersonIdentifier(request).getContent().values().stream()
