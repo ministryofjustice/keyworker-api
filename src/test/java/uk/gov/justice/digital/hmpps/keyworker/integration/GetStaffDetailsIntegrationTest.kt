@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
+import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
@@ -83,8 +84,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       )
     }
 
-    val fromDate = now().minusMonths(1).atStartOfDay()
-    val previousFromDate = fromDate.minusMonths(1)
+    val currentMonth = ReportingPeriod.currentMonth()
+    val previousMonth = currentMonth.previousPeriod()
     val allocations =
       (1..20).map {
         val activeAllocation = it % 9 != 0
@@ -106,8 +107,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val caseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(fromDate)) &&
-            it.allocatedAt.toLocalDate().isBefore(now())
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(currentMonth.from)) &&
+            it.allocatedAt.isBefore(currentMonth.to)
         }.map { it.personIdentifier }
         .toSet()
     prisonerSearchMockServer.stubFindPrisonDetails(
@@ -137,13 +138,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now().atStartOfDay().plusDays(1), setOf(staffConfig.staffId.toString()))
+        keyworkerTypes(prisonCode, caseNoteIdentifiers, currentMonth.from, currentMonth.to, setOf(staffConfig.staffId.toString()))
       } else {
         personalOfficerTypes(
           prisonCode,
           caseNoteIdentifiers,
-          fromDate,
-          now().atStartOfDay().plusDays(1),
+          currentMonth.from,
+          currentMonth.to,
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -153,8 +154,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val prevCaseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(previousFromDate)) &&
-            it.allocatedAt.isBefore(fromDate)
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(previousMonth.from)) &&
+            it.allocatedAt.isBefore(previousMonth.to)
         }.map { it.personIdentifier }
         .toSet()
     caseNotesMockServer.stubUsageByPersonIdentifier(
@@ -162,16 +163,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         keyworkerTypes(
           prisonCode,
           prevCaseNoteIdentifiers,
-          previousFromDate,
-          fromDate.plusDays(1),
+          previousMonth.from,
+          previousMonth.to,
           setOf(staffConfig.staffId.toString()),
         )
       } else {
         personalOfficerTypes(
           prisonCode,
           prevCaseNoteIdentifiers,
-          previousFromDate,
-          fromDate.plusDays(1),
+          previousMonth.from,
+          previousMonth.to,
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -248,7 +249,18 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       val projectedSessions = DAYS.between(from, to) * 2 + 2
       assertThat(projectedSessions).isEqualTo(projectedSessions)
       assertThat(recordedComplianceEvents).isEqualTo(0)
-      assertThat(recordedEvents).isEqualTo(emptyList<RecordedEventCount>())
+      assertThat(recordedEvents).isEqualTo(
+        if (policy == AllocationPolicy.KEY_WORKER) {
+          listOf(
+            RecordedEventCount(SESSION, 0),
+            RecordedEventCount(ENTRY, 0),
+          )
+        } else {
+          listOf(
+            RecordedEventCount(ENTRY, 0),
+          )
+        },
+      )
       assertThat(complianceRate).isEqualTo(0.0)
     }
   }

@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.emptyEvents
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
@@ -37,7 +38,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
 import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import java.time.LocalDate
-import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
 import kotlin.math.round
@@ -82,7 +82,7 @@ class GetStaffDetails(
     from: LocalDate?,
     to: LocalDate?,
   ): StaffDetails {
-    val statsReportingPeriod =
+    val reportingPeriod =
       if (from != null && to != null) {
         ReportingPeriod(from.atStartOfDay(), to.plusDays(1).atStartOfDay())
       } else {
@@ -104,15 +104,13 @@ class GetStaffDetails(
 
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
 
-    val fromDate = now().minusMonths(1)
-    val previousFromDate = fromDate.minusMonths(1)
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, setOf(staffId)).firstOrNull()
     val allAllocations =
       allocationRepository.findActiveForPrisonStaffBetween(
         prisonCode,
         staffId,
-        previousFromDate.atStartOfDay(),
-        now().atStartOfDay().plusDays(1),
+        reportingPeriod.from,
+        reportingPeriod.to,
       )
     val activeAllocations = allAllocations.filter { it.isActive }
     val prisonerDetails =
@@ -127,9 +125,9 @@ class GetStaffDetails(
     val prisonName =
       prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
 
-    val (current, cnSummary) = allAllocations.staffCountStats(statsReportingPeriod, prisonConfig, staffId)
+    val (current, cnSummary) = allAllocations.staffCountStats(reportingPeriod, prisonConfig, staffId)
     val (previous, _) =
-      allAllocations.staffCountStats(statsReportingPeriod.previousPeriod(), prisonConfig, staffId)
+      allAllocations.staffCountStats(reportingPeriod.previousPeriod(), prisonConfig, staffId)
 
     val staff = staffWithRole.first
     return StaffDetails(
@@ -215,37 +213,47 @@ class GetStaffDetails(
             },
           ).summary()
       }
-    val projectedSessions =
-      if (count() > 0) {
-        val sessionPerDay = 1 / (prisonConfig.frequencyInWeeks * 7.0)
-        applicableAllocations.sumOf {
-          round(it.daysAllocatedForStats(reportingPeriod) * sessionPerDay).toInt()
-        }
-      } else {
-        0
-      }
-    val compliance =
-      if (projectedSessions == 0 || cnSummary == null) {
-        null
-      } else {
-        Statistic.percentage(
-          cnSummary.totalComplianceEvents(context.policy),
-          projectedSessions,
-        )
-      }
 
     return Pair(
-      StaffCountStats(
-        reportingPeriod.from.toLocalDate(),
-        reportingPeriod.to.toLocalDate().minusDays(1),
-        projectedSessions,
-        cnSummary?.totalComplianceEvents(context.policy) ?: 0,
-        cnSummary?.countEvents(context.policy) ?: listOf(),
-        compliance ?: 0.0,
-      ),
+      applicableAllocations.staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cnSummary),
       cnSummary,
     )
   }
+}
+
+fun List<Allocation>.staffCountStatsFromApplicableAllocations(
+  reportingPeriod: ReportingPeriod,
+  prisonConfig: PrisonConfiguration,
+  cnSummary: CaseNoteSummary?,
+): StaffCountStats {
+  val context = AllocationContext.get()
+  val projectedSessions =
+    if (count() > 0) {
+      val sessionPerDay = 1 / (prisonConfig.frequencyInWeeks * 7.0)
+      sumOf {
+        round(it.daysAllocatedForStats(reportingPeriod) * sessionPerDay).toInt()
+      }
+    } else {
+      0
+    }
+  val compliance =
+    if (projectedSessions == 0 || cnSummary == null) {
+      null
+    } else {
+      Statistic.percentage(
+        cnSummary.totalComplianceEvents(context.policy),
+        projectedSessions,
+      )
+    }
+
+  return StaffCountStats(
+    reportingPeriod.from.toLocalDate(),
+    reportingPeriod.to.toLocalDate().minusDays(1),
+    projectedSessions,
+    cnSummary?.totalComplianceEvents(context.policy) ?: 0,
+    cnSummary?.countEvents(context.policy) ?: emptyEvents(context.policy),
+    compliance ?: 0.0,
+  )
 }
 
 private fun Prisoner.asPrisoner() =

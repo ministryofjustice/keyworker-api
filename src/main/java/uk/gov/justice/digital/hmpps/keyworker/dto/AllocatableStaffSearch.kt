@@ -17,7 +17,6 @@ data class AllocatableSummary(
   val capacity: Int,
   val allocated: Int,
   val allowAutoAllocation: Boolean,
-  val numberOfSessions: Int,
-  val numberOfEntries: Int,
   val staffRole: StaffRoleInfo,
+  val stats: StaffCountStats,
 )

@@ -14,6 +14,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
@@ -21,9 +23,9 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
@@ -32,6 +34,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdent
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
   @Test
@@ -83,52 +86,20 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     staffConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
+          val personIdentifier = personIdentifier()
           givenAllocation(
             staffAllocation(
-              personIdentifier(),
+              personIdentifier,
               prisonCode,
               kw.staffId,
+              allocatedAt = LocalDateTime.now().minusMonths(1),
               allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
             ),
           )
+          personIdentifier
+          kw.mockCaseNotesResponse(policy, prisonCode, ReportingPeriod.currentMonth(), personIdentifier, index)
         }
       }.flatten()
-
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      val sessionUsage =
-        NoteUsageResponse(
-          staffIds
-            .mapIndexed { index, staffId ->
-              UsageByAuthorIdResponse(
-                staffId.toString(),
-                KW_TYPE,
-                KW_SESSION_SUBTYPE,
-                index,
-              )
-            }.groupBy { it.authorId },
-        )
-      caseNotesMockServer.stubUsageByStaffIds(
-        request = lastMonthSessions(staffIds.map(Long::toString).toSet()),
-        response = sessionUsage,
-      )
-    }
-
-    val entryUsage =
-      NoteUsageResponse(
-        staffIds
-          .mapIndexed { index, staffId ->
-            UsageByAuthorIdResponse(
-              staffId.toString(),
-              policy.entryConfig.type,
-              policy.entryConfig.subType,
-              index / 2,
-            )
-          }.groupBy { it.authorId },
-      )
-    caseNotesMockServer.stubUsageByStaffIds(
-      request = lastMonthEntries(staffIds.map(Long::toString).toSet()),
-      response = entryUsage,
-    )
 
     val response =
       searchStaffSpec(prisonCode, request, policy)
@@ -143,28 +114,76 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content[0].staffId).isEqualTo(staffIds[0])
     assertThat(response.content[0].allowAutoAllocation).isEqualTo(false)
     assertThat(response.content[0].allocated).isEqualTo(0)
-    assertThat(response.content[0].numberOfSessions).isEqualTo(0)
-    assertThat(response.content[0].numberOfEntries).isEqualTo(0)
+    assertThat(
+      response.content[0]
+        .stats.recordedEvents
+        .find { it.type == RecordedEventType.SESSION }
+        ?.count,
+    ).isNull()
+    assertThat(
+      response.content[0]
+        .stats.recordedEvents
+        .find { it.type == RecordedEventType.ENTRY }
+        ?.count,
+    ).isEqualTo(0)
 
     assertThat(response.content.find { it.staffId == staffIds[3] }).isNull()
 
     assertThat(response.content[4].staffId).isEqualTo(staffIds[5])
     assertThat(response.content[4].allowAutoAllocation).isEqualTo(false)
     assertThat(response.content[4].allocated).isEqualTo(0)
-    assertThat(response.content[4].numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 5 else 0)
-    assertThat(response.content[4].numberOfEntries).isEqualTo(2)
+    assertThat(
+      response.content[4]
+        .stats.recordedEvents
+        .find { it.type == RecordedEventType.SESSION }
+        ?.count,
+    ).isEqualTo(
+      if (policy ==
+        AllocationPolicy.KEY_WORKER
+      ) {
+        5
+      } else {
+        null
+      },
+    )
+    assertThat(
+      response.content[4]
+        .stats.recordedEvents
+        .find { it.type == RecordedEventType.ENTRY }
+        ?.count,
+    ).isEqualTo(0)
 
     assertThat(response.content[6].staffId).isEqualTo(staffIds[8])
     assertThat(response.content[6].allowAutoAllocation).isEqualTo(true)
     assertThat(response.content[6].allocated).isEqualTo(7)
-    assertThat(response.content[6].numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 8 else 0)
-    assertThat(response.content[6].numberOfEntries).isEqualTo(4)
+    assertThat(
+      response.content[6]
+        .stats.recordedEvents
+        .find { it.type == RecordedEventType.SESSION }
+        ?.count,
+    ).isEqualTo(
+      if (policy ==
+        AllocationPolicy.KEY_WORKER
+      ) {
+        8
+      } else {
+        null
+      },
+    )
+    assertThat(
+      response.content[6]
+        .stats.recordedEvents
+        .find { it.type == RecordedEventType.ENTRY }
+        ?.count,
+    ).isEqualTo(3)
   }
 
   @ParameterizedTest
   @MethodSource("policyProvider")
   fun `can find all staff with config and counts`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
+
+    val currentMonth = ReportingPeriod.currentMonth()
 
     val prisonCode = "ATA"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
@@ -192,52 +211,18 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     staffConfigs
       .mapIndexed { index, kw ->
         (0..index).map {
+          val personIdentifier = personIdentifier()
           givenAllocation(
             staffAllocation(
-              personIdentifier(),
+              personIdentifier,
               prisonCode,
               kw.staffId,
               allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
             ),
           )
+          kw.mockCaseNotesResponse(policy, prisonCode, currentMonth, personIdentifier, index)
         }
       }.flatten()
-
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      val sessionUsage =
-        NoteUsageResponse(
-          staffIds
-            .mapIndexed { index, staffId ->
-              UsageByAuthorIdResponse(
-                staffId.toString(),
-                KW_TYPE,
-                KW_SESSION_SUBTYPE,
-                index,
-              )
-            }.groupBy { it.authorId },
-        )
-      caseNotesMockServer.stubUsageByStaffIds(
-        request = lastMonthSessions(staffIds.map(Long::toString).toSet()),
-        response = sessionUsage,
-      )
-    }
-
-    val entryUsage =
-      NoteUsageResponse(
-        staffIds
-          .mapIndexed { index, staffId ->
-            UsageByAuthorIdResponse(
-              staffId.toString(),
-              policy.entryConfig.type,
-              policy.entryConfig.subType,
-              index / 2,
-            )
-          }.groupBy { it.authorId },
-      )
-    caseNotesMockServer.stubUsageByStaffIds(
-      request = lastMonthEntries(staffIds.map(Long::toString).toSet()),
-      response = entryUsage,
-    )
 
     val response =
       searchStaffSpec(prisonCode, request, policy)
@@ -289,39 +274,52 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       )
     }
 
-    givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
-    givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId))
+    val personIdentifier = personIdentifier()
+    givenAllocation(staffAllocation(personIdentifier, prisonCode, staffId))
 
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      val sessionUsage =
-        NoteUsageResponse(
-          mapOf(
-            "$staffId" to listOf(UsageByAuthorIdResponse("$staffId", KW_TYPE, KW_SESSION_SUBTYPE, 7)),
-          ),
+    val reportingPeriod = ReportingPeriod.currentMonth()
+
+    caseNotesMockServer.stubUsageByPersonIdentifier(
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        keyworkerTypes(prisonCode, setOf(personIdentifier), reportingPeriod.from, reportingPeriod.to, setOf(staffId.toString()))
+      } else {
+        personalOfficerTypes(
+          prisonCode,
+          setOf(personIdentifier),
+          reportingPeriod.from,
+          reportingPeriod.to,
+          setOf(staffId.toString()),
         )
-      caseNotesMockServer.stubUsageByStaffIds(
-        request = lastMonthSessions(setOf("$staffId")),
-        response = sessionUsage,
-      )
-    }
-
-    val entryUsage =
+      },
       NoteUsageResponse(
-        mapOf(
-          "$staffId" to
+        (
+          if (policy == AllocationPolicy.KEY_WORKER) {
             listOf(
-              UsageByAuthorIdResponse(
-                "$staffId",
+              UsageByPersonIdentifierResponse(
+                personIdentifier,
+                KW_TYPE,
+                KW_SESSION_SUBTYPE,
+                7,
+              ),
+              UsageByPersonIdentifierResponse(
+                personIdentifier,
                 policy.entryConfig.type,
                 policy.entryConfig.subType,
                 3,
               ),
-            ),
-        ),
-      )
-    caseNotesMockServer.stubUsageByStaffIds(
-      request = lastMonthEntries(setOf("$staffId")),
-      response = entryUsage,
+            )
+          } else {
+            listOf(
+              UsageByPersonIdentifierResponse(
+                personIdentifier,
+                policy.entryConfig.type,
+                policy.entryConfig.subType,
+                3,
+              ),
+            )
+          }
+        ).groupBy { it.personIdentifier },
+      ),
     )
 
     val response =
@@ -334,9 +332,25 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
 
     val staff = response.content.single()
     assertThat(staff.capacity).isEqualTo(6)
-    assertThat(staff.allocated).isEqualTo(2)
-    assertThat(staff.numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 7 else 0)
-    assertThat(staff.numberOfEntries).isEqualTo(3)
+    assertThat(staff.allocated).isEqualTo(1)
+    assertThat(
+      staff.stats.recordedEvents
+        .find { it.type == RecordedEventType.SESSION }
+        ?.count,
+    ).isEqualTo(
+      if (policy ==
+        AllocationPolicy.KEY_WORKER
+      ) {
+        7
+      } else {
+        null
+      },
+    )
+    assertThat(
+      staff.stats.recordedEvents
+        .find { it.type == RecordedEventType.ENTRY }
+        ?.count,
+    ).isEqualTo(3)
     assertThat(staff.staffRole).isEqualTo(
       StaffRoleInfo(
         CodedDescription("PRO", "Prison Officer"),
@@ -381,54 +395,20 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     staffConfigs
       .mapIndexed { index, s ->
         (0..index).map {
+          val personIdentifier = personIdentifier()
           givenAllocation(
             staffAllocation(
-              personIdentifier(),
+              personIdentifier,
               prisonCode,
               s.staffId,
               allocationType = AllocationType.MANUAL,
             ),
           )
+          s.mockCaseNotesResponse(policy, prisonCode, ReportingPeriod.currentMonth(), personIdentifier, index)
         }
       }.flatten()
 
     val request = searchRequest("John Smith")
-    val caseNoteStaffIds = staffIds.filter { si[it] == 0 || si[it] == 4 }.map(Long::toString).toSet()
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      val sessionUsage =
-        NoteUsageResponse(
-          staffIds
-            .mapIndexed { index, staffId ->
-              UsageByAuthorIdResponse(
-                staffId.toString(),
-                KW_TYPE,
-                KW_SESSION_SUBTYPE,
-                index,
-              )
-            }.groupBy { it.authorId },
-        )
-      caseNotesMockServer.stubUsageByStaffIds(
-        request = lastMonthSessions(caseNoteStaffIds),
-        response = sessionUsage,
-      )
-    }
-
-    val entryUsage =
-      NoteUsageResponse(
-        staffIds
-          .mapIndexed { index, staffId ->
-            UsageByAuthorIdResponse(
-              staffId.toString(),
-              policy.entryConfig.type,
-              policy.entryConfig.subType,
-              index / 2,
-            )
-          }.groupBy { it.authorId },
-      )
-    caseNotesMockServer.stubUsageByStaffIds(
-      request = lastMonthEntries(caseNoteStaffIds),
-      response = entryUsage,
-    )
 
     val res =
       searchStaffSpec(prisonCode, request, policy)
@@ -458,6 +438,55 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
     .exchange()
+
+  private fun StaffConfiguration.mockCaseNotesResponse(
+    policy: AllocationPolicy,
+    prisonCode: String,
+    reportingPeriod: ReportingPeriod,
+    personIdentifier: String,
+    index: Int,
+  ) = caseNotesMockServer.stubUsageByPersonIdentifier(
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      keyworkerTypes(prisonCode, setOf(personIdentifier), reportingPeriod.from, reportingPeriod.to, setOf(staffId.toString()))
+    } else {
+      personalOfficerTypes(
+        prisonCode,
+        setOf(personIdentifier),
+        reportingPeriod.from,
+        reportingPeriod.to,
+        setOf(staffId.toString()),
+      )
+    },
+    NoteUsageResponse(
+      (
+        if (policy == AllocationPolicy.KEY_WORKER) {
+          listOf(
+            UsageByPersonIdentifierResponse(
+              personIdentifier,
+              KW_TYPE,
+              KW_SESSION_SUBTYPE,
+              index,
+            ),
+            UsageByPersonIdentifierResponse(
+              personIdentifier,
+              policy.entryConfig.type,
+              policy.entryConfig.subType,
+              index / 2,
+            ),
+          )
+        } else {
+          listOf(
+            UsageByPersonIdentifierResponse(
+              personIdentifier,
+              policy.entryConfig.type,
+              policy.entryConfig.subType,
+              index / 2,
+            ),
+          )
+        }
+      ).groupBy { it.personIdentifier },
+    ),
+  )
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/staff-allocations"

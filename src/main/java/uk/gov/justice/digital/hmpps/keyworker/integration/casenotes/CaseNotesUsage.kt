@@ -187,4 +187,16 @@ data class CaseNoteSummary(
       .filter { it.subType == KW_SESSION_SUBTYPE }
       .map { it.personIdentifier }
       .toSet()
+
+  companion object {
+    fun emptyEvents(policy: AllocationPolicy) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER ->
+          listOf(
+            RecordedEventCount(SESSION, 0),
+            RecordedEventCount(ENTRY, 0),
+          )
+        AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, 0))
+      }
+  }
 }
