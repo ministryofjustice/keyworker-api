@@ -40,7 +40,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisone
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
-import kotlin.math.round
+import kotlin.math.floor
 import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation as AllocationModel
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
 
@@ -231,7 +231,7 @@ fun List<Allocation>.staffCountStatsFromApplicableAllocations(
     if (count() > 0) {
       val sessionPerDay = 1 / (prisonConfig.frequencyInWeeks * 7.0)
       sumOf {
-        round(it.daysAllocatedForStats(reportingPeriod) * sessionPerDay).toInt()
+        floor(it.daysAllocatedForStats(reportingPeriod) * sessionPerDay + 0.5).toInt()
       }
     } else {
       0
