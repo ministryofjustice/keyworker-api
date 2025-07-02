@@ -19,6 +19,7 @@ data class StaffDetails(
 
 data class Allocation(
   val prisoner: Prisoner,
+  val stats: StaffCountStats,
   val latestSession: LatestSession?,
 )
 

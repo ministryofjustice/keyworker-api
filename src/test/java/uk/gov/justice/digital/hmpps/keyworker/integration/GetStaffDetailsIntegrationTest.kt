@@ -211,6 +211,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .get(0)
         .prisoner.remainingAlertCount,
     ).isEqualTo(2)
+    assertThat(
+      response.allocations
+        .get(0)
+        .stats.projectedComplianceEvents,
+    ).isEqualTo(4)
+    assertThat(
+      response.allocations
+        .get(0)
+        .stats.recordedComplianceEvents,
+    ).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 0 else 2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
     assertThat(response.stats.current).isNotNull()

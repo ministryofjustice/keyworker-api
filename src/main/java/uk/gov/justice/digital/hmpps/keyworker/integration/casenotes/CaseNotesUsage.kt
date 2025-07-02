@@ -181,6 +181,13 @@ data class CaseNoteSummary(
       ?.occurredAt
       ?.toLocalDate()
 
+  fun filterByPrisonerNumber(prisonerNumber: String): CaseNoteSummary =
+    CaseNoteSummary(
+      data.entries
+        .filter { it.key == prisonerNumber }
+        .associate { Pair(it.key, it.value) },
+    )
+
   fun personIdentifiersWithSessions() =
     data.values
       .flatten()
