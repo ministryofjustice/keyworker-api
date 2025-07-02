@@ -6,6 +6,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.PatchStaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
@@ -95,6 +97,20 @@ class PrisonController(
     @RequestBody request: StaffConfigRequest,
   ) {
     staffConfigManager.setStaffConfiguration(prisonCode, staffId, request)
+  }
+
+  @PolicyHeader
+  @CaseloadIdHeader
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PatchMapping("/staff/{staffId}/configuration")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun patchStaffConfig(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+    @RequestBody request: PatchStaffConfigRequest,
+  ) {
+    staffConfigManager.patchStaffConfiguration(prisonCode, staffId, request)
   }
 
   @PolicyHeader
