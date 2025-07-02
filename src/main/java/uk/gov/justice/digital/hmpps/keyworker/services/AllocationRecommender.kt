@@ -53,7 +53,7 @@ class AllocationRecommender(
           staffAllocationRepository.findPreviousAllocations(prisonCode, person.personIdentifier, staffIds)
         val recommended =
           if (previousAllocations.isNotEmpty()) {
-            staff.first { it.staff.staffId in previousAllocations }
+            staff.find { it.staff.staffId == previousAllocations.first { staffId -> staffId in staffIds } }
           } else {
             staff.firstOrNull { it.allocationCount < it.autoAllocationCapacity }
           }?.also {
