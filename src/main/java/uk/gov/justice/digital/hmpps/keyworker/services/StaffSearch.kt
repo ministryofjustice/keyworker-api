@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.domain.filterApplicable
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
@@ -140,18 +141,14 @@ class StaffSearch(
         .associateBy { it.staffMember.staffId }
 
     val applicableAllocationsByStaff =
-      staffMembers.keys.associateWith {
-        allocationRepository
-          .findActiveForPrisonStaffBetween(
-            prisonCode,
-            it,
-            reportingPeriod.from,
-            reportingPeriod.to,
-          ).filter {
-            (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(reportingPeriod.from)) &&
-              it.allocatedAt.isBefore(reportingPeriod.to)
-          }
-      }
+      allocationRepository
+        .findActiveForPrisonStaffBetween(
+          prisonCode,
+          staffMembers.keys.toSet(),
+          reportingPeriod.from,
+          reportingPeriod.to,
+        ).filterApplicable(reportingPeriod)
+        .groupBy { it.staffId }
 
     val caseNotesRequest =
       applicableAllocationsByStaff.entries.filter { it.value.isNotEmpty() }.map {

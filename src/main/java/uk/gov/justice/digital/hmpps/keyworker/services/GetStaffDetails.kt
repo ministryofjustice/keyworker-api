@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.domain.filterApplicable
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -188,11 +189,7 @@ class GetStaffDetails(
     staffId: Long,
   ): Pair<StaffCountStats, CaseNoteSummary?> {
     val context = AllocationContext.get()
-    val applicableAllocations =
-      filter {
-        (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(reportingPeriod.from)) &&
-          it.allocatedAt.isBefore(reportingPeriod.to)
-      }
+    val applicableAllocations = filterApplicable(reportingPeriod)
     val personIdentifiers = applicableAllocations.map { it.personIdentifier }.toSet()
     val cnSummary =
       if (personIdentifiers.isEmpty()) {

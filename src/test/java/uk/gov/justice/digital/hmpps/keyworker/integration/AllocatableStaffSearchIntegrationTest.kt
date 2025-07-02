@@ -131,7 +131,15 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         .stats.recordedEvents
         .find { it.type == RecordedEventType.SESSION }
         ?.count,
-    ).isNull()
+    ).isEqualTo(
+      if (policy ==
+        AllocationPolicy.KEY_WORKER
+      ) {
+        0
+      } else {
+        null
+      },
+    )
     assertThat(
       response.content[0]
         .stats.recordedEvents
