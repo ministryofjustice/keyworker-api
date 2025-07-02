@@ -3,17 +3,20 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.domain.filterApplicable
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
@@ -21,6 +24,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
@@ -29,11 +33,15 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 
 @Service
@@ -42,6 +50,7 @@ class StaffSearch(
   private val prisonApi: PrisonApiClient,
   private val caseNoteApi: CaseNotesApiClient,
   private val staffRoleRepository: StaffRoleRepository,
+  private val allocationRepository: StaffAllocationRepository,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
@@ -121,23 +130,56 @@ class StaffSearch(
     prisonCode: String,
     request: AllocatableSearchRequest,
   ): AllocatableSearchResponse {
-    val policy = AllocationContext.get().policy
+    val context = AllocationContext.get()
+    val reportingPeriod = ReportingPeriod.currentMonth()
+
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
 
     val staffMembers =
       findAllocatableStaff(prisonCode)
         .filter { it.staffMember.matches(request.query) }
         .associateBy { it.staffMember.staffId }
 
-    val staffIdStrings = staffMembers.keys.map { it.toString() }.toSet()
+    val applicableAllocationsByStaff =
+      allocationRepository
+        .findActiveForPrisonStaffBetween(
+          prisonCode,
+          staffMembers.keys.toSet(),
+          reportingPeriod.from,
+          reportingPeriod.to,
+        ).filterApplicable(reportingPeriod)
+        .groupBy { it.staffId }
 
-    val sessions =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> caseNoteApi.getUsageByStaffIds(lastMonthSessions(staffIdStrings))
-        else -> NoteUsageResponse(emptyMap())
+    val caseNotesRequest =
+      applicableAllocationsByStaff.entries.filter { it.value.isNotEmpty() }.map {
+        val authorIds = setOf(it.key.toString())
+        val personalIdentifiers = it.value.map { allocation -> allocation.personIdentifier }.toSet()
+
+        if (context.policy == AllocationPolicy.KEY_WORKER) {
+          keyworkerTypes(prisonConfig.code, personalIdentifiers, reportingPeriod.from, reportingPeriod.to, authorIds)
+        } else {
+          personalOfficerTypes(
+            prisonConfig.code,
+            personalIdentifiers,
+            reportingPeriod.from,
+            reportingPeriod.to,
+            authorIds,
+          )
+        }
       }
-    val entries = caseNoteApi.getUsageByStaffIds(lastMonthEntries(staffIdStrings))
 
-    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
+    val cnSummaryByStaff =
+      caseNoteApi
+        .getUsageByPersonIdentifiers(caseNotesRequest)
+        .associate {
+          Pair(
+            it.first.authorIds
+              .first()
+              .toLong(),
+            it.second.summary(),
+          )
+        }
+
     val staffDetail =
       if (staffMembers.keys.isEmpty()) {
         emptyMap()
@@ -150,9 +192,10 @@ class StaffSearch(
         .map {
           it.allocatableSummary(
             prisonConfig,
+            reportingPeriod,
             { staffId -> staffDetail[staffId] },
-            { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
-            { staffId -> entries.content[staffId.toString()]?.firstOrNull() },
+            { staffId -> applicableAllocationsByStaff[staffId].orEmpty() },
+            { staffId -> cnSummaryByStaff[staffId] },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
           )
         }.filter { ss -> (request.status == StaffStatus.ALL || request.status.name == ss.status.code) },
@@ -223,9 +266,10 @@ class StaffSearch(
 
   private fun AllocatableStaff.allocatableSummary(
     prisonConfig: PrisonConfiguration,
+    reportingPeriod: ReportingPeriod,
     staffConfig: (Long) -> StaffWithAllocationCount?,
-    sessions: (Long) -> UsageByAuthorIdResponse?,
-    entries: (Long) -> UsageByAuthorIdResponse?,
+    applicableAllocations: (Long) -> List<Allocation>,
+    cnSummary: (Long) -> CaseNoteSummary?,
     activeStatusProvider: Lazy<ReferenceData>,
   ): AllocatableSummary {
     val config = staffConfig(staffMember.staffId)
@@ -238,9 +282,12 @@ class StaffSearch(
       config?.staffConfig?.capacity ?: prisonConfig.capacity,
       config?.allocationCount ?: 0,
       config?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
-      sessions(staffMember.staffId)?.count ?: 0,
-      entries(staffMember.staffId)?.count ?: 0,
       staffRole,
+      applicableAllocations(staffMember.staffId).staffCountStatsFromApplicableAllocations(
+        reportingPeriod,
+        prisonConfig,
+        cnSummary(staffMember.staffId),
+      ),
     )
   }
 }
