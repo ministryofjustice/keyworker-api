@@ -142,7 +142,7 @@ class GetStaffDetails(
       activeAllocations
         .mapNotNull { alloc ->
           prisonerDetails[alloc.personIdentifier]?.let {
-            alloc.asAllocation(it, cnSummary?.findSessionDate(it.prisonerNumber))
+            alloc.asAllocation(it, reportingPeriod, prisonConfig, cnSummary)
           }
         }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
       StaffStats(current, previous),
@@ -267,10 +267,17 @@ private fun Prisoner.asPrisoner() =
 
 private fun Allocation.asAllocation(
   prisoner: Prisoner,
-  latestSession: LocalDate?,
+  reportingPeriod: ReportingPeriod,
+  prisonConfig: PrisonConfiguration,
+  cnSummary: CaseNoteSummary?,
 ) = AllocationModel(
   prisoner.asPrisoner(),
-  latestSession?.let { LatestSession(it) },
+  listOf(
+    this,
+  ).filterApplicable(
+    reportingPeriod,
+  ).staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cnSummary?.filterByPrisonerNumber(prisoner.prisonerNumber)),
+  cnSummary?.findSessionDate(prisoner.prisonerNumber)?.let { LatestSession(it) },
 )
 
 fun Allocation.daysAllocatedForStats(reportingPeriod: ReportingPeriod): Long {
