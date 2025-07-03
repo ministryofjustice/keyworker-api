@@ -7,7 +7,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Schema(
-  description = "Request to patch the configuration for a staff. ",
+  description = "Request to patch the configuration for a staff.",
 )
 data class PatchStaffConfigRequest(
   @param:Schema(nullable = false, type = "string", requiredMode = Schema.RequiredMode.NOT_REQUIRED, implementation = StaffStatus::class)

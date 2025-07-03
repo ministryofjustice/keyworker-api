@@ -108,11 +108,10 @@ class StaffConfigManager(
         ),
       )
     } ?: throw EntityNotFoundException("Staff role not found")
+  } ?: run {
+    staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply { toDate = LocalDate.now() }
+      ?: throw EntityNotFoundException("Staff role not found")
   }
-    ?: {
-      staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply { toDate = LocalDate.now() }
-        ?: throw EntityNotFoundException("Staff role not found")
-    }
 
   private fun patchJobRole(
     prisonCode: String,
@@ -133,7 +132,7 @@ class StaffConfigManager(
         ),
       )
     } ?: throw EntityNotFoundException("Staff role not found")
-  } ?: {
+  } ?: run {
     staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
       request.position.ifPresent { position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of it) }
       request.scheduleType.ifPresent {

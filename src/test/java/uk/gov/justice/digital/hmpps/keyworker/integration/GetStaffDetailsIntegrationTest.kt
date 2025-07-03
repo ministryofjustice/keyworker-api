@@ -477,13 +477,14 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       position: String,
       firstName: String = "First",
       lastName: String = "Last",
+      hoursPerWeek: BigDecimal = BigDecimal(36.5),
     ): StaffLocationRoleDto =
       StaffLocationRoleDto
         .builder()
         .staffId(id)
         .scheduleType(scheduleType)
         .position(position)
-        .hoursPerWeek(BigDecimal(36.5))
+        .hoursPerWeek(hoursPerWeek)
         .firstName(firstName)
         .lastName(lastName)
         .fromDate(now().minusWeeks(6))
