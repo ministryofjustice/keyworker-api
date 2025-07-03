@@ -203,13 +203,14 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
       select sa.staffId from Allocation sa
       where sa.personIdentifier = :personIdentifier and sa.prisonCode = :prisonCode
       and sa.staffId in :staffIds
+      order by sa.allocatedAt desc
     """,
   )
   fun findPreviousAllocations(
     prisonCode: String,
     personIdentifier: String,
     staffIds: Set<Long>,
-  ): Set<Long>
+  ): List<Long>
 
   @Modifying
   @Query(
