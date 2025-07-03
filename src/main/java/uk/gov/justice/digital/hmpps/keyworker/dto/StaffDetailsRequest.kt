@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.dto
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
 import org.openapitools.jackson.nullable.JsonNullable
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -11,8 +10,8 @@ import java.time.LocalDate
   description = "Request to patch the configuration for a staff.",
 )
 data class StaffDetailsRequest(
-  @param:Schema(nullable = false, type = "string", requiredMode = Schema.RequiredMode.NOT_REQUIRED, implementation = StaffStatus::class)
-  val status: JsonNullable<StaffStatus> = JsonNullable.undefined(),
+  @param:Schema(nullable = false, type = "string", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  val status: JsonNullable<String> = JsonNullable.undefined(),
   @param:Schema(nullable = false, type = "integer", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   val capacity: JsonNullable<Int> = JsonNullable.undefined(),
   @param:Schema(nullable = false, type = "boolean", requiredMode = Schema.RequiredMode.NOT_REQUIRED)

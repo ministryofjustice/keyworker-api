@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
+import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
@@ -26,7 +27,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClas
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.STAFF_STATUS_CHANGE
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import java.time.LocalDate
 
 @Transactional
@@ -106,7 +106,9 @@ class StaffConfigManager(
       request.apply {
         staffConfigRepository.save(
           StaffConfiguration(
-            referenceDataRepository.getKeyworkerStatus(if (status.isPresent) status.get() else StaffStatus.ACTIVE),
+            referenceDataRepository.getReferenceData(
+              ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, if (status.isPresent) status.get() else "ACTIVE"),
+            ),
             capacity.orElse(prisonConfig.capacity),
             allowAutoAllocation.orElse(true),
             reactivateOn.orElse(null),
@@ -256,7 +258,7 @@ class StaffConfigManager(
 
   private fun StaffConfiguration.patch(request: StaffDetailsRequest) =
     apply {
-      request.status.ifPresent { status = referenceDataRepository.getKeyworkerStatus(it) }
+      request.status.ifPresent { status = referenceDataRepository.getReferenceData(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it)) }
       request.capacity.ifPresent { capacity = it }
       request.allowAutoAllocation.ifPresent { allowAutoAllocation = it }
       request.reactivateOn.ifPresent { reactivateOn = it }
