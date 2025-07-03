@@ -6,7 +6,6 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -19,12 +18,12 @@ import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PatchStaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
@@ -103,14 +102,14 @@ class PrisonController(
   @CaseloadIdHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
-  @PatchMapping("/staff/{staffId}/configuration")
+  @PutMapping("/staff/{staffId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  fun patchStaffConfig(
+  fun modifyStaffDetails(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
-    @RequestBody request: PatchStaffConfigRequest,
+    @RequestBody request: StaffDetailsRequest,
   ) {
-    staffConfigManager.patchStaffConfiguration(prisonCode, staffId, request)
+    staffConfigManager.setStaffDetails(prisonCode, staffId, request)
   }
 
   @PolicyHeader
