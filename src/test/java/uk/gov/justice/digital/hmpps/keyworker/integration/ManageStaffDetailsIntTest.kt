@@ -55,7 +55,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
-  fun `400 not found if staff role is to be created but parameters are not insufficient`(policy: AllocationPolicy) {
+  fun `400 not found if staff role is to be created but parameters are insufficient`(policy: AllocationPolicy) {
     setStaffDetails("NA2", newId(), "{\"staffRole\": {}", policy)
       .expectStatus()
       .isBadRequest
