@@ -45,6 +45,7 @@ dependencies {
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.1")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
+  implementation("org.openapitools:jackson-databind-nullable:0.2.6")
 
   compileOnly("org.projectlombok:lombok")
   runtimeOnly("com.h2database:h2:2.3.232")

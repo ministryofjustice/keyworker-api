@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
@@ -95,6 +96,20 @@ class PrisonController(
     @RequestBody request: StaffConfigRequest,
   ) {
     staffConfigManager.setStaffConfiguration(prisonCode, staffId, request)
+  }
+
+  @PolicyHeader
+  @CaseloadIdHeader
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping("/staff/{staffId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun modifyStaffDetails(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+    @RequestBody request: StaffDetailsRequest,
+  ) {
+    staffConfigManager.setStaffDetails(prisonCode, staffId, request)
   }
 
   @PolicyHeader
