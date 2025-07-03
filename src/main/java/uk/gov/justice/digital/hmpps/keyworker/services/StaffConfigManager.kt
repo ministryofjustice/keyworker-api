@@ -140,35 +140,21 @@ class StaffConfigManager(
         nurApi.setStaffRole(prisonCode, staffId, it, jobRoleRequest)
       } ?: setStaffRole(prisonCode, staffId, jobRoleRequest)
     } else if (patchRole) {
-      policy.nomisUseRoleCode?.let {
+      policy.nomisUseRoleCode?.let { roleCode ->
         staffRole!!.second!!.apply {
           nurApi.setStaffRole(
             prisonCode,
             staffId,
-            it,
-            StaffJobClassificationRequest(
-              position =
-                request.staffRole
-                  .get()!!
-                  .position
-                  .orElse(position),
-              scheduleType =
-                request.staffRole
-                  .get()!!
-                  .scheduleType
-                  .orElse(scheduleType),
-              hoursPerWeek =
-                request.staffRole
-                  .get()!!
-                  .hoursPerWeek
-                  .orElse(hoursPerWeek),
-              fromDate =
-                request.staffRole
-                  .get()!!
-                  .fromDate
-                  .orElse(fromDate),
-              toDate = null,
-            ),
+            roleCode,
+            request.staffRole.get()!!.let {
+              StaffJobClassificationRequest(
+                position = it.position.orElse(position),
+                scheduleType = it.scheduleType.orElse(scheduleType),
+                hoursPerWeek = it.hoursPerWeek.orElse(hoursPerWeek),
+                fromDate = it.fromDate.orElse(fromDate),
+                toDate = null,
+              )
+            },
           )
         }
       } ?: run {
