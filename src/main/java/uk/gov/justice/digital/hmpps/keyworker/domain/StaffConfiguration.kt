@@ -47,7 +47,7 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
     """
         with counts as (select sa.staffId as id, count(sa) as count
                         from Allocation sa
-                        where sa.isActive = true and sa.allocationType <> 'P'
+                        where sa.isActive = true
                         and sa.prisonCode = :prisonCode and sa.staffId in :staffIds
                         group by sa.staffId
         )
