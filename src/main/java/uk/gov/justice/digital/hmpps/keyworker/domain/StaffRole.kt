@@ -72,4 +72,15 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     prisonCode: String,
     staffId: Long,
   ): List<StaffRole>
+
+  @Query(
+    """
+        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and to_date is not null
+    """,
+    nativeQuery = true,
+  )
+  fun findInactiveRoleByPrisonCodeAndStaffId(
+    prisonCode: String,
+    staffId: Long,
+  ): StaffRole?
 }

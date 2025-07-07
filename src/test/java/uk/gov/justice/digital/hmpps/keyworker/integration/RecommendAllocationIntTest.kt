@@ -167,6 +167,70 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
+  fun `will recommend previous staff who was last allocated to the prisoner`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
+    val prisonCode = "EXI"
+    givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy, allowAutoAllocation = true))
+    val prisoners = prisoners(prisonCode, 1)
+    prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
+
+    val latestPreviousStaff = staffDetail()
+    val otherStaff = (0..4).map { staffDetail() }
+    val allStaff = otherStaff + latestPreviousStaff
+    prisonMockServer.stubStaffSummaries(staffSummaries(allStaff.map { it.staffId }.toSet()))
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      prisonMockServer.stubKeyworkerSearch(prisonCode, allStaff)
+    } else {
+      allStaff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
+    }
+
+    allStaff
+      .mapIndexed { i, s ->
+        givenAllocation(
+          staffAllocation(
+            prisoners.content.single().prisonerNumber,
+            prisonCode,
+            s.staffId,
+            active = false,
+            allocatedAt = LocalDateTime.now().minusMonths(i + 1L),
+            deallocatedAt = LocalDateTime.now().minusMonths(i + 1L).plusDays(7L),
+            deallocationReason = DeallocationReason.STAFF_STATUS_CHANGE,
+            deallocatedBy = "d34ll",
+          ),
+        )
+      }
+
+    givenAllocation(
+      staffAllocation(
+        prisoners.content.single().prisonerNumber,
+        prisonCode,
+        latestPreviousStaff.staffId,
+        active = false,
+        allocatedAt = LocalDateTime.now().minusDays(3L),
+        deallocatedAt = LocalDateTime.now().minusDays(1L),
+        deallocationReason = DeallocationReason.STAFF_STATUS_CHANGE,
+        deallocatedBy = "d34ll",
+      ),
+    )
+
+    val res =
+      getAllocationRecommendations(prisonCode, policy)
+        .expectStatus()
+        .isOk
+        .expectBody(RecommendedAllocations::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(res.noAvailableStaffFor).isEmpty()
+    assertThat(
+      res.allocations
+        .single()
+        .staff.staffId,
+    ).isEqualTo(latestPreviousStaff.staffId)
+  }
+
+  @ParameterizedTest
+  @MethodSource("policyProvider")
   fun `will balance recommendations based on capacity availability and report when staff are at max capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "BAL"
@@ -335,6 +399,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
           "STANDARD",
           null,
           LocalDate.now().minusWeeks(it.toLong()),
+          listOf(),
         )
       },
   )

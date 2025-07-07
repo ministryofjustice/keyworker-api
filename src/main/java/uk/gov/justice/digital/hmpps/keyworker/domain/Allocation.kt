@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationTypeConvertor
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator.newUuid
@@ -73,6 +74,12 @@ class Allocation(
     this.deallocationReason = deallocationReason
   }
 }
+
+fun List<Allocation>.filterApplicable(reportingPeriod: ReportingPeriod) =
+  filter {
+    (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(reportingPeriod.from)) &&
+      it.allocatedAt.isBefore(reportingPeriod.to)
+  }
 
 interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
   @Query(
@@ -139,6 +146,20 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
     toDate: LocalDateTime,
   ): List<Allocation>
 
+  @Query(
+    """
+      select sa from Allocation sa
+      where sa.staffId in :staffIds and sa.prisonCode = :prisonCode
+      and sa.allocatedAt <= :toDate and (sa.deallocatedAt is null or sa.deallocatedAt >= :fromDate)
+    """,
+  )
+  fun findActiveForPrisonStaffBetween(
+    prisonCode: String,
+    staffIds: Set<Long>,
+    fromDate: LocalDateTime,
+    toDate: LocalDateTime,
+  ): List<Allocation>
+
   fun findAllByPersonIdentifierInAndIsActiveTrue(personIdentifiers: Set<String>): List<Allocation>
 
   fun findAllByPersonIdentifier(personIdentifier: String): List<Allocation>
@@ -182,13 +203,14 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
       select sa.staffId from Allocation sa
       where sa.personIdentifier = :personIdentifier and sa.prisonCode = :prisonCode
       and sa.staffId in :staffIds
+      order by sa.allocatedAt desc
     """,
   )
   fun findPreviousAllocations(
     prisonCode: String,
     personIdentifier: String,
     staffIds: Set<Long>,
-  ): Set<Long>
+  ): List<Long>
 
   @Modifying
   @Query(

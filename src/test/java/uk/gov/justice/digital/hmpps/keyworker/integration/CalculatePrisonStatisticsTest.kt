@@ -68,7 +68,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     }
     val noteUsageResponse = noteUsageResponse(prisoners.personIdentifiers())
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, prisoners.personIdentifiers(), yesterday),
+      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, prisoners.personIdentifiers(), yesterday.atStartOfDay()),
       noteUsageResponse,
     )
     val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
@@ -159,7 +159,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     )
     val noteUsageResponse = noteUsageResponse(eligiblePrisoners)
     caseNotesMockServer.stubUsageByPersonIdentifier(
-      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, eligiblePrisoners, yesterday),
+      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, eligiblePrisoners, yesterday.atStartOfDay()),
       noteUsageResponse,
     )
     val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
@@ -227,6 +227,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
             nonHigh.random()
           },
           if (index % 2 == 0) null else now().minusDays(index / 2 + 1L),
+          listOf(),
         )
       },
     )

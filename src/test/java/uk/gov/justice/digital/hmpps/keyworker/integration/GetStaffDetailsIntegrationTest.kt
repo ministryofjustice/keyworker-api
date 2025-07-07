@@ -12,6 +12,10 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
+import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
@@ -33,6 +37,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
+import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -79,8 +84,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       )
     }
 
-    val fromDate = now().minusMonths(1)
-    val previousFromDate = fromDate.minusMonths(1)
+    val currentMonth = ReportingPeriod.currentMonth()
+    val previousMonth = currentMonth.previousPeriod()
     val allocations =
       (1..20).map {
         val activeAllocation = it % 9 != 0
@@ -89,7 +94,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             personIdentifier = personIdentifier(),
             prisonCode = prisonCode,
             staffId = staffConfig.staffId,
-            assignedAt = LocalDateTime.now().minusDays(it * 3L),
+            allocatedAt = LocalDateTime.now().minusDays(31L),
             active = activeAllocation,
             deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(10),
             deallocatedBy = if (activeAllocation) null else "T357",
@@ -102,20 +107,44 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val caseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(fromDate)) &&
-            it.allocatedAt.toLocalDate().isBefore(now())
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(currentMonth.from)) &&
+            it.allocatedAt.isBefore(currentMonth.to)
         }.map { it.personIdentifier }
         .toSet()
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, personIdentifiers)
+    prisonerSearchMockServer.stubFindPrisonDetails(
+      prisonCode,
+      personIdentifiers,
+      personIdentifiers.map {
+        Prisoner(
+          it,
+          "First",
+          "Last",
+          LocalDate.now().minusDays(30),
+          LocalDate.now().plusDays(90),
+          prisonCode,
+          "Description of $prisonCode",
+          "$prisonCode-A-1",
+          "STANDARD",
+          null,
+          null,
+          listOf(
+            PrisonAlert("Type", "XRF", true, false),
+            PrisonAlert("Type", "RNO121", false, true),
+            PrisonAlert("Type", "OTHER1", true, false),
+            PrisonAlert("Type", "OTHER2", true, false),
+          ),
+        )
+      },
+    )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(prisonCode, caseNoteIdentifiers, fromDate, now(), setOf(staffConfig.staffId.toString()))
+        keyworkerTypes(prisonCode, caseNoteIdentifiers, currentMonth.from, currentMonth.to, setOf(staffConfig.staffId.toString()))
       } else {
         personalOfficerTypes(
           prisonCode,
           caseNoteIdentifiers,
-          fromDate,
-          now(),
+          currentMonth.from,
+          currentMonth.to,
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -125,8 +154,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val prevCaseNoteIdentifiers =
       allocations
         .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.toLocalDate().isBefore(previousFromDate)) &&
-            it.allocatedAt.toLocalDate().isBefore(fromDate)
+          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(previousMonth.from)) &&
+            it.allocatedAt.isBefore(previousMonth.to)
         }.map { it.personIdentifier }
         .toSet()
     caseNotesMockServer.stubUsageByPersonIdentifier(
@@ -134,16 +163,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         keyworkerTypes(
           prisonCode,
           prevCaseNoteIdentifiers,
-          previousFromDate,
-          fromDate,
+          previousMonth.from,
+          previousMonth.to,
           setOf(staffConfig.staffId.toString()),
         )
       } else {
         personalOfficerTypes(
           prisonCode,
           prevCaseNoteIdentifiers,
-          previousFromDate,
-          fromDate,
+          previousMonth.from,
+          previousMonth.to,
           setOf(staffConfig.staffId.toString()),
         )
       },
@@ -172,32 +201,76 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.capacity).isEqualTo(10)
     assertThat(response.allocated).isEqualTo(18)
     assertThat(response.allocations.size).isEqualTo(18)
+    assertThat(
+      response.allocations
+        .get(0)
+        .prisoner.relevantAlertCodes,
+    ).containsExactlyInAnyOrder("XRF")
+    assertThat(
+      response.allocations
+        .get(0)
+        .prisoner.remainingAlertCount,
+    ).isEqualTo(2)
+    assertThat(
+      response.allocations
+        .get(0)
+        .stats.projectedComplianceEvents,
+    ).isEqualTo(4)
+    assertThat(
+      response.allocations
+        .get(0)
+        .stats.recordedComplianceEvents,
+    ).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 0 else 2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
-
     assertThat(response.stats.current).isNotNull()
     with(response.stats.current) {
-      val projectedSessions = DAYS.between(from, to) * 2 + 2
-      assertThat(projectedSessions).isEqualTo(projectedSessions)
-      assertThat(recordedSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 0)
-      assertThat(recordedEntries).isEqualTo(15)
-      assertThat(complianceRate).isEqualTo(
+      assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
+      assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
+      assertThat(recordedEvents).isEqualTo(
         if (policy == AllocationPolicy.KEY_WORKER) {
-          BigDecimal(recordedSessions / projectedSessions.toDouble() * 100)
-            .setScale(2, HALF_EVEN)
-            .toDouble()
+          listOf(
+            RecordedEventCount(SESSION, 38),
+            RecordedEventCount(ENTRY, 15),
+          )
         } else {
-          0.0
+          listOf(
+            RecordedEventCount(ENTRY, 15),
+          )
         },
       )
+      assertThat(complianceRate).isEqualTo(
+        BigDecimal(recordedComplianceEvents / projectedComplianceEvents.toDouble() * 100)
+          .setScale(2, HALF_EVEN)
+          .toDouble(),
+      )
     }
+
+    assertThat(response.stats.current.from).isEqualTo(
+      response.stats.previous.to
+        .plusDays(1),
+    )
+    assertThat(
+      DAYS.between(response.stats.current.from, response.stats.current.to),
+    ).isEqualTo(DAYS.between(response.stats.previous.from, response.stats.previous.to))
 
     assertThat(response.stats.previous).isNotNull()
     with(response.stats.previous) {
       val projectedSessions = DAYS.between(from, to) * 2 + 2
       assertThat(projectedSessions).isEqualTo(projectedSessions)
-      assertThat(recordedSessions).isEqualTo(0)
-      assertThat(recordedEntries).isEqualTo(0)
+      assertThat(recordedComplianceEvents).isEqualTo(0)
+      assertThat(recordedEvents).isEqualTo(
+        if (policy == AllocationPolicy.KEY_WORKER) {
+          listOf(
+            RecordedEventCount(SESSION, 0),
+            RecordedEventCount(ENTRY, 0),
+          )
+        } else {
+          listOf(
+            RecordedEventCount(ENTRY, 0),
+          )
+        },
+      )
       assertThat(complianceRate).isEqualTo(0.0)
     }
   }
@@ -404,13 +477,14 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       position: String,
       firstName: String = "First",
       lastName: String = "Last",
+      hoursPerWeek: BigDecimal = BigDecimal(36.5),
     ): StaffLocationRoleDto =
       StaffLocationRoleDto
         .builder()
         .staffId(id)
         .scheduleType(scheduleType)
         .position(position)
-        .hoursPerWeek(BigDecimal(36.5))
+        .hoursPerWeek(hoursPerWeek)
         .firstName(firstName)
         .lastName(lastName)
         .fromDate(now().minusWeeks(6))

@@ -2,6 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
@@ -12,6 +15,7 @@ import java.time.LocalDateTime
 
 enum class DateType {
   CREATED_AT,
+  OCCURRED_AT,
 }
 
 data class UsageByPersonIdentifierRequest(
@@ -21,21 +25,21 @@ data class UsageByPersonIdentifierRequest(
   val to: LocalDateTime? = null,
   val authorIds: Set<String> = setOf(),
   val prisonCode: String? = null,
-  val dateType: DateType = DateType.CREATED_AT,
+  val dateType: DateType = DateType.OCCURRED_AT,
 ) {
   companion object {
     fun keyworkerTypes(
       prisonCode: String?,
       personIdentifiers: Set<String>,
-      from: LocalDate,
-      to: LocalDate = from.plusDays(1),
+      from: LocalDateTime,
+      to: LocalDateTime = from.plusDays(1),
       authorIds: Set<String> = setOf(),
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_ENTRY_SUBTYPE, KW_SESSION_SUBTYPE))),
-        from = from.atStartOfDay(),
-        to = to.atStartOfDay(),
+        from = from,
+        to = to,
         authorIds = authorIds,
         prisonCode = prisonCode,
       )
@@ -43,15 +47,15 @@ data class UsageByPersonIdentifierRequest(
     fun personalOfficerTypes(
       prisonCode: String?,
       personIdentifiers: Set<String>,
-      from: LocalDate,
-      to: LocalDate = from.plusDays(1),
+      from: LocalDateTime,
+      to: LocalDateTime = from.plusDays(1),
       authorIds: Set<String> = setOf(),
     ): UsageByPersonIdentifierRequest =
       UsageByPersonIdentifierRequest(
         personIdentifiers,
         setOf(TypeSubTypeRequest(PO_ENTRY_TYPE, setOf(PO_ENTRY_SUBTYPE))),
-        from = from.atStartOfDay(),
-        to = to.atStartOfDay(),
+        from = from,
+        to = to,
         authorIds = authorIds,
         prisonCode = prisonCode,
       )
@@ -148,6 +152,22 @@ data class CaseNoteSummary(
     poEntries = grouped[PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
   }
 
+  fun totalComplianceEvents(policy: AllocationPolicy) =
+    when (policy) {
+      AllocationPolicy.KEY_WORKER -> keyworkerSessions
+      AllocationPolicy.PERSONAL_OFFICER -> poEntries
+    }
+
+  fun countEvents(policy: AllocationPolicy) =
+    when (policy) {
+      AllocationPolicy.KEY_WORKER ->
+        listOf(
+          RecordedEventCount(SESSION, keyworkerSessions),
+          RecordedEventCount(ENTRY, keyworkerEntries),
+        )
+      AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, poEntries))
+    }
+
   fun totalEntries(policy: AllocationPolicy) =
     when (policy) {
       AllocationPolicy.KEY_WORKER -> keyworkerEntries
@@ -161,10 +181,29 @@ data class CaseNoteSummary(
       ?.occurredAt
       ?.toLocalDate()
 
+  fun filterByPrisonerNumber(prisonerNumber: String): CaseNoteSummary =
+    CaseNoteSummary(
+      data.entries
+        .filter { it.key == prisonerNumber }
+        .associate { Pair(it.key, it.value) },
+    )
+
   fun personIdentifiersWithSessions() =
     data.values
       .flatten()
       .filter { it.subType == KW_SESSION_SUBTYPE }
       .map { it.personIdentifier }
       .toSet()
+
+  companion object {
+    fun emptyEvents(policy: AllocationPolicy) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER ->
+          listOf(
+            RecordedEventCount(SESSION, 0),
+            RecordedEventCount(ENTRY, 0),
+          )
+        AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, 0))
+      }
+  }
 }

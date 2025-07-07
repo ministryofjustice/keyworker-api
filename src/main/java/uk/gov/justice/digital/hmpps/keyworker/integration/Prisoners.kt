@@ -19,6 +19,13 @@ data class Prisoners(
   operator fun get(prisonerNumber: String): Prisoner? = map[prisonerNumber]
 }
 
+data class PrisonAlert(
+  val alertType: String,
+  val alertCode: String,
+  val active: Boolean,
+  val expired: Boolean,
+)
+
 data class Prisoner(
   val prisonerNumber: String,
   val firstName: String,
@@ -31,4 +38,12 @@ data class Prisoner(
   val csra: String?,
   val complexityOfNeedLevel: ComplexityOfNeedLevel?,
   val lastAdmissionDate: LocalDate?,
+  val alerts: List<PrisonAlert>,
 )
+
+fun List<PrisonAlert>.getRelevantAlertCodes() =
+  filter {
+    it.active && (it.alertCode == "XRF" || it.alertCode == "RNO121")
+  }.map { it.alertCode }
+
+fun List<PrisonAlert>.getRemainingAlertCount() = filter { it.active && it.alertCode != "XRF" && it.alertCode != "RNO121" }.size

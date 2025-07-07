@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
@@ -72,7 +73,9 @@ class PrisonController(
   fun getStaffDetails(
     @PathVariable prisonCode: String,
     @PathVariable staffId: Long,
-  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId)
+    @RequestParam(required = false) from: LocalDate?,
+    @RequestParam(required = false) to: LocalDate?,
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to)
 
   @Operation(hidden = true)
   @GetMapping("/staff/{staffId}/job-classifications")
@@ -99,7 +102,21 @@ class PrisonController(
   @CaseloadIdHeader
   @Tag(name = MANAGE_STAFF)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
-  @PutMapping("/staff/{staffId}/job-classifications", "/staff/{staffId}/job-classification")
+  @PutMapping("/staff/{staffId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun modifyStaffDetails(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+    @RequestBody request: StaffDetailsRequest,
+  ) {
+    staffConfigManager.setStaffDetails(prisonCode, staffId, request)
+  }
+
+  @PolicyHeader
+  @CaseloadIdHeader
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping("/staff/{staffId}/job-classifications")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun modifyStaffJob(
     @PathVariable prisonCode: String,
