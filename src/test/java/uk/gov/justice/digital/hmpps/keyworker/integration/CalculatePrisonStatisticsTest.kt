@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
 import java.time.LocalDate.now
@@ -145,6 +146,17 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         )
       }
     }
+
+    complexityOfNeedMockServer.stubComplexOffenders(
+      prisoners.personIdentifiers(),
+      prisoners.content.mapIndexed { index, prisoner ->
+        ComplexOffender(
+          prisoner.prisonerNumber,
+          prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
+          createdTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
+        )
+      },
+    )
     val noteUsageResponse = noteUsageResponse(eligiblePrisoners)
     caseNotesMockServer.stubUsageByPersonIdentifier(
       UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, eligiblePrisoners, yesterday),
