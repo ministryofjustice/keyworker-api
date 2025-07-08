@@ -11,7 +11,8 @@ public enum DeallocationReason {
     MERGED("MERGED"),
     MISSING("MISSING"),
     DUP("DUPLICATE"),
-    MANUAL("MANUAL");
+    MANUAL("MANUAL"),
+    CHANGE_IN_COMPLEXITY_OF_NEED("CHANGE_IN_COMPLEXITY_OF_NEED");
 
     private final String reasonCode;
 
