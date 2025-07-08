@@ -50,10 +50,11 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
                         where sa.isActive = true
                         and sa.prisonCode = :prisonCode and sa.staffId in :staffIds
                         group by sa.staffId
-        )
+        ),
+        config_ids as (select sc.id as config_id from StaffConfiguration sc where sc.staffId in :staffIds)
         select coalesce(ac.id, config.staffId) as staffId, ac.count as allocationCount, config as staffConfig from counts ac
         full outer join StaffConfiguration config on ac.id = config.staffId
-        where config.staffId is null or config.staffId in :staffIds
+        where config.id is null or config.id in (select config_id from config_ids)
         """,
   )
   fun findAllWithAllocationCount(
