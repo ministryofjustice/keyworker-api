@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey;
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository;
@@ -78,7 +77,7 @@ public class KeyworkerService {
     private final KeyworkerAllocationProcessor processor;
     private final PrisonSupportedService prisonSupportedService;
     private final NomisService nomisService;
-    private final ComplexityOfNeed complexityOfNeedService;
+    private final RemoveHighComplexityOfNeed complexityOfNeedService;
     private final ReferenceDataRepository referenceDataRepository;
 
     public List<KeyworkerDto> getAvailableKeyworkers(final String prisonId, final boolean activeOnly) {

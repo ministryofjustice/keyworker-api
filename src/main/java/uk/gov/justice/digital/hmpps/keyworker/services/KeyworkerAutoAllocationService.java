@@ -44,7 +44,7 @@ public class KeyworkerAutoAllocationService {
     private final KeyworkerPoolFactory keyworkerPoolFactory;
     private final LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
     private final PrisonSupportedService prisonSupportedService;
-    private final ComplexityOfNeed complexityOfNeedService;
+    private final RemoveHighComplexityOfNeed complexityOfNeedService;
     private final ReferenceDataRepository referenceDataRepository;
 
     @PreAuthorize("hasAnyRole('OMIC_ADMIN')")

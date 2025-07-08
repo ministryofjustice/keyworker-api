@@ -10,14 +10,12 @@ import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurati
 class ComplexityOfNeedService(
   private val complexityOfNeedGateway: ComplexityOfNeedGateway,
   private val prisonSupportedRepository: LegacyPrisonConfigurationRepository,
-) : ComplexityOfNeed {
+) : RemoveHighComplexityOfNeed {
   override fun removeOffendersWithHighComplexityOfNeed(
     prisonId: String,
     offenders: Set<String>,
   ): Set<String> {
-    if (prisonSupportedRepository.findByPrisonCode(prisonId).map { it.hasPrisonersWithHighComplexityNeeds() }.orElse(false) !=
-      true
-    ) {
+    if (!prisonSupportedRepository.findByPrisonCode(prisonId).map { it.hasPrisonersWithHighComplexityNeeds() }.orElse(false)) {
       return offenders
     }
 
@@ -28,9 +26,6 @@ class ComplexityOfNeedService(
         .map { it.offenderNo }
         .toSet()
 
-    return offenders
-      .filter {
-        !complexOffenders.contains(it)
-      }.toSet()
+    return offenders.filter { !complexOffenders.contains(it) }.toSet()
   }
 }

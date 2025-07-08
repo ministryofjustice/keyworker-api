@@ -61,7 +61,7 @@ private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
     sumOf { it.keyworkerEntries },
     mapNotNull { it.averageReceptionToAllocationDays }.average().toInt(),
     mapNotNull { it.averageReceptionToSessionDays }.average().toInt(),
-    projectedSessions.toInt(),
+    projectedSessions,
     percentage(assignedKeyworker, eligible),
     percentage(sessions, projectedSessions) ?: 0.0,
   )

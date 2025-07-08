@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
-interface ComplexityOfNeed {
+interface RemoveHighComplexityOfNeed {
   fun removeOffendersWithHighComplexityOfNeed(
     prisonId: String,
     offenders: Set<String>,

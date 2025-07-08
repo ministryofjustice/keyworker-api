@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
+import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
@@ -24,9 +26,11 @@ import java.time.temporal.ChronoUnit.DAYS
 class PrisonStatisticCalculator(
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
+  private val complexityOfNeedApi: ComplexityOfNeedApiClient,
   private val staffAllocationRepository: StaffAllocationRepository,
   private val caseNotesApi: CaseNotesApiClient,
   private val prisonApi: PrisonApiClient,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -46,10 +50,17 @@ class PrisonStatisticCalculator(
         return
       }
 
+      val prisonConfig = prisonConfigRepository.findByCode(prisonCode)
+      val complexityOfNeed =
+        if (prisonConfig?.hasPrisonersWithHighComplexityNeeds == true) {
+          complexityOfNeedApi.getComplexityOfNeed(prisoners.personIdentifiers()).associateBy { it.personIdentifier }
+        } else {
+          emptyMap()
+        }
       val prisonersWithComplexNeeds =
-        prisoners.content
-          .filter { it.complexityOfNeedLevel == HIGH }
-          .map { it.prisonerNumber }
+        complexityOfNeed.values
+          .filter { it.level == HIGH }
+          .map { it.personIdentifier }
           .toSet()
       val eligiblePrisoners = prisoners.personIdentifiers() - prisonersWithComplexNeeds
 
@@ -100,10 +111,31 @@ class PrisonStatisticCalculator(
       val summaries =
         PeopleSummaries(
           eligiblePrisoners,
-          { prisoners[it]?.lastAdmissionDate },
+          {
+            listOfNotNull(
+              prisoners[it]?.lastAdmissionDate,
+              complexityOfNeed[it]?.updatedTimeStamp?.toLocalDate(),
+            ).maxOrNull()
+          },
           { newAllocations[it]?.assignedAt?.toLocalDate() },
           { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
         )
+
+      val overSixMonths =
+        summaries.data.filter {
+          val sixMonthsAgo = LocalDate.now().minusMonths(6)
+          it.receptionDate?.isBefore(sixMonthsAgo) == true || it.sessionDate?.isBefore(sixMonthsAgo) == true
+        }
+
+      if (overSixMonths.isNotEmpty()) {
+        telemetryClient.trackEvent(
+          "OverSixMonths",
+          overSixMonths.associate {
+            it.personIdentifier to listOfNotNull(it.receptionDate, it.sessionDate).joinToString()
+          },
+          mapOf(),
+        )
+      }
 
       statisticRepository.save(
         PrisonStatistic(
