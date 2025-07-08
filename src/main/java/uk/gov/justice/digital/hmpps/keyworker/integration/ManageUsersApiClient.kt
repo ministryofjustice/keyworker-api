@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -15,37 +14,32 @@ import java.util.UUID
 class ManageUsersClient(
   @Qualifier("manageUsersApiWebClient") private val webClient: WebClient,
 ) {
-  fun getUserDetails(username: String): UserDetails? = getUserDetailsMono(username).block()
-
   fun getUsersDetails(usernames: Set<String>): List<UserDetails> =
     if (usernames.isEmpty()) {
       emptyList()
     } else {
       Flux
         .fromIterable(usernames)
-        .flatMap({
-          webClient
-            .get()
-            .uri("/users/{username}", it)
-            .retrieve()
-            .bodyToFlux<UserDetails>()
-            .retryRequestOnTransientException()
-        }, 10)
+        .flatMap({ getUserDetailsMono(it) }, 10)
         .collectList()
-        .block()!! + UserDetails(SYSTEM_USERNAME, true, "Sys", "DPS", "0", null, null)
+        .block()!!
     }
 
   private fun getUserDetailsMono(username: String): Mono<UserDetails> =
-    webClient
-      .get()
-      .uri("/users/{username}", username)
-      .exchangeToMono { res ->
-        when (res.statusCode()) {
-          HttpStatus.NOT_FOUND -> Mono.empty()
-          HttpStatus.OK -> res.bodyToMono<UserDetails>()
-          else -> res.createError()
-        }
-      }.retryRequestOnTransientException()
+    if (username == SYSTEM_USERNAME) {
+      Mono.just(UserDetails(SYSTEM_USERNAME, true, "Sys", "DPS", "0", null, null))
+    } else {
+      webClient
+        .get()
+        .uri("/users/{username}", username)
+        .exchangeToMono { res ->
+          when (res.statusCode()) {
+            HttpStatus.NOT_FOUND -> Mono.empty()
+            HttpStatus.OK -> res.bodyToMono<UserDetails>()
+            else -> res.createError()
+          }
+        }.retryRequestOnTransientException()
+    }
 }
 
 data class UserDetails(
