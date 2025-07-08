@@ -63,13 +63,29 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
   @ParameterizedTest
   @MethodSource("policyProvider")
   fun `200 ok and staff details returned`(policy: AllocationPolicy) {
-    setContext(AllocationContext.get().copy(policy = policy))
-
     val prisonCode = "DEF"
+
+    // adding config with a different policy to confirm correct config is returned
+    setContext(
+      AllocationContext.get().copy(
+        policy =
+          when (policy) {
+            AllocationPolicy.PERSONAL_OFFICER -> AllocationPolicy.KEY_WORKER
+            AllocationPolicy.KEY_WORKER -> AllocationPolicy.PERSONAL_OFFICER
+          },
+      ),
+    )
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 5, allowAutoAllocation = true))
+
+    setContext(AllocationContext.get().copy(policy = policy))
     val staffConfig =
       givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(prisonCode, staffConfig.staffId, staffDetail(staffConfig.staffId, "FT", "PRO"))
+      prisonMockServer.stubKeyworkerDetails(
+        prisonCode,
+        staffConfig.staffId,
+        staffDetail(staffConfig.staffId, "FT", "PRO"),
+      )
     } else {
       prisonMockServer.stubStaffSummaries(listOf(staffSummary(id = staffConfig.staffId)))
       givenStaffRole(
@@ -138,7 +154,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     )
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(prisonCode, caseNoteIdentifiers, currentMonth.from, currentMonth.to, setOf(staffConfig.staffId.toString()))
+        keyworkerTypes(
+          prisonCode,
+          caseNoteIdentifiers,
+          currentMonth.from,
+          currentMonth.to,
+          setOf(staffConfig.staffId.toString()),
+        )
       } else {
         personalOfficerTypes(
           prisonCode,
