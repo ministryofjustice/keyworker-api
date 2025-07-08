@@ -153,7 +153,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         ComplexOffender(
           prisoner.prisonerNumber,
           prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
-          createdTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
+          createdTimeStamp = LocalDateTime.now().minusDays(index.toLong() + 7),
+          updatedTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
         )
       },
     )
@@ -198,8 +199,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.keyworkerSessions).isEqualTo(32)
     assertThat(stats.keyworkerEntries).isEqualTo(7)
 
-    assertThat(stats.averageReceptionToAllocationDays).isNull()
-    assertThat(stats.averageReceptionToSessionDays).isEqualTo(26)
+    assertThat(stats.averageReceptionToAllocationDays).isEqualTo(55)
+    assertThat(stats.averageReceptionToSessionDays).isEqualTo(37)
   }
 
   private fun prisoners(
