@@ -134,11 +134,7 @@ class PrisonStatisticCalculator(
         telemetryClient.trackEvent(
           "OverSixMonths",
           overSixMonths.associate {
-            it.personIdentifier to
-              listOfNotNull {
-                it.eligibilityDate?.let { d -> "EligibilityDate: $d" }
-                it.sessionDate?.let { d -> "SessionDate: $d" }
-              }.joinToString()
+            it.personIdentifier to ISO_LOCAL_DATE.format(it.eligibilityDate!!)
           },
           mapOf(),
         )
