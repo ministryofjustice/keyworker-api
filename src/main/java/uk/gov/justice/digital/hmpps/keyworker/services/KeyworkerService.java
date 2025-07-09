@@ -637,7 +637,7 @@ public class KeyworkerService {
     }
 
     @Transactional
-    public void deallocate(final String offenderNo) {
+    public void deallocate(final String offenderNo, final DeallocationReason reason) {
         final var offenderKeyworkers = repository.findByActiveAndPersonIdentifier(true, offenderNo);
 
         log.info("Found {} matching active offender key worker records", offenderKeyworkers.size());
@@ -649,7 +649,7 @@ public class KeyworkerService {
         // There shouldnt ever be more than 1, but just in case
         final var now = LocalDateTime.now();
         final var deallocationReason = referenceDataRepository.findByKey(
-            new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, DeallocationReason.MANUAL.getReasonCode())
+            new ReferenceDataKey(ReferenceDataDomain.DEALLOCATION_REASON, reason == null ? DeallocationReason.MANUAL.getReasonCode() : reason.getReasonCode())
         );
         offenderKeyworkers.forEach(offenderKeyworker -> {
             offenderKeyworker.deallocate(now, deallocationReason);
