@@ -85,7 +85,9 @@ class PrisonStatisticCalculator(
           .associateBy { it.personIdentifier }
 
       val cnSummary =
-        caseNotesApi.getUsageByPersonIdentifier(keyworkerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay())).summary()
+        caseNotesApi
+          .getUsageByPersonIdentifier(keyworkerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay()))
+          .summary()
       val peopleWithSessions = cnSummary.personIdentifiersWithSessions()
       val previousSessions =
         if (peopleWithSessions.isNotEmpty()) {
@@ -123,15 +125,16 @@ class PrisonStatisticCalculator(
 
       val overSixMonths =
         summaries.data.filter {
-          val sixMonthsAgo = LocalDate.now().minusMonths(6)
-          it.receptionDate?.isBefore(sixMonthsAgo) == true || it.sessionDate?.isBefore(sixMonthsAgo) == true
+          val sixMonthsInDays = DAYS.between(LocalDate.now().minusMonths(6), LocalDate.now())
+          (it.receptionToAllocationInDays ?: 0) > sixMonthsInDays ||
+            (it.receptionToSessionInDays ?: 0) > sixMonthsInDays
         }
 
       if (overSixMonths.isNotEmpty()) {
         telemetryClient.trackEvent(
           "OverSixMonths",
           overSixMonths.associate {
-            it.personIdentifier to listOfNotNull(it.receptionDate, it.sessionDate).joinToString()
+            it.personIdentifier to ISO_LOCAL_DATE.format(it.eligibilityDate!!)
           },
           mapOf(),
         )
@@ -181,19 +184,19 @@ class PeopleSummaries(
 
 data class PersonSummary(
   val personIdentifier: String,
-  val receptionDate: LocalDate?,
+  val eligibilityDate: LocalDate?,
   val allocationDate: LocalDate?,
   val sessionDate: LocalDate?,
 ) {
   val receptionToAllocationInDays =
-    if (receptionDate != null && allocationDate != null && allocationDate >= receptionDate) {
-      DAYS.between(receptionDate, allocationDate).toInt()
+    if (eligibilityDate != null && allocationDate != null && allocationDate >= eligibilityDate) {
+      DAYS.between(eligibilityDate, allocationDate).toInt()
     } else {
       null
     }
   val receptionToSessionInDays =
-    if (receptionDate != null && sessionDate != null && sessionDate >= receptionDate) {
-      DAYS.between(receptionDate, sessionDate).toInt()
+    if (eligibilityDate != null && sessionDate != null && sessionDate >= eligibilityDate) {
+      DAYS.between(eligibilityDate, sessionDate).toInt()
     } else {
       null
     }

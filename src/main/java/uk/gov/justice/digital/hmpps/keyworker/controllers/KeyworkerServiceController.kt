@@ -745,7 +745,7 @@ class KeyworkerServiceController(
     @Parameter(name = "offenderNo", required = true)
     @PathVariable("offenderNo")
     offenderNo: String,
-  ) = keyworkerService.deallocate(offenderNo)
+  ) = keyworkerService.deallocate(offenderNo, null)
 
   @Operation(
     description = "Process manual allocation of an offender to a Key worker.",

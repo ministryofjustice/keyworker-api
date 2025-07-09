@@ -1397,7 +1397,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var testOffenderKeyworker = getTestOffenderKeyworker(offenderNo, staffId);
         when(repository.findByActiveAndPersonIdentifier(true, offenderNo)).thenReturn(Collections.singletonList(testOffenderKeyworker));
 
-        service.deallocate(offenderNo);
+        service.deallocate(offenderNo, null);
 
         verify(repository).findByActiveAndPersonIdentifier(true, offenderNo);
     }
@@ -1408,7 +1408,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         when(repository.findByActiveAndPersonIdentifier(true, offenderNo)).thenReturn(new ArrayList<>());
 
-        assertThatThrownBy(() -> service.deallocate(offenderNo)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.deallocate(offenderNo, null)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
