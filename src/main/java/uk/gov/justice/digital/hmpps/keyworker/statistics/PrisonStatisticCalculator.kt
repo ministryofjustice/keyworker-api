@@ -136,7 +136,7 @@ class PrisonStatisticCalculator(
           overSixMonths.associate {
             it.personIdentifier to
               listOfNotNull {
-                it.receptionDate?.let { d -> "ReceptionDate: $d" }
+                it.eligibilityDate?.let { d -> "EligibilityDate: $d" }
                 it.sessionDate?.let { d -> "SessionDate: $d" }
               }.joinToString()
           },
@@ -188,19 +188,19 @@ class PeopleSummaries(
 
 data class PersonSummary(
   val personIdentifier: String,
-  val receptionDate: LocalDate?,
+  val eligibilityDate: LocalDate?,
   val allocationDate: LocalDate?,
   val sessionDate: LocalDate?,
 ) {
   val receptionToAllocationInDays =
-    if (receptionDate != null && allocationDate != null && allocationDate >= receptionDate) {
-      DAYS.between(receptionDate, allocationDate).toInt()
+    if (eligibilityDate != null && allocationDate != null && allocationDate >= eligibilityDate) {
+      DAYS.between(eligibilityDate, allocationDate).toInt()
     } else {
       null
     }
   val receptionToSessionInDays =
-    if (receptionDate != null && sessionDate != null && sessionDate >= receptionDate) {
-      DAYS.between(receptionDate, sessionDate).toInt()
+    if (eligibilityDate != null && sessionDate != null && sessionDate >= eligibilityDate) {
+      DAYS.between(eligibilityDate, sessionDate).toInt()
     } else {
       null
     }
