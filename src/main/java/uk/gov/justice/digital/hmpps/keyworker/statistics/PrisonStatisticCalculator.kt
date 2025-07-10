@@ -175,8 +175,10 @@ class PeopleSummaries(
       )
     }
 
-  private val allocationDays = data.mapNotNull { it.eligibilityToAllocationInDays }
-  private val sessionDays = data.mapNotNull { it.eligibilityToSessionInDays }
+  private fun PersonSummary.eligibilityDateIsValid() = eligibilityDate?.isAfter(LocalDate.now().minusMonths(6)) ?: false
+
+  private val allocationDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToAllocationInDays else null }
+  private val sessionDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToSessionInDays else null }
 
   val averageDaysToAllocation = if (allocationDays.isEmpty()) null else allocationDays.average().toInt()
   val averageDaysToSession = if (sessionDays.isEmpty()) null else sessionDays.average().toInt()
@@ -189,17 +191,15 @@ data class PersonSummary(
   val sessionDate: LocalDate?,
 ) {
   val eligibilityToAllocationInDays =
-    if (eligibilityDateIsValid() && allocationDate != null && allocationDate >= eligibilityDate) {
+    if (eligibilityDate != null && allocationDate != null && allocationDate >= eligibilityDate) {
       DAYS.between(eligibilityDate, allocationDate).toInt()
     } else {
       null
     }
   val eligibilityToSessionInDays =
-    if (eligibilityDateIsValid() && sessionDate != null && sessionDate >= eligibilityDate) {
+    if (eligibilityDate != null && sessionDate != null && sessionDate >= eligibilityDate) {
       DAYS.between(eligibilityDate, sessionDate).toInt()
     } else {
       null
     }
-
-  private fun eligibilityDateIsValid() = eligibilityDate?.isAfter(LocalDate.now().minusMonths(6)) ?: false
 }
