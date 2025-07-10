@@ -126,8 +126,8 @@ class PrisonStatisticCalculator(
       val overSixMonths =
         summaries.data.filter {
           val sixMonthsInDays = DAYS.between(LocalDate.now().minusMonths(6), LocalDate.now())
-          (it.receptionToAllocationInDays ?: 0) > sixMonthsInDays ||
-            (it.receptionToSessionInDays ?: 0) > sixMonthsInDays
+          (it.eligibilityToAllocationInDays ?: 0) > sixMonthsInDays ||
+            (it.eligibilityToSessionInDays ?: 0) > sixMonthsInDays
         }
 
       if (overSixMonths.isNotEmpty()) {
@@ -175,8 +175,10 @@ class PeopleSummaries(
       )
     }
 
-  private val allocationDays = data.mapNotNull { it.receptionToAllocationInDays }
-  private val sessionDays = data.mapNotNull { it.receptionToSessionInDays }
+  private fun PersonSummary.eligibilityDateIsValid() = eligibilityDate?.isAfter(LocalDate.now().minusMonths(6)) ?: false
+
+  private val allocationDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToAllocationInDays else null }
+  private val sessionDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToSessionInDays else null }
 
   val averageDaysToAllocation = if (allocationDays.isEmpty()) null else allocationDays.average().toInt()
   val averageDaysToSession = if (sessionDays.isEmpty()) null else sessionDays.average().toInt()
@@ -188,13 +190,13 @@ data class PersonSummary(
   val allocationDate: LocalDate?,
   val sessionDate: LocalDate?,
 ) {
-  val receptionToAllocationInDays =
+  val eligibilityToAllocationInDays =
     if (eligibilityDate != null && allocationDate != null && allocationDate >= eligibilityDate) {
       DAYS.between(eligibilityDate, allocationDate).toInt()
     } else {
       null
     }
-  val receptionToSessionInDays =
+  val eligibilityToSessionInDays =
     if (eligibilityDate != null && sessionDate != null && sessionDate >= eligibilityDate) {
       DAYS.between(eligibilityDate, sessionDate).toInt()
     } else {
