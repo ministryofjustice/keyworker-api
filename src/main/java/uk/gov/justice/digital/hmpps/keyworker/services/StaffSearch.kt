@@ -129,6 +129,7 @@ class StaffSearch(
   fun searchForAllocatableStaff(
     prisonCode: String,
     request: AllocatableSearchRequest,
+    includeStats: Boolean,
   ): AllocatableSearchResponse {
     val context = AllocationContext.get()
     val reportingPeriod = ReportingPeriod.currentMonth()
@@ -150,35 +151,38 @@ class StaffSearch(
         ).filterApplicable(reportingPeriod)
         .groupBy { it.staffId }
 
-    val caseNotesRequest =
-      applicableAllocationsByStaff.entries.filter { it.value.isNotEmpty() }.map {
-        val authorIds = setOf(it.key.toString())
-        val personalIdentifiers = it.value.map { allocation -> allocation.personIdentifier }.toSet()
-
-        if (context.policy == AllocationPolicy.KEY_WORKER) {
-          keyworkerTypes(prisonConfig.code, personalIdentifiers, reportingPeriod.from, reportingPeriod.to, authorIds)
-        } else {
-          personalOfficerTypes(
-            prisonConfig.code,
-            personalIdentifiers,
-            reportingPeriod.from,
-            reportingPeriod.to,
-            authorIds,
-          )
-        }
-      }
-
     val cnSummaryByStaff =
-      caseNoteApi
-        .getUsageByPersonIdentifiers(caseNotesRequest)
-        .associate {
-          Pair(
-            it.first.authorIds
-              .first()
-              .toLong(),
-            it.second.summary(),
-          )
-        }
+      if (includeStats) {
+        val caseNotesRequest =
+          applicableAllocationsByStaff.entries.filter { it.value.isNotEmpty() }.map {
+            val authorIds = setOf(it.key.toString())
+            val personalIdentifiers = it.value.map { allocation -> allocation.personIdentifier }.toSet()
+
+            if (context.policy == AllocationPolicy.KEY_WORKER) {
+              keyworkerTypes(prisonConfig.code, personalIdentifiers, reportingPeriod.from, reportingPeriod.to, authorIds)
+            } else {
+              personalOfficerTypes(
+                prisonConfig.code,
+                personalIdentifiers,
+                reportingPeriod.from,
+                reportingPeriod.to,
+                authorIds,
+              )
+            }
+          }
+        caseNoteApi
+          .getUsageByPersonIdentifiers(caseNotesRequest)
+          .associate {
+            Pair(
+              it.first.authorIds
+                .first()
+                .toLong(),
+              it.second.summary(),
+            )
+          }
+      } else {
+        emptyMap()
+      }
 
     val staffDetail =
       if (staffMembers.keys.isEmpty()) {
@@ -195,8 +199,9 @@ class StaffSearch(
             reportingPeriod,
             { staffId -> staffDetail[staffId] },
             { staffId -> applicableAllocationsByStaff[staffId].orEmpty() },
-            { staffId -> cnSummaryByStaff[staffId] },
+            { staffId -> if (includeStats) cnSummaryByStaff[staffId] else null },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
+            includeStats,
           )
         }.filter { ss -> (request.status == StaffStatus.ALL || request.status.name == ss.status.code) },
     )
@@ -271,6 +276,7 @@ class StaffSearch(
     applicableAllocations: (Long) -> List<Allocation>,
     cnSummary: (Long) -> CaseNoteSummary?,
     activeStatusProvider: Lazy<ReferenceData>,
+    includeStats: Boolean,
   ): AllocatableSummary {
     val config = staffConfig(staffMember.staffId)
     val status = config?.staffConfig?.status ?: activeStatusProvider.value
@@ -283,11 +289,15 @@ class StaffSearch(
       config?.allocationCount ?: 0,
       config?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       staffRole,
-      applicableAllocations(staffMember.staffId).staffCountStatsFromApplicableAllocations(
-        reportingPeriod,
-        prisonConfig,
-        cnSummary(staffMember.staffId),
-      ),
+      if (includeStats) {
+        applicableAllocations(staffMember.staffId).staffCountStatsFromApplicableAllocations(
+          reportingPeriod,
+          prisonConfig,
+          cnSummary(staffMember.staffId),
+        )
+      } else {
+        null
+      },
     )
   }
 }

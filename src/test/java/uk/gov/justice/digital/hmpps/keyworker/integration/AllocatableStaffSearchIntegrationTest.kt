@@ -50,7 +50,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    searchStaffSpec("DNM", searchRequest(), policy = AllocationPolicy.PERSONAL_OFFICER, "ROLE_ANY__OTHER_RW")
+    searchStaffSpec("DNM", searchRequest(), policy = AllocationPolicy.PERSONAL_OFFICER, false, "ROLE_ANY__OTHER_RW")
       .expectStatus()
       .isForbidden
   }
@@ -114,7 +114,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       }.flatten()
 
     val response =
-      searchStaffSpec(prisonCode, request, policy)
+      searchStaffSpec(prisonCode, request, policy, true)
         .expectStatus()
         .isOk
         .expectBody(AllocatableSearchResponse::class.java)
@@ -128,7 +128,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content[0].allocated).isEqualTo(0)
     assertThat(
       response.content[0]
-        .stats.recordedEvents
+        .stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.SESSION }
         ?.count,
     ).isEqualTo(
@@ -142,7 +143,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     )
     assertThat(
       response.content[0]
-        .stats.recordedEvents
+        .stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.ENTRY }
         ?.count,
     ).isEqualTo(0)
@@ -154,7 +156,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content[4].allocated).isEqualTo(0)
     assertThat(
       response.content[4]
-        .stats.recordedEvents
+        .stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.SESSION }
         ?.count,
     ).isEqualTo(
@@ -168,7 +171,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     )
     assertThat(
       response.content[4]
-        .stats.recordedEvents
+        .stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.ENTRY }
         ?.count,
     ).isEqualTo(0)
@@ -178,7 +182,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content[6].allocated).isEqualTo(7)
     assertThat(
       response.content[6]
-        .stats.recordedEvents
+        .stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.SESSION }
         ?.count,
     ).isEqualTo(
@@ -192,10 +197,21 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     )
     assertThat(
       response.content[6]
-        .stats.recordedEvents
+        .stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.ENTRY }
         ?.count,
     ).isEqualTo(3)
+
+    val withoutStats =
+      searchStaffSpec(prisonCode, request, policy, false)
+        .expectStatus()
+        .isOk
+        .expectBody(AllocatableSearchResponse::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(withoutStats.content.mapNotNull { it.stats }).isEmpty()
   }
 
   @ParameterizedTest
@@ -303,7 +319,13 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
 
     caseNotesMockServer.stubUsageByPersonIdentifier(
       if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(prisonCode, setOf(personIdentifier), reportingPeriod.from, reportingPeriod.to, setOf(staffId.toString()))
+        keyworkerTypes(
+          prisonCode,
+          setOf(personIdentifier),
+          reportingPeriod.from,
+          reportingPeriod.to,
+          setOf(staffId.toString()),
+        )
       } else {
         personalOfficerTypes(
           prisonCode,
@@ -345,7 +367,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      searchStaffSpec(prisonCode, request, policy)
+      searchStaffSpec(prisonCode, request, policy, true)
         .expectStatus()
         .isOk
         .expectBody(AllocatableSearchResponse::class.java)
@@ -356,7 +378,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(staff.capacity).isEqualTo(6)
     assertThat(staff.allocated).isEqualTo(1)
     assertThat(
-      staff.stats.recordedEvents
+      staff.stats!!
+        .recordedEvents
         .find { it.type == RecordedEventType.SESSION }
         ?.count,
     ).isEqualTo(
@@ -454,11 +477,15 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     prisonCode: String,
     request: AllocatableSearchRequest,
     policy: AllocationPolicy,
+    includeStats: Boolean = false,
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .post()
-    .uri(SEARCH_URL, prisonCode)
-    .bodyValue(request)
+    .uri {
+      it.path(SEARCH_URL)
+      it.queryParam("includeStats", includeStats)
+      it.build(prisonCode)
+    }.bodyValue(request)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
     .exchange()
