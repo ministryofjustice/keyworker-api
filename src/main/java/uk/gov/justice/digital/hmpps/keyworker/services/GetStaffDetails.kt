@@ -63,7 +63,11 @@ class GetStaffDetails(
   ): JobClassificationResponse {
     val policies: Set<AllocationPolicy> =
       buildSet {
-        if (prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.takeIf { !it.isExpired() } != null) add(AllocationPolicy.KEY_WORKER)
+        if (prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.takeIf { !it.isExpired() } != null) {
+          add(
+            AllocationPolicy.KEY_WORKER,
+          )
+        }
         addAll(
           staffRoleRepository
             .findByPrisonCodeAndStaffIdAndPolicyIn(
@@ -82,6 +86,7 @@ class GetStaffDetails(
     staffId: Long,
     from: LocalDate?,
     to: LocalDate?,
+    includeStats: Boolean,
   ): StaffDetails {
     val reportingPeriod =
       if (from != null && to != null) {
@@ -126,9 +131,22 @@ class GetStaffDetails(
     val prisonName =
       prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
 
-    val (current, cnSummary) = allAllocations.staffCountStats(reportingPeriod, prisonConfig, staffId)
-    val (previous, _) =
-      allAllocations.staffCountStats(reportingPeriod.previousPeriod(), prisonConfig, staffId)
+    val (allocations, stats) =
+      if (includeStats) {
+        val (current, cnSummary) = allAllocations.staffCountStats(reportingPeriod, prisonConfig, staffId)
+        val (previous, _) =
+          allAllocations.staffCountStats(reportingPeriod.previousPeriod(), prisonConfig, staffId)
+        val allocations =
+          activeAllocations
+            .mapNotNull { alloc ->
+              prisonerDetails[alloc.personIdentifier]?.let {
+                alloc.asAllocation(it, reportingPeriod, prisonConfig, cnSummary)
+              }
+            }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName }))
+        allocations to StaffStats(current, previous)
+      } else {
+        null to null
+      }
 
     val staff = staffWithRole.first
     return StaffDetails(
@@ -139,13 +157,8 @@ class GetStaffDetails(
       CodedDescription(prisonCode, prisonName),
       staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       staffInfo?.allocationCount ?: 0,
-      activeAllocations
-        .mapNotNull { alloc ->
-          prisonerDetails[alloc.personIdentifier]?.let {
-            alloc.asAllocation(it, reportingPeriod, prisonConfig, cnSummary)
-          }
-        }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName })),
-      StaffStats(current, previous),
+      allocations ?: emptyList(),
+      stats,
       staffInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       staffInfo?.staffConfig?.reactivateOn,
       staffWithRole.second,
@@ -198,7 +211,13 @@ class GetStaffDetails(
         caseNotesApiClient
           .getUsageByPersonIdentifier(
             if (context.policy == AllocationPolicy.KEY_WORKER) {
-              keyworkerTypes(prisonConfig.code, personIdentifiers, reportingPeriod.from, reportingPeriod.to, setOf(staffId.toString()))
+              keyworkerTypes(
+                prisonConfig.code,
+                personIdentifiers,
+                reportingPeriod.from,
+                reportingPeriod.to,
+                setOf(staffId.toString()),
+              )
             } else {
               personalOfficerTypes(
                 prisonConfig.code,
@@ -276,7 +295,11 @@ private fun Allocation.asAllocation(
     this,
   ).filterApplicable(
     reportingPeriod,
-  ).staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cnSummary?.filterByPrisonerNumber(prisoner.prisonerNumber)),
+  ).staffCountStatsFromApplicableAllocations(
+    reportingPeriod,
+    prisonConfig,
+    cnSummary?.filterByPrisonerNumber(prisoner.prisonerNumber),
+  ),
   cnSummary?.findSessionDate(prisoner.prisonerNumber)?.let { LatestSession(it) },
 )
 

@@ -202,7 +202,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      getStaffDetailSpec(prisonCode, staffConfig.staffId, policy)
+      getStaffDetailSpec(prisonCode, staffConfig.staffId, policy, true)
         .expectStatus()
         .isOk
         .expectBody(StaffDetails::class.java)
@@ -245,8 +245,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     ).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 0 else 2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
-    assertThat(response.stats.current).isNotNull()
-    with(response.stats.current) {
+    assertThat(response.stats?.current).isNotNull()
+    with(response.stats!!.current) {
       assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
       assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
       assertThat(recordedEvents).isEqualTo(
@@ -295,6 +295,17 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       )
       assertThat(complianceRate).isEqualTo(0.0)
     }
+
+    val withoutStats =
+      getStaffDetailSpec(prisonCode, staffConfig.staffId, policy, false)
+        .expectStatus()
+        .isOk
+        .expectBody(StaffDetails::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(withoutStats.stats).isNull()
+    assertThat(withoutStats.allocations).isEmpty()
   }
 
   @ParameterizedTest
@@ -414,11 +425,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     prisonCode: String,
     staffId: Long,
     policy: AllocationPolicy,
+    includeStats: Boolean = false,
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .get()
     .uri {
       it.path(GET_STAFF_DETAILS)
+      it.queryParam("includeStats", includeStats)
       it.build(prisonCode, staffId)
     }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
