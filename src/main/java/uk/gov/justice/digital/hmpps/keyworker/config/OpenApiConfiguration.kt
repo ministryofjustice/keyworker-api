@@ -32,8 +32,6 @@ const val PRISON = "Prison"
 const val MANAGE_STAFF = "Manage Staff"
 const val MANAGE_ALLOCATIONS = "Manage Allocations"
 const val REFERENCE_DATA = "Reference Data"
-const val MANAGE_KEYWORKERS = "Manage Keyworkers"
-const val ALLOCATE_KEY_WORKERS = "Allocate Keyworkers"
 
 @Configuration
 class OpenApiConfiguration(
@@ -85,8 +83,6 @@ class OpenApiConfiguration(
       .addTagsItem(Tag().name(MANAGE_STAFF).description("Endpoints for managing staff"))
       .addTagsItem(Tag().name(MANAGE_ALLOCATIONS).description("Managing allocations"))
       .addTagsItem(Tag().name(REFERENCE_DATA).description("Endpoints for reference data"))
-      .addTagsItem(Tag().name(MANAGE_KEYWORKERS).description("Endpoints for managing keyworkers"))
-      .addTagsItem(Tag().name(ALLOCATE_KEY_WORKERS).description("Endpoints for allocating keyworkers"))
 
   @Bean
   fun preAuthorizeCustomizer(): OperationCustomizer =

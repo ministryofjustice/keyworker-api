@@ -61,6 +61,4 @@ class GetAllocations(
         )
       },
     )
-
-  private fun Prison.asCodedDescription() = CodedDescription(prisonId, prisonName)
 }
