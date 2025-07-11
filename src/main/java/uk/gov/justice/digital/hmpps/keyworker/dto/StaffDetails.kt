@@ -11,7 +11,7 @@ data class StaffDetails(
   val capacity: Int,
   val allocated: Int,
   val allocations: List<Allocation>,
-  val stats: StaffStats,
+  val stats: StaffStats?,
   val allowAutoAllocation: Boolean,
   val reactivateOn: LocalDate?,
   val staffRole: StaffRoleInfo?,

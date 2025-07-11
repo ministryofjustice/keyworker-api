@@ -75,7 +75,8 @@ class PrisonController(
     @PathVariable staffId: Long,
     @RequestParam(required = false) from: LocalDate?,
     @RequestParam(required = false) to: LocalDate?,
-  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to)
+    @RequestParam(required = false, defaultValue = "false") includeStats: Boolean,
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, includeStats)
 
   @Operation(hidden = true)
   @GetMapping("/staff/{staffId}/job-classifications")

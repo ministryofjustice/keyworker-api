@@ -18,5 +18,5 @@ data class AllocatableSummary(
   val allocated: Int,
   val allowAutoAllocation: Boolean,
   val staffRole: StaffRoleInfo,
-  val stats: StaffCountStats,
+  val stats: StaffCountStats?,
 )
