@@ -1,20 +1,22 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class CurrentPersonStaffAllocation(
   val prisonNumber: String,
   val hasHighComplexityOfNeeds: Boolean,
-  val currentKeyworker: CurrentAllocation?,
-  val latestSession: LocalDate?,
+  val allocations: List<CurrentAllocation>,
+  val latestRecordedEvents: List<RecordedEvent>,
 )
 
 data class CurrentAllocation(
-  val keyworker: CurrentKeyworker,
-  val prisonCode: String,
+  val policy: CodedDescription,
+  val prison: CodedDescription,
+  val staffMember: StaffSummary,
 )
 
-data class CurrentKeyworker(
-  val firstName: String,
-  val lastName: String,
+data class RecordedEvent(
+  val prison: CodedDescription,
+  val type: RecordedEventType,
+  val occurredAt: LocalDateTime,
 )

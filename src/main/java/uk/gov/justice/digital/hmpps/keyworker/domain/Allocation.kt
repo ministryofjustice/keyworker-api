@@ -183,7 +183,14 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
     personIdentifiers: Set<String>,
   ): List<AllocationSummary>
 
-  fun findFirstByPersonIdentifierAndIsActiveIsTrueOrderByAllocatedAtDesc(personIdentifier: String): Allocation?
+  @Query(
+    """
+      select a.* from allocation a
+      where a.person_identifier = :personIdentifier and a.is_active = true
+    """,
+    nativeQuery = true,
+  )
+  fun findCurrentAllocations(personIdentifier: String): List<Allocation>
 
   @Query(
     """

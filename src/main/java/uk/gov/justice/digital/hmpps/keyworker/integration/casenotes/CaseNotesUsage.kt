@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
@@ -10,6 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -165,21 +167,33 @@ data class CaseNoteSummary(
           RecordedEventCount(SESSION, keyworkerSessions),
           RecordedEventCount(ENTRY, keyworkerEntries),
         )
+
       AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, poEntries))
     }
 
-  fun totalEntries(policy: AllocationPolicy) =
-    when (policy) {
-      AllocationPolicy.KEY_WORKER -> keyworkerEntries
-      AllocationPolicy.PERSONAL_OFFICER -> poEntries
-    }
+  fun getRecordedFor(
+    policy: AllocationPolicy,
+    personIdentifier: String,
+    prison: Prison,
+  ): RecordedFor? {
+    val (reType, cnType) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> SESSION to KW_SESSION_SUBTYPE
+        AllocationPolicy.PERSONAL_OFFICER -> ENTRY to PO_ENTRY_SUBTYPE
+      }
+    return findLatestFor(personIdentifier, cnType)?.let { RecordedFor(prison, reType, it) }
+  }
 
-  fun findSessionDate(personIdentifier: String): LocalDate? =
+  fun findSessionDate(personIdentifier: String): LocalDate? = findLatestFor(personIdentifier, KW_SESSION_SUBTYPE)?.toLocalDate()
+
+  private fun findLatestFor(
+    personIdentifier: String,
+    type: String,
+  ): LocalDateTime? =
     data[personIdentifier]
-      ?.find { it.subType == KW_SESSION_SUBTYPE }
+      ?.find { it.subType == type }
       ?.latestNote
       ?.occurredAt
-      ?.toLocalDate()
 
   fun filterByPrisonerNumber(prisonerNumber: String): CaseNoteSummary =
     CaseNoteSummary(
@@ -203,7 +217,14 @@ data class CaseNoteSummary(
             RecordedEventCount(SESSION, 0),
             RecordedEventCount(ENTRY, 0),
           )
+
         AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, 0))
       }
   }
 }
+
+data class RecordedFor(
+  val prison: Prison,
+  val type: RecordedEventType,
+  val lastOccurredAt: LocalDateTime,
+)

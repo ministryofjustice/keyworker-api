@@ -22,8 +22,6 @@ class PrisonService(
       prisonConfig.findEnabledPrisonsForPolicyCode(policyCode).map { it.code }.toSet()
     } ?: emptySet()
 
-  fun getPrisonKeyworkerConfig(prisonCode: String) = prisonConfig.findByCode(prisonCode).prisonKeyworkerConfig()
-
   fun findPrisons(ids: Set<String>): List<Prison> = prisonRegister.findPrisons(ids)
 
   fun setPrisonConfig(

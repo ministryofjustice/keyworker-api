@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatusBehaviour
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerUpdateDto
@@ -31,7 +30,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = [Roles.KEYWORKER_RO])
+  @ValueSource(strings = ["ROLE_OTHER__RO"])
   @NullSource
   fun `403 forbidden`(role: String?) {
     manageKeyworkerConfig("NA2", newId(), keyworkerConfigRequest(), role = role)
