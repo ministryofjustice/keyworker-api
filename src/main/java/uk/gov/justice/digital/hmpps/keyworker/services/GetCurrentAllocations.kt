@@ -29,7 +29,10 @@ class GetCurrentAllocations(
   private val policyRepository: PolicyRepository,
 ) {
   fun currentFor(personIdentifier: String): CurrentPersonStaffAllocation {
-    val person = prisonerSearch.findPrisonerDetails(setOf(personIdentifier)).first()
+    val person = prisonerSearch.findPrisonerDetails(setOf(personIdentifier)).firstOrNull()
+    if (person == null) {
+      return CurrentPersonStaffAllocation(personIdentifier, false, emptyList(), emptyList())
+    }
     return when (person.complexityOfNeedLevel) {
       ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(personIdentifier, true, emptyList(), emptyList())
       else -> {

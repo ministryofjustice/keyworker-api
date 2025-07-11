@@ -43,7 +43,26 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getCurrentKeyworkerAllocationSpec(personIdentifier(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getCurrentAllocationSpec(personIdentifier(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+  }
+
+  @Test
+  fun `200 ok when person identifier does not exist`() {
+    val prisonCode = "DNE"
+    val personIdentifier = personIdentifier()
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier), emptyList())
+
+    val response =
+      getCurrentAllocationSpec(personIdentifier)
+        .expectStatus()
+        .isOk
+        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(response.prisonNumber).isEqualTo(personIdentifier)
+    assertThat(response.allocations).isEmpty()
+    assertThat(response.latestRecordedEvents).isEmpty()
   }
 
   @Test
@@ -51,7 +70,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "CAL"
     val personIdentifier = personIdentifier()
 
-    givenPrisonConfig(prisonConfig(prisonCode))
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
 
@@ -114,7 +132,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      getCurrentKeyworkerAllocationSpec(personIdentifier)
+      getCurrentAllocationSpec(personIdentifier)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -141,7 +159,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "CAP"
     val personIdentifier = personIdentifier()
 
-    givenPrisonConfig(prisonConfig(prisonCode))
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
     prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
 
@@ -204,7 +221,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      getCurrentKeyworkerAllocationSpec(personIdentifier)
+      getCurrentAllocationSpec(personIdentifier)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -230,7 +247,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "COM"
     val prisonNumber = personIdentifier()
 
-    givenPrisonConfig(prisonConfig(prisonCode, hasPrisonersWithHighComplexityNeeds = true))
     prisonerSearchMockServer.stubFindPrisonDetails(
       prisonCode,
       setOf(prisonNumber),
@@ -253,7 +269,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     )
 
     val response =
-      getCurrentKeyworkerAllocationSpec(prisonNumber)
+      getCurrentAllocationSpec(prisonNumber)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -265,7 +281,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.hasHighComplexityOfNeeds).isTrue
   }
 
-  private fun getCurrentKeyworkerAllocationSpec(
+  private fun getCurrentAllocationSpec(
     prisonNumber: String,
     role: String? = Roles.ALLOCATIONS_RO,
   ): WebTestClient.ResponseSpec =
