@@ -1,5 +1,4 @@
 keyworker_stats
-batch_history
 allocation
 staff_role_audit
 prison_configuration_audit

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><database name="keyworker-api-db" schema="public" type="PostgreSQL - 16.9 (Debian 16.9-1.pgdg120+1)">
    <sequences>
       <sequence increment="1" name="audit_revision_id_seq" startValue="1"/>
-      <sequence increment="1" name="batch_history_batch_id_seq" startValue="1"/>
       <sequence increment="1" name="keyworker_stats_keyworker_stats_id_seq" startValue="1"/>
       <sequence increment="1" name="offender_key_worker_offender_keyworker_id_seq" startValue="1"/>
       <sequence increment="1" name="reference_data_id_seq" startValue="1"/>
@@ -108,15 +107,6 @@
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="audit_revision_pkey" unique="true">
             <column ascending="true" name="id"/>
-         </index>
-      </table>
-      <table name="batch_history" remarks="Records the results of batch runs" schema="public" type="TABLE">
-         <column autoUpdated="true" defaultValue="nextval('batch_history_batch_id_seq'::regclass)" digits="0" id="0" name="batch_id" nullable="false" remarks="Primary key ID" size="19" type="bigserial" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="name" nullable="false" remarks="Name of batch process" size="40" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="last_run" nullable="false" remarks="Timestamp of when last run successfully" size="29" type="timestamp" typeCode="93"/>
-         <primaryKey column="batch_id" sequenceNumberInPK="1"/>
-         <index name="batch_history_pk" unique="true">
-            <column ascending="true" name="batch_id"/>
          </index>
       </table>
       <table name="keyworker_entry" remarks="" schema="public" type="TABLE">

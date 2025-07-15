@@ -13,5 +13,4 @@ allocation_audit
 prison_configuration_audit
 staff_role_audit
 allocation
-batch_history
 keyworker_stats
