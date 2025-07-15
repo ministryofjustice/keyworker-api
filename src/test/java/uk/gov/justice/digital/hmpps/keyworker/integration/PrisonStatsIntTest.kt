@@ -33,14 +33,15 @@ class PrisonStatsIntTest : IntegrationTest() {
         hasPrisonersWithHighComplexityNeeds = true,
       ),
     )
-    val start = LocalDate.of(2025, 4, 1)
-    val end = LocalDate.of(2025, 4, 30)
-    val prevStart = LocalDate.of(2025, 3, 2)
-    val prevEnd = LocalDate.of(2025, 3, 31)
+    val start = LocalDate.of(2025, 6, 5)
+    val end = LocalDate.of(2025, 6, 13)
+    val prevStart = LocalDate.of(2025, 5, 27)
+    val prevEnd = LocalDate.of(2025, 6, 4)
 
     val stats =
       buildList {
         var startDate = prevStart
+        add(startDate.minusDays(1))
         do {
           add(startDate)
           startDate = startDate.plusDays(1)
@@ -92,13 +93,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(80)
       assertThat(prisonersAssignedKeyworker).isEqualTo(75)
       assertThat(activeKeyworkers).isEqualTo(10)
-      assertThat(keyworkerSessions).isEqualTo(147)
-      assertThat(keyworkerEntries).isEqualTo(51)
-      assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToSessionDays).isEqualTo(11)
-      assertThat(projectedSessions).isEqualTo(171)
+      assertThat(keyworkerSessions).isEqualTo(43)
+      assertThat(keyworkerEntries).isEqualTo(16)
+      assertThat(avgReceptionToAllocationDays).isEqualTo(3)
+      assertThat(avgReceptionToSessionDays).isEqualTo(14)
+      assertThat(projectedSessions).isEqualTo(51)
       assertThat(percentageWithKeyworker).isEqualTo(93.75)
-      assertThat(compliance).isEqualTo(85.96)
+      assertThat(compliance).isEqualTo(84.31)
     }
 
     with(res.previous) {
@@ -110,13 +111,13 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(72)
       assertThat(prisonersAssignedKeyworker).isEqualTo(65)
       assertThat(activeKeyworkers).isEqualTo(9)
-      assertThat(keyworkerSessions).isEqualTo(147)
-      assertThat(keyworkerEntries).isEqualTo(51)
+      assertThat(keyworkerSessions).isEqualTo(44)
+      assertThat(keyworkerEntries).isEqualTo(15)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToSessionDays).isEqualTo(8)
-      assertThat(projectedSessions).isEqualTo(154)
+      assertThat(avgReceptionToSessionDays).isEqualTo(4)
+      assertThat(projectedSessions).isEqualTo(46)
       assertThat(percentageWithKeyworker).isEqualTo(90.28)
-      assertThat(compliance).isEqualTo(95.45)
+      assertThat(compliance).isEqualTo(95.65)
     }
   }
 

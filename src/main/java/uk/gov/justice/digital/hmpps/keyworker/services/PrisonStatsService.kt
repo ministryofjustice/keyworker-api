@@ -23,7 +23,7 @@ class PrisonStatsService(
   ): PrisonStats {
     val dateRange = DAYS.between(from, to.plusDays(1))
     val previousTo = from.minusDays(1)
-    val previousFrom = previousTo.minusDays(dateRange)
+    val previousFrom = from.minusDays(dateRange)
     val prisonConfig = prisonConfig.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val allStats = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, previousFrom, to)
     val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig.frequencyInWeeks)
