@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.SummaryStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
 import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
-import uk.gov.justice.digital.hmpps.keyworker.repository.PrisonKeyWorkerStatisticRepository;
+import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonStatisticRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -45,7 +45,7 @@ public class KeyworkerStatsService {
 
     private final NomisService nomisService;
     private final LegacyKeyworkerAllocationRepository offenderKeyworkerRepository;
-    private final PrisonKeyWorkerStatisticRepository statisticRepository;
+    private final LegacyPrisonStatisticRepository statisticRepository;
     private final PrisonSupportedService prisonSupportedService;
 
     private static final BigDecimal hundred = new BigDecimal("100.00");
