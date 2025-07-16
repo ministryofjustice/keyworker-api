@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.PrisonKeyWorkerStatistic;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface PrisonKeyWorkerStatisticRepository extends CrudRepository<PrisonKeyWorkerStatistic, Long> {
+public interface LegacyPrisonStatisticRepository extends CrudRepository<PrisonKeyWorkerStatistic, Long> {
 
     List<PrisonKeyWorkerStatistic> findByPrisonIdInAndSnapshotDateBetween(List<String> prisonIds, LocalDate fromDate, LocalDate toDate);
 

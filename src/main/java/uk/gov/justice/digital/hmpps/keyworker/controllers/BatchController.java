@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse;
 import uk.gov.justice.digital.hmpps.keyworker.services.KeyworkerBatchService;
-import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationBatchService;
 
 import java.util.List;
 
@@ -27,11 +26,9 @@ import java.util.List;
 public class BatchController {
 
     private final KeyworkerBatchService keyworkerBatchService;
-    private final ReconciliationBatchService reconciliationBatchService;
 
-    public BatchController(KeyworkerBatchService keyworkerBatchService, ReconciliationBatchService reconciliationBatchService) {
+    public BatchController(KeyworkerBatchService keyworkerBatchService) {
         this.keyworkerBatchService = keyworkerBatchService;
-        this.reconciliationBatchService = reconciliationBatchService;
     }
 
     @Operation(
@@ -51,26 +48,4 @@ public class BatchController {
         log.info("Keyworkers updated to active status: {}", ids.size());
         return ids;
     }
-
-    /* --------------------------------------------------------------------------------*/
-
-    @Operation(
-            description = "Run the KW reconciliation process, Can only be run with SYSTEM_USER role",
-            summary = "runKWReconciliation",
-            security = { @SecurityRequirement(name = "SYSTEM_USER") },
-            hidden = true)
-
-    @ApiResponses(value = {
-            @ApiResponse(responseCode ="200", description = "OK"),
-            @ApiResponse(responseCode ="400", description = "Invalid request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))} ),
-            @ApiResponse(responseCode ="404", description = "Requested resource not found.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}),
-            @ApiResponse(responseCode ="500", description = "Unrecoverable error occurred whilst processing request.", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))}) })
-
-    @PostMapping(path = "/key-worker-recon")
-    public void runKWReconciliation() {
-        log.info("Starting: Key Worker Reconciliation");
-        reconciliationBatchService.reconcileKeyWorkerAllocations();
-        log.info("Complete: Key Worker Reconciliation");
-    }
-
 }

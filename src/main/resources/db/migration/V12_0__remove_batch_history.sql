@@ -1,0 +1,1 @@
+drop table batch_history;
