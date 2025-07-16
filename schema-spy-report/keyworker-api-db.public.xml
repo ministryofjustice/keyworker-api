@@ -278,7 +278,7 @@
             <column ascending="true" name="prison_code"/>
          </index>
       </table>
-      <table name="reference_data" remarks="" schema="public" type="TABLE">
+      <table name="reference_data" numRows="55" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child column="allocation_reason_id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child column="deallocation_reason_id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
