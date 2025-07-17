@@ -16,11 +16,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.getKeyworkerStatus
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
@@ -40,35 +38,6 @@ class StaffConfigManager(
   private val prisonApi: PrisonApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
 ) {
-  fun setStaffConfiguration(
-    prisonCode: String,
-    staffId: Long,
-    request: StaffConfigRequest,
-  ) {
-    staffConfigRepository.save(
-      staffConfigRepository.findByStaffId(staffId)?.update(request)
-        ?: request.asConfig(staffId),
-    )
-
-    if (request.deactivateActiveAllocations) {
-      deallocateAllocationsFor(prisonCode, staffId)
-    }
-  }
-
-  fun setStaffJobClassification(
-    prisonCode: String,
-    staffId: Long,
-    request: StaffJobClassificationRequest,
-  ) {
-    AllocationContext.get().policy.nomisUseRoleCode?.let {
-      nurApi.setStaffRole(prisonCode, staffId, it, request)
-    } ?: setStaffRole(prisonCode, staffId, request)
-    if (request.toDate != null) {
-      staffConfigRepository.deleteByStaffId(staffId)
-      deallocateAllocationsFor(prisonCode, staffId)
-    }
-  }
-
   fun setStaffDetails(
     prisonCode: String,
     staffId: Long,
@@ -238,23 +207,6 @@ class StaffConfigManager(
     prisonCode,
     staffId,
   )
-
-  private fun StaffConfigRequest.asConfig(staffId: Long) =
-    StaffConfiguration(
-      referenceDataRepository.getKeyworkerStatus(status),
-      capacity,
-      !removeFromAutoAllocation,
-      reactivateOn,
-      staffId,
-    )
-
-  private fun StaffConfiguration.update(request: StaffConfigRequest) =
-    apply {
-      status = referenceDataRepository.getKeyworkerStatus(request.status)
-      capacity = request.capacity
-      allowAutoAllocation = !request.removeFromAutoAllocation
-      reactivateOn = request.reactivateOn
-    }
 
   private fun StaffConfiguration.patch(request: StaffDetailsRequest) =
     apply {
