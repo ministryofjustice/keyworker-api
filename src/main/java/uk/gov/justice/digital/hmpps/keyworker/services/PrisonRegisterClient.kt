@@ -12,14 +12,18 @@ class PrisonRegisterClient(
   @Qualifier("prisonRegisterApiWebClient") private val webClient: WebClient,
 ) {
   fun findPrisons(ids: Set<String>): List<Prison> =
-    webClient
-      .post()
-      .uri("/prisons/prisonsByIds")
-      .bodyValue(PrisonsByIdsRequest(ids))
-      .retrieve()
-      .bodyToMono<List<Prison>>()
-      .retryRequestOnTransientException()
-      .block()!!
+    if (ids.isEmpty()) {
+      emptyList()
+    } else {
+      webClient
+        .post()
+        .uri("/prisons/prisonsByIds")
+        .bodyValue(PrisonsByIdsRequest(ids))
+        .retrieve()
+        .bodyToMono<List<Prison>>()
+        .retryRequestOnTransientException()
+        .block()!!
+    }
 
   fun findPrison(code: String): Prison? = findPrisons(setOf(code)).firstOrNull()
 }
