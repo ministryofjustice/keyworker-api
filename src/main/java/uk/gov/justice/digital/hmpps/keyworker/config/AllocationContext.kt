@@ -15,6 +15,7 @@ data class AllocationContext(
 ) {
   companion object {
     const val SYSTEM_USERNAME = "SYS"
+    const val OMIC_ADMIN_USERNAME = "omicadmin"
 
     fun get(): AllocationContext = AllocationContextHolder.getContext()
   }

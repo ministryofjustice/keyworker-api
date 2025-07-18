@@ -13,6 +13,7 @@ import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -84,3 +85,12 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     staffId: Long,
   ): StaffRole?
 }
+
+fun StaffRole.toModel() =
+  StaffRoleInfo(
+    position.asCodedDescription(),
+    scheduleType.asCodedDescription(),
+    hoursPerWeek,
+    fromDate,
+    toDate,
+  )

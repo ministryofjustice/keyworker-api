@@ -16,10 +16,15 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.map
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
@@ -45,129 +50,123 @@ class StaffConfigManager(
   ) {
     val policy = AllocationContext.get().policy
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
-    val staffConfig = staffConfigRepository.findByStaffId(staffId)
-    val staffRole: Pair<StaffRole?, NomisStaffRole?>? =
-      if (request.staffRole.isPresent) {
-        if (policy.nomisUseRoleCode != null) {
-          Pair(null, prisonApi.getKeyworkerForPrison(prisonCode, staffId))
-        } else {
-          Pair(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId), null)
+
+    if (request.setsConfig()) {
+      staffConfigRepository.findByStaffId(staffId)?.patch(request) ?: request.createConfig(prisonConfig, staffId)
+    }
+
+    val staffRole: StaffRoleInfo? = getStaffRoleIfExists(prisonCode, staffId, request)
+    val roleAction =
+      request.staffRole.map {
+        when {
+          request.staffRole.get() == null -> Action.REMOVE
+          staffRole == null -> Action.CREATE
+          else -> Action.UPDATE
         }
-      } else {
-        null
       }
-
-    val createConfig = staffConfig == null
-    val createRole =
-      request.staffRole.isPresent &&
-        request.staffRole.get() != null &&
-        staffRole!!.first == null &&
-        staffRole.second == null
-    val patchRole = request.staffRole.isPresent && request.staffRole.get() != null && !createRole
-    val deactivateJobRoleAndConfig = request.staffRole.isPresent && request.staffRole.get() == null
-    val removeActiveAllocations = request.deactivateActiveAllocations.orElse(false) || deactivateJobRoleAndConfig
-
-    if (createRole && !request.staffRole.get()!!.isValidToCreate()) {
+    if (roleAction == Action.CREATE && !request.staffRole.get()!!.isValidToCreate()) {
       throw ResponseStatusException(HttpStatusCode.valueOf(400), "Insufficient parameters to create staff job role")
     }
 
-    if (createConfig) {
-      request.apply {
-        staffConfigRepository.save(
-          StaffConfiguration(
-            referenceDataRepository.getReferenceData(
-              ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, if (status.isPresent) status.get() else "ACTIVE"),
-            ),
-            capacity.orElse(prisonConfig.maximumCapacity),
-            allowAutoAllocation.orElse(true),
-            reactivateOn.orElse(null),
-            staffId,
-          ),
-        )
-      }
-    } else if (!deactivateJobRoleAndConfig) {
-      staffConfig.patch(request)
-    }
-
-    if (removeActiveAllocations) {
+    if (request.deactivateActiveAllocations.orElse(false) || roleAction == Action.REMOVE) {
       deallocateAllocationsFor(prisonCode, staffId)
     }
 
-    if (createRole) {
-      val jobRoleRequest =
-        request.staffRole.get()!!.let {
-          StaffJobClassificationRequest(
-            position = it.position.get(),
-            scheduleType = it.scheduleType.get(),
-            hoursPerWeek = it.hoursPerWeek.get(),
-            fromDate =
-              it.fromDate.orElse(
-                LocalDate.now(),
-              ),
-            toDate = null,
-          )
-        }
-      policy.nomisUseRoleCode?.let {
-        nurApi.setStaffRole(prisonCode, staffId, it, jobRoleRequest)
-      } ?: setStaffRole(prisonCode, staffId, jobRoleRequest)
-    } else if (patchRole) {
-      policy.nomisUseRoleCode?.let { roleCode ->
-        staffRole!!.second!!.apply {
-          nurApi.setStaffRole(
-            prisonCode,
-            staffId,
-            roleCode,
-            request.staffRole.get()!!.let {
-              StaffJobClassificationRequest(
-                position = it.position.orElse(position),
-                scheduleType = it.scheduleType.orElse(scheduleType),
-                hoursPerWeek = it.hoursPerWeek.orElse(hoursPerWeek),
-                fromDate = it.fromDate.orElse(fromDate),
-                toDate = null,
-              )
-            },
-          )
-        }
-      } ?: run {
-        staffRole!!.first!!.apply {
-          request.staffRole.get()!!.let { jobRoleRequest ->
-            jobRoleRequest.position.ifPresent {
-              position =
-                referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of it)
+    when (roleAction) {
+      null -> return
+      Action.CREATE -> {
+        val jobRoleRequest =
+          request.staffRole.get()!!.let {
+            StaffJobClassificationRequest(
+              position = it.position.get(),
+              scheduleType = it.scheduleType.get(),
+              hoursPerWeek = it.hoursPerWeek.get(),
+              fromDate = it.fromDate.orElse(LocalDate.now()),
+              toDate = null,
+            )
+          }
+        policy.nomisUseRoleCode?.let {
+          nurApi.setStaffRole(prisonCode, staffId, it, jobRoleRequest)
+        } ?: setStaffRole(prisonCode, staffId, jobRoleRequest)
+      }
+
+      Action.UPDATE -> {
+        policy.nomisUseRoleCode?.let { roleCode ->
+          staffRole!!.apply {
+            nurApi.setStaffRole(
+              prisonCode,
+              staffId,
+              roleCode,
+              request.staffRole.get()!!.let {
+                StaffJobClassificationRequest(
+                  position = it.position.orElse(position.code),
+                  scheduleType = it.scheduleType.orElse(scheduleType.code),
+                  hoursPerWeek = it.hoursPerWeek.orElse(hoursPerWeek),
+                  fromDate = it.fromDate.orElse(fromDate),
+                  toDate = null,
+                )
+              },
+            )
+          }
+        } ?: run {
+          val srr = request.staffRole.get()!!
+          staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
+            srr.position.ifPresent {
+              this.position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of it)
             }
-            jobRoleRequest.scheduleType.ifPresent {
-              scheduleType =
+            srr.scheduleType.ifPresent {
+              this.scheduleType =
                 referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of it)
             }
-            jobRoleRequest.hoursPerWeek.ifPresent { hoursPerWeek = it }
-            jobRoleRequest.fromDate.ifPresent { fromDate = it }
+            srr.hoursPerWeek.ifPresent { this.hoursPerWeek = it }
+            srr.fromDate.ifPresent { this.fromDate = it }
           }
         }
       }
-    } else if (deactivateJobRoleAndConfig) {
-      staffConfigRepository.deleteByStaffId(staffId)
 
-      policy.nomisUseRoleCode?.let {
-        staffRole?.second?.apply {
-          nurApi.setStaffRole(
-            prisonCode,
-            staffId,
-            it,
-            StaffJobClassificationRequest(
-              position = position,
-              scheduleType = scheduleType,
-              hoursPerWeek = hoursPerWeek,
-              fromDate = fromDate,
-              toDate = LocalDate.now(),
-            ),
-          )
-        }
-      } ?: run {
-        staffRole?.first?.apply {
-          toDate = LocalDate.now()
+      Action.REMOVE -> {
+        staffConfigRepository.deleteByStaffId(staffId)
+        policy.nomisUseRoleCode?.also { code ->
+          staffRole?.also {
+            nurApi.setStaffRole(
+              prisonCode,
+              staffId,
+              code,
+              StaffJobClassificationRequest(
+                position = it.position.code,
+                scheduleType = it.scheduleType.code,
+                hoursPerWeek = it.hoursPerWeek,
+                fromDate = it.fromDate,
+                toDate = LocalDate.now(),
+              ),
+            )
+          }
+        } ?: run {
+          staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
+            toDate = LocalDate.now()
+          }
         }
       }
     }
+  }
+
+  private fun NomisStaffRole.staffRoleInfo(): StaffRoleInfo {
+    val rd =
+      referenceDataRepository
+        .findAllByKeyIn(
+          setOf(
+            ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType,
+            ReferenceDataDomain.STAFF_POSITION of position,
+          ),
+        ).associate { it.key.domain to it.asCodedDescription() }
+
+    return StaffRoleInfo(
+      rd[ReferenceDataDomain.STAFF_POSITION]!!,
+      rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE]!!,
+      hoursPerWeek,
+      fromDate,
+      toDate,
+    )
   }
 
   private fun deallocateAllocationsFor(
@@ -210,9 +209,47 @@ class StaffConfigManager(
 
   private fun StaffConfiguration.patch(request: StaffDetailsRequest) =
     apply {
-      request.status.ifPresent { status = referenceDataRepository.getReferenceData(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it)) }
+      request.status.ifPresent {
+        status = referenceDataRepository.getReferenceData(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it))
+      }
       request.capacity.ifPresent { capacity = it }
       request.allowAutoAllocation.ifPresent { allowAutoAllocation = it }
       request.reactivateOn.ifPresent { reactivateOn = it }
     }
+
+  private fun getStaffRoleIfExists(
+    prisonCode: String,
+    staffId: Long,
+    request: StaffDetailsRequest,
+  ): StaffRoleInfo? {
+    val policy = AllocationContext.get().policy
+    return request.staffRole.map {
+      when (policy.nomisUseRoleCode) {
+        null -> staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.toModel()
+        else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
+      }
+    }
+  }
+
+  private fun StaffDetailsRequest.createConfig(
+    prisonConfig: PrisonConfiguration,
+    staffId: Long,
+  ): StaffConfiguration =
+    staffConfigRepository.save(
+      StaffConfiguration(
+        referenceDataRepository.getReferenceData(
+          ReferenceDataDomain.STAFF_STATUS of if (status.isPresent) status.get() else StaffStatus.ACTIVE.name,
+        ),
+        capacity.orElse(prisonConfig.maximumCapacity),
+        allowAutoAllocation.orElse(true),
+        reactivateOn.orElse(null),
+        staffId,
+      ),
+    )
+}
+
+enum class Action {
+  CREATE,
+  UPDATE,
+  REMOVE,
 }
