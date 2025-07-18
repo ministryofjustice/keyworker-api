@@ -49,7 +49,6 @@ class GetCurrentAllocations(
                     setOf(personIdentifier),
                     from = now().minusMonths(38),
                     to = now(),
-                    staffIds = setOf("${it.staffId}"),
                   )
 
                 AllocationPolicy.PERSONAL_OFFICER ->
@@ -58,7 +57,6 @@ class GetCurrentAllocations(
                     setOf(personIdentifier),
                     from = now().atStartOfDay().minusMonths(38),
                     to = now().atStartOfDay(),
-                    authorIds = setOf("${it.staffId}"),
                   )
               }
             caseNotesApiClient

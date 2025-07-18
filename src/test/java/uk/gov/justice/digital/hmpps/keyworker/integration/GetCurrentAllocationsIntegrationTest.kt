@@ -113,7 +113,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         setOf(personIdentifier),
         LocalDate.now().minusMonths(38),
         LocalDate.now(),
-        setOf(currentAllocation.staffId.toString()),
       ),
       NoteUsageResponse(
         mapOf(
@@ -202,7 +201,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         setOf(personIdentifier),
         LocalDate.now().atStartOfDay().minusMonths(38),
         LocalDate.now().atStartOfDay(),
-        setOf(currentAllocation.staffId.toString()),
       ),
       NoteUsageResponse(
         mapOf(
