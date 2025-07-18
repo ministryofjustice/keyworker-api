@@ -45,7 +45,7 @@ class GetCurrentAllocations(
               when (policy) {
                 AllocationPolicy.KEY_WORKER ->
                   sessionTypes(
-                    it.prisonCode,
+                    null,
                     setOf(personIdentifier),
                     from = now().minusMonths(38),
                     to = now(),
@@ -53,7 +53,7 @@ class GetCurrentAllocations(
 
                 AllocationPolicy.PERSONAL_OFFICER ->
                   personalOfficerTypes(
-                    it.prisonCode,
+                    null,
                     setOf(personIdentifier),
                     from = now().atStartOfDay().minusMonths(38),
                     to = now().atStartOfDay(),
