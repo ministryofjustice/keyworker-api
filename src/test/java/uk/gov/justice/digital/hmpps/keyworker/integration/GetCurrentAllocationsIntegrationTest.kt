@@ -109,11 +109,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val latestSession = LocalDateTime.now().minusWeeks(2)
     caseNotesMockServer.stubUsageByPersonIdentifier(
       sessionTypes(
-        prisonCode,
+        null,
         setOf(personIdentifier),
         LocalDate.now().minusMonths(38),
         LocalDate.now(),
-        setOf(currentAllocation.staffId.toString()),
       ),
       NoteUsageResponse(
         mapOf(
@@ -198,11 +197,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val latestSession = LocalDateTime.now().minusWeeks(1)
     caseNotesMockServer.stubUsageByPersonIdentifier(
       personalOfficerTypes(
-        prisonCode,
+        null,
         setOf(personIdentifier),
         LocalDate.now().atStartOfDay().minusMonths(38),
         LocalDate.now().atStartOfDay(),
-        setOf(currentAllocation.staffId.toString()),
       ),
       NoteUsageResponse(
         mapOf(
