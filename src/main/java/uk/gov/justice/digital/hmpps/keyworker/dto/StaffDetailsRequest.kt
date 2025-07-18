@@ -27,7 +27,9 @@ data class StaffDetailsRequest(
   val staffRole: JsonNullable<StaffRoleRequest?> = JsonNullable.undefined(),
   @param:Schema(nullable = false, type = "boolean", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   val deactivateActiveAllocations: JsonNullable<Boolean> = JsonNullable.undefined(),
-)
+) {
+  fun setsConfig() = status.isPresent || capacity.isPresent || reactivateOn.isPresent
+}
 
 data class StaffRoleRequest(
   @param:Schema(nullable = false, type = "string", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
@@ -42,3 +44,5 @@ data class StaffRoleRequest(
   @JsonIgnore
   fun isValidToCreate(): Boolean = position.isPresent && scheduleType.isPresent && hoursPerWeek.isPresent
 }
+
+fun <T, S> JsonNullable<T>.map(code: (T) -> S): S? = if (isPresent) code(get()) else null

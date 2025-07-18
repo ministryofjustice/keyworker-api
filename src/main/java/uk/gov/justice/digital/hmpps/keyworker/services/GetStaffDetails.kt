@@ -11,12 +11,12 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.filterApplicable
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
@@ -186,15 +186,6 @@ class GetStaffDetails(
       toDate,
     )
   }
-
-  private fun StaffRole.toModel() =
-    StaffRoleInfo(
-      position.asCodedDescription(),
-      scheduleType.asCodedDescription(),
-      hoursPerWeek,
-      fromDate,
-      toDate,
-    )
 
   private fun List<Allocation>.staffCountStats(
     reportingPeriod: ReportingPeriod,

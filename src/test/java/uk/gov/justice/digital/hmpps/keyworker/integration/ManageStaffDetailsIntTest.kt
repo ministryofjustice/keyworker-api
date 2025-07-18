@@ -96,7 +96,6 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
-    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val nomisRequest =
       policy.nomisUseRoleCode?.let {
@@ -145,6 +144,9 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
         AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
       )
     }
+
+    // config should not be created if not config field provided
+    assertThat(staffConfigRepository.findByStaffId(staffId)).isNull()
   }
 
   @ParameterizedTest
