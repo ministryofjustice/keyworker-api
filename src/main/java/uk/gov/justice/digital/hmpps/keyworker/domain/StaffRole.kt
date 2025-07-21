@@ -76,11 +76,11 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
 
   @Query(
     """
-        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and to_date is not null
+        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId
     """,
     nativeQuery = true,
   )
-  fun findInactiveRoleByPrisonCodeAndStaffId(
+  fun findRoleIncludingInactive(
     prisonCode: String,
     staffId: Long,
   ): StaffRole?
