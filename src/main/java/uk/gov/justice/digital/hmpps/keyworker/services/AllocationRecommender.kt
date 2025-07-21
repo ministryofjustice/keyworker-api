@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
@@ -28,7 +28,7 @@ class AllocationRecommender(
   private val personSearch: PersonSearch,
   private val staffSearch: StaffSearch,
   private val staffConfigRepository: StaffConfigRepository,
-  private val staffAllocationRepository: StaffAllocationRepository,
+  private val allocationRepository: AllocationRepository,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
   fun allocations(prisonCode: String): RecommendedAllocations {
@@ -50,7 +50,7 @@ class AllocationRecommender(
     val recommendations =
       people.map { person ->
         val previousAllocations =
-          staffAllocationRepository.findPreviousAllocations(prisonCode, person.personIdentifier, staffIds)
+          allocationRepository.findPreviousAllocations(prisonCode, person.personIdentifier, staffIds)
         val recommended =
           if (previousAllocations.isNotEmpty()) {
             staff.find { it.staff.staffId == previousAllocations.first { staffId -> staffId in staffIds } }
@@ -78,7 +78,7 @@ class AllocationRecommender(
     val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staffMember }
     val staffIds = staff.map { it.staffId }.toSet()
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, staffIds).associateBy { it.staffId }
-    val autoAllocations = staffAllocationRepository.findLatestAutoAllocationsFor(staffIds).associateBy { it.staffId }
+    val autoAllocations = allocationRepository.findLatestAutoAllocationsFor(staffIds).associateBy { it.staffId }
     val activeStatus = lazy { requireNotNull(referenceDataRepository.findByKey(STAFF_STATUS of ACTIVE.name)) }
     return staff
       .map {

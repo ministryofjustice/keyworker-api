@@ -58,7 +58,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
         ),
     )
 
-  fun stubGetKeyworkerCaseNotes(
+  fun stubGetAllocationCaseNotes(
     personIdentifier: String,
     response: CaseNotes,
   ): StubMapping =

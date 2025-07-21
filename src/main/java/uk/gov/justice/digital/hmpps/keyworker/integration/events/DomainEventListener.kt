@@ -8,7 +8,7 @@ import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedEventProcessor
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CalculatePrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteCreated
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteDeleted
@@ -18,10 +18,10 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Compl
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.MigrateCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Other
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.PrisonMerged
+import uk.gov.justice.digital.hmpps.keyworker.services.AllocationCaseNoteService
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
-import uk.gov.justice.digital.hmpps.keyworker.services.MigrateSessionsAndEntries
+import uk.gov.justice.digital.hmpps.keyworker.services.MigrateAllocationCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonInformation
-import uk.gov.justice.digital.hmpps.keyworker.services.SessionAndEntryService
 import uk.gov.justice.digital.hmpps.keyworker.statistics.PrisonStatisticCalculator
 
 @Service
@@ -29,8 +29,8 @@ class DomainEventListener(
   private val complexityOfNeedEventProcessor: ComplexityOfNeedEventProcessor,
   private val mergePrisonNumbers: MergePrisonNumbers,
   private val prisonStats: PrisonStatisticCalculator,
-  private val sessionEntries: SessionAndEntryService,
-  private val migrate: MigrateSessionsAndEntries,
+  private val caseNote: AllocationCaseNoteService,
+  private val migrate: MigrateAllocationCaseNotes,
   private val objectMapper: ObjectMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -51,21 +51,12 @@ class DomainEventListener(
         prisonStats.calculate(prisonStatsInfo)
       }
 
-      CaseNoteCreated if (notification.isKeyworkerRelated()) -> sessionEntries.new(information(notification))
-      CaseNoteMoved if (notification.isKeyworkerRelated()) -> sessionEntries.move(information(notification))
-      CaseNoteDeleted if (notification.isKeyworkerRelated()) -> sessionEntries.delete(information(notification))
-      CaseNoteUpdated -> sessionEntries.update(information(notification))
+      CaseNoteCreated if (notification.isOfInterest()) -> caseNote.new(information(notification))
+      CaseNoteMoved if (notification.isOfInterest()) -> caseNote.update(information(notification))
+      CaseNoteUpdated -> caseNote.update(information(notification))
+      CaseNoteDeleted -> caseNote.delete(information(notification))
 
-      CaseNoteCreated, CaseNoteMoved, CaseNoteDeleted ->
-        telemetryClient.trackEvent(
-          "CaseNoteNotOfInterest",
-          mapOf(
-            "name" to eventType.name,
-            "type" to notification.caseNoteType,
-            "subType" to notification.caseNoteSubType,
-          ),
-          null,
-        )
+      CaseNoteCreated, CaseNoteMoved -> return
 
       MigrateCaseNotes ->
         migrate.handle(
@@ -82,7 +73,10 @@ class DomainEventListener(
     return PersonInformation(personIdentifier, message.additionalInformation)
   }
 
-  private fun Notification<*>.isKeyworkerRelated(): Boolean = caseNoteType == KW_TYPE
+  private fun Notification<*>.isOfInterest(): Boolean {
+    val typeSubType = CaseNotesOfInterest[caseNoteType]
+    return typeSubType != null && typeSubType.contains(caseNoteSubType)
+  }
 
   private val Notification<*>.caseNoteType get(): String = attributes["type"]?.value ?: ""
   private val Notification<*>.caseNoteSubType get(): String = attributes["subType"]?.value ?: ""

@@ -2,10 +2,10 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
@@ -27,7 +27,7 @@ class PrisonStatisticCalculator(
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeedApi: ComplexityOfNeedApiClient,
-  private val staffAllocationRepository: StaffAllocationRepository,
+  private val allocationRepository: AllocationRepository,
   private val caseNotesApi: CaseNotesApiClient,
   private val prisonApi: PrisonApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
@@ -78,9 +78,9 @@ class PrisonStatisticCalculator(
         return
       }
 
-      val activeAllocations = staffAllocationRepository.countActiveAllocations(prisonCode, eligiblePrisoners)
+      val activeAllocations = allocationRepository.countActiveAllocations(prisonCode, eligiblePrisoners)
       val newAllocations =
-        staffAllocationRepository
+        allocationRepository
           .findNewAllocationsAt(prisonCode, date, date.plusDays(1))
           .associateBy { it.personIdentifier }
 

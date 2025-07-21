@@ -4,23 +4,21 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.kotlin.verify
-import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.findByIdOrNull
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asKeyworkerInteraction
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteCreated
@@ -39,7 +37,7 @@ import java.util.UUID
 class CaseNoteEventIntegrationTest : IntegrationTest() {
   @ParameterizedTest
   @MethodSource("caseNoteCreated")
-  fun `creates a new session entry when case note created`(caseNote: CaseNote) {
+  fun `creates a new allocation case note when case note created`(caseNote: CaseNote) {
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteCreated, caseNoteInfo(caseNote), caseNote.personIdentifier)
 
@@ -47,75 +45,83 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(interaction).isNotNull()
-    interaction!!.verifyAgainst(caseNote)
+    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(acn).isNotNull()
+    acn!!.verifyAgainst(caseNote)
+
+    verifyAudit(acn, acn.id, RevisionType.ADD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteUpdated")
-  fun `updates session entry when case note updated`(caseNote: CaseNote) {
+  fun `updates allocation case note when case note updated`(caseNote: CaseNote) {
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteUpdated, caseNoteInfo(caseNote), caseNote.personIdentifier)
     val existingOccurredAt = LocalDateTime.now().minusDays(4).truncatedTo(ChronoUnit.SECONDS)
-    givenKeyworkerInteraction(caseNote.copy(occurredAt = existingOccurredAt).asKeyworkerInteraction()!!)
-    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(existingInteraction).isNotNull()
-    assertThat(existingInteraction!!.occurredAt).isEqualTo(existingOccurredAt)
+    givenAllocationCaseNote(caseNote.copy(occurredAt = existingOccurredAt).asAllocationCaseNote())
+    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(existing).isNotNull()
+    assertThat(existing!!.occurredAt).isEqualTo(existingOccurredAt)
 
     publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(interaction).isNotNull()
-    interaction!!.verifyAgainst(caseNote)
+    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(acn).isNotNull()
+    acn!!.verifyAgainst(caseNote)
+
+    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteMoved")
-  fun `moves session entry when case note moved`(caseNote: CaseNote) {
+  fun `moves allocation case note when case note moved`(caseNote: CaseNote) {
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteMoved, caseNoteInfo(caseNote, personIdentifier()), caseNote.personIdentifier)
-    givenKeyworkerInteraction(
+    givenAllocationCaseNote(
       caseNote
         .copy(personIdentifier = event.additionalInformation.previousNomsNumber!!)
-        .asKeyworkerInteraction()!!,
+        .asAllocationCaseNote(),
     )
-    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(existingInteraction).isNotNull()
-    assertThat(existingInteraction!!.personIdentifier).isNotEqualTo(caseNote.personIdentifier)
-    assertThat(existingInteraction.personIdentifier).isEqualTo(event.additionalInformation.previousNomsNumber)
+    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(existing).isNotNull()
+    assertThat(existing!!.personIdentifier).isNotEqualTo(caseNote.personIdentifier)
+    assertThat(existing.personIdentifier).isEqualTo(event.additionalInformation.previousNomsNumber)
 
     publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(interaction).isNotNull()
-    interaction!!.verifyAgainst(caseNote)
+    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(acn).isNotNull()
+    acn!!.verifyAgainst(caseNote)
+
+    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteDeleted")
-  fun `deletes session entry when case note deleted`(caseNote: CaseNote) {
+  fun `deletes allocation case note when case note deleted`(caseNote: CaseNote) {
     val event = caseNoteEvent(CaseNoteDeleted, caseNoteInfo(caseNote), caseNote.personIdentifier)
-    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
-    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(existingInteraction).isNotNull()
-    existingInteraction!!.verifyAgainst(caseNote)
+    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
+    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(existing).isNotNull()
+    existing!!.verifyAgainst(caseNote)
 
     publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(interaction).isNull()
+    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(acn).isNull()
+
+    verifyAudit(existing, existing.id, RevisionType.DEL, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteTypeChanged")
-  fun `deletes session entry when case note changed to non keyworker type`(caseNote: CaseNote) {
+  fun `deletes allocation case note when case note changed to type not of interest`(caseNote: CaseNote) {
     val updateCaseNote = caseNote.copy(type = "ANY", subType = "OTHER")
     caseNotesMockServer.stubGetCaseNote(updateCaseNote)
     val event =
@@ -124,17 +130,19 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         caseNoteInfo(updateCaseNote),
         caseNote.personIdentifier,
       )
-    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
-    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(existingInteraction).isNotNull()
-    existingInteraction!!.verifyAgainst(caseNote)
+    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
+    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(existing).isNotNull()
+    existing!!.verifyAgainst(caseNote)
 
     publishEventToTopic(event, updateCaseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val interaction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(interaction).isNull()
+    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(acn).isNull()
+
+    verifyAudit(existing, existing.id, RevisionType.DEL, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
@@ -149,35 +157,31 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         caseNoteInfo(updateCaseNote),
         caseNote.personIdentifier,
       )
-    givenKeyworkerInteraction(caseNote.asKeyworkerInteraction()!!)
-    val existingInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(existingInteraction).isNotNull()
-    existingInteraction!!.verifyAgainst(caseNote)
+    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
+    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(existing).isNotNull()
+    existing!!.verifyAgainst(caseNote)
 
     publishEventToTopic(event, updateCaseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val newInteraction = interactionRepository(updateCaseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(newInteraction).isNotNull()
+    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    assertThat(acn).isNotNull()
+    assertThat(acn!!.subType).isEqualTo(subType)
 
-    val deletedInteraction = interactionRepository(caseNote.subType).findByIdOrNull(caseNote.id)
-    assertThat(deletedInteraction).isNull()
+    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
   }
 
   @Test
-  fun `non keyworker case notes are ignored`() {
+  fun `case notes not of interest are ignored`() {
     val caseNote = caseNote("OTHER", "ANY")
     val event = caseNoteEvent(CaseNoteCreated, caseNoteInfo(caseNote), caseNote.personIdentifier)
     publishEventToTopic(event, caseNote.snsAttributes())
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    verify(telemetryClient).trackEvent(
-      "CaseNoteNotOfInterest",
-      mapOf("name" to CaseNoteCreated.name, "type" to "ANY", "subType" to "OTHER"),
-      null,
-    )
+    assertThat(caseNoteRepository.findByIdOrNull(caseNote.id)).isNull()
   }
 
   private fun caseNoteInfo(
@@ -195,13 +199,6 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
       info,
       PersonReference.withIdentifier(personIdentifier),
     )
-
-  private fun interactionRepository(subType: String): JpaRepository<out KeyworkerInteraction, UUID> =
-    when (subType) {
-      KW_SESSION_SUBTYPE -> ksRepository
-      KW_ENTRY_SUBTYPE -> keRepository
-      else -> throw IllegalArgumentException("Unknown case note sub type")
-    }
 
   private fun CaseNote.snsAttributes(): Map<String, MessageAttributeValue> =
     mapOf(
@@ -239,7 +236,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         subType,
         occurredAt,
         personIdentifier,
-        staffId.toString(),
+        staffId,
         staffUsername,
         prisonCode,
         createdAt,
@@ -291,18 +288,13 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
   }
 }
 
-private fun KeyworkerInteraction.verifyAgainst(note: CaseNote) {
+private fun AllocationCaseNote.verifyAgainst(note: CaseNote) {
   assertThat(prisonCode).isEqualTo(note.prisonCode)
-  assertThat(staffId).isEqualTo(note.staffId.toLong())
-  assertThat(staffUsername).isEqualTo(note.staffUsername)
+  assertThat(staffId).isEqualTo(note.staffId)
+  assertThat(username).isEqualTo(note.staffUsername)
   assertThat(personIdentifier).isEqualTo(note.personIdentifier)
   assertThat(occurredAt.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(note.occurredAt.truncatedTo(ChronoUnit.SECONDS))
-  assertThat(createdAt.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(note.createdAt.truncatedTo(ChronoUnit.SECONDS))
   assertThat(id).isEqualTo(note.id)
-  assertThat(textLength).isEqualTo(note.textLength())
-  assertThat(amendmentCount).isEqualTo(note.amendments.size)
-  when (this) {
-    is KeyworkerSession -> assertThat(note.subType).isEqualTo(KW_SESSION_SUBTYPE)
-    is KeyworkerEntry -> assertThat(note.subType).isEqualTo(KW_ENTRY_SUBTYPE)
-  }
+  assertThat(type).isEqualTo(note.type)
+  assertThat(subType).isEqualTo(note.subType)
 }

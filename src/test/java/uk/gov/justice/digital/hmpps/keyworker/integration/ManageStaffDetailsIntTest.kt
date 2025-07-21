@@ -316,7 +316,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
+    allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
       assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
@@ -389,7 +389,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     val staffConfig = staffConfigRepository.findByStaffId(staffId)
     assertThat(staffConfig).isNull()
 
-    staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
+    allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
       assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)

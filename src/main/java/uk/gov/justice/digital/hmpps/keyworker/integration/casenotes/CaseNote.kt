@@ -1,11 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -19,7 +15,7 @@ data class CaseNote(
   @JsonAlias("offenderIdentifier")
   val personIdentifier: String,
   @JsonAlias("authorUserId")
-  val staffId: String,
+  val staffId: Long,
   @JsonAlias("authorUsername")
   val staffUsername: String,
   @JsonAlias("locationId")
@@ -45,33 +41,5 @@ data class CaseNoteAmendment(
   val text: String,
 )
 
-fun CaseNote.asKeyworkerInteraction(): KeyworkerInteraction? =
-  when (subType) {
-    KW_SESSION_SUBTYPE ->
-      KeyworkerSession(
-        occurredAt,
-        personIdentifier,
-        staffId.toLong(),
-        staffUsername,
-        prisonCode,
-        createdAt,
-        textLength(),
-        amendments.size,
-        id,
-      )
-
-    KW_ENTRY_SUBTYPE ->
-      KeyworkerEntry(
-        occurredAt,
-        personIdentifier,
-        staffId.toLong(),
-        staffUsername,
-        prisonCode,
-        createdAt,
-        textLength(),
-        amendments.size,
-        id,
-      )
-
-    else -> null
-  }
+fun CaseNote.asAllocationCaseNote(): AllocationCaseNote =
+  AllocationCaseNote(prisonCode, personIdentifier, staffId, staffUsername, type, subType, occurredAt, id)
