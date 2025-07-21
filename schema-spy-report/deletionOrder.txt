@@ -8,9 +8,9 @@ staff_role
 staff_configuration_audit
 staff_configuration
 prison_configuration
-keyworker_session
-keyworker_entry
-audit_revision
+allocation_case_note_audit
+allocation_case_note
 reference_data
+audit_revision
 prison_migration_date_history
 policy

@@ -93,9 +93,46 @@
             <column ascending="true" name="id"/>
          </index>
       </table>
+      <table name="allocation_case_note" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <parent column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="false" remarks="" size="7" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="type" nullable="false" remarks="" size="12" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="sub_type" nullable="false" remarks="" size="12" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="7" name="occurred_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="allocation_case_note_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_case_note_person_identifier" unique="false">
+            <column ascending="true" name="person_identifier"/>
+         </index>
+      </table>
+      <table name="allocation_case_note_audit" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="rev_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent column="id" foreignKey="allocation_case_note_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="audit_revision"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="rev_type" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <parent column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="person_identifier" nullable="false" remarks="" size="7" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="type" nullable="false" remarks="" size="12" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="sub_type" nullable="false" remarks="" size="12" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="9" name="occurred_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
+      </table>
       <table name="audit_revision" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('audit_revision_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child column="rev_id" foreignKey="allocation_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation_audit"/>
+            <child column="rev_id" foreignKey="allocation_case_note_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation_case_note_audit"/>
             <child column="rev_id" foreignKey="prison_configuration_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
             <child column="rev_id" foreignKey="staff_configuration_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration_audit"/>
             <child column="rev_id" foreignKey="staff_role_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_role_audit"/>
@@ -107,62 +144,6 @@
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="audit_revision_pkey" unique="true">
             <column ascending="true" name="id"/>
-         </index>
-      </table>
-      <table name="keyworker_entry" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="occurred_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="true" remarks="" size="7" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="staff_username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="created_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="0" digits="0" id="8" name="text_length" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="amendment_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <primaryKey column="id" sequenceNumberInPK="1"/>
-         <index name="keyworker_entry_pkey" unique="true">
-            <column ascending="true" name="id"/>
-         </index>
-         <index name="idx_keyworker_entry_person_identifier" unique="false">
-            <column ascending="true" name="person_identifier"/>
-            <column ascending="true" name="occurred_at"/>
-            <column ascending="true" name="prison_code"/>
-         </index>
-         <index name="idx_keyworker_entry_staff_id" unique="false">
-            <column ascending="true" name="staff_id"/>
-            <column ascending="true" name="occurred_at"/>
-            <column ascending="true" name="prison_code"/>
-         </index>
-      </table>
-      <table name="keyworker_session" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="occurred_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="true" remarks="" size="7" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="staff_username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="created_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="0" digits="0" id="8" name="text_length" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="amendment_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <primaryKey column="id" sequenceNumberInPK="1"/>
-         <index name="keyworker_session_pkey" unique="true">
-            <column ascending="true" name="id"/>
-         </index>
-         <index name="idx_keyworker_session_person_identifier" unique="false">
-            <column ascending="true" name="person_identifier"/>
-            <column ascending="true" name="occurred_at"/>
-            <column ascending="true" name="prison_code"/>
-         </index>
-         <index name="idx_keyworker_session_staff_id" unique="false">
-            <column ascending="true" name="staff_id"/>
-            <column ascending="true" name="occurred_at"/>
-            <column ascending="true" name="prison_code"/>
          </index>
       </table>
       <table name="keyworker_stats" remarks="Records the results of each statistic snapshot" schema="public" type="TABLE">
@@ -265,8 +246,8 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation_audit"/>
-            <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_entry"/>
-            <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="keyworker_session"/>
+            <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation_case_note"/>
+            <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation_case_note_audit"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
             <child column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="staff_role"/>

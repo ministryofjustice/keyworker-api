@@ -1,9 +1,9 @@
 policy
 prison_migration_date_history
-reference_data
 audit_revision
-keyworker_entry
-keyworker_session
+reference_data
+allocation_case_note
+allocation_case_note_audit
 prison_configuration
 staff_configuration
 staff_configuration_audit

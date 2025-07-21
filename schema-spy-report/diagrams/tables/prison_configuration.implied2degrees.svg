@@ -136,65 +136,65 @@
 <polygon fill="#000000" stroke="#000000" points="424.0313,-740.9929 431.6818,-745.2859 428.0157,-741.3465 432,-741.7 432,-741.7 432,-741.7 428.0157,-741.3465 432.3182,-738.1141 424.0313,-740.9929 424.0313,-740.9929"/>
 <ellipse fill="none" stroke="#000000" cx="420.8438" cy="-740.7101" rx="3.2" ry="3.2"/>
 </g>
-<!-- keyworker_entry -->
+<!-- allocation_case_note -->
 <g id="node5" class="node">
-<title>keyworker_entry</title>
-<g id="a_node5"><a xlink:href="../../tables/keyworker_entry.html" xlink:title="keyworker_entry" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="429,-960.2 429,-1021.2 581,-1021.2 581,-960.2 429,-960.2"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="429,-997.7 429,-1020.7 581,-1020.7 581,-997.7 429,-997.7"/>
-<polygon fill="none" stroke="#000000" points="429,-997.7 429,-1020.7 581,-1020.7 581,-997.7 429,-997.7"/>
-<text text-anchor="start" x="434" y="-1006.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">keyworker_entry</text>
-<text text-anchor="start" x="546.5219" y="-1005.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="429,-978.7 429,-997.7 581,-997.7 581,-978.7 429,-978.7"/>
-<text text-anchor="start" x="432" y="-984.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="429,-959.7 429,-978.7 503,-978.7 503,-959.7 429,-959.7"/>
-<polygon fill="none" stroke="#000000" points="429,-959.7 429,-978.7 503,-978.7 503,-959.7 429,-959.7"/>
-<text text-anchor="start" x="432" y="-965.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="503,-959.7 503,-978.7 542,-978.7 542,-959.7 503,-959.7"/>
-<polygon fill="none" stroke="#000000" points="503,-959.7 503,-978.7 542,-978.7 542,-959.7 503,-959.7"/>
-<text text-anchor="start" x="532.8862" y="-965.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="542,-959.7 542,-978.7 581,-978.7 581,-959.7 542,-959.7"/>
-<polygon fill="none" stroke="#000000" points="542,-959.7 542,-978.7 581,-978.7 581,-959.7 542,-959.7"/>
-<text text-anchor="start" x="571.8862" y="-965.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<title>allocation_case_note</title>
+<g id="a_node5"><a xlink:href="../../tables/allocation_case_note.html" xlink:title="allocation_case_note" target="_top">
+<polygon fill="#ffffff" stroke="transparent" points="416,-960.2 416,-1021.2 594,-1021.2 594,-960.2 416,-960.2"/>
+<polygon fill="#f5f5f5" stroke="transparent" points="416,-997.7 416,-1020.7 594,-1020.7 594,-997.7 416,-997.7"/>
+<polygon fill="none" stroke="#000000" points="416,-997.7 416,-1020.7 594,-1020.7 594,-997.7 416,-997.7"/>
+<text text-anchor="start" x="421" y="-1006.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">allocation_case_note</text>
+<text text-anchor="start" x="559.5219" y="-1005.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
+<polygon fill="none" stroke="#000000" points="416,-978.7 416,-997.7 594,-997.7 594,-978.7 416,-978.7"/>
+<text text-anchor="start" x="419" y="-984.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
+<polygon fill="#ffffff" stroke="transparent" points="416,-959.7 416,-978.7 503,-978.7 503,-959.7 416,-959.7"/>
+<polygon fill="none" stroke="#000000" points="416,-959.7 416,-978.7 503,-978.7 503,-959.7 416,-959.7"/>
+<text text-anchor="start" x="419" y="-965.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
+<polygon fill="#ffffff" stroke="transparent" points="503,-959.7 503,-978.7 548,-978.7 548,-959.7 503,-959.7"/>
+<polygon fill="none" stroke="#000000" points="503,-959.7 503,-978.7 548,-978.7 548,-959.7 503,-959.7"/>
+<text text-anchor="start" x="538.8862" y="-965.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="548,-959.7 548,-978.7 594,-978.7 594,-959.7 548,-959.7"/>
+<polygon fill="none" stroke="#000000" points="548,-959.7 548,-978.7 594,-978.7 594,-959.7 548,-959.7"/>
+<text text-anchor="start" x="584.8862" y="-965.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>
 </g>
-<!-- keyworker_entry&#45;&gt;prison_migration_date_history -->
+<!-- allocation_case_note&#45;&gt;prison_migration_date_history -->
 <g id="edge5" class="edge">
-<title>keyworker_entry:w&#45;&gt;prison_migration_date_history:e</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M414.4049,-987.8412C360.673,-988.7943 330.768,-993.0114 292,-949.7 254.3181,-907.602 307.9992,-698.7 251.5,-698.7"/>
-<polygon fill="#000000" stroke="#000000" points="421.0004,-987.7774 429.0349,-991.2998 425.0002,-987.7387 429,-987.7 429,-987.7 429,-987.7 425.0002,-987.7387 428.9651,-984.1002 421.0004,-987.7774 421.0004,-987.7774"/>
-<ellipse fill="none" stroke="#000000" cx="417.8005" cy="-987.8084" rx="3.2" ry="3.2"/>
+<title>allocation_case_note:w&#45;&gt;prison_migration_date_history:e</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M401.451,-987.7896C353.2779,-988.2818 326.5365,-989.3401 292,-949.7 254.8855,-907.101 307.9992,-698.7 251.5,-698.7"/>
+<polygon fill="#000000" stroke="#000000" points="408.0002,-987.7493 416.0222,-991.2999 412.0001,-987.7247 416,-987.7 416,-987.7 416,-987.7 412.0001,-987.7247 415.9778,-984.1001 408.0002,-987.7493 408.0002,-987.7493"/>
+<ellipse fill="none" stroke="#000000" cx="404.8002" cy="-987.7691" rx="3.2" ry="3.2"/>
 </g>
-<!-- keyworker_session -->
+<!-- allocation_case_note_audit -->
 <g id="node6" class="node">
-<title>keyworker_session</title>
-<g id="a_node6"><a xlink:href="../../tables/keyworker_session.html" xlink:title="keyworker_session" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="422,-878.2 422,-939.2 588,-939.2 588,-878.2 422,-878.2"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="422,-915.7 422,-938.7 588,-938.7 588,-915.7 422,-915.7"/>
-<polygon fill="none" stroke="#000000" points="422,-915.7 422,-938.7 588,-938.7 588,-915.7 422,-915.7"/>
-<text text-anchor="start" x="427" y="-924.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">keyworker_session</text>
-<text text-anchor="start" x="553.5219" y="-923.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="422,-896.7 422,-915.7 588,-915.7 588,-896.7 422,-896.7"/>
-<text text-anchor="start" x="425" y="-902.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="422,-877.7 422,-896.7 503,-896.7 503,-877.7 422,-877.7"/>
-<polygon fill="none" stroke="#000000" points="422,-877.7 422,-896.7 503,-896.7 503,-877.7 422,-877.7"/>
-<text text-anchor="start" x="425" y="-883.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="503,-877.7 503,-896.7 545,-896.7 545,-877.7 503,-877.7"/>
-<polygon fill="none" stroke="#000000" points="503,-877.7 503,-896.7 545,-896.7 545,-877.7 503,-877.7"/>
-<text text-anchor="start" x="535.8862" y="-883.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="545,-877.7 545,-896.7 588,-896.7 588,-877.7 545,-877.7"/>
-<polygon fill="none" stroke="#000000" points="545,-877.7 545,-896.7 588,-896.7 588,-877.7 545,-877.7"/>
-<text text-anchor="start" x="578.8862" y="-883.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<title>allocation_case_note_audit</title>
+<g id="a_node6"><a xlink:href="../../tables/allocation_case_note_audit.html" xlink:title="allocation_case_note_audit" target="_top">
+<polygon fill="#ffffff" stroke="transparent" points="395.5,-878.2 395.5,-939.2 614.5,-939.2 614.5,-878.2 395.5,-878.2"/>
+<polygon fill="#f5f5f5" stroke="transparent" points="396,-915.7 396,-938.7 615,-938.7 615,-915.7 396,-915.7"/>
+<polygon fill="none" stroke="#000000" points="396,-915.7 396,-938.7 615,-938.7 615,-915.7 396,-915.7"/>
+<text text-anchor="start" x="401" y="-924.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">allocation_case_note_audit</text>
+<text text-anchor="start" x="580.5219" y="-923.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
+<polygon fill="none" stroke="#000000" points="396,-896.7 396,-915.7 615,-915.7 615,-896.7 396,-896.7"/>
+<text text-anchor="start" x="399" y="-902.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
+<polygon fill="#ffffff" stroke="transparent" points="396,-877.7 396,-896.7 504,-896.7 504,-877.7 396,-877.7"/>
+<polygon fill="none" stroke="#000000" points="396,-877.7 396,-896.7 504,-896.7 504,-877.7 396,-877.7"/>
+<text text-anchor="start" x="399" y="-883.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
+<polygon fill="#ffffff" stroke="transparent" points="504,-877.7 504,-896.7 559,-896.7 559,-877.7 504,-877.7"/>
+<polygon fill="none" stroke="#000000" points="504,-877.7 504,-896.7 559,-896.7 559,-877.7 504,-877.7"/>
+<text text-anchor="start" x="549.8862" y="-883.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="559,-877.7 559,-896.7 615,-896.7 615,-877.7 559,-877.7"/>
+<polygon fill="none" stroke="#000000" points="559,-877.7 559,-896.7 615,-896.7 615,-877.7 559,-877.7"/>
+<text text-anchor="start" x="605.8862" y="-883.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>
 </g>
-<!-- keyworker_session&#45;&gt;prison_migration_date_history -->
+<!-- allocation_case_note_audit&#45;&gt;prison_migration_date_history -->
 <g id="edge6" class="edge">
-<title>keyworker_session:w&#45;&gt;prison_migration_date_history:e</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M407.4818,-905.786C356.9579,-906.2933 330.0196,-907.6367 292,-867.7 238.7439,-811.7584 328.7378,-698.7 251.5,-698.7"/>
-<polygon fill="#000000" stroke="#000000" points="414.0001,-905.7474 422.0213,-909.2999 418.0001,-905.7237 422,-905.7 422,-905.7 422,-905.7 418.0001,-905.7237 421.9787,-902.1001 414.0001,-905.7474 414.0001,-905.7474"/>
-<ellipse fill="none" stroke="#000000" cx="410.8002" cy="-905.7664" rx="3.2" ry="3.2"/>
+<title>allocation_case_note_audit:w&#45;&gt;prison_migration_date_history:e</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M381.5488,-905.6216C342.1092,-905.0592 321.3494,-900.6381 292,-867.7 240.6166,-810.0335 328.7378,-698.7 251.5,-698.7"/>
+<polygon fill="#000000" stroke="#000000" points="388.0001,-905.6565 395.9804,-909.2999 392.0001,-905.6783 396,-905.7 396,-905.7 396,-905.7 392.0001,-905.6783 396.0196,-902.1001 388.0001,-905.6565 388.0001,-905.6565"/>
+<ellipse fill="none" stroke="#000000" cx="384.8002" cy="-905.6391" rx="3.2" ry="3.2"/>
 </g>
 <!-- prison_configuration -->
 <g id="node7" class="node">
