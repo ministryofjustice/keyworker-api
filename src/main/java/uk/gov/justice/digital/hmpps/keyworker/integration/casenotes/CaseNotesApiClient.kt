@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransientException
 import java.util.UUID
 
@@ -66,20 +67,21 @@ class CaseNotesApiClient(
   fun getCaseNote(
     personIdentifier: String,
     id: UUID,
-  ): CaseNote =
+  ): CaseNote? =
     webClient
       .get()
       .uri("/case-notes/$personIdentifier/$id")
       .header("CaseloadId", "***")
       .exchangeToMono { res ->
         when (res.statusCode()) {
+          HttpStatus.NOT_FOUND -> Mono.empty()
           HttpStatus.OK -> res.bodyToMono<CaseNote>()
           else -> res.createError()
         }
       }.retryRequestOnTransientException()
-      .block()!!
+      .block()
 
-  fun getAllKeyworkerCaseNotes(personIdentifier: String): CaseNotes =
+  fun getCaseNotesOfInterest(personIdentifier: String): CaseNotes =
     webClient
       .post()
       .uri("/search/case-notes/$personIdentifier")

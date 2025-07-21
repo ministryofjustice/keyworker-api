@@ -44,7 +44,7 @@ class CaseNoteTest {
       subType,
       occurredAt,
       personIdentifier,
-      staffId.toString(),
+      staffId,
       staffUsername,
       prisonCode,
       createdAt,

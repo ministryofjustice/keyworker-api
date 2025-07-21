@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PolicyRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
@@ -22,7 +22,7 @@ import java.time.LocalDate.now
 @Service
 class GetCurrentAllocations(
   private val prisonerSearch: PrisonerSearchClient,
-  private val allocationRepository: StaffAllocationRepository,
+  private val allocationRepository: AllocationRepository,
   private val prisonApi: PrisonApiClient,
   private val prisonService: PrisonService,
   private val caseNotesApiClient: CaseNotesApiClient,

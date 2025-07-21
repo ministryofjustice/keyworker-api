@@ -32,12 +32,10 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNoteRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntry
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerEntryRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerInteraction
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSession
-import uk.gov.justice.digital.hmpps.keyworker.domain.KeyworkerSessionRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
@@ -47,7 +45,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
@@ -100,7 +97,7 @@ abstract class IntegrationTest {
   protected lateinit var staffConfigRepository: StaffConfigRepository
 
   @Autowired
-  protected lateinit var staffAllocationRepository: StaffAllocationRepository
+  protected lateinit var allocationRepository: AllocationRepository
 
   @Autowired
   protected lateinit var offenderKeyworkerRepository: LegacyKeyworkerAllocationRepository
@@ -127,10 +124,7 @@ abstract class IntegrationTest {
   internal lateinit var jwtAuthHelper: JwtAuthHelper
 
   @Autowired
-  internal lateinit var ksRepository: KeyworkerSessionRepository
-
-  @Autowired
-  internal lateinit var keRepository: KeyworkerEntryRepository
+  internal lateinit var caseNoteRepository: AllocationCaseNoteRepository
 
   @Autowired
   internal lateinit var referenceDataRepository: ReferenceDataRepository
@@ -531,13 +525,9 @@ abstract class IntegrationTest {
     deallocatedBy,
   )
 
-  protected fun givenAllocation(allocation: Allocation): Allocation = staffAllocationRepository.save(allocation)
+  protected fun givenAllocation(allocation: Allocation): Allocation = allocationRepository.save(allocation)
 
-  protected fun givenKeyworkerInteraction(interaction: KeyworkerInteraction): KeyworkerInteraction =
-    when (interaction) {
-      is KeyworkerSession -> ksRepository.save(interaction)
-      is KeyworkerEntry -> keRepository.save(interaction)
-    }
+  protected fun givenAllocationCaseNote(acn: AllocationCaseNote): AllocationCaseNote = caseNoteRepository.save(acn)
 
   protected fun withReferenceData(
     domain: ReferenceDataDomain,

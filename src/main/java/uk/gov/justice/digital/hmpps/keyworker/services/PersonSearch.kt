@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisone
 @Service
 class PersonSearch(
   private val prisonerSearch: PrisonerSearchClient,
-  private val allocationRepository: StaffAllocationRepository,
+  private val allocationRepository: AllocationRepository,
   private val prisonApi: PrisonApiClient,
 ) {
   fun findPeople(

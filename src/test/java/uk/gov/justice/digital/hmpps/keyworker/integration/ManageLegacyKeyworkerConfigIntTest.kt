@@ -109,7 +109,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
       setOf(StaffConfiguration::class.simpleName!!),
       AllocationContext(username = "SYS", activeCaseloadId = null),
     )
-    staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
+    allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isTrue
       assertThat(it.deallocatedAt).isNull()
       assertThat(it.deallocationReason).isNull()
@@ -133,7 +133,7 @@ class ManageLegacyKeyworkerConfigIntTest : IntegrationTest() {
     val kwConfig = requireNotNull(staffConfigRepository.findByStaffId(staffId))
     kwConfig.verifyAgainst(request)
 
-    staffAllocationRepository.findAllById(allocations.map { it.id }).forEach {
+    allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
       assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
