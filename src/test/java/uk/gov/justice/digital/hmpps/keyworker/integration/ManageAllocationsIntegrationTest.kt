@@ -192,7 +192,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
 
     allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
-    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
@@ -230,13 +230,13 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
 
     allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
-    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
     }
 
-    staffAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
+    allocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
       assertThat(allocation.isActive).isFalse
       assertThat(allocation.deallocatedAt).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
@@ -272,13 +272,13 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
 
     allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
-    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations).hasSize(psas.size)
     psas.forEach { psa ->
       assertThat(allocations.firstOrNull { it.personIdentifier == psa.personIdentifier && it.staffId == psa.staffId }).isNotNull
     }
 
-    staffAllocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
+    allocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
       assertThat(allocation.isActive).isTrue
       assertThat(allocation.deallocatedAt).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()
@@ -305,10 +305,10 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
 
     allocateAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
 
-    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isTrue
 
-    staffAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
+    allocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
       assertThat(allocation.isActive).isFalse
       assertThat(allocation.deallocatedAt).isNotNull
       assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
@@ -335,10 +335,10 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
 
     allocateAndDeallocate(prisonCode, personStaffAllocations(deallocations = psds), policy).expectStatus().isNoContent
 
-    val allocations = staffAllocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+    val allocations = allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
     assertThat(allocations.isEmpty()).isFalse
 
-    staffAllocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
+    allocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
       assertThat(allocation.isActive).isTrue
       assertThat(allocation.deallocatedAt).isNull()
       assertThat(allocation.deallocationReason?.code).isNull()

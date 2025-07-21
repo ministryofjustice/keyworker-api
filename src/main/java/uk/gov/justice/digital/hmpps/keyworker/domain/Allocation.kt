@@ -30,7 +30,7 @@ import java.util.UUID
 class Allocation(
   @Audited(withModifiedFlag = true)
   @Column(name = "person_identifier")
-  val personIdentifier: String,
+  var personIdentifier: String,
   @Column(name = "prison_code")
   val prisonCode: String,
   @Column(name = "staff_id")
@@ -81,7 +81,7 @@ fun List<Allocation>.filterApplicable(reportingPeriod: ReportingPeriod) =
       it.allocatedAt.isBefore(reportingPeriod.to)
   }
 
-interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
+interface AllocationRepository : JpaRepository<Allocation, UUID> {
   @Query(
     """
     with allocations as (select a.id as id, a.person_identifier as personIdentifier, a.allocated_at as assignedAt
@@ -227,7 +227,11 @@ interface StaffAllocationRepository : JpaRepository<Allocation, UUID> {
     nativeQuery = true,
   )
   fun deleteProvisionalFor(personIdentifiers: List<String>)
+
+  fun countAllByPersonIdentifierAndIsActiveTrue(personIdentifier: String): Int
 }
+
+fun AllocationRepository.findActiveFor(personIdentifier: String) = findAllByPersonIdentifierInAndIsActiveTrue(setOf(personIdentifier))
 
 interface NewAllocation {
   val id: UUID
