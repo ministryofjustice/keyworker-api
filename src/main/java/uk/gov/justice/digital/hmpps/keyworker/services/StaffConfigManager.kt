@@ -110,7 +110,7 @@ class StaffConfigManager(
           }
         } ?: run {
           val srr = request.staffRole.get()!!
-          staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
+          staffRoleRepository.findRoleIncludingInactive(prisonCode, staffId)?.apply {
             srr.position.ifPresent {
               this.position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of it)
             }
@@ -120,6 +120,7 @@ class StaffConfigManager(
             }
             srr.hoursPerWeek.ifPresent { this.hoursPerWeek = it }
             srr.fromDate.ifPresent { this.fromDate = it }
+            this.toDate = null
           }
         }
       }
@@ -225,7 +226,7 @@ class StaffConfigManager(
     val policy = AllocationContext.get().policy
     return request.staffRole.map {
       when (policy.nomisUseRoleCode) {
-        null -> staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.toModel()
+        null -> staffRoleRepository.findRoleIncludingInactive(prisonCode, staffId)?.toModel()
         else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
       }
     }
