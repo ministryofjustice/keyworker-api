@@ -178,20 +178,30 @@ data class CaseNoteSummary(
   ): RecordedFor? {
     val (reType, cnType) =
       when (policy) {
-        AllocationPolicy.KEY_WORKER -> SESSION to KW_SESSION_SUBTYPE
-        AllocationPolicy.PERSONAL_OFFICER -> ENTRY to PO_ENTRY_SUBTYPE
+        AllocationPolicy.KEY_WORKER -> SESSION to (KW_TYPE to KW_SESSION_SUBTYPE)
+        AllocationPolicy.PERSONAL_OFFICER -> ENTRY to (PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE)
       }
-    return findLatestFor(personIdentifier, cnType)?.let { RecordedFor(prison, reType, it) }
+    return findLatestFor(personIdentifier, cnType.first, cnType.second)?.let { RecordedFor(prison, reType, it) }
   }
 
-  fun findSessionDate(personIdentifier: String): LocalDate? = findLatestFor(personIdentifier, KW_SESSION_SUBTYPE)?.toLocalDate()
+  fun findSessionDate(personIdentifier: String): LocalDate? = findLatestFor(personIdentifier, KW_TYPE, KW_SESSION_SUBTYPE)?.toLocalDate()
+
+  fun findLatestForPolicy(
+    personIdentifier: String,
+    policy: AllocationPolicy,
+  ): LocalDate? =
+    when (policy) {
+      AllocationPolicy.KEY_WORKER -> findLatestFor(personIdentifier, KW_TYPE, KW_ENTRY_SUBTYPE)?.toLocalDate()
+      AllocationPolicy.PERSONAL_OFFICER -> findLatestFor(personIdentifier, PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)?.toLocalDate()
+    }
 
   private fun findLatestFor(
     personIdentifier: String,
     type: String,
+    subType: String,
   ): LocalDateTime? =
     data[personIdentifier]
-      ?.find { it.subType == type }
+      ?.find { it.type == type && it.subType == subType }
       ?.latestNote
       ?.occurredAt
 
@@ -202,12 +212,18 @@ data class CaseNoteSummary(
         .associate { Pair(it.key, it.value) },
     )
 
-  fun personIdentifiersWithSessions() =
-    data.values
+  fun personIdentifiersWithSessions(): Set<String> {
+    val (type, subtype) =
+      when (AllocationContext.get().policy) {
+        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_SESSION_SUBTYPE
+        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
+      }
+    return data.values
       .flatten()
-      .filter { it.subType == KW_SESSION_SUBTYPE }
+      .filter { it.type == type && it.subType == subtype }
       .map { it.personIdentifier }
       .toSet()
+  }
 
   companion object {
     fun emptyEvents(policy: AllocationPolicy) =

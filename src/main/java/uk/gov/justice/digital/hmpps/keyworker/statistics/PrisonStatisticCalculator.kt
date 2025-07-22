@@ -2,16 +2,23 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
@@ -24,6 +31,7 @@ import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class PrisonStatisticCalculator(
+  private val contextHolder: AllocationContextHolder,
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeedApi: ComplexityOfNeedApiClient,
@@ -32,10 +40,12 @@ class PrisonStatisticCalculator(
   private val prisonApi: PrisonApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
+  private val staffRoleRepository: StaffRoleRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
     with(info.additionalInformation) {
+      contextHolder.setContext(AllocationContext.get().copy(policy = policy))
       val stats = statisticRepository.findByPrisonCodeAndDate(prisonCode, date)
 
       if (stats != null) return
@@ -81,34 +91,14 @@ class PrisonStatisticCalculator(
       val activeAllocations = allocationRepository.countActiveAllocations(prisonCode, eligiblePrisoners)
       val newAllocations =
         allocationRepository
-          .findNewAllocationsAt(prisonCode, date, date.plusDays(1))
+          .findNewAllocationsAt(prisonCode, date, date.plusDays(1), policy.name)
           .associateBy { it.personIdentifier }
 
-      val cnSummary =
-        caseNotesApi
-          .getUsageByPersonIdentifier(keyworkerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay()))
-          .summary()
+      val cnSummaryTypes = getCnSummaryTypes(eligiblePrisoners)
+      val cnSummary = caseNotesApi.getUsageByPersonIdentifier(cnSummaryTypes).summary()
       val peopleWithSessions = cnSummary.personIdentifiersWithSessions()
-      val previousSessions =
-        if (peopleWithSessions.isNotEmpty()) {
-          caseNotesApi
-            .getUsageByPersonIdentifier(
-              sessionTypes(prisonCode, peopleWithSessions, date.minusMonths(6), date.minusDays(1)),
-            ).summary()
-        } else {
-          null
-        }
-
-      val activeKeyworkers =
-        prisonApi.getKeyworkersForPrison(prisonCode).let { nomisKeyworkers ->
-          val keyworkerIds = nomisKeyworkers.map { it.staffId }.toSet()
-          val nonActiveIds =
-            staffConfigRepository
-              .getNonActiveStaff(keyworkerIds)
-              .map { it.staffId }
-              .toSet()
-          (keyworkerIds - nonActiveIds).size
-        }
+      val previousSessions = getPreviousSessions(peopleWithSessions)
+      val activeStaffCount = getActiveStaffCount()
 
       val summaries =
         PeopleSummaries(
@@ -120,7 +110,11 @@ class PrisonStatisticCalculator(
             ).maxOrNull()
           },
           { newAllocations[it]?.assignedAt?.toLocalDate() },
-          { pi -> cnSummary.findSessionDate(pi)?.takeIf { previousSessions?.findSessionDate(pi) == null } },
+          { pi ->
+            cnSummary
+              .findLatestForPolicy(pi, policy)
+              ?.takeIf { previousSessions?.findLatestForPolicy(pi, policy) == null }
+          },
         )
 
       val overSixMonths =
@@ -144,18 +138,63 @@ class PrisonStatisticCalculator(
         PrisonStatistic(
           prisonCode = prisonCode,
           date = date,
-          totalPrisoners = prisoners.size,
-          highComplexityOfNeedPrisoners = prisonersWithComplexNeeds.size,
-          eligiblePrisoners = eligiblePrisoners.size,
-          assignedKeyworker = activeAllocations,
-          activeKeyworkers = activeKeyworkers,
-          keyworkerSessions = cnSummary.keyworkerSessions,
-          keyworkerEntries = cnSummary.keyworkerEntries,
-          averageReceptionToAllocationDays = summaries.averageDaysToAllocation,
-          averageReceptionToSessionDays = summaries.averageDaysToSession,
+          prisonerCount = prisoners.size,
+          highComplexityOfNeedPrisonerCount = prisonersWithComplexNeeds.size,
+          eligiblePrisonerCount = eligiblePrisoners.size,
+          prisonersAssignedCount = activeAllocations,
+          eligibleStaffCount = activeStaffCount,
+          recordedSessionCount = cnSummary.totalComplianceEvents(policy),
+          recordedEntryCount = cnSummary.keyworkerEntries,
+          receptionToAllocationDays = summaries.averageDaysToAllocation,
+          receptionToSessionDays = summaries.averageDaysToSession,
         ),
       )
     }
+  }
+
+  private fun PrisonStatisticsInfo.getCnSummaryTypes(eligiblePrisoners: Set<String>): UsageByPersonIdentifierRequest =
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      keyworkerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay())
+    } else {
+      personalOfficerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay())
+    }
+
+  private fun PrisonStatisticsInfo.getPreviousSessions(peopleWithSessions: Set<String>): CaseNoteSummary? {
+    if (peopleWithSessions.isEmpty()) return null
+    return when (policy) {
+      AllocationPolicy.KEY_WORKER ->
+        caseNotesApi
+          .getUsageByPersonIdentifier(
+            sessionTypes(prisonCode, peopleWithSessions, date.minusMonths(6), date.minusDays(1)),
+          ).summary()
+
+      AllocationPolicy.PERSONAL_OFFICER ->
+        caseNotesApi
+          .getUsageByPersonIdentifier(
+            personalOfficerTypes(
+              prisonCode,
+              peopleWithSessions,
+              date.minusMonths(6).atStartOfDay(),
+              date.minusDays(1).atStartOfDay(),
+            ),
+          ).summary()
+    }
+  }
+
+  private fun PrisonStatisticsInfo.getActiveStaffCount(): Int {
+    val potentiallyActiveStaffIds =
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        prisonApi.getKeyworkersForPrison(prisonCode).map { it.staffId }.toSet()
+      } else {
+        staffRoleRepository.findAllByPrisonCode(prisonCode).map { it.staffId }.toSet()
+      }
+    val inactiveIds =
+      staffConfigRepository
+        .getNonActiveStaff(potentiallyActiveStaffIds)
+        .map { it.staffId }
+        .toSet()
+
+    return (potentiallyActiveStaffIds - inactiveIds).size
   }
 }
 
@@ -163,7 +202,7 @@ class PeopleSummaries(
   personIdentifiers: Set<String>,
   getReceptionDate: (String) -> LocalDate?,
   getAllocationDate: (String) -> LocalDate?,
-  getSessionDate: (String) -> LocalDate?,
+  getRecordedSessionDate: (String) -> LocalDate?,
 ) {
   val data =
     personIdentifiers.map {
@@ -171,13 +210,14 @@ class PeopleSummaries(
         it,
         getReceptionDate(it),
         getAllocationDate(it),
-        getSessionDate(it),
+        getRecordedSessionDate(it),
       )
     }
 
   private fun PersonSummary.eligibilityDateIsValid() = eligibilityDate?.isAfter(LocalDate.now().minusMonths(6)) ?: false
 
-  private val allocationDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToAllocationInDays else null }
+  private val allocationDays =
+    data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToAllocationInDays else null }
   private val sessionDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToSessionInDays else null }
 
   val averageDaysToAllocation = if (allocationDays.isEmpty()) null else allocationDays.average().toInt()

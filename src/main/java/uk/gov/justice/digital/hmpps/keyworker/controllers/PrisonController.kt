@@ -58,6 +58,16 @@ class PrisonController(
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping(value = ["/statistics/keyworker"])
+  fun getKeyworkerStatistics(
+    @PathVariable prisonCode: String,
+    @RequestParam from: LocalDate,
+    @RequestParam to: LocalDate,
+  ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to)
+
+  @PolicyHeader
+  @Tag(name = PRISON)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping("/statistics")
   fun getPrisonStatistics(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,

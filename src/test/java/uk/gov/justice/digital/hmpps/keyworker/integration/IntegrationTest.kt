@@ -64,16 +64,13 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearc
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
-import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.casenotes.config.container.PostgresContainer
@@ -442,34 +439,6 @@ abstract class IntegrationTest {
     averageReceptionToAllocationDays,
     averageReceptionToSessionDays,
   )
-
-  protected fun givenOffenderKeyWorker(
-    prisonNumber: String = personIdentifier(),
-    staffId: Long = newId(),
-    assignedAt: LocalDateTime = LocalDateTime.now(),
-    allocationType: AllocationType = AllocationType.AUTO,
-    allocationReason: AllocationReason = AllocationReason.AUTO,
-    userId: String = newId().toString(),
-    expiredAt: LocalDateTime? = null,
-    deallocationReason: DeallocationReason? = null,
-    active: Boolean = true,
-    prisonCode: String = "MDI",
-  ): LegacyKeyworkerAllocation =
-    offenderKeyworkerRepository.save(
-      LegacyKeyworkerAllocation().apply {
-        this.personIdentifier = prisonNumber
-        this.staffId = staffId
-        this.assignedDateTime = assignedAt
-        this.allocationType = allocationType
-        this.allocationReason = allocationReason.asReferenceData()
-        this.allocatedBy = userId
-        this.deallocatedAt = expiredAt
-        this.deallocationReason = deallocationReason?.asReferenceData()
-        this.isActive = active
-        this.prisonCode = prisonCode
-        this.id = IdGenerator.newUuid()
-      },
-    )
 
   protected fun staffConfig(
     status: StaffStatus,

@@ -46,21 +46,21 @@ private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
   val from = start()
   val to = end()
   val eligible = averageEligiblePrisoners()
-  val assignedKeyworker = map { it.assignedKeyworker }.average().toInt()
+  val assignedKeyworker = map { it.prisonersAssignedCount }.average().toInt()
   val sessions = totalSessions()
   val projectedSessions = projectedSessions(eligible, from, to, sessionFrequency)
   return StatSummary(
     from,
     to,
-    map { it.totalPrisoners }.average().toInt(),
-    map { it.highComplexityOfNeedPrisoners }.average().toInt(),
+    map { it.prisonerCount }.average().toInt(),
+    map { it.highComplexityOfNeedPrisonerCount }.average().toInt(),
     eligible,
     assignedKeyworker,
-    map { it.activeKeyworkers }.average().toInt(),
+    map { it.eligibleStaffCount }.average().toInt(),
     sessions,
-    sumOf { it.keyworkerEntries },
-    mapNotNull { it.averageReceptionToAllocationDays }.average().toInt(),
-    mapNotNull { it.averageReceptionToSessionDays }.average().toInt(),
+    sumOf { it.recordedEntryCount },
+    mapNotNull { it.receptionToAllocationDays }.average().toInt(),
+    mapNotNull { it.receptionToSessionDays }.average().toInt(),
     projectedSessions,
     percentage(assignedKeyworker, eligible),
     percentage(sessions, projectedSessions) ?: 0.0,
@@ -71,9 +71,9 @@ private fun List<PrisonStatistic>.start() = minOf { it.date }
 
 private fun List<PrisonStatistic>.end() = maxOf { it.date }
 
-private fun List<PrisonStatistic>.averageEligiblePrisoners() = map { it.eligiblePrisoners }.average().toInt()
+private fun List<PrisonStatistic>.averageEligiblePrisoners() = map { it.eligiblePrisonerCount }.average().toInt()
 
-private fun List<PrisonStatistic>.totalSessions() = sumOf { it.keyworkerSessions }
+private fun List<PrisonStatistic>.totalSessions() = sumOf { it.recordedSessionCount }
 
 private fun List<PrisonStatistic>.projectedSessions(
   eligible: Int,

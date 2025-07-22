@@ -89,6 +89,7 @@ interface AllocationRepository : JpaRepository<Allocation, UUID> {
                      where a.prison_code = :prisonCode
                        and a.allocation_type <> 'P' 
                        and a.allocated_at between :from and :to
+                       and a.policy_code = :policyCode
     )
     select na.id, na.personIdentifier, na.assignedAt
     from allocations na
@@ -97,7 +98,8 @@ interface AllocationRepository : JpaRepository<Allocation, UUID> {
                      where a.prison_code = :prisonCode
                        and a.person_identifier = na.personIdentifier 
                        and a.allocated_at < :from
-                       and a.allocation_type <> 'P')  
+                       and a.allocation_type <> 'P'
+                       and a.policy_code = :policyCode)  
     """,
     nativeQuery = true,
   )
@@ -105,6 +107,7 @@ interface AllocationRepository : JpaRepository<Allocation, UUID> {
     prisonCode: String,
     from: LocalDate,
     to: LocalDate,
+    policyCode: String,
   ): List<NewAllocation>
 
   @Query(
@@ -228,10 +231,27 @@ interface AllocationRepository : JpaRepository<Allocation, UUID> {
   )
   fun deleteProvisionalFor(personIdentifiers: List<String>)
 
-  fun countAllByPersonIdentifierAndIsActiveTrue(personIdentifier: String): Int
-}
+  @Query(
+    """
+    select count(1) from allocation a
+    where a.person_identifier = :personIdentifier and a.is_active = true and a.policy_code = :policyCode
+  """,
+    nativeQuery = true,
+  )
+  fun countActiveForPolicy(
+    personIdentifier: String,
+    policyCode: String,
+  ): Int
 
-fun AllocationRepository.findActiveFor(personIdentifier: String) = findAllByPersonIdentifierInAndIsActiveTrue(setOf(personIdentifier))
+  @Query(
+    """
+      select a.* from allocation a
+      where a.person_identifier = :personIdentifier and a.is_active = true
+    """,
+    nativeQuery = true,
+  )
+  fun findActiveForAllPolicies(personIdentifier: String): List<Allocation>
+}
 
 interface NewAllocation {
   val id: UUID
