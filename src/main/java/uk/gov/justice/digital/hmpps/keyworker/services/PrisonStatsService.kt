@@ -1,12 +1,16 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStatSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.StatSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic.percentage
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
@@ -41,28 +45,34 @@ class PrisonStatsService(
   }
 }
 
-private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): StatSummary? {
+private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): PrisonStatSummary? {
   if (isEmpty()) return null
   val from = start()
   val to = end()
-  val eligible = averageEligiblePrisoners()
-  val assignedKeyworker = map { it.prisonersAssignedCount }.average().toInt()
+  val eligiblePrisoners = averageEligiblePrisoners()
+  val prisonersAssigned = map { it.prisonersAssignedCount }.average().toInt()
   val sessions = totalSessions()
-  val projectedSessions = projectedSessions(eligible, from, to, sessionFrequency)
-  return StatSummary(
+  val projectedSessions = projectedSessions(eligiblePrisoners, from, to, sessionFrequency)
+  return PrisonStatSummary(
     from,
     to,
     map { it.prisonerCount }.average().toInt(),
     map { it.highComplexityOfNeedPrisonerCount }.average().toInt(),
-    eligible,
-    assignedKeyworker,
+    eligiblePrisoners,
+    prisonersAssigned,
     map { it.eligibleStaffCount }.average().toInt(),
-    sessions,
-    sumOf { it.recordedEntryCount },
+    listOfNotNull(
+      RecordedEventCount(RecordedEventType.SESSION, sessions),
+      if (AllocationContext.get().policy == AllocationPolicy.KEY_WORKER) {
+        RecordedEventCount(RecordedEventType.ENTRY, sumOf { it.recordedEntryCount })
+      } else {
+        null
+      },
+    ),
     mapNotNull { it.receptionToAllocationDays }.average().toInt(),
-    mapNotNull { it.receptionToSessionDays }.average().toInt(),
+    sumOf { it.recordedEntryCount },
     projectedSessions,
-    percentage(assignedKeyworker, eligible),
+    percentage(prisonersAssigned, eligiblePrisoners),
     percentage(sessions, projectedSessions) ?: 0.0,
   )
 }

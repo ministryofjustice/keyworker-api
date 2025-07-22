@@ -2,18 +2,12 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
 import java.time.LocalDate
 import java.time.LocalDate.now
 
-class PrisonStatsIntTest : IntegrationTest() {
+class KeyworkerStatsIntTest : IntegrationTest() {
   @Test
   fun `401 unathorised without a valid token`() {
     webTestClient
@@ -26,15 +20,11 @@ class PrisonStatsIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getPrisonStatsSpec("DNM", policy = AllocationPolicy.PERSONAL_OFFICER, role = "ROLE_ANY__OTHER_RW")
-      .expectStatus()
-      .isForbidden
+    getPrisonStatsSpec("DNM", role = "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
-  @ParameterizedTest
-  @EnumSource(AllocationPolicy::class)
-  fun `200 ok prison stats returned`(policy: AllocationPolicy) {
-    setContext(AllocationContext.get().copy(policy = policy))
+  @Test
+  fun `200 ok prison stats returned`() {
     val prisonCode = "GST"
     givenPrisonConfig(
       prisonConfig(
@@ -86,10 +76,10 @@ class PrisonStatsIntTest : IntegrationTest() {
     prisonStatisticRepository.saveAll(stats)
 
     val res =
-      getPrisonStatsSpec(prisonCode, start, end, policy)
+      getPrisonStatsSpec(prisonCode, start, end)
         .expectStatus()
         .isOk
-        .expectBody(PrisonStats::class.java)
+        .expectBody(KeyworkerStats::class.java)
         .returnResult()
         .responseBody
 
@@ -101,17 +91,15 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(totalPrisoners).isEqualTo(100)
       assertThat(highComplexityOfNeedPrisoners).isEqualTo(20)
       assertThat(eligiblePrisoners).isEqualTo(80)
-      assertThat(prisonersAssigned).isEqualTo(75)
-      assertThat(eligibleStaff).isEqualTo(10)
-      assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(43)
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(16)
-      }
+      assertThat(prisonersAssignedKeyworker).isEqualTo(75)
+      assertThat(activeKeyworkers).isEqualTo(10)
+      assertThat(keyworkerSessions).isEqualTo(43)
+      assertThat(keyworkerEntries).isEqualTo(16)
       assertThat(avgReceptionToAllocationDays).isEqualTo(3)
-      assertThat(avgReceptionToRecordedEventDays).isEqualTo(16)
-      assertThat(projectedRecordedEvents).isEqualTo(51)
-      assertThat(percentageAssigned).isEqualTo(93.75)
-      assertThat(recordedEventComplianceRate).isEqualTo(84.31)
+      assertThat(avgReceptionToSessionDays).isEqualTo(16)
+      assertThat(projectedSessions).isEqualTo(51)
+      assertThat(percentageWithKeyworker).isEqualTo(93.75)
+      assertThat(compliance).isEqualTo(84.31)
     }
 
     with(res.previous) {
@@ -121,17 +109,15 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(totalPrisoners).isEqualTo(90)
       assertThat(highComplexityOfNeedPrisoners).isEqualTo(18)
       assertThat(eligiblePrisoners).isEqualTo(72)
-      assertThat(prisonersAssigned).isEqualTo(65)
-      assertThat(eligibleStaff).isEqualTo(9)
-      assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(44)
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(15)
-      }
+      assertThat(prisonersAssignedKeyworker).isEqualTo(65)
+      assertThat(activeKeyworkers).isEqualTo(9)
+      assertThat(keyworkerSessions).isEqualTo(44)
+      assertThat(keyworkerEntries).isEqualTo(15)
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToRecordedEventDays).isEqualTo(15)
-      assertThat(projectedRecordedEvents).isEqualTo(46)
-      assertThat(percentageAssigned).isEqualTo(90.28)
-      assertThat(recordedEventComplianceRate).isEqualTo(95.65)
+      assertThat(avgReceptionToSessionDays).isEqualTo(15)
+      assertThat(projectedSessions).isEqualTo(46)
+      assertThat(percentageWithKeyworker).isEqualTo(90.28)
+      assertThat(compliance).isEqualTo(95.65)
     }
   }
 
@@ -139,8 +125,7 @@ class PrisonStatsIntTest : IntegrationTest() {
     prisonCode: String,
     from: LocalDate = now().minusDays(29),
     to: LocalDate = now().minusDays(1),
-    policy: AllocationPolicy,
-    role: String? = Roles.ALLOCATIONS_UI,
+    role: String? = Roles.KEYWORKER_RO,
   ) = webTestClient
     .get()
     .uri {
@@ -148,11 +133,10 @@ class PrisonStatsIntTest : IntegrationTest() {
       it.queryParam("from", from)
       it.queryParam("to", to)
       it.build(prisonCode)
-    }.headers(setHeaders(username = "allocations-ui", roles = listOfNotNull(role)))
-    .header(PolicyHeader.NAME, policy.name)
+    }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .exchange()
 
   companion object {
-    const val GET_STATS = "/prisons/{prisonCode}/statistics"
+    const val GET_STATS = "/prisons/{prisonCode}/statistics/keyworker"
   }
 }
