@@ -62,15 +62,15 @@ private fun List<PrisonStatistic>.asStats(sessionFrequency: Int): PrisonStatSumm
     prisonersAssigned,
     map { it.eligibleStaffCount }.average().toInt(),
     listOfNotNull(
-      RecordedEventCount(RecordedEventType.SESSION, sessions),
+      RecordedEventCount(RecordedEventType.ENTRY, sumOf { it.recordedEntryCount }),
       if (AllocationContext.get().policy == AllocationPolicy.KEY_WORKER) {
-        RecordedEventCount(RecordedEventType.ENTRY, sumOf { it.recordedEntryCount })
+        RecordedEventCount(RecordedEventType.SESSION, sessions)
       } else {
         null
       },
     ),
     mapNotNull { it.receptionToAllocationDays }.average().toInt(),
-    sumOf { it.recordedEntryCount },
+    mapNotNull { it.receptionToRecordedEventDays }.average().toInt(),
     projectedSessions,
     percentage(prisonersAssigned, eligiblePrisoners),
     percentage(sessions, projectedSessions) ?: 0.0,

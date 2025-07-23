@@ -191,7 +191,7 @@ data class CaseNoteSummary(
     policy: AllocationPolicy,
   ): LocalDate? =
     when (policy) {
-      AllocationPolicy.KEY_WORKER -> findLatestFor(personIdentifier, KW_TYPE, KW_ENTRY_SUBTYPE)?.toLocalDate()
+      AllocationPolicy.KEY_WORKER -> findLatestFor(personIdentifier, KW_TYPE, KW_SESSION_SUBTYPE)?.toLocalDate()
       AllocationPolicy.PERSONAL_OFFICER -> findLatestFor(personIdentifier, PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)?.toLocalDate()
     }
 

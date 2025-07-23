@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import io.jsonwebtoken.security.Jwks.OP.policy
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -149,12 +148,12 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       assertThat(stats.recordedSessionCount).isEqualTo(40)
       assertThat(stats.recordedEntryCount).isEqualTo(9)
       assertThat(stats.receptionToAllocationDays).isEqualTo(30)
-      assertThat(stats.receptionToSessionDays).isEqualTo(24)
+      assertThat(stats.receptionToRecordedEventDays).isEqualTo(24)
     } else {
-      assertThat(stats.recordedSessionCount).isEqualTo(40)
-      assertThat(stats.recordedEntryCount).isEqualTo(0)
+      assertThat(stats.recordedSessionCount).isEqualTo(0)
+      assertThat(stats.recordedEntryCount).isEqualTo(40)
       assertThat(stats.receptionToAllocationDays).isEqualTo(30)
-      assertThat(stats.receptionToSessionDays).isEqualTo(24)
+      assertThat(stats.receptionToRecordedEventDays).isEqualTo(24)
     }
   }
 
@@ -242,7 +241,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.recordedEntryCount).isEqualTo(7)
 
     assertThat(stats.receptionToAllocationDays).isEqualTo(55)
-    assertThat(stats.receptionToSessionDays).isEqualTo(37)
+    assertThat(stats.receptionToRecordedEventDays).isEqualTo(37)
   }
 
   private fun prisoners(

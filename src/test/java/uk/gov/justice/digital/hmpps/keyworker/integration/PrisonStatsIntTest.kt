@@ -103,12 +103,15 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(80)
       assertThat(prisonersAssigned).isEqualTo(75)
       assertThat(eligibleStaff).isEqualTo(10)
-      assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(43)
       if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(43)
         assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(16)
+      } else {
+        assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(16)
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isNull()
       }
       assertThat(avgReceptionToAllocationDays).isEqualTo(3)
-      assertThat(avgReceptionToRecordedEventDays).isEqualTo(16)
+      assertThat(avgReceptionToRecordedEventDays).isEqualTo(14)
       assertThat(projectedRecordedEvents).isEqualTo(51)
       assertThat(percentageAssigned).isEqualTo(93.75)
       assertThat(recordedEventComplianceRate).isEqualTo(84.31)
@@ -123,12 +126,12 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(eligiblePrisoners).isEqualTo(72)
       assertThat(prisonersAssigned).isEqualTo(65)
       assertThat(eligibleStaff).isEqualTo(9)
-      assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(44)
+      assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(15)
       if (policy == AllocationPolicy.KEY_WORKER) {
-        assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(15)
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(44)
       }
       assertThat(avgReceptionToAllocationDays).isEqualTo(4)
-      assertThat(avgReceptionToRecordedEventDays).isEqualTo(15)
+      assertThat(avgReceptionToRecordedEventDays).isEqualTo(4)
       assertThat(projectedRecordedEvents).isEqualTo(46)
       assertThat(percentageAssigned).isEqualTo(90.28)
       assertThat(recordedEventComplianceRate).isEqualTo(95.65)

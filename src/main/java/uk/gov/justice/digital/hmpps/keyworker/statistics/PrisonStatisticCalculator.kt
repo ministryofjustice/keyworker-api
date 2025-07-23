@@ -96,8 +96,8 @@ class PrisonStatisticCalculator(
 
       val cnSummaryTypes = getCnSummaryTypes(eligiblePrisoners)
       val cnSummary = caseNotesApi.getUsageByPersonIdentifier(cnSummaryTypes).summary()
-      val peopleWithSessions = cnSummary.personIdentifiersWithSessions()
-      val previousSessions = getPreviousSessions(peopleWithSessions)
+      val peopleWithRecordedEntries = cnSummary.personIdentifiersWithSessions()
+      val previousRecordedEntries = getPreviousSessions(peopleWithRecordedEntries)
       val activeStaffCount = getActiveStaffCount()
 
       val summaries =
@@ -113,7 +113,7 @@ class PrisonStatisticCalculator(
           { pi ->
             cnSummary
               .findLatestForPolicy(pi, policy)
-              ?.takeIf { previousSessions?.findLatestForPolicy(pi, policy) == null }
+              ?.takeIf { previousRecordedEntries?.findLatestForPolicy(pi, policy) == null }
           },
         )
 
@@ -121,7 +121,7 @@ class PrisonStatisticCalculator(
         summaries.data.filter {
           val sixMonthsInDays = DAYS.between(LocalDate.now().minusMonths(6), LocalDate.now())
           (it.eligibilityToAllocationInDays ?: 0) > sixMonthsInDays ||
-            (it.eligibilityToSessionInDays ?: 0) > sixMonthsInDays
+            (it.eligibilityToRecordedEntryInDays ?: 0) > sixMonthsInDays
         }
 
       if (overSixMonths.isNotEmpty()) {
@@ -129,6 +129,7 @@ class PrisonStatisticCalculator(
           "OverSixMonths",
           overSixMonths.associate {
             it.personIdentifier to ISO_LOCAL_DATE.format(it.eligibilityDate!!)
+            "policy" to policy.name
           },
           mapOf(),
         )
@@ -143,10 +144,10 @@ class PrisonStatisticCalculator(
           eligiblePrisonerCount = eligiblePrisoners.size,
           prisonersAssignedCount = activeAllocations,
           eligibleStaffCount = activeStaffCount,
-          recordedSessionCount = cnSummary.totalComplianceEvents(policy),
-          recordedEntryCount = cnSummary.keyworkerEntries,
+          recordedSessionCount = cnSummary.keyworkerSessions,
+          recordedEntryCount = if (policy == AllocationPolicy.KEY_WORKER) cnSummary.keyworkerEntries else cnSummary.poEntries,
           receptionToAllocationDays = summaries.averageDaysToAllocation,
-          receptionToSessionDays = summaries.averageDaysToSession,
+          receptionToRecordedEventDays = summaries.averageDaysToRecordedEntry,
         ),
       )
     }
@@ -202,7 +203,7 @@ class PeopleSummaries(
   personIdentifiers: Set<String>,
   getReceptionDate: (String) -> LocalDate?,
   getAllocationDate: (String) -> LocalDate?,
-  getRecordedSessionDate: (String) -> LocalDate?,
+  getRecordedEntryDate: (String) -> LocalDate?,
 ) {
   val data =
     personIdentifiers.map {
@@ -210,7 +211,7 @@ class PeopleSummaries(
         it,
         getReceptionDate(it),
         getAllocationDate(it),
-        getRecordedSessionDate(it),
+        getRecordedEntryDate(it),
       )
     }
 
@@ -218,17 +219,17 @@ class PeopleSummaries(
 
   private val allocationDays =
     data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToAllocationInDays else null }
-  private val sessionDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToSessionInDays else null }
+  private val recordedEntryDays = data.mapNotNull { if (it.eligibilityDateIsValid()) it.eligibilityToRecordedEntryInDays else null }
 
   val averageDaysToAllocation = if (allocationDays.isEmpty()) null else allocationDays.average().toInt()
-  val averageDaysToSession = if (sessionDays.isEmpty()) null else sessionDays.average().toInt()
+  val averageDaysToRecordedEntry = if (recordedEntryDays.isEmpty()) null else recordedEntryDays.average().toInt()
 }
 
 data class PersonSummary(
   val personIdentifier: String,
   val eligibilityDate: LocalDate?,
   val allocationDate: LocalDate?,
-  val sessionDate: LocalDate?,
+  val recordedEntryDate: LocalDate?,
 ) {
   val eligibilityToAllocationInDays =
     if (eligibilityDate != null && allocationDate != null && allocationDate >= eligibilityDate) {
@@ -236,9 +237,9 @@ data class PersonSummary(
     } else {
       null
     }
-  val eligibilityToSessionInDays =
-    if (eligibilityDate != null && sessionDate != null && sessionDate >= eligibilityDate) {
-      DAYS.between(eligibilityDate, sessionDate).toInt()
+  val eligibilityToRecordedEntryInDays =
+    if (eligibilityDate != null && recordedEntryDate != null && recordedEntryDate >= eligibilityDate) {
+      DAYS.between(eligibilityDate, recordedEntryDate).toInt()
     } else {
       null
     }

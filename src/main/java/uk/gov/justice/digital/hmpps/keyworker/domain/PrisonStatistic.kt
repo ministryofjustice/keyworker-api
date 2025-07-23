@@ -35,8 +35,8 @@ class PrisonStatistic(
   val recordedEntryCount: Int,
   @Column(name = "reception_to_allocation_days")
   val receptionToAllocationDays: Int?,
-  @Column(name = "reception_to_session_days")
-  val receptionToSessionDays: Int?,
+  @Column(name = "reception_to_recorded_event_days")
+  val receptionToRecordedEventDays: Int?,
   @TenantId
   @Column(name = "policy_code", updatable = false)
   val policy: String = AllocationContext.get().policy.name,

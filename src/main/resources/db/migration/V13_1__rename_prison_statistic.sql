@@ -26,10 +26,17 @@ alter table prison_statistic
 alter table prison_statistic
     rename column recpt_to_alloc_days to reception_to_allocation_days;
 alter table prison_statistic
-    rename column recpt_to_kw_session_days to reception_to_session_days;
+    rename column recpt_to_kw_session_days to reception_to_recorded_event_days;
 
 alter table prison_statistic
     add column policy_code varchar(16) references policy (code);
+
+update prison_statistic
+    set policy_code = 'KEY_WORKER'
+where policy_code is null;
+
+alter table prison_statistic
+    alter column policy_code set not null;
 
 drop index if exists keyworker_stats_idx1;
 drop index if exists keyworker_stats_idx2;
