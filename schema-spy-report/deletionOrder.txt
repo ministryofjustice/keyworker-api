@@ -1,4 +1,3 @@
-keyworker_stats
 allocation
 staff_role_audit
 prison_configuration_audit
@@ -7,6 +6,7 @@ zz_archived_legacy_keyworker_allocation
 staff_role
 staff_configuration_audit
 staff_configuration
+prison_statistic
 prison_configuration
 allocation_case_note_audit
 allocation_case_note

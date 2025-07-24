@@ -4,25 +4,20 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   "allocation":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "allocation_audit":"elipses":w -> "audit_revision":"id":e [arrowhead=none dir=back arrowtail=crowodot];
   "allocation_case_note":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_case_note_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "allocation_case_note_audit":"elipses":w -> "audit_revision":"id":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_configuration":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_configuration":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "prison_configuration_audit":"elipses":w -> "audit_revision":"id":e [arrowhead=none dir=back arrowtail=crowodot];
-  "prison_statistic":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
-  "prison_statistic":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "prison_statistic":"policy_code":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
+  "prison_statistic":"prison_code":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "staff_configuration":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "staff_configuration_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "staff_configuration_audit":"elipses":w -> "audit_revision":"id":e [arrowhead=none dir=back arrowtail=crowodot];
   "staff_role":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "staff_role":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "staff_role_audit":"policy_code":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "staff_role_audit":"prison_code":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "staff_role_audit":"rev_id":w -> "audit_revision":"id":e [arrowhead=none dir=back arrowtail=crowodot];
+  "staff_role_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "staff_role_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
@@ -66,18 +61,6 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     URL="../../tables/allocation_case_note_audit.html"
     target="_top"
     tooltip="allocation_case_note_audit"
-  ];
-  "audit_revision" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="95" HEIGHT="16"><B>audit_revision</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="113" HEIGHT="16">id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">5 &gt;</TD></TR>
-    </TABLE>>
-    URL="../../tables/audit_revision.html"
-    target="_top"
-    tooltip="audit_revision"
   ];
   "policy" [
    label=<
@@ -127,10 +110,22 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   ];
   "prison_statistic" [
    label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="103" HEIGHT="16"><B>prison_statistic</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
+    <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="4"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="103" HEIGHT="16"><B>prison_statistic</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="id" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">id</TD></TR></TABLE></TD><TD PORT="id.type" ALIGN="LEFT">bigserial[19]</TD></TR>
+      <TR><TD PORT="prison_code" COLSPAN="2" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">prison_code</TD></TR></TABLE></TD><TD PORT="prison_code.type" ALIGN="LEFT">varchar[6]</TD></TR>
+      <TR><TD PORT="statistic_date" COLSPAN="2" BGCOLOR="#ffffff" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">statistic_date</TD></TR></TABLE></TD><TD PORT="statistic_date.type" ALIGN="LEFT">timestamp[29,6]</TD></TR>
+      <TR><TD PORT="prisoners_assigned_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">prisoners_assigned_count</TD></TR></TABLE></TD><TD PORT="prisoners_assigned_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="prisoner_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">prisoner_count</TD></TR></TABLE></TD><TD PORT="prisoner_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="recorded_session_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">recorded_session_count</TD></TR></TABLE></TD><TD PORT="recorded_session_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="recorded_entry_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">recorded_entry_count</TD></TR></TABLE></TD><TD PORT="recorded_entry_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="eligible_staff_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">eligible_staff_count</TD></TR></TABLE></TD><TD PORT="eligible_staff_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="reception_to_allocation_days" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">reception_to_allocation_days</TD></TR></TABLE></TD><TD PORT="reception_to_allocation_days.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="reception_to_recorded_event_days" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">reception_to_recorded_event_days</TD></TR></TABLE></TD><TD PORT="reception_to_recorded_event_days.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="eligible_prisoner_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">eligible_prisoner_count</TD></TR></TABLE></TD><TD PORT="eligible_prisoner_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="high_complexity_of_need_prisoner_count" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">high_complexity_of_need_prisoner_count</TD></TR></TABLE></TD><TD PORT="high_complexity_of_need_prisoner_count.type" ALIGN="LEFT">int4[10]</TD></TR>
+      <TR><TD PORT="policy_code" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="275" HEIGHT="16">policy_code</TD></TR></TABLE></TD><TD PORT="policy_code.type" ALIGN="LEFT">varchar[16]</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">0 &gt;</TD></TR>
     </TABLE>>
     URL="../../tables/prison_statistic.html"
     target="_top"
@@ -171,25 +166,10 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   ];
   "staff_role_audit" [
    label=<
-    <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="4"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="104" HEIGHT="16"><B>staff_role_audit</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="rev_id" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">rev_id</TD></TR></TABLE></TD><TD PORT="rev_id.type" ALIGN="LEFT">int8[19]</TD></TR>
-      <TR><TD PORT="rev_type" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">rev_type</TD></TR></TABLE></TD><TD PORT="rev_type.type" ALIGN="LEFT">int2[5]</TD></TR>
-      <TR><TD PORT="id" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">id</TD></TR></TABLE></TD><TD PORT="id.type" ALIGN="LEFT">uuid[2147483647]</TD></TR>
-      <TR><TD PORT="policy_code" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">policy_code</TD></TR></TABLE></TD><TD PORT="policy_code.type" ALIGN="LEFT">varchar[16]</TD></TR>
-      <TR><TD PORT="prison_code" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">prison_code</TD></TR></TABLE></TD><TD PORT="prison_code.type" ALIGN="LEFT">varchar[6]</TD></TR>
-      <TR><TD PORT="staff_id" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">staff_id</TD></TR></TABLE></TD><TD PORT="staff_id.type" ALIGN="LEFT">int8[19]</TD></TR>
-      <TR><TD PORT="position_id" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">position_id</TD></TR></TABLE></TD><TD PORT="position_id.type" ALIGN="LEFT">int8[19]</TD></TR>
-      <TR><TD PORT="schedule_type_id" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">schedule_type_id</TD></TR></TABLE></TD><TD PORT="schedule_type_id.type" ALIGN="LEFT">int8[19]</TD></TR>
-      <TR><TD PORT="hours_per_week" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">hours_per_week</TD></TR></TABLE></TD><TD PORT="hours_per_week.type" ALIGN="LEFT">int4[10]</TD></TR>
-      <TR><TD PORT="from_date" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">from_date</TD></TR></TABLE></TD><TD PORT="from_date.type" ALIGN="LEFT">date[13]</TD></TR>
-      <TR><TD PORT="to_date" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">to_date</TD></TR></TABLE></TD><TD PORT="to_date.type" ALIGN="LEFT">date[13]</TD></TR>
-      <TR><TD PORT="position_modified" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">position_modified</TD></TR></TABLE></TD><TD PORT="position_modified.type" ALIGN="LEFT">bool[1]</TD></TR>
-      <TR><TD PORT="schedule_type_modified" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">schedule_type_modified</TD></TR></TABLE></TD><TD PORT="schedule_type_modified.type" ALIGN="LEFT">bool[1]</TD></TR>
-      <TR><TD PORT="hours_per_week_modified" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">hours_per_week_modified</TD></TR></TABLE></TD><TD PORT="hours_per_week_modified.type" ALIGN="LEFT">bool[1]</TD></TR>
-      <TR><TD PORT="from_date_modified" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">from_date_modified</TD></TR></TABLE></TD><TD PORT="from_date_modified.type" ALIGN="LEFT">bool[1]</TD></TR>
-      <TR><TD PORT="to_date_modified" COLSPAN="2" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="173" HEIGHT="16">to_date_modified</TD></TR></TABLE></TD><TD PORT="to_date_modified.type" ALIGN="LEFT">bool[1]</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 3</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">0 &gt;</TD></TR>
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="104" HEIGHT="16"><B>staff_role_audit</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 3</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
     </TABLE>>
     URL="../../tables/staff_role_audit.html"
     target="_top"

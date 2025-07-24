@@ -5,6 +5,7 @@ reference_data
 allocation_case_note
 allocation_case_note_audit
 prison_configuration
+prison_statistic
 staff_configuration
 staff_configuration_audit
 staff_role
@@ -13,4 +14,3 @@ allocation_audit
 prison_configuration_audit
 staff_role_audit
 allocation
-keyworker_stats
