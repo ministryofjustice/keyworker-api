@@ -66,7 +66,7 @@ public class PrisonKeyWorkerStatistic implements Comparable<PrisonKeyWorkerStati
     @Column(name = "RECEPTION_TO_ALLOCATION_DAYS")
     private Integer avgNumDaysFromReceptionToAllocationDays;
 
-    @Column(name = "RECEPTION_TO_SESSION_DAYS")
+    @Column(name = "RECEPTION_TO_RECORDED_EVENT_DAYS")
     private Integer avgNumDaysFromReceptionToKeyWorkingSession;
 
     @TenantId
