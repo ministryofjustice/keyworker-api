@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.events
 
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -38,6 +39,7 @@ sealed interface AdditionalInformation
 data class PrisonStatisticsInfo(
   val prisonCode: String,
   val date: LocalDate,
+  val policy: AllocationPolicy,
 ) : AdditionalInformation
 
 data class MergeInformation(

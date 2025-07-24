@@ -13,11 +13,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.val;
 import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.hibernate.annotations.TenantId;
 import org.hibernate.validator.constraints.Length;
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy;
 
 @Entity
-@Table(name = "KEYWORKER_STATS")
+@Table(name = "PRISON_STATISTIC")
 @Data()
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,44 +30,48 @@ public class PrisonKeyWorkerStatistic implements Comparable<PrisonKeyWorkerStati
 
     @Id()
     @GeneratedValue(strategy= GenerationType.IDENTITY)
-    @Column(name = "KEYWORKER_STATS_ID", nullable = false)
+    @Column(name = "ID", nullable = false)
     private Long id;
 
     @NotNull
     @Length(max = 6)
-    @Column(name = "PRISON_ID", nullable = false)
+    @Column(name = "PRISON_CODE", nullable = false)
     private String prisonId;
 
     @NotNull
-    @Column(name = "SNAPSHOT_DATE", nullable = false)
+    @Column(name = "STATISTIC_DATE", nullable = false)
     private LocalDate snapshotDate;
 
     @NotNull
-    @Column(name = "NUM_PRISONERS_ASSIGNED_KW", nullable = false)
+    @Column(name = "PRISONERS_ASSIGNED_COUNT", nullable = false)
     private Integer numPrisonersAssignedKeyWorker;
 
     @NotNull
-    @Column(name = "TOTAL_NUM_PRISONERS", nullable = false)
+    @Column(name = "PRISONER_COUNT", nullable = false)
     private Integer totalNumPrisoners;
 
     @NotNull
-    @Column(name = "TOTAL_NUM_ELIGIBLE_PRISONERS", nullable = false)
+    @Column(name = "ELIGIBLE_PRISONER_COUNT", nullable = false)
     private Integer totalNumEligiblePrisoners;
 
-    @Column(name = "NUM_KW_SESSIONS")
+    @Column(name = "RECORDED_SESSION_COUNT")
     private Integer numberKeyWorkerSessions;
 
-    @Column(name = "NUM_KW_ENTRIES")
+    @Column(name = "RECORDED_ENTRY_COUNT")
     private Integer numberKeyWorkerEntries;
 
-    @Column(name = "NUM_ACTIVE_KEYWORKERS")
+    @Column(name = "ELIGIBLE_STAFF_COUNT")
     private Integer numberOfActiveKeyworkers;
 
-    @Column(name = "RECPT_TO_ALLOC_DAYS")
+    @Column(name = "RECEPTION_TO_ALLOCATION_DAYS")
     private Integer avgNumDaysFromReceptionToAllocationDays;
 
-    @Column(name = "RECPT_TO_KW_SESSION_DAYS")
+    @Column(name = "RECEPTION_TO_SESSION_DAYS")
     private Integer avgNumDaysFromReceptionToKeyWorkingSession;
+
+    @TenantId
+    @Column(name = "policy_code", updatable = false)
+    private String policy;
 
     @Override
     public int compareTo(final PrisonKeyWorkerStatistic stat) {

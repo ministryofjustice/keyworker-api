@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
@@ -36,13 +37,15 @@ class PrisonStatisticsTrigger(
     prisonConfigRepository
       .findAllByEnabledIsTrue()
       .asSequence()
-      .map { it.toDomainEvent(date) }
+      .flatMap { it.toDomainEvent(date) }
       .chunked(10)
       .forEach { eventQueue.publishBatch(it) }
   }
 
-  private fun PrisonConfiguration.toDomainEvent(date: LocalDate): HmppsDomainEvent<PrisonStatisticsInfo> =
-    HmppsDomainEvent(EventType.CalculatePrisonStats.name, PrisonStatisticsInfo(code, date))
+  private fun PrisonConfiguration.toDomainEvent(date: LocalDate): List<HmppsDomainEvent<PrisonStatisticsInfo>> =
+    AllocationPolicy.entries.map {
+      HmppsDomainEvent(EventType.CalculatePrisonStats.name, PrisonStatisticsInfo(code, date, it))
+    }
 
   private fun HmppsQueue.publishBatch(
     events: Collection<HmppsDomainEvent<*>>,

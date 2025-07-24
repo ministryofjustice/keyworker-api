@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.findActiveFor
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.MERGED
 
@@ -20,13 +19,16 @@ class MergePrisonNumbers(
   fun merge(mergeInformation: MergeInformation) {
     val reason =
       requireNotNull(referenceDataRepository.findByKey(ReferenceDataKey(DEALLOCATION_REASON, MERGED.reasonCode)))
-    allocationRepository.findActiveFor(mergeInformation.removedNomsNumber).forEach { allocation ->
-      if (allocation.isActive && allocationRepository.countAllByPersonIdentifierAndIsActiveTrue(mergeInformation.nomsNumber) > 0) {
-        allocation.deallocate(reason)
+    val allocations =
+      allocationRepository.findActiveForAllPolicies(mergeInformation.removedNomsNumber).map {
+        it.apply {
+          if (isActive && allocationRepository.countActiveForPolicy(mergeInformation.nomsNumber, it.policy) > 0) {
+            deallocate(reason)
+          }
+          personIdentifier = mergeInformation.nomsNumber
+        }
       }
-
-      allocation.personIdentifier = mergeInformation.nomsNumber
-    }
+    allocationRepository.saveAll(allocations)
     caseNoteService.merge(mergeInformation)
   }
 }

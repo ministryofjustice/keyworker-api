@@ -4,12 +4,35 @@ import java.time.LocalDate
 
 data class PrisonStats(
   val prisonCode: String,
-  val current: StatSummary?,
-  val previous: StatSummary?,
+  val current: PrisonStatSummary?,
+  val previous: PrisonStatSummary?,
   val hasPrisonersWithHighComplexityOfNeed: Boolean,
 )
 
-data class StatSummary(
+data class PrisonStatSummary(
+  val from: LocalDate,
+  val to: LocalDate,
+  val totalPrisoners: Int,
+  val highComplexityOfNeedPrisoners: Int,
+  val eligiblePrisoners: Int,
+  val prisonersAssigned: Int,
+  val eligibleStaff: Int,
+  val recordedEvents: List<RecordedEventCount>,
+  val avgReceptionToAllocationDays: Int?,
+  val avgReceptionToRecordedEventDays: Int?,
+  val projectedRecordedEvents: Int,
+  val percentageAssigned: Double?,
+  val recordedEventComplianceRate: Double,
+)
+
+data class KeyworkerStats(
+  val prisonCode: String,
+  val current: KeyworkerStatisticSummary?,
+  val previous: KeyworkerStatisticSummary?,
+  val hasPrisonersWithHighComplexityOfNeed: Boolean,
+)
+
+data class KeyworkerStatisticSummary(
   val from: LocalDate,
   val to: LocalDate,
   val totalPrisoners: Int,
@@ -24,14 +47,4 @@ data class StatSummary(
   val projectedSessions: Int,
   val percentageWithKeyworker: Double?,
   val compliance: Double,
-)
-
-data class WeeklyStatInt(
-  val date: LocalDate,
-  val value: Int,
-)
-
-data class WeeklyStatDbl(
-  val date: LocalDate,
-  val value: Double,
 )

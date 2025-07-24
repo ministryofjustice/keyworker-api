@@ -6,38 +6,43 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.TenantId
 import org.springframework.data.jpa.repository.JpaRepository
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import java.time.LocalDate
 import java.util.UUID
 
-@Table(name = "keyworker_stats")
+@Table(name = "prison_statistic")
 @Entity
 class PrisonStatistic(
-  @Column(name = "prison_id")
+  @Column(name = "prison_code")
   val prisonCode: String,
-  @Column(name = "snapshot_date")
+  @Column(name = "statistic_date")
   val date: LocalDate,
-  @Column(name = "total_num_prisoners")
-  val totalPrisoners: Int,
-  @Column(name = "high_complexity_of_need_prisoners")
-  val highComplexityOfNeedPrisoners: Int,
-  @Column(name = "total_num_eligible_prisoners")
-  val eligiblePrisoners: Int,
-  @Column(name = "num_prisoners_assigned_kw")
-  val assignedKeyworker: Int,
-  @Column(name = "num_active_keyworkers")
-  val activeKeyworkers: Int,
-  @Column(name = "num_kw_sessions")
-  val keyworkerSessions: Int,
-  @Column(name = "num_kw_entries")
-  val keyworkerEntries: Int,
-  @Column(name = "recpt_to_alloc_days")
-  val averageReceptionToAllocationDays: Int?,
-  @Column(name = "recpt_to_kw_session_days")
-  val averageReceptionToSessionDays: Int?,
+  @Column(name = "prisoner_count")
+  val prisonerCount: Int,
+  @Column(name = "high_complexity_of_need_prisoner_count")
+  val highComplexityOfNeedPrisonerCount: Int,
+  @Column(name = "eligible_prisoner_count")
+  val eligiblePrisonerCount: Int,
+  @Column(name = "prisoners_assigned_count")
+  val prisonersAssignedCount: Int,
+  @Column(name = "eligible_staff_count")
+  val eligibleStaffCount: Int,
+  @Column(name = "recorded_session_count")
+  val recordedSessionCount: Int,
+  @Column(name = "recorded_entry_count")
+  val recordedEntryCount: Int,
+  @Column(name = "reception_to_allocation_days")
+  val receptionToAllocationDays: Int?,
+  @Column(name = "reception_to_recorded_event_days")
+  val receptionToRecordedEventDays: Int?,
+  @TenantId
+  @Column(name = "policy_code", updatable = false)
+  val policy: String = AllocationContext.get().policy.name,
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "keyworker_stats_id")
+  @Column(name = "id")
   val id: Long? = null,
 )
 

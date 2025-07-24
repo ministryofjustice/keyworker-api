@@ -18,9 +18,13 @@ import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStatisticSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStatSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
@@ -58,6 +62,42 @@ class PrisonController(
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.KEYWORKER_RO}')")
   @GetMapping(value = ["/statistics/keyworker"])
+  fun getKeyworkerStatistics(
+    @PathVariable prisonCode: String,
+    @RequestParam from: LocalDate,
+    @RequestParam to: LocalDate,
+  ): KeyworkerStats =
+    with(statsService.getPrisonStats(prisonCode, from, to)) {
+      KeyworkerStats(
+        this.prisonCode,
+        current?.asKeyworkerStatSummary(),
+        previous?.asKeyworkerStatSummary(),
+        hasPrisonersWithHighComplexityOfNeed,
+      )
+    }
+
+  private fun PrisonStatSummary.asKeyworkerStatSummary(): KeyworkerStatisticSummary? =
+    KeyworkerStatisticSummary(
+      from,
+      to,
+      totalPrisoners,
+      highComplexityOfNeedPrisoners,
+      eligiblePrisoners,
+      prisonersAssigned,
+      eligibleStaff,
+      recordedEvents.find { it.type == RecordedEventType.SESSION }?.count ?: 0,
+      recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count ?: 0,
+      avgReceptionToAllocationDays,
+      avgReceptionToRecordedEventDays,
+      projectedRecordedEvents,
+      percentageAssigned,
+      recordedEventComplianceRate,
+    )
+
+  @PolicyHeader
+  @Tag(name = PRISON)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping("/statistics")
   fun getPrisonStatistics(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
