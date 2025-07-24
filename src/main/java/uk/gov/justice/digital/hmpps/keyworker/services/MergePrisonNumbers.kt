@@ -29,6 +29,5 @@ class MergePrisonNumbers(
         }
       }
     allocationRepository.saveAll(allocations)
-    caseNoteService.merge(mergeInformation)
   }
 }

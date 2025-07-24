@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
@@ -58,9 +57,8 @@ class MergePrisonerIntTest : IntegrationTest() {
     val merged = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(merged.personIdentifier).isEqualTo(newNoms)
 
-    val affected = setOf(Allocation::class.simpleName!!, AllocationCaseNote::class.simpleName!!)
+    val affected = setOf(Allocation::class.simpleName!!)
     verifyAudit(merged, merged.id, RevisionType.MOD, affected, AllocationContext.get())
-    verifyAudit(acn, acn.id, RevisionType.MOD, affected, AllocationContext.get())
   }
 
   @Test
