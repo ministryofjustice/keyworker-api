@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApi
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
-import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformation
 
 @Transactional
 @Service
@@ -38,17 +37,6 @@ class AllocationCaseNoteService(
 
   private fun getCaseNote(personInformation: PersonInformation): CaseNote? =
     caseNoteApi.getCaseNote(personInformation.personIdentifier, personInformation.info.id)
-
-  fun merge(mergeInfo: MergeInformation) {
-    caseNoteRepository.deleteAllByPersonIdentifier(mergeInfo.removedNomsNumber)
-    caseNoteRepository.flush()
-    val caseNotes =
-      caseNoteApi
-        .getCaseNotesOfInterest(mergeInfo.nomsNumber)
-        .content
-        .map { it.asAllocationCaseNote() }
-    caseNoteRepository.saveAll(caseNotes)
-  }
 }
 
 data class PersonInformation(
