@@ -8,7 +8,8 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non major Gradle dependencies",
       "groupSlug": "all-gradle-minor-patch",
-      "auto-merge": true
+      "autoApprove": true,
+      "automerge": true
     },
     {
       "matchDatasources": ["maven"],
