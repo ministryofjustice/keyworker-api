@@ -34,18 +34,21 @@ class PrisonStatisticsTrigger(
   }
 
   fun runFor(date: LocalDate) {
-    prisonConfigRepository
-      .findAllByEnabledIsTrue()
-      .asSequence()
-      .flatMap { it.toDomainEvent(date) }
-      .chunked(10)
-      .forEach { eventQueue.publishBatch(it) }
+    AllocationPolicy.entries.forEach { policy ->
+      prisonConfigRepository
+        .findEnabledPrisonsForPolicyCode(policy.name)
+        .asSequence()
+        .map { it.toDomainEvent(date) }
+        .chunked(10)
+        .forEach { eventQueue.publishBatch(it) }
+    }
   }
 
-  private fun PrisonConfiguration.toDomainEvent(date: LocalDate): List<HmppsDomainEvent<PrisonStatisticsInfo>> =
-    AllocationPolicy.entries.map {
-      HmppsDomainEvent(EventType.CalculatePrisonStats.name, PrisonStatisticsInfo(code, date, it))
-    }
+  private fun PrisonConfiguration.toDomainEvent(date: LocalDate): HmppsDomainEvent<PrisonStatisticsInfo> =
+    HmppsDomainEvent(
+      EventType.CalculatePrisonStats.name,
+      PrisonStatisticsInfo(code, date, AllocationPolicy.of(policy)!!),
+    )
 
   private fun HmppsQueue.publishBatch(
     events: Collection<HmppsDomainEvent<*>>,
