@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteFromApiSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
@@ -160,7 +160,7 @@ class PrisonStatisticCalculator(
       personalOfficerTypes(prisonCode, eligiblePrisoners, date.atStartOfDay())
     }
 
-  private fun PrisonStatisticsInfo.getPreviousSessions(peopleWithSessions: Set<String>): CaseNoteSummary? {
+  private fun PrisonStatisticsInfo.getPreviousSessions(peopleWithSessions: Set<String>): CaseNoteFromApiSummary? {
     if (peopleWithSessions.isEmpty()) return null
     return when (policy) {
       AllocationPolicy.KEY_WORKER ->

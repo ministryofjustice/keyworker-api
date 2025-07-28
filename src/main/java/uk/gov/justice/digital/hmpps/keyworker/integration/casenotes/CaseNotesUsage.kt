@@ -138,9 +138,9 @@ data class NoteUsageResponse<T>(
   val content: Map<String, List<T>>,
 )
 
-fun NoteUsageResponse<UsageByPersonIdentifierResponse>.summary(): CaseNoteSummary = CaseNoteSummary(content)
+fun NoteUsageResponse<UsageByPersonIdentifierResponse>.summary(): CaseNoteFromApiSummary = CaseNoteFromApiSummary(content)
 
-data class CaseNoteSummary(
+data class CaseNoteFromApiSummary(
   private val data: Map<String, List<UsageByPersonIdentifierResponse>>,
 ) {
   val keyworkerSessions: Int
@@ -205,8 +205,8 @@ data class CaseNoteSummary(
       ?.latestNote
       ?.occurredAt
 
-  fun filterByPrisonerNumber(prisonerNumber: String): CaseNoteSummary =
-    CaseNoteSummary(
+  fun filterByPrisonerNumber(prisonerNumber: String): CaseNoteFromApiSummary =
+    CaseNoteFromApiSummary(
       data.entries
         .filter { it.key == prisonerNumber }
         .associate { Pair(it.key, it.value) },
@@ -223,19 +223,6 @@ data class CaseNoteSummary(
       .filter { it.type == type && it.subType == subtype }
       .map { it.personIdentifier }
       .toSet()
-  }
-
-  companion object {
-    fun emptyEvents(policy: AllocationPolicy) =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER ->
-          listOf(
-            RecordedEventCount(SESSION, 0),
-            RecordedEventCount(ENTRY, 0),
-          )
-
-        AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, 0))
-      }
   }
 }
 

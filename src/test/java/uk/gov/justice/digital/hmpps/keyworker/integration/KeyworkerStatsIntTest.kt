@@ -4,6 +4,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerStats
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import java.time.LocalDate
 import java.time.LocalDate.now
 
@@ -74,6 +77,37 @@ class KeyworkerStatsIntTest : IntegrationTest() {
         )
       }
     prisonStatisticRepository.saveAll(stats)
+
+    val currentDateRange = dateRange(start, end)
+    val prevDateRange = dateRange(prevStart, prevEnd)
+    val (entryType, entrySubtype) = KW_TYPE to KW_ENTRY_SUBTYPE
+    (1..16).map {
+      givenAllocationCaseNote(caseNote(prisonCode, entryType, entrySubtype, currentDateRange.random().atStartOfDay()))
+    }
+    (1..15).map {
+      givenAllocationCaseNote(caseNote(prisonCode, entryType, entrySubtype, prevDateRange.random().atStartOfDay()))
+    }
+
+    (1..43).map {
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          KW_TYPE,
+          KW_SESSION_SUBTYPE,
+          currentDateRange.random().atStartOfDay(),
+        ),
+      )
+    }
+    (1..44).map {
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          KW_TYPE,
+          KW_SESSION_SUBTYPE,
+          prevDateRange.random().atStartOfDay(),
+        ),
+      )
+    }
 
     val res =
       getPrisonStatsSpec(prisonCode, start, end)

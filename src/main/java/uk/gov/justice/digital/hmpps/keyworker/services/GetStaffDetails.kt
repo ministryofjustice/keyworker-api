@@ -29,15 +29,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary.Companion.emptyEvents
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
 import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteSummaries
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -54,7 +50,7 @@ class GetStaffDetails(
   private val allocationRepository: AllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val prisonRegisterApi: PrisonRegisterClient,
-  private val caseNotesApiClient: CaseNotesApiClient,
+  private val caseNotesRetriever: CaseNoteRetriever,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
   fun getJobClassificationsFor(
@@ -90,7 +86,7 @@ class GetStaffDetails(
   ): StaffDetails {
     val reportingPeriod =
       if (from != null && to != null) {
-        ReportingPeriod(from.atStartOfDay(), to.plusDays(1).atStartOfDay())
+        ReportingPeriod(from.atStartOfDay(), to.atStartOfDay())
       } else {
         ReportingPeriod.currentMonth()
       }
@@ -133,14 +129,13 @@ class GetStaffDetails(
 
     val (allocations, stats) =
       if (includeStats) {
-        val (current, cnSummary) = allAllocations.staffCountStats(reportingPeriod, prisonConfig, staffId)
-        val (previous, _) =
-          allAllocations.staffCountStats(reportingPeriod.previousPeriod(), prisonConfig, staffId)
+        val (current, cnSummaries) = allAllocations.staffCountStats(reportingPeriod, prisonConfig, staffId)
+        val (previous, _) = allAllocations.staffCountStats(reportingPeriod.previousPeriod(), prisonConfig, staffId)
         val allocations =
           activeAllocations
             .mapNotNull { alloc ->
               prisonerDetails[alloc.personIdentifier]?.let {
-                alloc.asAllocation(it, reportingPeriod, prisonConfig, cnSummary)
+                alloc.asAllocation(it, reportingPeriod, prisonConfig, cnSummaries)
               }
             }.sortedWith(compareBy({ it.prisoner.lastName }, { it.prisoner.firstName }))
         allocations to StaffStats(current, previous)
@@ -191,39 +186,18 @@ class GetStaffDetails(
     reportingPeriod: ReportingPeriod,
     prisonConfig: PrisonConfiguration,
     staffId: Long,
-  ): Pair<StaffCountStats, CaseNoteSummary?> {
-    val context = AllocationContext.get()
+  ): Pair<StaffCountStats, CaseNoteSummaries> {
     val applicableAllocations = filterApplicable(reportingPeriod)
-    val personIdentifiers = applicableAllocations.map { it.personIdentifier }.toSet()
-    val cnSummary =
-      if (personIdentifiers.isEmpty()) {
-        null
-      } else {
-        caseNotesApiClient
-          .getUsageByPersonIdentifier(
-            if (context.policy == AllocationPolicy.KEY_WORKER) {
-              keyworkerTypes(
-                prisonConfig.code,
-                personIdentifiers,
-                reportingPeriod.from,
-                reportingPeriod.to,
-                setOf(staffId.toString()),
-              )
-            } else {
-              personalOfficerTypes(
-                prisonConfig.code,
-                personIdentifiers,
-                reportingPeriod.from,
-                reportingPeriod.to,
-                setOf(staffId.toString()),
-              )
-            },
-          ).summary()
-      }
+    val cns =
+      caseNotesRetriever.findCaseNoteSummary(
+        staffId,
+        reportingPeriod.from.toLocalDate(),
+        reportingPeriod.to.toLocalDate(),
+      )
 
     return Pair(
-      applicableAllocations.staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cnSummary),
-      cnSummary,
+      applicableAllocations.staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cns),
+      cns,
     )
   }
 }
@@ -231,11 +205,10 @@ class GetStaffDetails(
 fun List<Allocation>.staffCountStatsFromApplicableAllocations(
   reportingPeriod: ReportingPeriod,
   prisonConfig: PrisonConfiguration,
-  cnSummary: CaseNoteSummary?,
+  cns: CaseNoteSummaries,
 ): StaffCountStats {
-  val context = AllocationContext.get()
   val projectedSessions =
-    if (count() > 0) {
+    if (isNotEmpty()) {
       val sessionPerDay = 1 / (prisonConfig.frequencyInWeeks * 7.0)
       sumOf {
         floor(it.daysAllocatedForStats(reportingPeriod) * sessionPerDay + 0.5).toInt()
@@ -244,21 +217,18 @@ fun List<Allocation>.staffCountStatsFromApplicableAllocations(
       0
     }
   val compliance =
-    if (projectedSessions == 0 || cnSummary == null) {
+    if (projectedSessions == 0) {
       null
     } else {
-      Statistic.percentage(
-        cnSummary.totalComplianceEvents(context.policy),
-        projectedSessions,
-      )
+      Statistic.percentage(cns.complianceCount, projectedSessions)
     }
 
   return StaffCountStats(
     reportingPeriod.from.toLocalDate(),
-    reportingPeriod.to.toLocalDate().minusDays(1),
+    reportingPeriod.to.toLocalDate(),
     projectedSessions,
-    cnSummary?.totalComplianceEvents(context.policy) ?: 0,
-    cnSummary?.countEvents(context.policy) ?: emptyEvents(context.policy),
+    cns.complianceCount,
+    cns.recordedEventCount(),
     compliance ?: 0.0,
   )
 }
@@ -279,7 +249,7 @@ private fun Allocation.asAllocation(
   prisoner: Prisoner,
   reportingPeriod: ReportingPeriod,
   prisonConfig: PrisonConfiguration,
-  cnSummary: CaseNoteSummary?,
+  cns: CaseNoteSummaries,
 ) = AllocationModel(
   prisoner.asPrisoner(),
   listOf(
@@ -289,9 +259,11 @@ private fun Allocation.asAllocation(
   ).staffCountStatsFromApplicableAllocations(
     reportingPeriod,
     prisonConfig,
-    cnSummary?.filterByPrisonerNumber(prisoner.prisonerNumber),
+    cns.findByPersonIdentifier(prisoner.prisonerNumber),
   ),
-  cnSummary?.findSessionDate(prisoner.prisonerNumber)?.let { LatestSession(it) },
+  cns
+    .findLatestCaseNote(prisoner.prisonerNumber)
+    ?.let { LatestSession(it.occurredAt.toLocalDate()) },
 )
 
 fun Allocation.daysAllocatedForStats(reportingPeriod: ReportingPeriod): Long {

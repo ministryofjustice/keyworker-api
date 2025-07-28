@@ -33,22 +33,21 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.summary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
+import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteSummaries
 
 @Service
 class StaffSearch(
   private val nomisUsersApi: NomisUserRolesApiClient,
   private val prisonApi: PrisonApiClient,
   private val caseNoteApi: CaseNotesApiClient,
+  private val caseNoteRetriever: CaseNoteRetriever,
   private val staffRoleRepository: StaffRoleRepository,
   private val allocationRepository: AllocationRepository,
   private val prisonConfigRepository: PrisonConfigurationRepository,
@@ -131,7 +130,6 @@ class StaffSearch(
     request: AllocatableSearchRequest,
     includeStats: Boolean,
   ): AllocatableSearchResponse {
-    val context = AllocationContext.get()
     val reportingPeriod = ReportingPeriod.currentMonth()
 
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
@@ -151,39 +149,6 @@ class StaffSearch(
         ).filterApplicable(reportingPeriod)
         .groupBy { it.staffId }
 
-    val cnSummaryByStaff =
-      if (includeStats) {
-        val caseNotesRequest =
-          applicableAllocationsByStaff.entries.filter { it.value.isNotEmpty() }.map {
-            val authorIds = setOf(it.key.toString())
-            val personalIdentifiers = it.value.map { allocation -> allocation.personIdentifier }.toSet()
-
-            if (context.policy == AllocationPolicy.KEY_WORKER) {
-              keyworkerTypes(prisonConfig.code, personalIdentifiers, reportingPeriod.from, reportingPeriod.to, authorIds)
-            } else {
-              personalOfficerTypes(
-                prisonConfig.code,
-                personalIdentifiers,
-                reportingPeriod.from,
-                reportingPeriod.to,
-                authorIds,
-              )
-            }
-          }
-        caseNoteApi
-          .getUsageByPersonIdentifiers(caseNotesRequest)
-          .associate {
-            Pair(
-              it.first.authorIds
-                .first()
-                .toLong(),
-              it.second.summary(),
-            )
-          }
-      } else {
-        emptyMap()
-      }
-
     val staffDetail =
       if (staffMembers.keys.isEmpty()) {
         emptyMap()
@@ -199,7 +164,17 @@ class StaffSearch(
             reportingPeriod,
             { staffId -> staffDetail[staffId] },
             { staffId -> applicableAllocationsByStaff[staffId].orEmpty() },
-            { staffId -> if (includeStats) cnSummaryByStaff[staffId] else null },
+            { staffId ->
+              if (includeStats) {
+                caseNoteRetriever.findCaseNoteSummary(
+                  staffId,
+                  reportingPeriod.from.toLocalDate(),
+                  reportingPeriod.to.toLocalDate(),
+                )
+              } else {
+                CaseNoteSummaries.empty()
+              }
+            },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
             includeStats,
           )
@@ -274,7 +249,7 @@ class StaffSearch(
     reportingPeriod: ReportingPeriod,
     staffConfig: (Long) -> StaffWithAllocationCount?,
     applicableAllocations: (Long) -> List<Allocation>,
-    cnSummary: (Long) -> CaseNoteSummary?,
+    cnSummary: (Long) -> CaseNoteSummaries,
     activeStatusProvider: Lazy<ReferenceData>,
     includeStats: Boolean,
   ): AllocatableSummary {

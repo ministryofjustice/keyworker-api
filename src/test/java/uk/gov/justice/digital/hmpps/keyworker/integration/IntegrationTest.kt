@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNoteRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
@@ -68,9 +69,11 @@ import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
+import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer
 import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.casenotes.config.container.PostgresContainer
@@ -83,6 +86,7 @@ import uk.gov.justice.hmpps.sqs.publish
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -508,4 +512,26 @@ abstract class IntegrationTest {
   protected fun AllocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
 
   protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.DEALLOCATION_REASON, reasonCode)
+
+  protected fun dateRange(
+    start: LocalDate,
+    end: LocalDate,
+  ) = buildList {
+    var next = start.plusDays(1)
+    while (next.isBefore(end)) {
+      add(next)
+      next = next.plusDays(1)
+    }
+  }
+
+  protected fun caseNote(
+    prisonCode: String,
+    type: String,
+    subType: String,
+    occurredAt: LocalDateTime,
+    personIdentifier: String = personIdentifier(),
+    staffId: Long = newId(),
+    username: String = "US3R",
+    id: UUID = IdGenerator.newUuid(),
+  ) = AllocationCaseNote(prisonCode, personIdentifier, staffId, username, CaseNoteTypeKey(type, subType), occurredAt, id)
 }

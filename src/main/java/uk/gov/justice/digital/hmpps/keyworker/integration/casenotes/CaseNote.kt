@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -42,4 +43,12 @@ data class CaseNoteAmendment(
 )
 
 fun CaseNote.asAllocationCaseNote(): AllocationCaseNote =
-  AllocationCaseNote(prisonCode, personIdentifier, staffId, staffUsername, type, subType, occurredAt, id)
+  AllocationCaseNote(
+    prisonCode,
+    personIdentifier,
+    staffId,
+    staffUsername,
+    CaseNoteTypeKey(type, subType),
+    occurredAt,
+    id,
+  )
