@@ -110,6 +110,7 @@
 <text text-anchor="start" x="322" y="-734.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
 <polygon fill="none" stroke="#000000" points="462,-727.7 462,-749.7 556,-749.7 556,-727.7 462,-727.7"/>
 <text text-anchor="start" x="464.9758" y="-735.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">uuid[2147483647]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-705.7 302,-727.7 462,-727.7 462,-705.7 302,-705.7"/>
 <polygon fill="none" stroke="#000000" points="302,-705.7 302,-727.7 462,-727.7 462,-705.7 302,-705.7"/>
 <image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="307" y="-722.7"/>
 <text text-anchor="start" x="322" y="-712.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">prison_code</text>
@@ -120,6 +121,7 @@
 <text text-anchor="start" x="322" y="-690.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">person_identifier</text>
 <polygon fill="none" stroke="#000000" points="462,-683.7 462,-705.7 556,-705.7 556,-683.7 462,-683.7"/>
 <text text-anchor="start" x="465" y="-691.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[7]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-661.7 302,-683.7 462,-683.7 462,-661.7 302,-661.7"/>
 <polygon fill="none" stroke="#000000" points="302,-661.7 302,-683.7 462,-683.7 462,-661.7 302,-661.7"/>
 <text text-anchor="start" x="322" y="-668.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">staff_id</text>
 <polygon fill="none" stroke="#000000" points="462,-661.7 462,-683.7 556,-683.7 556,-661.7 462,-661.7"/>
@@ -128,14 +130,17 @@
 <text text-anchor="start" x="322" y="-646.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">username</text>
 <polygon fill="none" stroke="#000000" points="462,-639.7 462,-661.7 556,-661.7 556,-639.7 462,-639.7"/>
 <text text-anchor="start" x="465" y="-647.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[64]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-617.7 302,-639.7 462,-639.7 462,-617.7 302,-617.7"/>
 <polygon fill="none" stroke="#000000" points="302,-617.7 302,-639.7 462,-639.7 462,-617.7 302,-617.7"/>
 <text text-anchor="start" x="322" y="-624.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">type</text>
 <polygon fill="none" stroke="#000000" points="462,-617.7 462,-639.7 556,-639.7 556,-617.7 462,-617.7"/>
 <text text-anchor="start" x="465" y="-625.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[12]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-595.7 302,-617.7 462,-617.7 462,-595.7 302,-595.7"/>
 <polygon fill="none" stroke="#000000" points="302,-595.7 302,-617.7 462,-617.7 462,-595.7 302,-595.7"/>
 <text text-anchor="start" x="322" y="-602.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">sub_type</text>
 <polygon fill="none" stroke="#000000" points="462,-595.7 462,-617.7 556,-617.7 556,-595.7 462,-595.7"/>
 <text text-anchor="start" x="465" y="-603.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[12]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-573.7 302,-595.7 462,-595.7 462,-573.7 302,-573.7"/>
 <polygon fill="none" stroke="#000000" points="302,-573.7 302,-595.7 462,-595.7 462,-573.7 302,-573.7"/>
 <text text-anchor="start" x="322" y="-580.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">occurred_at</text>
 <polygon fill="none" stroke="#000000" points="462,-573.7 462,-595.7 556,-595.7 556,-573.7 462,-573.7"/>

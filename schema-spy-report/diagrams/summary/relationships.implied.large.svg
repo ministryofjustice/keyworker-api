@@ -70,9 +70,9 @@
 </g>
 </g>
 <!-- prison_migration_date_history -->
-<g id="node9" class="node">
+<g id="node8" class="node">
 <title>prison_migration_date_history</title>
-<g id="a_node9"><a xlink:href="../../tables/prison_migration_date_history.html" xlink:title="prison_migration_date_history" target="_top">
+<g id="a_node8"><a xlink:href="../../tables/prison_migration_date_history.html" xlink:title="prison_migration_date_history" target="_top">
 <polygon fill="#ffffff" stroke="transparent" points="8,-2000.2 8,-2086.2 251,-2086.2 251,-2000.2 8,-2000.2"/>
 <polygon fill="#f5f5f5" stroke="transparent" points="8.5,-2063.2 8.5,-2086.2 251.5,-2086.2 251.5,-2063.2 8.5,-2063.2"/>
 <polygon fill="none" stroke="#000000" points="8.5,-2063.2 8.5,-2086.2 251.5,-2086.2 251.5,-2063.2 8.5,-2063.2"/>
@@ -186,20 +186,25 @@
 <polygon fill="none" stroke="#000000" points="399.5,-2063.2 399.5,-2085.2 577.5,-2085.2 577.5,-2063.2 399.5,-2063.2"/>
 <image xlink:href="../../images/primaryKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="404.5" y="-2080.2"/>
 <text text-anchor="start" x="428.5" y="-2070.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">id</text>
+<polygon fill="#ffffff" stroke="transparent" points="399.5,-2041.2 399.5,-2063.2 577.5,-2063.2 577.5,-2041.2 399.5,-2041.2"/>
 <polygon fill="none" stroke="#000000" points="399.5,-2041.2 399.5,-2063.2 577.5,-2063.2 577.5,-2041.2 399.5,-2041.2"/>
 <image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="404.5" y="-2058.2"/>
 <text text-anchor="start" x="428.5" y="-2048.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">prison_code</text>
 <polygon fill="#ffffff" stroke="transparent" points="399.5,-2019.2 399.5,-2041.2 577.5,-2041.2 577.5,-2019.2 399.5,-2019.2"/>
 <polygon fill="none" stroke="#000000" points="399.5,-2019.2 399.5,-2041.2 577.5,-2041.2 577.5,-2019.2 399.5,-2019.2"/>
 <text text-anchor="start" x="428.5" y="-2026.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">person_identifier</text>
+<polygon fill="#ffffff" stroke="transparent" points="399.5,-1997.2 399.5,-2019.2 577.5,-2019.2 577.5,-1997.2 399.5,-1997.2"/>
 <polygon fill="none" stroke="#000000" points="399.5,-1997.2 399.5,-2019.2 577.5,-2019.2 577.5,-1997.2 399.5,-1997.2"/>
 <text text-anchor="start" x="428.5" y="-2004.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">staff_id</text>
 <polygon fill="none" stroke="#000000" points="399.5,-1975.2 399.5,-1997.2 577.5,-1997.2 577.5,-1975.2 399.5,-1975.2"/>
 <text text-anchor="start" x="428.5" y="-1982.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">username</text>
+<polygon fill="#ffffff" stroke="transparent" points="399.5,-1953.2 399.5,-1975.2 577.5,-1975.2 577.5,-1953.2 399.5,-1953.2"/>
 <polygon fill="none" stroke="#000000" points="399.5,-1953.2 399.5,-1975.2 577.5,-1975.2 577.5,-1953.2 399.5,-1953.2"/>
 <text text-anchor="start" x="428.5" y="-1960.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">type</text>
+<polygon fill="#ffffff" stroke="transparent" points="399.5,-1931.2 399.5,-1953.2 577.5,-1953.2 577.5,-1931.2 399.5,-1931.2"/>
 <polygon fill="none" stroke="#000000" points="399.5,-1931.2 399.5,-1953.2 577.5,-1953.2 577.5,-1931.2 399.5,-1931.2"/>
 <text text-anchor="start" x="428.5" y="-1938.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">sub_type</text>
+<polygon fill="#ffffff" stroke="transparent" points="399.5,-1909.2 399.5,-1931.2 577.5,-1931.2 577.5,-1909.2 399.5,-1909.2"/>
 <polygon fill="none" stroke="#000000" points="399.5,-1909.2 399.5,-1931.2 577.5,-1931.2 577.5,-1909.2 399.5,-1909.2"/>
 <text text-anchor="start" x="428.5" y="-1916.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">occurred_at</text>
 <polygon fill="none" stroke="#000000" points="399.5,-1887.2 399.5,-1909.2 577.5,-1909.2 577.5,-1887.2 399.5,-1887.2"/>
@@ -600,9 +605,9 @@
 <ellipse fill="none" stroke="#000000" cx="409.3" cy="-1791.2001" rx="3.2" ry="3.2"/>
 </g>
 <!-- prison_configuration -->
-<g id="node8" class="node">
+<g id="node9" class="node">
 <title>prison_configuration</title>
-<g id="a_node8"><a xlink:href="../../tables/prison_configuration.html" xlink:title="prison_configuration" target="_top">
+<g id="a_node9"><a xlink:href="../../tables/prison_configuration.html" xlink:title="prison_configuration" target="_top">
 <polygon fill="#ffffff" stroke="transparent" points="332.5,-1346.2 332.5,-1586.2 644.5,-1586.2 644.5,-1346.2 332.5,-1346.2"/>
 <polygon fill="#f5f5f5" stroke="transparent" points="332.5,-1563.2 332.5,-1586.2 644.5,-1586.2 644.5,-1563.2 332.5,-1563.2"/>
 <polygon fill="none" stroke="#000000" points="332.5,-1563.2 332.5,-1586.2 644.5,-1586.2 644.5,-1563.2 332.5,-1563.2"/>
