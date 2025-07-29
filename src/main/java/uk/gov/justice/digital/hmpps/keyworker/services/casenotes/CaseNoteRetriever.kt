@@ -61,6 +61,35 @@ class CaseNoteRetriever(
           )
       }?.toMap() ?: emptyMap()
 
+  fun findCaseNoteSummaries(
+    personIdentifiers: Set<String>,
+    from: LocalDate,
+    to: LocalDate,
+  ): CaseNoteSummaries =
+    caseNoteTypes[AllocationContext.get().policy]
+      ?.let {
+        acr.findByPersonIdentifierInAndCaseNoteTypeInAndOccurredAtBetween(
+          personIdentifiers,
+          it,
+          from.atStartOfDay(),
+          to.plusDays(1).atStartOfDay(),
+        )
+      }?.takeIf { it.isNotEmpty() }
+      ?.let { list ->
+        CaseNoteSummaries(
+          list.groupBy { it.personIdentifier }.map {
+            CaseNoteSummary.relatingTo(AllocationContext.get().policy)(it.toPair())
+          },
+        )
+      } ?: CaseNoteSummaries.empty()
+
+  fun findMostRecentCaseNoteSince(
+    personIdentifiers: Set<String>,
+    date: LocalDate,
+  ): CaseNoteSummaries {
+    TODO()
+  }
+
   companion object {
     private val caseNoteTypes =
       mapOf<AllocationPolicy, Set<CaseNoteTypeKey>>(
@@ -105,6 +134,8 @@ class CaseNoteSummaries(
 ) {
   private val data = summaries.associateBy { it.personIdentifier }
 
+  val sessionCount = data.values.sumOf { it.sessionCount ?: 0 }
+  val entryCount = data.values.sumOf { it.entryCount ?: 0 }
   val complianceCount = data.values.sumOf { it.complianceCount }
 
   fun recordedEventCount(): List<RecordedEventCount> =
@@ -116,6 +147,8 @@ class CaseNoteSummaries(
   fun findByPersonIdentifier(personIdentifier: String): CaseNoteSummaries = CaseNoteSummaries(listOfNotNull(data[personIdentifier]))
 
   fun findLatestCaseNote(personIdentifier: String): AllocationCaseNote? = data[personIdentifier]?.latestOccurrence
+
+  fun personIdentifiers(): Set<String> = data.keys
 
   companion object {
     fun empty() = CaseNoteSummaries(listOf(CaseNoteSummary.relatingTo(AllocationContext.get().policy)("" to emptyList())))
