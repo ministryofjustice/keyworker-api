@@ -156,6 +156,13 @@ class StaffSearch(
         staffConfigRepository.findAllWithAllocationCount(prisonCode, staffMembers.keys).associateBy { it.staffId }
       }
 
+    val staffCaseNoteSummaries =
+      caseNoteRetriever.findCaseNoteSummaries(
+        staffMembers.keys,
+        reportingPeriod.from.toLocalDate(),
+        reportingPeriod.to.toLocalDate(),
+      )
+
     return AllocatableSearchResponse(
       staffMembers.values
         .map {
@@ -166,11 +173,7 @@ class StaffSearch(
             { staffId -> applicableAllocationsByStaff[staffId].orEmpty() },
             { staffId ->
               if (includeStats) {
-                caseNoteRetriever.findCaseNoteSummary(
-                  staffId,
-                  reportingPeriod.from.toLocalDate(),
-                  reportingPeriod.to.toLocalDate(),
-                )
+                staffCaseNoteSummaries[staffId] ?: CaseNoteSummaries.empty()
               } else {
                 CaseNoteSummaries.empty()
               }

@@ -37,27 +37,29 @@ class CaseNoteRetriever(
         CaseNoteTotals.relatingTo(AllocationContext.get().policy)(it)
       } ?: CaseNoteTotals.empty()
 
-  fun findCaseNoteSummary(
-    staffId: Long,
+  fun findCaseNoteSummaries(
+    staffId: Set<Long>,
     from: LocalDate,
     to: LocalDate,
-  ): CaseNoteSummaries =
+  ): Map<Long, CaseNoteSummaries> =
     caseNoteTypes[AllocationContext.get().policy]
       ?.let {
-        acr.findByStaffIdAndCaseNoteTypeInAndOccurredAtBetween(
+        acr.findByStaffIdInAndCaseNoteTypeInAndOccurredAtBetween(
           staffId,
           it,
           from.atStartOfDay(),
           to.plusDays(1).atStartOfDay(),
         )
       }?.takeIf { it.isNotEmpty() }
-      ?.let { list ->
-        CaseNoteSummaries(
-          list.groupBy { it.personIdentifier }.map {
-            CaseNoteSummary.relatingTo(AllocationContext.get().policy)(it.toPair())
-          },
-        )
-      } ?: CaseNoteSummaries.empty()
+      ?.groupBy { it.staffId }
+      ?.map { e ->
+        e.key to
+          CaseNoteSummaries(
+            e.value.groupBy { it.personIdentifier }.map {
+              CaseNoteSummary.relatingTo(AllocationContext.get().policy)(it.toPair())
+            },
+          )
+      }?.toMap() ?: emptyMap()
 
   companion object {
     private val caseNoteTypes =

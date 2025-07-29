@@ -48,8 +48,8 @@ interface AllocationCaseNoteRepository : JpaRepository<AllocationCaseNote, UUID>
     to: LocalDateTime,
   ): List<AllocationCaseNote>
 
-  fun findByStaffIdAndCaseNoteTypeInAndOccurredAtBetween(
-    staffId: Long,
+  fun findByStaffIdInAndCaseNoteTypeInAndOccurredAtBetween(
+    staffId: Set<Long>,
     caseNoteTypes: Set<CaseNoteTypeKey>,
     from: LocalDateTime,
     to: LocalDateTime,

@@ -189,11 +189,11 @@ class GetStaffDetails(
   ): Pair<StaffCountStats, CaseNoteSummaries> {
     val applicableAllocations = filterApplicable(reportingPeriod)
     val cns =
-      caseNotesRetriever.findCaseNoteSummary(
-        staffId,
+      caseNotesRetriever.findCaseNoteSummaries(
+        setOf(staffId),
         reportingPeriod.from.toLocalDate(),
         reportingPeriod.to.toLocalDate(),
-      )
+      )[staffId] ?: CaseNoteSummaries.empty()
 
     return Pair(
       applicableAllocations.staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cns),
