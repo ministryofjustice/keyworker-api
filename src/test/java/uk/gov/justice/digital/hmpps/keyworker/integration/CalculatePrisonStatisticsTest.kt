@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteFromApiSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
@@ -103,7 +103,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       },
       noteUsageResponse,
     )
-    val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
+    val peopleWithSessions = CaseNoteFromApiSummary(noteUsageResponse.content).personIdentifiersWithSessions()
     if (policy == AllocationPolicy.KEY_WORKER) {
       caseNotesMockServer.stubUsageByPersonIdentifier(
         UsageByPersonIdentifierRequest.Companion.sessionTypes(
@@ -209,7 +209,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, eligiblePrisoners, yesterday.atStartOfDay()),
       noteUsageResponse,
     )
-    val peopleWithSessions = CaseNoteSummary(noteUsageResponse.content).personIdentifiersWithSessions()
+    val peopleWithSessions = CaseNoteFromApiSummary(noteUsageResponse.content).personIdentifiersWithSessions()
     caseNotesMockServer.stubUsageByPersonIdentifier(
       UsageByPersonIdentifierRequest.Companion.sessionTypes(
         prisonCode,

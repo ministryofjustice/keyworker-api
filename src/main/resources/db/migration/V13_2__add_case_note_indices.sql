@@ -1,0 +1,2 @@
+create index if not exists idx_case_note_prison_code_occurred_at on allocation_case_note (prison_code, occurred_at, type, sub_type);
+create index if not exists idx_case_note_staff_id_occurred_at on allocation_case_note (staff_id, occurred_at, type, sub_type);

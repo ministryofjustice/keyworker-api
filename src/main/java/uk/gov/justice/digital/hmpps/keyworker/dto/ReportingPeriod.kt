@@ -8,17 +8,21 @@ data class ReportingPeriod(
   val from: LocalDateTime,
   val to: LocalDateTime,
 ) {
-  fun previousPeriod(): ReportingPeriod =
-    ReportingPeriod(
-      from.minusDays(DAYS.between(from, to)),
-      from,
+  fun previousPeriod(): ReportingPeriod {
+    val dateRange = DAYS.between(from, to)
+    val previousTo = from.minusDays(1)
+    val previousFrom = previousTo.minusDays(dateRange)
+    return ReportingPeriod(
+      previousFrom,
+      previousTo,
     )
+  }
 
   companion object {
     fun currentMonth(): ReportingPeriod =
       ReportingPeriod(
         LocalDate.now().minusMonths(1).atStartOfDay(),
-        LocalDate.now().plusDays(1).atStartOfDay(),
+        LocalDate.now().atStartOfDay(),
       )
   }
 }

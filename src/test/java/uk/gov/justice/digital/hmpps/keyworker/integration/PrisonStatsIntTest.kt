@@ -10,6 +10,11 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import java.time.LocalDate
 import java.time.LocalDate.now
 
@@ -84,6 +89,43 @@ class PrisonStatsIntTest : IntegrationTest() {
         )
       }
     prisonStatisticRepository.saveAll(stats)
+
+    val currentDateRange = dateRange(start, end)
+    val prevDateRange = dateRange(prevStart, prevEnd)
+    val (entryType, entrySubtype) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_ENTRY_SUBTYPE
+        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
+      }
+    (1..16).map {
+      givenAllocationCaseNote(caseNote(prisonCode, entryType, entrySubtype, currentDateRange.random().atStartOfDay()))
+    }
+    (1..15).map {
+      givenAllocationCaseNote(caseNote(prisonCode, entryType, entrySubtype, prevDateRange.random().atStartOfDay()))
+    }
+
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      (1..43).map {
+        givenAllocationCaseNote(
+          caseNote(
+            prisonCode,
+            KW_TYPE,
+            KW_SESSION_SUBTYPE,
+            currentDateRange.random().atStartOfDay(),
+          ),
+        )
+      }
+      (1..44).map {
+        givenAllocationCaseNote(
+          caseNote(
+            prisonCode,
+            KW_TYPE,
+            KW_SESSION_SUBTYPE,
+            prevDateRange.random().atStartOfDay(),
+          ),
+        )
+      }
+    }
 
     val res =
       getPrisonStatsSpec(prisonCode, start, end, policy)

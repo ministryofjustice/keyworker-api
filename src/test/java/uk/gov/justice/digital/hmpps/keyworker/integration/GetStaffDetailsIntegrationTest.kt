@@ -27,8 +27,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
@@ -37,7 +35,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
-import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -101,7 +98,6 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     }
 
     val currentMonth = ReportingPeriod.currentMonth()
-    val previousMonth = currentMonth.previousPeriod()
     val allocations =
       (1..20).map {
         val activeAllocation = it % 9 != 0
@@ -127,16 +123,14 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             it.allocatedAt.isBefore(currentMonth.to)
         }.map { it.personIdentifier }
         .toSet()
-    prisonerSearchMockServer.stubFindPrisonDetails(
-      prisonCode,
-      personIdentifiers,
-      personIdentifiers.map {
+    val prisoners =
+      personIdentifiers.mapIndexed { index, identifier ->
         Prisoner(
-          it,
-          "First",
-          "Last",
-          LocalDate.now().minusDays(30),
-          LocalDate.now().plusDays(90),
+          identifier,
+          "First$index",
+          "Last$index",
+          now().minusDays(30),
+          now().plusDays(90),
           prisonCode,
           "Description of $prisonCode",
           "$prisonCode-A-1",
@@ -150,56 +144,43 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             PrisonAlert("Type", "OTHER2", true, false),
           ),
         )
-      },
-    )
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(
-          prisonCode,
-          caseNoteIdentifiers,
-          currentMonth.from,
-          currentMonth.to,
-          setOf(staffConfig.staffId.toString()),
-        )
-      } else {
-        personalOfficerTypes(
-          prisonCode,
-          caseNoteIdentifiers,
-          currentMonth.from,
-          currentMonth.to,
-          setOf(staffConfig.staffId.toString()),
-        )
-      },
-      caseNoteResponse(personIdentifiers, policy),
-    )
+      }
+    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, personIdentifiers, prisoners)
 
-    val prevCaseNoteIdentifiers =
-      allocations
-        .filter {
-          (it.deallocatedAt == null || !it.deallocatedAt!!.isBefore(previousMonth.from)) &&
-            it.allocatedAt.isBefore(previousMonth.to)
-        }.map { it.personIdentifier }
-        .toSet()
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(
+    val currentDateRange = dateRange(currentMonth.from.toLocalDate(), currentMonth.to.toLocalDate())
+
+    val (entryType, entrySubtype) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_ENTRY_SUBTYPE
+        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
+      }
+    (1..15).map {
+      givenAllocationCaseNote(
+        caseNote(
           prisonCode,
-          prevCaseNoteIdentifiers,
-          previousMonth.from,
-          previousMonth.to,
-          setOf(staffConfig.staffId.toString()),
+          entryType,
+          entrySubtype,
+          currentDateRange.random().atStartOfDay(),
+          caseNoteIdentifiers.random(),
+          staffConfig.staffId,
+        ),
+      )
+    }
+
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      (1..38).map {
+        givenAllocationCaseNote(
+          caseNote(
+            prisonCode,
+            KW_TYPE,
+            KW_SESSION_SUBTYPE,
+            currentDateRange.random().atStartOfDay(),
+            caseNoteIdentifiers.random(),
+            staffConfig.staffId,
+          ),
         )
-      } else {
-        personalOfficerTypes(
-          prisonCode,
-          prevCaseNoteIdentifiers,
-          previousMonth.from,
-          previousMonth.to,
-          setOf(staffConfig.staffId.toString()),
-        )
-      },
-      NoteUsageResponse(emptyMap()),
-    )
+      }
+    }
 
     val response =
       getStaffDetailSpec(prisonCode, staffConfig.staffId, policy, true)
@@ -225,29 +206,24 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.allocations.size).isEqualTo(18)
     assertThat(
       response.allocations
-        .get(0)
+        .first()
         .prisoner.relevantAlertCodes,
     ).containsExactlyInAnyOrder("XRF")
     assertThat(
       response.allocations
-        .get(0)
+        .first()
         .prisoner.remainingAlertCount,
     ).isEqualTo(2)
     assertThat(
       response.allocations
-        .get(0)
+        .first()
         .stats.projectedComplianceEvents,
     ).isEqualTo(4)
-    assertThat(
-      response.allocations
-        .get(0)
-        .stats.recordedComplianceEvents,
-    ).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 0 else 2)
     assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
     assertThat(response.stats?.current).isNotNull()
     with(response.stats!!.current) {
-      assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3).toInt() })
+      assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3) })
       assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
       assertThat(recordedEvents).isEqualTo(
         if (policy == AllocationPolicy.KEY_WORKER) {

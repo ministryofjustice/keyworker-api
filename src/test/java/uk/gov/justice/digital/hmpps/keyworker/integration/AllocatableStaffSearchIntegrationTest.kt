@@ -20,12 +20,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.keyworkerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
@@ -87,10 +86,9 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       .mapIndexed { index, kw ->
         (0..index)
           .map {
-            val personIdentifier = personIdentifier()
             givenAllocation(
               staffAllocation(
-                personIdentifier,
+                personIdentifier(),
                 prisonCode,
                 kw.staffId,
                 allocatedAt = LocalDateTime.now().minusMonths(1),
@@ -98,15 +96,13 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
               ),
             )
           }.apply {
-            kw.mockCaseNotesResponse(
+            kw.generateCaseNotes(
               policy,
               prisonCode,
               ReportingPeriod.currentMonth(),
-              this
-                .filter {
-                  it.allocationType !=
-                    AllocationType.PROVISIONAL
-                }.map { it.personIdentifier }
+              filter {
+                it.allocationType != AllocationType.PROVISIONAL
+              }.map { it.personIdentifier }
                 .toSet(),
               index,
             )
@@ -151,11 +147,11 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
 
     assertThat(response.content.find { it.staffId == staffIds[3] }).isNull()
 
-    assertThat(response.content[4].staffId).isEqualTo(staffIds[5])
-    assertThat(response.content[4].allowAutoAllocation).isEqualTo(false)
-    assertThat(response.content[4].allocated).isEqualTo(0)
+    assertThat(response.content[5].staffId).isEqualTo(staffIds[7])
+    assertThat(response.content[5].allowAutoAllocation).isEqualTo(true)
+    assertThat(response.content[5].allocated).isEqualTo(6)
     assertThat(
-      response.content[4]
+      response.content[5]
         .stats!!
         .recordedEvents
         .find { it.type == RecordedEventType.SESSION }
@@ -170,12 +166,12 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       },
     )
     assertThat(
-      response.content[4]
+      response.content[5]
         .stats!!
         .recordedEvents
         .find { it.type == RecordedEventType.ENTRY }
         ?.count,
-    ).isEqualTo(0)
+    ).isEqualTo(2)
 
     assertThat(response.content[6].staffId).isEqualTo(staffIds[8])
     assertThat(response.content[6].allowAutoAllocation).isEqualTo(true)
@@ -190,7 +186,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       if (policy ==
         AllocationPolicy.KEY_WORKER
       ) {
-        8
+        6
       } else {
         null
       },
@@ -259,7 +255,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
               ),
             )
             personIdentifier
-          }.apply { kw.mockCaseNotesResponse(policy, prisonCode, currentMonth, this.toSet(), index) }
+          }.apply { kw.generateCaseNotes(policy, prisonCode, currentMonth, this.toSet(), index) }
       }.flatten()
 
     val response =
@@ -282,6 +278,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
     val staffId = newId()
+    val staffConfig = givenStaffConfig(staffConfig(ACTIVE, staffId))
     val request = searchRequest()
     prisonMockServer.stubStaffSummaries(listOf(StaffSummary(staffId, "First", "Last")))
     if (policy == AllocationPolicy.KEY_WORKER) {
@@ -316,55 +313,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     givenAllocation(staffAllocation(personIdentifier, prisonCode, staffId))
 
     val reportingPeriod = ReportingPeriod.currentMonth()
-
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        keyworkerTypes(
-          prisonCode,
-          setOf(personIdentifier),
-          reportingPeriod.from,
-          reportingPeriod.to,
-          setOf(staffId.toString()),
-        )
-      } else {
-        personalOfficerTypes(
-          prisonCode,
-          setOf(personIdentifier),
-          reportingPeriod.from,
-          reportingPeriod.to,
-          setOf(staffId.toString()),
-        )
-      },
-      NoteUsageResponse(
-        (
-          if (policy == AllocationPolicy.KEY_WORKER) {
-            listOf(
-              UsageByPersonIdentifierResponse(
-                personIdentifier,
-                KW_TYPE,
-                KW_SESSION_SUBTYPE,
-                7,
-              ),
-              UsageByPersonIdentifierResponse(
-                personIdentifier,
-                policy.entryConfig.type,
-                policy.entryConfig.subType,
-                3,
-              ),
-            )
-          } else {
-            listOf(
-              UsageByPersonIdentifierResponse(
-                personIdentifier,
-                policy.entryConfig.type,
-                policy.entryConfig.subType,
-                3,
-              ),
-            )
-          }
-        ).groupBy { it.personIdentifier },
-      ),
-    )
+    staffConfig.generateCaseNotes(policy, prisonCode, reportingPeriod, setOf(personIdentifier), 7)
 
     val response =
       searchStaffSpec(prisonCode, request, policy, true)
@@ -383,9 +332,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         .find { it.type == RecordedEventType.SESSION }
         ?.count,
     ).isEqualTo(
-      if (policy ==
-        AllocationPolicy.KEY_WORKER
-      ) {
+      if (policy == AllocationPolicy.KEY_WORKER) {
         7
       } else {
         null
@@ -452,7 +399,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
               ),
             )
             personIdentifier
-          }.apply { s.mockCaseNotesResponse(policy, prisonCode, ReportingPeriod.currentMonth(), this.toSet(), index) }
+          }.apply { s.generateCaseNotes(policy, prisonCode, ReportingPeriod.currentMonth(), this.toSet(), index) }
       }.flatten()
 
     val request = searchRequest("John Smith")
@@ -490,54 +437,47 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     .header(PolicyHeader.NAME, policy.name)
     .exchange()
 
-  private fun StaffConfiguration.mockCaseNotesResponse(
+  private fun StaffConfiguration.generateCaseNotes(
     policy: AllocationPolicy,
     prisonCode: String,
     reportingPeriod: ReportingPeriod,
     personIdentifiers: Set<String>,
     index: Int,
-  ) = caseNotesMockServer.stubUsageByPersonIdentifier(
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      keyworkerTypes(prisonCode, personIdentifiers, reportingPeriod.from, reportingPeriod.to, setOf(staffId.toString()))
-    } else {
-      personalOfficerTypes(
-        prisonCode,
-        personIdentifiers,
-        reportingPeriod.from,
-        reportingPeriod.to,
-        setOf(staffId.toString()),
+  ) {
+    val currentDateRange = dateRange(reportingPeriod.from.toLocalDate(), reportingPeriod.to.toLocalDate())
+    val (entryType, entrySubtype) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_ENTRY_SUBTYPE
+        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
+      }
+    (1..index / 2).map {
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          entryType,
+          entrySubtype,
+          currentDateRange.random().atStartOfDay(),
+          personIdentifiers.random(),
+          staffId,
+        ),
       )
-    },
-    NoteUsageResponse(
-      (
-        if (policy == AllocationPolicy.KEY_WORKER) {
-          listOf(
-            UsageByPersonIdentifierResponse(
-              personIdentifiers.first(),
-              KW_TYPE,
-              KW_SESSION_SUBTYPE,
-              index,
-            ),
-            UsageByPersonIdentifierResponse(
-              personIdentifiers.first(),
-              policy.entryConfig.type,
-              policy.entryConfig.subType,
-              index / 2,
-            ),
-          )
-        } else {
-          listOf(
-            UsageByPersonIdentifierResponse(
-              personIdentifiers.first(),
-              policy.entryConfig.type,
-              policy.entryConfig.subType,
-              index / 2,
-            ),
-          )
-        }
-      ).groupBy { it.personIdentifier },
-    ),
-  )
+    }
+
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      (1..index).map {
+        givenAllocationCaseNote(
+          caseNote(
+            prisonCode,
+            KW_TYPE,
+            KW_SESSION_SUBTYPE,
+            currentDateRange.random().atStartOfDay(),
+            personIdentifiers.random(),
+            staffId,
+          ),
+        )
+      }
+    }
+  }
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/staff-allocations"
@@ -545,7 +485,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     @JvmStatic
     fun policyProvider() =
       listOf(
-        //   Arguments.of(AllocationPolicy.KEY_WORKER),
+        Arguments.of(AllocationPolicy.KEY_WORKER),
         Arguments.of(AllocationPolicy.PERSONAL_OFFICER),
       )
   }
