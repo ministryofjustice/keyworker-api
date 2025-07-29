@@ -112,7 +112,7 @@ class GetStaffDetails(
         prisonCode,
         staffId,
         reportingPeriod.from,
-        reportingPeriod.to,
+        reportingPeriod.to.plusDays(1),
       )
     val activeAllocations = allAllocations.filter { it.isActive }
     val prisonerDetails =
