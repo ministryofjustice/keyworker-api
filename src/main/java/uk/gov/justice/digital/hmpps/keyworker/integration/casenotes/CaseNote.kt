@@ -23,11 +23,7 @@ data class CaseNote(
   val prisonCode: String,
   @JsonAlias("creationDateTime")
   val createdAt: LocalDateTime,
-  val text: String,
-  val amendments: List<CaseNoteAmendment>,
 ) {
-  fun textLength() = amendments.sumOf { it.text.length } + text.length
-
   companion object {
     const val KW_TYPE = "KA"
     const val KW_SESSION_SUBTYPE = "KS"
@@ -37,11 +33,6 @@ data class CaseNote(
   }
 }
 
-data class CaseNoteAmendment(
-  @JsonAlias("additionalNoteText")
-  val text: String,
-)
-
 fun CaseNote.asAllocationCaseNote(): AllocationCaseNote =
   AllocationCaseNote(
     prisonCode,
@@ -50,5 +41,6 @@ fun CaseNote.asAllocationCaseNote(): AllocationCaseNote =
     staffUsername,
     CaseNoteTypeKey(type, subType),
     occurredAt,
+    createdAt,
     id,
   )

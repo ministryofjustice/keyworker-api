@@ -161,8 +161,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           entryType,
           entrySubtype,
           currentDateRange.random().atStartOfDay(),
-          caseNoteIdentifiers.random(),
-          staffConfig.staffId,
+          personIdentifier = caseNoteIdentifiers.random(),
+          staffId = staffConfig.staffId,
         ),
       )
     }
@@ -175,8 +175,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
             KW_TYPE,
             KW_SESSION_SUBTYPE,
             currentDateRange.random().atStartOfDay(),
-            caseNoteIdentifiers.random(),
-            staffConfig.staffId,
+            personIdentifier = caseNoteIdentifiers.random(),
+            staffId = staffConfig.staffId,
           ),
         )
       }

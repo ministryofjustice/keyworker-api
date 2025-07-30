@@ -529,9 +529,19 @@ abstract class IntegrationTest {
     type: String,
     subType: String,
     occurredAt: LocalDateTime,
+    createdAt: LocalDateTime = occurredAt,
     personIdentifier: String = personIdentifier(),
     staffId: Long = newId(),
     username: String = "US3R",
     id: UUID = IdGenerator.newUuid(),
-  ) = AllocationCaseNote(prisonCode, personIdentifier, staffId, username, CaseNoteTypeKey(type, subType), occurredAt, id)
+  ) = AllocationCaseNote(
+    prisonCode,
+    personIdentifier,
+    staffId,
+    username,
+    CaseNoteTypeKey(type, subType),
+    occurredAt,
+    createdAt,
+    id,
+  )
 }

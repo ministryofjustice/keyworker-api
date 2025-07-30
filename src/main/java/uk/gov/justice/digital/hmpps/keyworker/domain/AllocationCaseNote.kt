@@ -20,6 +20,7 @@ class AllocationCaseNote(
   @Embedded
   val caseNoteType: CaseNoteTypeKey,
   val occurredAt: LocalDateTime,
+  val createdAt: LocalDateTime,
   @Id
   val id: UUID,
 ) : CaseNoteType by caseNoteType {
