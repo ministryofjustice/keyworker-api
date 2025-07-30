@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
@@ -226,8 +225,6 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
       staffUsername: String = NomisIdGenerator.username(),
       prisonCode: String = "LEI",
       createdAt: LocalDateTime = LocalDateTime.now(),
-      text: String = "Some text entered about the interaction",
-      amendments: List<CaseNoteAmendment> = listOf(CaseNoteAmendment("Amended text")),
       id: UUID = IdGenerator.newUuid(),
     ): CaseNote =
       CaseNote(
@@ -240,8 +237,6 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         staffUsername,
         prisonCode,
         createdAt,
-        text,
-        amendments,
       )
 
     @JvmStatic

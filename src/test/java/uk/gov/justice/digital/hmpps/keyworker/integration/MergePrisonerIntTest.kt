@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
@@ -44,7 +43,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
     val newNoms = personIdentifier()
     val caseNote = caseNote(KW_SESSION_SUBTYPE, personIdentifier = alloc.personIdentifier)
-    val acn = givenAllocationCaseNote(caseNote.asAllocationCaseNote())
+    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
     caseNotesMockServer.stubGetAllocationCaseNotes(
       newNoms,
       CaseNotes(listOf(caseNote.copy(personIdentifier = newNoms))),
@@ -99,8 +98,6 @@ class MergePrisonerIntTest : IntegrationTest() {
     staffUsername: String = username(),
     prisonCode: String = "LEI",
     createdAt: LocalDateTime = LocalDateTime.now(),
-    text: String = "Some text entered about the interaction",
-    amendments: List<CaseNoteAmendment> = listOf(CaseNoteAmendment("Amended text")),
     id: UUID = IdGenerator.newUuid(),
   ): CaseNote =
     CaseNote(
@@ -113,7 +110,5 @@ class MergePrisonerIntTest : IntegrationTest() {
       staffUsername,
       prisonCode,
       createdAt,
-      text,
-      amendments,
     )
 }

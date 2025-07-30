@@ -457,8 +457,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
           entryType,
           entrySubtype,
           currentDateRange.random().atStartOfDay(),
-          personIdentifiers.random(),
-          staffId,
+          personIdentifier = personIdentifiers.random(),
+          staffId = staffId,
         ),
       )
     }
@@ -471,8 +471,8 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
             KW_TYPE,
             KW_SESSION_SUBTYPE,
             currentDateRange.random().atStartOfDay(),
-            personIdentifiers.random(),
-            staffId,
+            personIdentifier = personIdentifiers.random(),
+            staffId = staffId,
           ),
         )
       }
