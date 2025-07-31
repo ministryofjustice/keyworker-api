@@ -5,9 +5,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters.fromValue
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransientException
 import java.util.UUID
@@ -27,24 +25,6 @@ class CaseNotesApiClient(
           else -> res.createError()
         }
       }.retryRequestOnTransientException()
-      .block()!!
-
-  fun getUsageByPersonIdentifiers(
-    requests: List<UsageByPersonIdentifierRequest>,
-  ): List<Pair<UsageByPersonIdentifierRequest, NoteUsageResponse<UsageByPersonIdentifierResponse>>> =
-    Flux
-      .fromIterable(requests)
-      .flatMap({
-        webClient
-          .post()
-          .uri("/case-notes/usage")
-          .bodyValue(it)
-          .retrieve()
-          .bodyToFlux<NoteUsageResponse<UsageByPersonIdentifierResponse>>()
-          .retryRequestOnTransientException()
-          .map { res -> Pair(it, res) }
-      }, 10)
-      .collectList()
       .block()!!
 
   fun getUsageByStaffIds(usage: UsageByAuthorIdRequest): NoteUsageResponse<UsageByAuthorIdResponse> =

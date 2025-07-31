@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import java.time.LocalDate
 
 @Service
@@ -61,6 +62,41 @@ class CaseNoteRetriever(
           )
       }?.toMap() ?: emptyMap()
 
+  fun findCaseNoteSummaries(
+    personIdentifiers: Set<String>,
+    from: LocalDate,
+    to: LocalDate,
+  ): CaseNoteSummaries =
+    caseNoteTypes[AllocationContext.get().policy]
+      ?.let {
+        acr.findByPersonIdentifierInAndCaseNoteTypeInAndCreatedAtBetween(
+          personIdentifiers,
+          it,
+          from.atStartOfDay(),
+          to.plusDays(1).atStartOfDay(),
+        )
+      }?.takeIf { it.isNotEmpty() }
+      ?.let { list ->
+        CaseNoteSummaries(
+          list.groupBy { it.personIdentifier }.map {
+            CaseNoteSummary.relatingTo(AllocationContext.get().policy)(it.toPair())
+          },
+        )
+      } ?: CaseNoteSummaries.empty()
+
+  fun findMostRecentCaseNoteBefore(
+    prisonCode: String,
+    personIdentifiers: Set<String>,
+    date: LocalDate,
+  ): Map<String, LatestNote> =
+    acr
+      .findLatestCaseNotesBefore(
+        prisonCode,
+        personIdentifiers,
+        requireNotNull(recordedEventTypes[AllocationContext.get().policy]),
+        date.atStartOfDay(),
+      ).associate { it.personIdentifier to LatestNote(it.occurredAt) }
+
   companion object {
     private val caseNoteTypes =
       mapOf<AllocationPolicy, Set<CaseNoteTypeKey>>(
@@ -69,6 +105,12 @@ class CaseNoteRetriever(
             CaseNoteTypeKey(KW_TYPE, KW_SESSION_SUBTYPE),
             CaseNoteTypeKey(KW_TYPE, KW_ENTRY_SUBTYPE),
           ),
+        AllocationPolicy.PERSONAL_OFFICER to setOf(CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)),
+      )
+
+    private val recordedEventTypes =
+      mapOf<AllocationPolicy, Set<CaseNoteTypeKey>>(
+        AllocationPolicy.KEY_WORKER to setOf(CaseNoteTypeKey(KW_TYPE, KW_SESSION_SUBTYPE)),
         AllocationPolicy.PERSONAL_OFFICER to setOf(CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)),
       )
   }
@@ -105,6 +147,8 @@ class CaseNoteSummaries(
 ) {
   private val data = summaries.associateBy { it.personIdentifier }
 
+  val sessionCount = data.values.sumOf { it.sessionCount ?: 0 }
+  val entryCount = data.values.sumOf { it.entryCount ?: 0 }
   val complianceCount = data.values.sumOf { it.complianceCount }
 
   fun recordedEventCount(): List<RecordedEventCount> =
@@ -116,6 +160,8 @@ class CaseNoteSummaries(
   fun findByPersonIdentifier(personIdentifier: String): CaseNoteSummaries = CaseNoteSummaries(listOfNotNull(data[personIdentifier]))
 
   fun findLatestCaseNote(personIdentifier: String): AllocationCaseNote? = data[personIdentifier]?.latestOccurrence
+
+  fun personIdentifiers(): Set<String> = data.keys
 
   companion object {
     fun empty() = CaseNoteSummaries(listOf(CaseNoteSummary.relatingTo(AllocationContext.get().policy)("" to emptyList())))

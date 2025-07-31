@@ -7,6 +7,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Version
 import org.hibernate.envers.Audited
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -54,5 +55,26 @@ interface AllocationCaseNoteRepository : JpaRepository<AllocationCaseNote, UUID>
     caseNoteTypes: Set<CaseNoteTypeKey>,
     from: LocalDateTime,
     to: LocalDateTime,
+  ): List<AllocationCaseNote>
+
+  fun findByPersonIdentifierInAndCaseNoteTypeInAndCreatedAtBetween(
+    personIdentifiers: Set<String>,
+    caseNoteTypes: Set<CaseNoteTypeKey>,
+    from: LocalDateTime,
+    to: LocalDateTime,
+  ): List<AllocationCaseNote>
+
+  @Query(
+    """
+    select acn from AllocationCaseNote acn
+    where acn.prisonCode = :prisonCode and acn.personIdentifier in :personIdentifiers
+    and acn.occurredAt < :before
+  """,
+  )
+  fun findLatestCaseNotesBefore(
+    prisonCode: String,
+    personIdentifiers: Set<String>,
+    caseNoteTypes: Set<CaseNoteTypeKey>,
+    before: LocalDateTime,
   ): List<AllocationCaseNote>
 }
