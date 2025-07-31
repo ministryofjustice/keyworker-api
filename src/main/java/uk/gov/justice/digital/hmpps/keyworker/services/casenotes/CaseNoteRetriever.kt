@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import java.time.LocalDate
 
 @Service
@@ -68,7 +69,7 @@ class CaseNoteRetriever(
   ): CaseNoteSummaries =
     caseNoteTypes[AllocationContext.get().policy]
       ?.let {
-        acr.findByPersonIdentifierInAndCaseNoteTypeInAndOccurredAtBetween(
+        acr.findByPersonIdentifierInAndCaseNoteTypeInAndCreatedAtBetween(
           personIdentifiers,
           it,
           from.atStartOfDay(),
@@ -83,12 +84,18 @@ class CaseNoteRetriever(
         )
       } ?: CaseNoteSummaries.empty()
 
-  fun findMostRecentCaseNoteSince(
+  fun findMostRecentCaseNoteBefore(
+    prisonCode: String,
     personIdentifiers: Set<String>,
     date: LocalDate,
-  ): CaseNoteSummaries {
-    TODO()
-  }
+  ): Map<String, LatestNote> =
+    acr
+      .findLatestCaseNotesBefore(
+        prisonCode,
+        personIdentifiers,
+        requireNotNull(recordedEventTypes[AllocationContext.get().policy]),
+        date.atStartOfDay(),
+      ).associate { it.personIdentifier to LatestNote(it.occurredAt) }
 
   companion object {
     private val caseNoteTypes =
@@ -98,6 +105,12 @@ class CaseNoteRetriever(
             CaseNoteTypeKey(KW_TYPE, KW_SESSION_SUBTYPE),
             CaseNoteTypeKey(KW_TYPE, KW_ENTRY_SUBTYPE),
           ),
+        AllocationPolicy.PERSONAL_OFFICER to setOf(CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)),
+      )
+
+    private val recordedEventTypes =
+      mapOf<AllocationPolicy, Set<CaseNoteTypeKey>>(
+        AllocationPolicy.KEY_WORKER to setOf(CaseNoteTypeKey(KW_TYPE, KW_SESSION_SUBTYPE)),
         AllocationPolicy.PERSONAL_OFFICER to setOf(CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)),
       )
   }

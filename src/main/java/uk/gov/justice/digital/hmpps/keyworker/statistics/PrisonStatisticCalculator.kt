@@ -89,7 +89,7 @@ class PrisonStatisticCalculator(
           .associateBy { it.personIdentifier }
 
       val cnSummaries = caseNoteRetriever.findCaseNoteSummaries(eligiblePrisoners, date, date)
-      val previousRecordedEntries = caseNoteRetriever.findMostRecentCaseNoteSince(cnSummaries.personIdentifiers(), date)
+      val previousRecordedEntries = caseNoteRetriever.findMostRecentCaseNoteBefore(prisonCode, cnSummaries.personIdentifiers(), date)
 
       val activeStaffCount = getActiveStaffCount()
 
@@ -109,7 +109,7 @@ class PrisonStatisticCalculator(
               ?.occurredAt
               ?.toLocalDate()
               ?.takeIf {
-                val previous = previousRecordedEntries.findLatestCaseNote(pi)?.occurredAt?.toLocalDate()
+                val previous = previousRecordedEntries[pi]?.occurredAt?.toLocalDate()
                 previous == null || date?.isAfter(previous) == true
               }
           },

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
+import io.jsonwebtoken.security.Jwks.OP.policy
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -16,11 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteFromApiSummary
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
@@ -81,49 +77,51 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         )
       }
     }
-    val noteUsageResponse =
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        kwCaseNoteResponse(prisoners.personIdentifiers())
-      } else {
-        poCaseNoteResponse(prisoners.personIdentifiers())
+    val (recordedType, recordedSubType) =
+      when (policy) {
+        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_SESSION_SUBTYPE
+        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
       }
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        UsageByPersonIdentifierRequest.Companion.keyworkerTypes(
-          prisonCode,
-          prisoners.personIdentifiers(),
-          yesterday.atStartOfDay(),
+    val caseNotes =
+      prisoners.content.mapIndexedNotNull { idx, prisoner ->
+        if (idx % 9 == 0) {
+          givenAllocationCaseNote(
+            caseNote(
+              prisonCode,
+              recordedType,
+              recordedSubType,
+              yesterday.atTime(LocalTime.now()),
+              personIdentifier = prisoner.prisonerNumber,
+            ),
+          )
+        } else {
+          if (policy == AllocationPolicy.KEY_WORKER && idx % 15 == 0) {
+            givenAllocationCaseNote(
+              caseNote(
+                prisonCode,
+                KW_TYPE,
+                KW_ENTRY_SUBTYPE,
+                yesterday.atTime(LocalTime.now()),
+                personIdentifier = prisoner.prisonerNumber,
+              ),
+            )
+          }
+          null
+        }
+      }
+
+    caseNotes.map { it.personIdentifier }.forEachIndexed { index, personIdentifier ->
+      if (index % 2 == 0) {
+        givenAllocationCaseNote(
+          caseNote(
+            prisonCode,
+            recordedType,
+            recordedSubType,
+            yesterday.minusDays(10).atTime(LocalTime.now()),
+            personIdentifier = personIdentifier,
+          ),
         )
-      } else {
-        UsageByPersonIdentifierRequest.Companion.personalOfficerTypes(
-          prisonCode,
-          prisoners.personIdentifiers(),
-          yesterday.atStartOfDay(),
-        )
-      },
-      noteUsageResponse,
-    )
-    val peopleWithSessions = CaseNoteFromApiSummary(noteUsageResponse.content).personIdentifiersWithSessions()
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      caseNotesMockServer.stubUsageByPersonIdentifier(
-        UsageByPersonIdentifierRequest.Companion.sessionTypes(
-          prisonCode,
-          peopleWithSessions,
-          yesterday.minusMonths(6),
-          yesterday.minusDays(1),
-        ),
-        previousSessionsResponse(peopleWithSessions),
-      )
-    } else {
-      caseNotesMockServer.stubUsageByPersonIdentifier(
-        UsageByPersonIdentifierRequest.Companion.personalOfficerTypes(
-          prisonCode,
-          peopleWithSessions,
-          yesterday.minusMonths(6).atStartOfDay(),
-          yesterday.minusDays(1).atStartOfDay(),
-        ),
-        previousSessionsResponse(peopleWithSessions),
-      )
+      }
     }
 
     publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, now().minusDays(1), policy)))
@@ -145,15 +143,15 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
     if (policy == AllocationPolicy.KEY_WORKER) {
-      assertThat(stats.recordedSessionCount).isEqualTo(40)
-      assertThat(stats.recordedEntryCount).isEqualTo(9)
+      assertThat(stats.recordedSessionCount).isEqualTo(12)
+      assertThat(stats.recordedEntryCount).isEqualTo(4)
       assertThat(stats.receptionToAllocationDays).isEqualTo(30)
-      assertThat(stats.receptionToRecordedEventDays).isEqualTo(24)
+      assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
     } else {
       assertThat(stats.recordedSessionCount).isEqualTo(0)
-      assertThat(stats.recordedEntryCount).isEqualTo(40)
+      assertThat(stats.recordedEntryCount).isEqualTo(12)
       assertThat(stats.receptionToAllocationDays).isEqualTo(30)
-      assertThat(stats.receptionToRecordedEventDays).isEqualTo(24)
+      assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
     }
   }
 
@@ -204,23 +202,42 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         )
       },
     )
-    val noteUsageResponse = kwCaseNoteResponse(eligiblePrisoners)
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      UsageByPersonIdentifierRequest.Companion.keyworkerTypes(prisonCode, eligiblePrisoners, yesterday.atStartOfDay()),
-      noteUsageResponse,
-    )
-    val peopleWithSessions = CaseNoteFromApiSummary(noteUsageResponse.content).personIdentifiersWithSessions()
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      UsageByPersonIdentifierRequest.Companion.sessionTypes(
-        prisonCode,
-        peopleWithSessions,
-        yesterday.minusMonths(6),
-        yesterday.minusDays(1),
-      ),
-      previousSessionsResponse(peopleWithSessions),
-    )
+    eligiblePrisoners.mapIndexedNotNull { idx, pi ->
+      if (idx % 9 == 0) {
+        givenAllocationCaseNote(
+          caseNote(
+            prisonCode,
+            KW_TYPE,
+            KW_SESSION_SUBTYPE,
+            yesterday.atTime(LocalTime.now()),
+            personIdentifier = pi,
+          ),
+        )
+      } else {
+        if (idx % 15 == 0) {
+          givenAllocationCaseNote(
+            caseNote(
+              prisonCode,
+              KW_TYPE,
+              KW_ENTRY_SUBTYPE,
+              yesterday.atTime(LocalTime.now()),
+              personIdentifier = pi,
+            ),
+          )
+        }
+        null
+      }
+    }
 
-    publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, now().minusDays(1), AllocationPolicy.KEY_WORKER)))
+    publishEventToTopic(
+      calculateStatsEvent(
+        PrisonStatisticsInfo(
+          prisonCode,
+          now().minusDays(1),
+          AllocationPolicy.KEY_WORKER,
+        ),
+      ),
+    )
 
     val stats: PrisonStatistic? =
       await untilCallTo {
@@ -237,11 +254,11 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.prisonersAssignedCount).isEqualTo(25)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
-    assertThat(stats.recordedSessionCount).isEqualTo(32)
-    assertThat(stats.recordedEntryCount).isEqualTo(7)
+    assertThat(stats.recordedSessionCount).isEqualTo(9)
+    assertThat(stats.recordedEntryCount).isEqualTo(4)
 
     assertThat(stats.receptionToAllocationDays).isEqualTo(55)
-    assertThat(stats.receptionToRecordedEventDays).isEqualTo(37)
+    assertThat(stats.receptionToRecordedEventDays).isEqualTo(34)
   }
 
   private fun prisoners(
@@ -272,87 +289,6 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           listOf(),
         )
       },
-    )
-  }
-
-  private fun poCaseNoteResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> =
-    NoteUsageResponse(
-      personIdentifiers
-        .mapIndexed { index, pi ->
-          buildSet {
-            if (index % 3 == 0) {
-              add(
-                UsageByPersonIdentifierResponse(
-                  pi,
-                  PO_ENTRY_TYPE,
-                  PO_ENTRY_SUBTYPE,
-                  if (index % 18 == 0) 2 else 1,
-                  LatestNote(LocalDateTime.now().minusDays(1)),
-                ),
-              )
-            }
-          }
-        }.flatten()
-        .groupBy { it.personIdentifier },
-    )
-
-  private fun kwCaseNoteResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> =
-    NoteUsageResponse(
-      personIdentifiers
-        .mapIndexed { index, pi ->
-          buildSet {
-            if (index % 3 == 0) {
-              add(
-                UsageByPersonIdentifierResponse(
-                  pi,
-                  KW_TYPE,
-                  KW_SESSION_SUBTYPE,
-                  if (index % 18 == 0) 2 else 1,
-                  LatestNote(LocalDateTime.now().minusDays(1)),
-                ),
-              )
-            }
-            if (index % 12 == 0) {
-              add(
-                UsageByPersonIdentifierResponse(
-                  pi,
-                  KW_TYPE,
-                  KW_ENTRY_SUBTYPE,
-                  1,
-                  LatestNote(LocalDateTime.now().minusDays(1)),
-                ),
-              )
-            }
-          }
-        }.flatten()
-        .groupBy { it.personIdentifier },
-    )
-
-  private fun previousSessionsResponse(personIdentifiers: Set<String>): NoteUsageResponse<UsageByPersonIdentifierResponse> {
-    val (type, subtype) =
-      if (AllocationContext.get().policy == AllocationPolicy.KEY_WORKER) {
-        KW_TYPE to KW_SESSION_SUBTYPE
-      } else {
-        PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
-      }
-    return NoteUsageResponse(
-      personIdentifiers
-        .mapIndexed { index, pi ->
-          buildSet {
-            if (index % 4 == 0) {
-              add(
-                UsageByPersonIdentifierResponse(
-                  pi,
-                  type,
-                  subtype,
-                  3 * index / personIdentifiers.size,
-                  LatestNote(LocalDateTime.now().minusDays(7)),
-                ),
-              )
-            }
-          }
-        }.flatten()
-        .groupBy { it.personIdentifier },
     )
   }
 }
