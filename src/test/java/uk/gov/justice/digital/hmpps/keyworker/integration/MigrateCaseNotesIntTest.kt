@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteMigrationInformation
@@ -104,8 +103,6 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
     staffUsername: String = NomisIdGenerator.username(),
     prisonCode: String = "MIG",
     createdAt: LocalDateTime = now(),
-    text: String = "Som text about the interaction",
-    amendments: List<CaseNoteAmendment> = emptyList(),
     id: UUID = IdGenerator.newUuid(),
   ): CaseNote =
     CaseNote(
@@ -118,7 +115,5 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
       staffUsername,
       prisonCode,
       createdAt,
-      text,
-      amendments,
     )
 }
