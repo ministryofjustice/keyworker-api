@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
@@ -154,23 +153,6 @@ data class CaseNoteFromApiSummary(
     poEntries = grouped[PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
   }
 
-  fun totalComplianceEvents(policy: AllocationPolicy) =
-    when (policy) {
-      AllocationPolicy.KEY_WORKER -> keyworkerSessions
-      AllocationPolicy.PERSONAL_OFFICER -> poEntries
-    }
-
-  fun countEvents(policy: AllocationPolicy) =
-    when (policy) {
-      AllocationPolicy.KEY_WORKER ->
-        listOf(
-          RecordedEventCount(SESSION, keyworkerSessions),
-          RecordedEventCount(ENTRY, keyworkerEntries),
-        )
-
-      AllocationPolicy.PERSONAL_OFFICER -> listOf(RecordedEventCount(ENTRY, poEntries))
-    }
-
   fun getRecordedFor(
     policy: AllocationPolicy,
     personIdentifier: String,
@@ -181,19 +163,8 @@ data class CaseNoteFromApiSummary(
         AllocationPolicy.KEY_WORKER -> SESSION to (KW_TYPE to KW_SESSION_SUBTYPE)
         AllocationPolicy.PERSONAL_OFFICER -> ENTRY to (PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE)
       }
-    return findLatestFor(personIdentifier, cnType.first, cnType.second)?.let { RecordedFor(prison, reType, it) }
+    return findLatestFor(personIdentifier, cnType.first, cnType.second)?.let { RecordedFor(prison, reType, it, policy) }
   }
-
-  fun findSessionDate(personIdentifier: String): LocalDate? = findLatestFor(personIdentifier, KW_TYPE, KW_SESSION_SUBTYPE)?.toLocalDate()
-
-  fun findLatestForPolicy(
-    personIdentifier: String,
-    policy: AllocationPolicy,
-  ): LocalDate? =
-    when (policy) {
-      AllocationPolicy.KEY_WORKER -> findLatestFor(personIdentifier, KW_TYPE, KW_SESSION_SUBTYPE)?.toLocalDate()
-      AllocationPolicy.PERSONAL_OFFICER -> findLatestFor(personIdentifier, PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)?.toLocalDate()
-    }
 
   private fun findLatestFor(
     personIdentifier: String,
@@ -204,30 +175,11 @@ data class CaseNoteFromApiSummary(
       ?.find { it.type == type && it.subType == subType }
       ?.latestNote
       ?.occurredAt
-
-  fun filterByPrisonerNumber(prisonerNumber: String): CaseNoteFromApiSummary =
-    CaseNoteFromApiSummary(
-      data.entries
-        .filter { it.key == prisonerNumber }
-        .associate { Pair(it.key, it.value) },
-    )
-
-  fun personIdentifiersWithSessions(): Set<String> {
-    val (type, subtype) =
-      when (AllocationContext.get().policy) {
-        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_SESSION_SUBTYPE
-        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
-      }
-    return data.values
-      .flatten()
-      .filter { it.type == type && it.subType == subtype }
-      .map { it.personIdentifier }
-      .toSet()
-  }
 }
 
 data class RecordedFor(
   val prison: Prison,
   val type: RecordedEventType,
   val lastOccurredAt: LocalDateTime,
+  val policy: AllocationPolicy,
 )

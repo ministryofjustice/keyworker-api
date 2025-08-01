@@ -127,8 +127,7 @@ class PrisonStatisticCalculator(
           "OverSixMonths",
           overSixMonths.associate {
             it.personIdentifier to ISO_LOCAL_DATE.format(it.eligibilityDate!!)
-            "policy" to policy.name
-          },
+          } + ("policy" to policy.name),
           mapOf(),
         )
       }
