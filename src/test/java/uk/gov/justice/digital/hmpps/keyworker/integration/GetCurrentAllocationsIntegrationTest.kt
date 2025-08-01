@@ -148,7 +148,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
-      RecordedEvent(pris, RecordedEventType.SESSION, latestSession),
+      RecordedEvent(pris, RecordedEventType.SESSION, latestSession, AllocationPolicy.KEY_WORKER),
     )
   }
 
@@ -236,7 +236,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
-      RecordedEvent(pris, RecordedEventType.ENTRY, latestSession),
+      RecordedEvent(pris, RecordedEventType.ENTRY, latestSession, AllocationPolicy.PERSONAL_OFFICER),
     )
   }
 

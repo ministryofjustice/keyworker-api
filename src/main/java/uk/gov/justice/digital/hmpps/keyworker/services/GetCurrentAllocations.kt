@@ -80,7 +80,7 @@ class GetCurrentAllocations(
                 staff[it.staffId]!!,
               )
             },
-            recordedEvents.map { RecordedEvent(it.prison.asCodedDescription(), it.type, it.lastOccurredAt) },
+            recordedEvents.map { RecordedEvent(it.prison.asCodedDescription(), it.type, it.lastOccurredAt, it.policy) },
           )
         }
       }
