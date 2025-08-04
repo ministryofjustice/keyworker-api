@@ -51,6 +51,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
+import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
@@ -162,6 +163,14 @@ abstract class IntegrationTest {
     hmppsQueueService.findByQueueId("domaineventsqueue") ?: throw MissingQueueException("domain events queue not found")
   }
 
+  val offenderEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("keyworkerevents") ?: throw MissingTopicException("offender events topic not found")
+  }
+
+  val offenderEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("offenderevents") ?: throw MissingQueueException("offender events queue not found")
+  }
+
   internal fun publishEventToTopic(
     event: Any,
     snsAttributes: Map<String, MessageAttributeValue> = emptyMap(),
@@ -173,6 +182,13 @@ abstract class IntegrationTest {
         else -> throw IllegalArgumentException("Unknown event $event")
       }
     domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event), attributes = snsAttributes)
+  }
+
+  internal fun publishOffenderEvent(
+    eventType: String,
+    event: OffenderEvent,
+  ) {
+    offenderEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
   }
 
   internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl).get()
@@ -313,7 +329,7 @@ abstract class IntegrationTest {
     val token = jwtAuthHelper.createJwt(subject = username, roles = roles)
     return {
       it.setBearerAuth(token)
-      it.setContentType(MediaType.APPLICATION_JSON)
+      it.contentType = MediaType.APPLICATION_JSON
     }
   }
 

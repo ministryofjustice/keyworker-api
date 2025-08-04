@@ -63,14 +63,14 @@ class CaseNoteRetriever(
       }?.toMap() ?: emptyMap()
 
   fun findCaseNoteSummaries(
-    personIdentifiers: Set<String>,
+    prisonCode: String,
     from: LocalDate,
     to: LocalDate,
   ): CaseNoteSummaries =
     caseNoteTypes[AllocationContext.get().policy]
       ?.let {
-        acr.findByPersonIdentifierInAndCaseNoteTypeInAndCreatedAtBetween(
-          personIdentifiers,
+        acr.findByPrisonCodeAndCaseNoteTypeInAndCreatedAtBetween(
+          prisonCode,
           it,
           from.atStartOfDay(),
           to.plusDays(1).atStartOfDay(),

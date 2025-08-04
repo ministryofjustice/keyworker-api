@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.MERGED
 class MergePrisonNumbers(
   private val referenceDataRepository: ReferenceDataRepository,
   private val allocationRepository: AllocationRepository,
-  private val caseNoteService: AllocationCaseNoteService,
 ) {
   fun merge(mergeInformation: MergeInformation) {
     val reason =

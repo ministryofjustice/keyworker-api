@@ -5,42 +5,68 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.services.ReconciliationService
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
+import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.services.DeallocationService
+import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import java.time.LocalDateTime
 
 @Service
 class OffenderEventListener(
-  private val reconciliationService: ReconciliationService,
   private val objectMapper: ObjectMapper,
+  private val deallocationService: DeallocationService,
+  private val nomisService: NomisService,
+  private val ach: AllocationContextHolder,
 ) {
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-offender-event-queue", kind = SpanKind.SERVER)
   fun eventListener(requestJson: String) {
     val (message, messageAttributes) = objectMapper.readValue<Message>(requestJson)
     val eventType = messageAttributes.eventType.value
-    log.info("Processing message of type {}", eventType)
-    val event = objectMapper.readValue<OffenderEvent>(message)
+    val event =
+      objectMapper
+        .readValue<OffenderEvent>(message)
+        .takeIf { it.toAgencyLocationId != null && it.offenderIdDisplay != null }
     when (eventType) {
-      "EXTERNAL_MOVEMENT_RECORD-INSERTED" -> reconciliationService.checkMovementAndDeallocate(event)
+      EXTERNAL_MOVEMENT ->
+        event
+          ?.deallocationReason()
+          ?.also {
+            event.movementDateTime?.also { dt -> ach.setContext(AllocationContext.get().copy(requestAt = dt)) }
+            deallocationService.deallocateExpiredAllocations(
+              event.toAgencyLocationId!!,
+              event.offenderIdDisplay!!,
+              it,
+            )
+          }
     }
   }
 
-  data class OffenderEvent(
-    val bookingId: Long?,
-    val movementSeq: Long?,
-    val offenderIdDisplay: String?,
-    val movementDateTime: LocalDateTime?,
-    val movementType: String?,
-    val movementReasonCode: String?,
-    val directionCode: String?,
-    val escortCode: String?,
-    val fromAgencyLocationId: String?,
-    val toAgencyLocationId: String?,
-  )
+  private fun OffenderEvent.deallocationReason(): DeallocationReason? =
+    when (directionCode to movementType) {
+      "OUT" to "TRN", "IN" to "ADM" -> toAgencyLocationId?.isPrison()?.let { DeallocationReason.TRANSFER }
+      "OUT" to "REL" -> DeallocationReason.RELEASED
+      else -> null
+    }
+
+  private fun String.isPrison(): Boolean? = nomisService.isPrison(this)
+
+  companion object {
+    const val EXTERNAL_MOVEMENT = "EXTERNAL_MOVEMENT_RECORD-INSERTED"
+  }
 }
+
+data class OffenderEvent(
+  val bookingId: Long? = null,
+  val movementSeq: Long? = null,
+  val offenderIdDisplay: String? = null,
+  val movementDateTime: LocalDateTime? = null,
+  val movementType: String? = null,
+  val movementReasonCode: String? = null,
+  val directionCode: String? = null,
+  val escortCode: String? = null,
+  val fromAgencyLocationId: String? = null,
+  val toAgencyLocationId: String? = null,
+)

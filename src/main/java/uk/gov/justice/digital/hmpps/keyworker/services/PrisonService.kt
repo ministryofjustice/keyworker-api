@@ -8,8 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonKeyworkerConfiguration.Companion.NOT_CONFIGURED
 
 @Transactional
 @Service
@@ -46,18 +44,6 @@ data class Prison(
   val prisonId: String,
   val prisonName: String,
 )
-
-private fun PrisonConfiguration?.prisonKeyworkerConfig(): PrisonKeyworkerConfiguration =
-  this?.let {
-    PrisonKeyworkerConfiguration(
-      it.enabled,
-      it.hasPrisonersWithHighComplexityNeeds,
-      it.allowAutoAllocation,
-      it.capacity,
-      it.maximumCapacity,
-      it.frequencyInWeeks,
-    )
-  } ?: NOT_CONFIGURED
 
 private fun PrisonConfiguration.response(): PrisonConfigResponse =
   PrisonConfigResponse(
