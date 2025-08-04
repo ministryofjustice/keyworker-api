@@ -88,7 +88,7 @@ class PrisonStatisticCalculator(
           .findNewAllocationsAt(prisonCode, date, date.plusDays(1), policy.name)
           .associateBy { it.personIdentifier }
 
-      val cnSummaries = caseNoteRetriever.findCaseNoteSummaries(eligiblePrisoners, date, date)
+      val cnSummaries = caseNoteRetriever.findCaseNoteSummaries(prisonCode, date, date)
       val previousRecordedEntries = caseNoteRetriever.findMostRecentCaseNoteBefore(prisonCode, cnSummaries.personIdentifiers(), date)
 
       val activeStaffCount = getActiveStaffCount()

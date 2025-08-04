@@ -18,7 +18,9 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdent
 class PrisonerMovementIntTest : IntegrationTest() {
   @Test
   fun `receiving a movement event where no allocation information exists does not cause a failure`() {
-    publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("NIM", "POR", "OUT", "TRN"))
+    val prisonCode = "POR"
+    prisonMockServer.stubIsPrison(prisonCode, true)
+    publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("NIM", prisonCode, "OUT", "TRN"))
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
   }
@@ -42,9 +44,11 @@ class PrisonerMovementIntTest : IntegrationTest() {
   fun `transfer deallocates allocation`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val prisonCode = "SMO"
+    val toPrisonCode = "TOP"
+    prisonMockServer.stubIsPrison(toPrisonCode, true)
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
-    publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent(prisonCode, "TRN", "OUT", "TRN", alloc.personIdentifier))
+    publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent(prisonCode, toPrisonCode, "OUT", "TRN", alloc.personIdentifier))
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
@@ -57,6 +61,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
   @Test
   fun `does not deallocate if already at new prison`() {
     val prisonCode = "ARD"
+    prisonMockServer.stubIsPrison(prisonCode, true)
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("OTHER", prisonCode, "IN", "ADM", alloc.personIdentifier))

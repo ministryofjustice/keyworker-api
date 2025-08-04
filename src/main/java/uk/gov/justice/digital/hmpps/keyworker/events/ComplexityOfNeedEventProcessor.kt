@@ -27,7 +27,7 @@ class ComplexityOfNeedEventProcessor(
   fun onComplexityChange(message: String) {
     val event = objectMapper.readValue<ComplexityOfNeedChange>(message)
     val complexityLevel = ComplexityOfNeedLevel.valueOf(event.level.uppercase())
-    if (event.active == true || complexityLevel != ComplexityOfNeedLevel.HIGH) {
+    if (event.active != true || complexityLevel != ComplexityOfNeedLevel.HIGH) {
       return
     }
 

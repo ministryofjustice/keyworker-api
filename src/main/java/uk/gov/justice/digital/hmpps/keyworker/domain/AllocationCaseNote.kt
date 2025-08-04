@@ -57,8 +57,8 @@ interface AllocationCaseNoteRepository : JpaRepository<AllocationCaseNote, UUID>
     to: LocalDateTime,
   ): List<AllocationCaseNote>
 
-  fun findByPersonIdentifierInAndCaseNoteTypeInAndCreatedAtBetween(
-    personIdentifiers: Set<String>,
+  fun findByPrisonCodeAndCaseNoteTypeInAndCreatedAtBetween(
+    prisonCode: String,
     caseNoteTypes: Set<CaseNoteTypeKey>,
     from: LocalDateTime,
     to: LocalDateTime,

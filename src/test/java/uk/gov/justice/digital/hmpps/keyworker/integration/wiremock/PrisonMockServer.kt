@@ -7,7 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.integration.GetStaffDetailsIntegrationTest.Companion.staffDetail
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 class PrisonMockServer : WireMockServer(9999) {
@@ -239,21 +238,19 @@ class PrisonMockServer : WireMockServer(9999) {
     )
   }
 
-  fun stubStaffIsKeyworker(
-    staffId: String,
+  fun stubIsPrison(
     prisonCode: String,
-    isKeyworker: Boolean,
-    status: HttpStatus = HttpStatus.OK,
+    flag: Boolean,
   ) {
     stubFor(
       WireMock
-        .get(WireMock.urlPathMatching("/api/staff/$staffId/$prisonCode/roles/KW"))
+        .get(WireMock.urlPathEqualTo("/agencies/$prisonCode"))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(status.value())
-            .withBody(isKeyworker.toString()),
+            .withStatus(HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(flag)),
         ),
     )
   }
