@@ -8,6 +8,7 @@ import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
@@ -47,7 +48,45 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
   }
 
   @Test
-  fun `changing to high complexity of need deallocates`() {
+  fun `changing to high complexity of need deallocates keyworker allocations`() {
+    val prisonCode = "CHD"
+    val username = "H1ghC0"
+    val requestedAt = LocalDateTime.now().minusMinutes(30)
+    val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
+
+    complexityOfNeedMockServer.stubComplexOffenders(
+      setOf(alloc.personIdentifier),
+      listOf(
+        ComplexOffender(
+          alloc.personIdentifier,
+          ComplexityOfNeedLevel.HIGH,
+          sourceUser = username,
+          updatedTimeStamp = requestedAt,
+        ),
+      ),
+    )
+
+    publishEventToTopic(complexityChanged(ComplexityOfNeedLevel.HIGH, alloc.personIdentifier, true))
+
+    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
+
+    val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
+    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.reasonCode)
+    assertThat(deallocated.deallocatedAt?.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(requestedAt?.truncatedTo(ChronoUnit.SECONDS))
+    assertThat(deallocated.deallocatedBy).isEqualTo(username)
+    val affected = setOf(Allocation::class.simpleName!!)
+    verifyAudit(
+      deallocated,
+      deallocated.id,
+      RevisionType.MOD,
+      affected,
+      AllocationContext.get().copy(username, requestedAt),
+    )
+  }
+
+  @Test
+  fun `changing to high complexity of need deallocates personal officer allocations`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val prisonCode = "CHD"
     val username = "H1ghC0"
     val requestedAt = LocalDateTime.now().minusMinutes(30)
