@@ -6,14 +6,17 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.services.DeallocationService
 import java.time.LocalDateTime
 
 @Service
 class OffenderEventListener(
-  private val deallocationService: DeallocationService,
   private val objectMapper: ObjectMapper,
+  private val deallocationService: DeallocationService,
+  private val ach: AllocationContextHolder,
 ) {
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-offender-event-queue", kind = SpanKind.SERVER)
@@ -29,6 +32,7 @@ class OffenderEventListener(
         event
           ?.deallocationReason()
           ?.also {
+            event.movementDateTime?.also { dt -> ach.setContext(AllocationContext.get().copy(requestAt = dt)) }
             deallocationService.deallocateExpiredAllocations(
               event.toAgencyLocationId!!,
               event.offenderIdDisplay!!,
