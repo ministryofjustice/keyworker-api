@@ -37,7 +37,9 @@ class ComplexityOfNeedEventProcessor(
       ?.also {
         it.sourceUser?.also { username ->
           allocationContextHolder.setContext(
-            AllocationContext.get().copy(username = username, requestAt = it.updatedTimeStamp ?: now()),
+            AllocationContext
+              .get()
+              .copy(username = username, requestAt = it.updatedTimeStamp ?: it.createdTimeStamp ?: now()),
           )
         }
       }
