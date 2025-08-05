@@ -101,18 +101,11 @@ tasks {
   }
   test {
     jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
-  }
-
-  register("initialiseDatabase", Test::class) {
-    include("**/InitialiseDatabase.class")
-  }
-
-  test {
-    exclude("**/InitialiseDatabase.class")
-  }
-
-  getByName("initialiseDatabase") {
-    onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
+    if (project.hasProperty("init-db")) {
+      include("**/InitialiseDatabase.class")
+    } else {
+      exclude("**/InitialiseDatabase.class")
+    }
   }
 }
 
