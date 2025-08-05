@@ -43,7 +43,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /batch/update-status {
+        location /staff/returning-from-leave {
           deny all;
           return 401;
         }

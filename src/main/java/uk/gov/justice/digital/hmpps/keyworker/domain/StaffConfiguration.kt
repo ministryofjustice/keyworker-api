@@ -72,6 +72,16 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   fun findAllByStaffIdIn(staffIds: Set<Long>): List<StaffConfiguration>
 
   fun deleteByStaffId(staffId: Long)
+
+  @Query(
+    """
+    select sc.* from staff_configuration sc
+    join reference_data status on status.id = sc.status_id
+    where status.code = 'UNAVAILABLE_ANNUAL_LEAVE' and sc.reactivate_on < :date
+    """,
+    nativeQuery = true,
+  )
+  fun findAllStaffReturningFromLeave(date: LocalDate): List<StaffConfiguration>
 }
 
 fun StaffConfigRepository.getNonActiveStaff(staffIds: Set<Long>) =
