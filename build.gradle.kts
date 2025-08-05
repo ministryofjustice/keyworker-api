@@ -42,7 +42,7 @@ dependencies {
   implementation("com.google.guava:guava:32.1.3-jre")
   implementation("io.opentelemetry:opentelemetry-api:1.52.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.18.1")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.17.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.18.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.3")
   implementation("org.hibernate.orm:hibernate-envers")
