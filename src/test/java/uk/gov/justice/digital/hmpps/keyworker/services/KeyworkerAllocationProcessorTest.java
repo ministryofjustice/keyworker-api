@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import com.google.common.collect.Sets;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.LegacyKeyworkerAllocation;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -150,7 +150,10 @@ class KeyworkerAllocationProcessorTest {
         assertThat(results.size()).isEqualTo(unallocatedOffNos.size());
         assertThat(results).extracting(OffenderLocationDto::getOffenderNo).hasSameElementsAs(unallocatedOffNos);
 
-        verify(repository).findByActiveAndPersonIdentifierIn(true, Sets.union(allocatedOffNos, unallocatedOffNos));
+        final var union = new HashSet<>(allocatedOffNos);
+        union.addAll(unallocatedOffNos);
+
+        verify(repository).findByActiveAndPersonIdentifierIn(true, union);
     }
 
     @Test

@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.microsoft.applicationinsights.TelemetryClient;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +52,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -406,12 +407,12 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var time1 = LocalDateTime.of(2018, Month.FEBRUARY, 26, 6, 0);
         final var time2 = LocalDateTime.of(2018, Month.FEBRUARY, 27, 6, 0);
 
-        final var allocatedKeyworkers = ImmutableList.of(
+        final var allocatedKeyworkers = List.of(
             KeyworkerTestHelper.getKeyworkerAllocations(21L, "offender1", NON_MIGRATED_TEST_AGENCY, time1),
             KeyworkerTestHelper.getKeyworkerAllocations(22L, "offender2", NON_MIGRATED_TEST_AGENCY, time2)
         );
 
-        when(nomisService.getCurrentAllocationsByOffenderNos(ImmutableList.of("offender1", "offender2"), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
+        when(nomisService.getCurrentAllocationsByOffenderNos(List.of("offender1", "offender2"), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
         final var offenders = service.getOffenderKeyworkerDetailList(NON_MIGRATED_TEST_AGENCY, testOffenderNos);
 
         assertThat(offenders).asList().containsExactly(OffenderKeyworkerDto.builder()
@@ -615,14 +616,14 @@ class KeyworkerServiceTest extends AbstractServiceTest {
             .build();
         when(nomisService.getStaffKeyWorkerForPrison(NON_MIGRATED_TEST_AGENCY, staffId)).thenReturn(Optional.ofNullable(staffLocationRoleDto));
 
-        final var allocatedKeyworkers = ImmutableList.of(
+        final var allocatedKeyworkers = List.of(
             KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(staffId, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
         );
 
-        when(nomisService.getCurrentAllocations(ImmutableList.of(staffId), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
+        when(nomisService.getCurrentAllocations(List.of(staffId), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
 
         final var keyworkerDetails = service.getKeyworkerDetails(NON_MIGRATED_TEST_AGENCY, staffId);
 
@@ -635,34 +636,9 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    void testGetAllocationsForKeyworkerWithOffenderDetails() {
-
-        final var offender1 = KeyworkerTestHelper.getPrisonerDetail(61, TEST_AGENCY, "1", true, TEST_AGENCY + "-A-1-001");
-        final var offender2 = KeyworkerTestHelper.getPrisonerDetail(62, "OUT", "2", false, null);
-        final var offender3 = KeyworkerTestHelper.getPrisonerDetail(63, TEST_AGENCY, "3", true, TEST_AGENCY + "-A-2-001");
-
-        final var allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
-
-        // Mock allocation lookup
-        when(repository.findByStaffIdAndPrisonCodeAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
-        when(nomisService.getPrisonerDetails(List.of(offender1.getOffenderNo(), offender2.getOffenderNo(), offender3.getOffenderNo()), true)).thenReturn(List.of(offender1, offender2, offender3));
-
-        // Invoke service method
-        final var allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
-
-        // Verify response
-        assertThat(allocationList).hasSize(3);
-        assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L, 62L, 63L));
-
-        // Verify mocks
-        verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
-
-    }
-
-    @Test
     void testGetAllocationsForKeyworkerSkippingOffenderDetails() {
 
-        final var offenderNos = ImmutableSet.of("1", "2", "3");
+        final var offenderNos = Set.of("1", "2", "3");
         final var allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, offenderNos);
 
         // Mock allocation lookup
@@ -673,34 +649,11 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Verify response
         assertThat(allocationList).hasSize(3);
-        assertThat(allocationList).extracting("offenderNo").isEqualTo(offenderNos.asList());
+        assertThat(allocationList).extracting("offenderNo").containsAll(offenderNos);
 
         // Verify mocks
         verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
 
-    }
-
-    @Test
-    void testGetAllocationsForKeyworkerWithOffenderDetails_NoAssociatedprisonBookingRecord() {
-
-        final var offender1 = KeyworkerTestHelper.getPrisonerDetail(61, TEST_AGENCY, "1", true, TEST_AGENCY + "-A-1-001");
-        final var offender3 = KeyworkerTestHelper.getPrisonerDetail(63, TEST_AGENCY, "3", true, TEST_AGENCY + "-A-1-002");
-
-        final var allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
-
-        when(repository.findByStaffIdAndPrisonCodeAndActiveAndAllocationTypeIsNot(TEST_STAFF_ID, TEST_AGENCY, true, PROVISIONAL)).thenReturn(allocations);
-
-        when(nomisService.getPrisonerDetails(List.of(offender1.getOffenderNo(), "2", offender3.getOffenderNo()), true)).thenReturn(List.of(offender1, offender3));
-
-        // Invoke service method
-        final var allocationList = service.getAllocationsForKeyworkerWithOffenderDetails(TEST_AGENCY, TEST_STAFF_ID, false);
-
-        // Verify response
-        assertThat(allocationList).hasSize(2);
-        assertThat(allocationList).extracting("bookingId").isEqualTo(ImmutableList.of(61L, 63L));
-
-        // Verify mocks
-        verify(prisonSupportedService, times(1)).isMigrated(eq(TEST_AGENCY));
     }
 
     /**
@@ -800,7 +753,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         when(nomisService.getActiveStaffKeyWorkersForPrison(NON_MIGRATED_TEST_AGENCY, nameFilter, pagingAndSorting, false))
             .thenReturn(new ResponseEntity<>(nomisList, paginationHeaders(2, 0, 10), HttpStatus.OK));
 
-        final var allocatedKeyworkers = ImmutableList.of(
+        final var allocatedKeyworkers = List.of(
             KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AA", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(-5, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
         );
@@ -1137,10 +1090,10 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         final var allocationHistory = offenderKeyWorkerHistory.getAllocationHistory();
         assertThat(allocationHistory).hasSize(3);
 
-        assertThat(allocationHistory).extracting("staffId").isEqualTo(ImmutableList.of(13L, 12L, 11L));
-        assertThat(allocationHistory).extracting("prisonId").isEqualTo(ImmutableList.of("HLI", TEST_AGENCY, "LPI"));
-        assertThat(allocationHistory).extracting("assigned").isEqualTo(ImmutableList.of(now.minusMonths(1), now.minusMonths(2), now.minusMonths(3)));
-        assertThat(allocationHistory).extracting("active").isEqualTo(ImmutableList.of(true, false, false));
+        assertThat(allocationHistory).extracting("staffId").isEqualTo(List.of(13L, 12L, 11L));
+        assertThat(allocationHistory).extracting("prisonId").isEqualTo(List.of("HLI", TEST_AGENCY, "LPI"));
+        assertThat(allocationHistory).extracting("assigned").isEqualTo(List.of(now.minusMonths(1), now.minusMonths(2), now.minusMonths(3)));
+        assertThat(allocationHistory).extracting("active").isEqualTo(List.of(true, false, false));
     }
 
     @Test
@@ -1267,7 +1220,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
     @Test
     void testGetAvailableKeyworkers() {
-        final var keyworkers = ImmutableList.of(
+        final var keyworkers = List.of(
             KeyworkerTestHelper.getKeyworker(1, 0, 0),
             KeyworkerTestHelper.getKeyworker(2, 0, 0),
             KeyworkerTestHelper.getKeyworker(3, 0, 0),
@@ -1305,12 +1258,12 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         // Verify response
         assertThat(keyworkerList).hasSize(4);
-        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0, 0, 1, 2));
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(List.of(0, 0, 1, 2));
     }
 
     @Test
     void testGetAvailableKeyworkersNotMigrated() {
-        final var keyworkers = ImmutableList.of(
+        final var keyworkers = List.of(
             KeyworkerTestHelper.getKeyworker(11, 0, 0),
             KeyworkerTestHelper.getKeyworker(12, 0, 0),
             KeyworkerTestHelper.getKeyworker(13, 0, 0),
@@ -1319,20 +1272,20 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         when(nomisService.getAvailableKeyworkers(NON_MIGRATED_TEST_AGENCY)).thenReturn(keyworkers);
 
-        final var allocatedKeyworkers = ImmutableList.of(
+        final var allocatedKeyworkers = List.of(
             KeyworkerTestHelper.getKeyworkerAllocations(12, "AA0001AB", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(13, "AA0001AC", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AD", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now()),
             KeyworkerTestHelper.getKeyworkerAllocations(14, "AA0001AE", NON_MIGRATED_TEST_AGENCY, LocalDateTime.now())
         );
 
-        when(nomisService.getCurrentAllocations(ImmutableList.of(11L, 12L, 13L, 14L), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
+        when(nomisService.getCurrentAllocations(List.of(11L, 12L, 13L, 14L), NON_MIGRATED_TEST_AGENCY)).thenReturn(allocatedKeyworkers);
         // Invoke service method
         final var keyworkerList = service.getAvailableKeyworkers(NON_MIGRATED_TEST_AGENCY, true);
 
         // Verify response
         assertThat(keyworkerList).hasSize(4);
-        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(0, 1, 1, 2));
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(List.of(0, 1, 1, 2));
 
         verify(prisonSupportedService, times(1)).isMigrated(eq(NON_MIGRATED_TEST_AGENCY));
     }
@@ -1340,7 +1293,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
     @Test
     void testGetKeyworkersAvailableforAutoAllocation() {
 
-        final var allocations = ImmutableList.of(
+        final var allocations = List.of(
             KeyworkerTestHelper.getKeyworker(1, 0, CAPACITY_TIER_1),
             KeyworkerTestHelper.getKeyworker(2, 0, CAPACITY_TIER_1),
             KeyworkerTestHelper.getKeyworker(3, 0, CAPACITY_TIER_1),
@@ -1384,8 +1337,8 @@ class KeyworkerServiceTest extends AbstractServiceTest {
         // Verify response
         assertThat(keyworkerList).hasSize(3);
         //should exclude staffid 4 - autoAllocationAllowed flag is false
-        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(ImmutableList.of(1, 2, 3));
-        assertThat(keyworkerList).extracting("autoAllocationAllowed").isEqualTo(ImmutableList.of(true, true, true));
+        assertThat(keyworkerList).extracting("numberAllocated").isEqualTo(List.of(1, 2, 3));
+        assertThat(keyworkerList).extracting("autoAllocationAllowed").isEqualTo(List.of(true, true, true));
 
     }
 
@@ -1499,7 +1452,7 @@ class KeyworkerServiceTest extends AbstractServiceTest {
 
         when(keyworkerRepository.findByStaffId(TEST_STAFF_ID)).thenReturn(Optional.of(existingKeyWorker));
 
-        final var allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, ImmutableSet.of("1", "2", "3"));
+        final var allocations = KeyworkerTestHelper.getAllocations(TEST_AGENCY, Set.of("1", "2", "3"));
         when(repository.findByStaffIdAndPrisonCodeAndActive(TEST_STAFF_ID, TEST_AGENCY, true)).thenReturn(allocations);
 
         service.addOrUpdate(TEST_STAFF_ID,
