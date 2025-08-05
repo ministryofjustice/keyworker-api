@@ -14,7 +14,7 @@ on:
       schemaspy_version:
         description: Schema Spy version
         type: string
-        default: '7.0.0'
+        default: '6.2.4'
       postgres_driver_version:
         description: Postgres version
         type: string
