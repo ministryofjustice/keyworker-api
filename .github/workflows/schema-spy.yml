@@ -14,11 +14,11 @@ on:
       schemaspy_version:
         description: Schema Spy version
         type: string
-        default: '7.0.0'
+        default: '6.2.4'
       postgres_driver_version:
         description: Postgres version
         type: string
-        default: '42.7.11'
+        default: '42.7.7'
       exclude:
         description: Regex of tables to be excluded
         type: string
@@ -30,7 +30,7 @@ on:
       init_db_cli:
         description: Command line to initialise database
         type: string
-        default: './gradlew check'
+        default: './gradlew -Pinit-db=true test --tests uk.gov.justice.digital.hmpps.keyworker.integration.InitialiseDatabase'
       database_name:
         description: Database name
         type: string

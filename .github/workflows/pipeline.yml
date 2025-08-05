@@ -52,7 +52,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     with:
       docker_compose_file: 'docker-compose-schema-spy.yml'
-      init_db_cli: './gradlew initialiseDatabase'
       database_name: 'keyworker-api-db'
       database_schema: 'public'
       database_user: 'admin'
