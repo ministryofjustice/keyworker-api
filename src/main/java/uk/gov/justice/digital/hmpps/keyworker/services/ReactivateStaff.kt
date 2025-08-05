@@ -18,7 +18,7 @@ class ReactivateStaff(
 ) {
   fun returningFromLeave(date: LocalDate) {
     staffConfigRepository
-      .findAllStaffReturningFromLeave(date.plusDays(1))
+      .findAllStaffReturningFromLeave(date)
       .takeIf { it.isNotEmpty() }
       ?.run {
         val activeStatus = referenceDataRepository.getReferenceData(STAFF_STATUS of ACTIVE.name)

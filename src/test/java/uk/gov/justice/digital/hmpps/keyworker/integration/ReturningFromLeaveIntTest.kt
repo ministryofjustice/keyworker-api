@@ -15,7 +15,7 @@ import java.time.LocalDate
 class ReturningFromLeaveIntTest : IntegrationTest() {
   @ParameterizedTest
   @EnumSource(AllocationPolicy::class)
-  fun `returning from leave does update due to return tomorrow`(policy: AllocationPolicy) {
+  fun `returning from leave does not update due to return tomorrow`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy))
     val config =
       givenStaffConfig(

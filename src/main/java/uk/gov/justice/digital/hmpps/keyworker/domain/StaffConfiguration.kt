@@ -77,7 +77,7 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
     """
     select sc.* from staff_configuration sc
     join reference_data status on status.id = sc.status_id
-    where status.code = 'UNAVAILABLE_ANNUAL_LEAVE' and sc.reactivate_on < :date
+    where status.code ='UNAVAILABLE_ANNUAL_LEAVE' and sc.reactivate_on <= :date
     """,
     nativeQuery = true,
   )
