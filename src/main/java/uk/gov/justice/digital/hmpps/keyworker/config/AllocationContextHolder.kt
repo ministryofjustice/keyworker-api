@@ -9,6 +9,10 @@ class AllocationContextHolder {
     AllocationContextHolder.context.set(context)
   }
 
+  fun clearContext() {
+    context.remove()
+  }
+
   companion object {
     private var context: ThreadLocal<AllocationContext> =
       ThreadLocal.withInitial { AllocationContext(SYSTEM_USERNAME) }

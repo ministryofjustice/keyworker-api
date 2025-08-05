@@ -1,27 +1,27 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "app.fullname" . }}-update-status
+  name: {{ include "app.fullname" . }}-staff-returning-from-leave
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
   schedule: "30 0 * * *"
   concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 2
   startingDeadlineSeconds: 600
-  successfulJobsHistoryLimit: 5
+  successfulJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:
         metadata:
           labels:
-            cron-job-name: updatestatus-cronjob
+            cron-job-name: staff-returning-from-leave-cron-job
         spec:
           containers:
-            - name: updatestatus-keyworker-api
+            - name: staff-returning-from-leave
               image: ghcr.io/ministryofjustice/hmpps-devops-tools
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPOST http://keyworker-api/batch/update-status
+                - curl --retry 2 -XPOST http://keyworker-api/staff/returning-from-leave
           restartPolicy: Never

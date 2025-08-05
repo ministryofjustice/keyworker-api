@@ -6,6 +6,7 @@ import jakarta.validation.ValidationException
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
+import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy.KEY_WORKER
@@ -19,8 +20,7 @@ class KeyworkerContextConfiguration(
       .addInterceptor(keyworkerContextInterceptor)
       .addPathPatterns("/**")
       .excludePathPatterns(
-        "/batch/key-worker-recon",
-        "/batch/update-status",
+        "/staff/returning-from-leave",
         "/queue-admin/retry-all-dlqs",
         "/prison-statistics/calculate",
         "/health/**",
@@ -48,6 +48,16 @@ class KeyworkerContextInterceptor(
     )
 
     return true
+  }
+
+  override fun postHandle(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    handler: Any,
+    modelAndView: ModelAndView?,
+  ) {
+    ach.clearContext()
+    super.postHandle(request, response, handler, modelAndView)
   }
 
   private fun getUsername(): String =
