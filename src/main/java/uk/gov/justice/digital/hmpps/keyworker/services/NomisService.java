@@ -28,8 +28,6 @@ public interface NomisService {
     String URI_AVAILABLE_KEYWORKERS = "/key-worker/{agencyId}/available";
     String URI_KEY_WORKER_GET_ALLOCATION_HISTORY = "/key-worker/{agencyId}/allocationHistory";
     String GET_STAFF_IN_SPECIFIC_PRISON = "/staff/roles/{agencyId}/role/KW";
-    String CASE_NOTE_USAGE = "/case-notes/staff-usage";
-    String CASE_NOTE_USAGE_FOR_PRISONERS = "/case-notes/usage";
     String URI_PRISONER_LOOKUP = "/prisoners";
     String URI_CURRENT_ALLOCATIONS = "/key-worker/{agencyId}/current-allocations";
     String URI_CURRENT_ALLOCATIONS_BY_OFFENDERS = "/key-worker/{agencyId}/current-allocations/offenders";
@@ -63,8 +61,6 @@ public interface NomisService {
     List<CaseNoteUsageDto> getCaseNoteUsage(String prisonId, List<Long> staffIds, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate);
 
     List<CaseNoteUsagePrisonersDto> getCaseNoteUsageForPrisoners(String prisonId, List<String> offenderNos, Long staffId, String caseNoteType, String caseNoteSubType, LocalDate fromDate, LocalDate toDate);
-
-    List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(final String prisonId, final String caseNoteType, final String caseNoteSubType, final LocalDate fromDate, final LocalDate toDate);
 
     List<KeyworkerAllocationDetailsDto> getCurrentAllocations(List<Long> staffIds, String agencyId);
 
