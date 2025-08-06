@@ -68,8 +68,7 @@ public class KeyworkerStatsService {
 
         if (!prisonerNosList.isEmpty()) {
             final var caseNoteSummary = new KeyWorkingCaseNoteSummary(
-                    null,
-                    prisonerNosList,
+                prisonerNosList,
                     range.startDate,
                     range.endDate,
                     staffId);
@@ -335,15 +334,11 @@ public class KeyworkerStatsService {
         private final int entriesDone;
         private final List<CaseNoteUsagePrisonersDto> usageCounts;
 
-        KeyWorkingCaseNoteSummary(final String prisonId, final List<String> offenderNos,
+        KeyWorkingCaseNoteSummary(final List<String> offenderNos,
                                   final LocalDate start, final LocalDate end,
                                   final Long staffId) {
 
-            if (prisonId != null) {
-                usageCounts = nomisService.getCaseNoteUsageByPrison(prisonId, KEYWORKER_CASENOTE_TYPE, null, start, end);
-            } else {
-                usageCounts = nomisService.getCaseNoteUsageForPrisoners(null, offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
-            }
+            usageCounts = nomisService.getCaseNoteUsageForPrisoners(null, offenderNos, staffId, KEYWORKER_CASENOTE_TYPE, null, start, end);
             final var usageGroupedBySubType = usageCounts.stream()
                     .collect(Collectors.groupingBy(CaseNoteUsagePrisonersDto::getCaseNoteSubType,
                             Collectors.summingInt(CaseNoteUsagePrisonersDto::getNumCaseNotes)));

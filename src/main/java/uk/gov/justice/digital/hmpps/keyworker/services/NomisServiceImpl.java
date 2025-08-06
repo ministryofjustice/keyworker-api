@@ -11,14 +11,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import uk.gov.justice.digital.hmpps.keyworker.dto.Agency;
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationHistoryDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.BookingIdentifier;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsageDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseNoteUsagePrisonersRequest;
-import uk.gov.justice.digital.hmpps.keyworker.dto.CaseloadUpdate;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerDto;
-import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderBooking;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderKeyworkerDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.OffenderLocationDto;
 import uk.gov.justice.digital.hmpps.keyworker.dto.PagingAndSortingDto;
@@ -42,7 +38,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static uk.gov.justice.digital.hmpps.keyworker.services.RestCallHelpersKt.queryParamsOf;
@@ -69,11 +64,6 @@ public class NomisServiceImpl implements NomisService {
         };
 
     private static final ParameterizedTypeReference<List<KeyworkerDto>> KEYWORKER_DTO_LIST =
-        new ParameterizedTypeReference<>() {
-        };
-
-    private static final ParameterizedTypeReference<List<CaseNoteUsagePrisonersDto>>
-        CASE_NOTE_USAGE_PRISONERS_DTO_LIST =
         new ParameterizedTypeReference<>() {
         };
 
@@ -382,40 +372,6 @@ public class NomisServiceImpl implements NomisService {
                     );
                 })
             ).toList();
-    }
-
-    @Override
-    public List<CaseNoteUsagePrisonersDto> getCaseNoteUsageByPrison(
-        final String prisonId,
-        final String caseNoteType,
-        final String caseNoteSubType,
-        final LocalDate fromDate,
-        final LocalDate toDate
-    ) {
-        log.info(
-            "Getting case note details for prisoner list of type {} sub type {}, from {}, to {}",
-            caseNoteType,
-            caseNoteSubType,
-            fromDate,
-            toDate
-        );
-
-        final var body = CaseNoteUsagePrisonersRequest.builder()
-            .agencyId(prisonId)
-            .type(caseNoteType)
-            .subType(caseNoteSubType)
-            .fromDate(fromDate)
-            .toDate(toDate)
-            .build();
-
-        return restCallHelper.post(
-            CASE_NOTE_USAGE_FOR_PRISONERS,
-            queryParamsOf(),
-            uriVariablesOf(),
-            body,
-            CASE_NOTE_USAGE_PRISONERS_DTO_LIST,
-            true
-        );
     }
 
     @Override
