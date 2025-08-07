@@ -251,6 +251,15 @@ interface AllocationRepository : JpaRepository<Allocation, UUID> {
     nativeQuery = true,
   )
   fun findActiveForAllPolicies(personIdentifier: String): List<Allocation>
+
+  @Query(
+    """
+        select a.staffId as staffId, count(a) as count from Allocation a
+        where a.staffId in :staffIds and a.isActive = true
+        group by a.staffId
+    """,
+  )
+  fun findAllocationCountForStaff(staffIds: Set<Long>): List<StaffIdAllocationCount>
 }
 
 interface NewAllocation {
@@ -264,4 +273,9 @@ interface AllocationSummary {
   val activeCount: Int
   val totalCount: Int
   val staffId: Long?
+}
+
+interface StaffIdAllocationCount {
+  val staffId: Long
+  val count: Int
 }

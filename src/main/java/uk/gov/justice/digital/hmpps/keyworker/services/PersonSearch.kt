@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
@@ -39,9 +40,14 @@ class PersonSearch(
           .associateBy { it.staffId }
       }
 
+    val staffAllocationCount =
+      staff.values.map { it.staffId }.toSet().takeIf { it.isNotEmpty() }?.let { ids ->
+        allocationRepository.findAllocationCountForStaff(ids).associate { it.staffId to it.count }
+      } ?: emptyMap()
+
     return PersonSearchResponse(
       prisoners.content.mapNotNull {
-        it.summary(request.excludeActiveAllocations, summaries::get, staff::get)
+        it.summary(request.excludeActiveAllocations, summaries::get, staff::get, staffAllocationCount::get)
       },
     )
   }
@@ -50,6 +56,7 @@ class PersonSearch(
     excludeActive: Boolean,
     summary: (String) -> AllocationSummary?,
     staff: (Long) -> StaffSummary?,
+    allocationCount: (Long) -> Int?,
   ): PrisonerSummary? {
     val summary = summary(prisonerNumber)
     return if (excludeActive && (summary?.activeCount ?: 0) > 0) {
@@ -62,10 +69,12 @@ class PersonSearch(
         cellLocation,
         complexityOfNeedLevel == HIGH,
         (summary?.totalCount ?: 0) > 0,
-        summary?.staffId?.let { staff(it) },
+        summary?.staffId?.let { staff(it)?.withCount(allocationCount(it) ?: 0) },
         alerts.getRelevantAlertCodes(),
         alerts.getRemainingAlertCount(),
       )
     }
   }
 }
+
+private fun StaffSummary.withCount(count: Int) = StaffAllocationCount(staffId, firstName, lastName, count)
