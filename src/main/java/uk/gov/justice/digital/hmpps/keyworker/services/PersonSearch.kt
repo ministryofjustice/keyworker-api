@@ -41,9 +41,9 @@ class PersonSearch(
       }
 
     val staffAllocationCount =
-      allocationRepository
-        .findAllocationCountForStaff(staff.values.map { it.staffId }.toSet())
-        .associate { it.staffId to it.count }
+      staff.values.map { it.staffId }.toSet().takeIf { it.isNotEmpty() }?.let { ids ->
+        allocationRepository.findAllocationCountForStaff(ids).associate { it.staffId to it.count }
+      } ?: emptyMap()
 
     return PersonSearchResponse(
       prisoners.content.mapNotNull {
