@@ -17,7 +17,7 @@ data class PrisonerSummary(
   val location: String?,
   val hasHighComplexityOfNeeds: Boolean,
   val hasAllocationHistory: Boolean,
-  val staffMember: StaffSummary?,
+  val staffMember: StaffAllocationCount?,
   val relevantAlertCodes: List<String>,
   val remainingAlertCount: Int,
 )

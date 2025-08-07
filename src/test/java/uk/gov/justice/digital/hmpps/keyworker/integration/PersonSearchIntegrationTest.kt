@@ -57,19 +57,24 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     )
 
     val staffIds = (0..6).map { newId() }
-
+    val staffCountMap = staffIds.associateWith { 0 }.toMutableMap()
     val allocations =
       prisoners.content.mapIndexedNotNull { index, p ->
         if (index == 0) {
           null
         } else {
           val activeAllocation = index % 3 != 0
+          val staffId = staffIds.random()
+          val type = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO
+          if (activeAllocation && type == AllocationType.AUTO) {
+            staffCountMap[staffId] = staffCountMap[staffId]!! + 1
+          }
           givenAllocation(
             staffAllocation(
               p.prisonerNumber,
               prisonCode,
-              staffIds.random(),
-              allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
+              staffId,
+              allocationType = type,
               active = activeAllocation,
               deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
               deallocatedBy = if (activeAllocation) null else "DA$index",
@@ -84,7 +89,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         .filter { it.isActive && it.allocationType != AllocationType.PROVISIONAL }
         .map { it.staffId }
         .distinct()
-        .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
+        .map { StaffSummary(it, "Allocation$it", "Staff$it") }
     prisonMockServer.stubStaffSummaries(summaries)
 
     val response =
@@ -114,8 +119,14 @@ class PersonSearchIntegrationTest : IntegrationTest() {
       assertThat(hasAllocationHistory).isTrue
       assertThat(staffMember).isNotNull
     }
-    assertThat(response.content.get(0).relevantAlertCodes).containsExactlyInAnyOrder("RNO121")
-    assertThat(response.content.get(0).remainingAlertCount).isEqualTo(1)
+    assertThat(response.content.first().relevantAlertCodes).containsExactlyInAnyOrder("RNO121")
+    assertThat(response.content.first().remainingAlertCount).isEqualTo(1)
+
+    response.content.forEach { ps ->
+      ps.staffMember?.also {
+        assertThat(it.allocationCount).isEqualTo(staffCountMap[it.staffId])
+      }
+    }
   }
 
   @ParameterizedTest
@@ -156,7 +167,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         .filter { it.isActive && it.allocationType != AllocationType.PROVISIONAL }
         .map { it.staffId }
         .distinct()
-        .map { StaffSummary(it, "Keyworker$it", "Staff$it") }
+        .map { StaffSummary(it, "Allocation$it", "Staff$it") }
     prisonMockServer.stubStaffSummaries(summaries)
 
     val response =
@@ -199,7 +210,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staffIds = (0..6).map { newId() }
-    val summaries = staffIds.map { StaffSummary(it, "Keyworker$it", "Staff$it") }
+    val summaries = staffIds.map { StaffSummary(it, "Allocation$it", "Staff$it") }
     prisonMockServer.stubStaffSummaries(summaries)
 
     prisoners.content.mapIndexed { index, p ->
