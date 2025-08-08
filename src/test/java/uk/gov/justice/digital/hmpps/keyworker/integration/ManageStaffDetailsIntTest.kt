@@ -260,7 +260,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    val staffRole = requireNotNull(staffRoleRepository.findRoleIncludingInactive(prisonCode, staffId))
+    val staffRole = requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
     assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(42))
     assertThat(staffRole.scheduleType.key.code).isEqualTo("PT")
     assertThat(staffRole.toDate).isNull()
@@ -375,7 +375,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     if (policy.nomisUseRoleCode != null) {
       verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
     } else {
-      val staffRole = requireNotNull(staffRoleRepository.findRoleIncludingInactive(prisonCode, staffId))
+      val staffRole = requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
       assertThat(staffRole.toDate).isEqualTo(now())
       verifyAudit(
         staffRole,
@@ -391,7 +391,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
     allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
-      assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
+      assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(now())
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
     }
   }

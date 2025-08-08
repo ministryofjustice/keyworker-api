@@ -31,6 +31,9 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer
+import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setLocalStackProperties
+import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNoteRepository
@@ -75,9 +78,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
-import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer
-import uk.gov.justice.hmpps.casenotes.config.container.LocalStackContainer.setLocalStackProperties
-import uk.gov.justice.hmpps.casenotes.config.container.PostgresContainer
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException

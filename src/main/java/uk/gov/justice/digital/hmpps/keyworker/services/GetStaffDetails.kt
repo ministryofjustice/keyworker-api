@@ -66,7 +66,7 @@ class GetStaffDetails(
         }
         addAll(
           staffRoleRepository
-            .findByPrisonCodeAndStaffIdAndPolicyIn(
+            .findByPrisonCodeAndStaffIdAllPolicies(
               prisonCode,
               staffId,
             ).mapNotNull {
