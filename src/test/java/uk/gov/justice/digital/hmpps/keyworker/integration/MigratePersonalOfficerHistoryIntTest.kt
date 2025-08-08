@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
@@ -41,6 +42,17 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
       .exchange()
       .expectStatus()
       .isForbidden
+  }
+
+  @Test
+  fun `202 accepted with correct role`() {
+    webTestClient
+      .post()
+      .uri(INIT_MIGRATION_URL, "NE1")
+      .headers(setHeaders(username = "keyworker-ui", roles = listOf(Roles.ALLOCATIONS_UI)))
+      .exchange()
+      .expectStatus()
+      .isAccepted
   }
 
   @Test
