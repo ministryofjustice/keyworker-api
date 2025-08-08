@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
@@ -19,6 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisone
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import java.math.BigDecimal
 
 @Service
 class MigratePersonalOfficers(
@@ -28,6 +31,7 @@ class MigratePersonalOfficers(
   private val prisonerSearch: PrisonerSearchClient,
   private val referenceDataRepository: ReferenceDataRepository,
   private val allocationRepository: AllocationRepository,
+  private val staffRoleRepository: StaffRoleRepository,
   private val telemetryClient: TelemetryClient,
 ) {
   fun handle(event: HmppsDomainEvent<PersonalOfficerMigrationInformation>) =
@@ -47,7 +51,7 @@ class MigratePersonalOfficers(
               ?.let { prisonApi.getPersonMovements(pi, it.assigned.toLocalDate()) } ?: emptyList()
           }.groupBy { it.offenderNo }
 
-      ach.setContext(AllocationContext.Companion.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+      ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
       val results =
         transactionTemplate.execute {
           val rd =
@@ -59,6 +63,8 @@ class MigratePersonalOfficers(
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.MISSING.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.TRANSFER.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.RELEASED.reasonCode,
+                  ReferenceDataDomain.STAFF_POSITION of "PRO",
+                  ReferenceDataDomain.STAFF_SCHEDULE_TYPE of "FT",
                 ),
               ).associateBy { (it.domain to it.code) }
 
@@ -78,20 +84,33 @@ class MigratePersonalOfficers(
                 )
               }.flatMap { it.allocations.map { a -> a.asAllocation(allocReason, deallocReason) } }
 
-          allocationRepository.saveAll(allocations)
+          val staffAllocations = allocations.filter { it.isActive }.groupBy { it.staffId }
+          val staffRoles =
+            staffAllocations.keys.map {
+              StaffRole(
+                rd[ReferenceDataDomain.STAFF_POSITION to "PRO"]!!,
+                rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE to "FT"]!!,
+                BigDecimal(35),
+                staffAllocations[it]!!.minOf { a -> a.allocatedAt }.toLocalDate(),
+                null,
+                prisonCode,
+                it,
+              )
+            }
+
+          allocationRepository.saveAll(allocations) to staffRoleRepository.saveAll(staffRoles)
         }!!
 
       telemetryClient.trackEvent(
         "InitialMigrationComplete",
         mapOf(
           "policy" to AllocationPolicy.PERSONAL_OFFICER.name,
-          "totalMigrationCount" to results.size.toString(),
-          "activeCount" to results.count { it.isActive }.toString(),
-          "deallocatedCount" to results.count { !it.isActive }.toString(),
+          "totalMigrationCount" to results.first.size.toString(),
+          "activeCount" to results.first.count { it.isActive }.toString(),
+          "deallocatedCount" to results.first.count { !it.isActive }.toString(),
           "notResidentCount" to
-            results
-              .count { it.deallocationReason?.code == DeallocationReason.MISSING.reasonCode }
-              .toString(),
+            results.first.count { it.deallocationReason?.code == DeallocationReason.MISSING.reasonCode }.toString(),
+          "staffRolesAssigned" to results.second.size.toString(),
         ),
         null,
       )

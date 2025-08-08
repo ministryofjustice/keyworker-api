@@ -69,20 +69,21 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     """,
     nativeQuery = true,
   )
-  fun findByPrisonCodeAndStaffIdAndPolicyIn(
+  fun findByPrisonCodeAndStaffIdAllPolicies(
     prisonCode: String,
     staffId: Long,
   ): List<StaffRole>
 
   @Query(
     """
-        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId
+        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and policy_code = :policyCode
     """,
     nativeQuery = true,
   )
-  fun findRoleIncludingInactive(
+  fun findRoleIncludingInactiveForPolicy(
     prisonCode: String,
     staffId: Long,
+    policyCode: String,
   ): StaffRole?
 }
 

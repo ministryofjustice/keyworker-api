@@ -68,6 +68,10 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
         allocations.verifyTimeline()
         assertThat(allocations.first().isActive).isTrue()
       }
+
+    staffRoleRepository.findAllByPrisonCodeAndStaffIdIn(prisonCode, historicAllocations.map { it.staffId }.toSet()).also {
+      assertThat(it.size).isEqualTo(2)
+    }
   }
 
   @Test

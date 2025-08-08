@@ -110,7 +110,7 @@ class StaffConfigManager(
           }
         } ?: run {
           val srr = request.staffRole.get()!!
-          staffRoleRepository.findRoleIncludingInactive(prisonCode, staffId)?.apply {
+          staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.apply {
             srr.position.ifPresent {
               this.position = referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_POSITION of it)
             }
@@ -226,7 +226,7 @@ class StaffConfigManager(
     val policy = AllocationContext.get().policy
     return request.staffRole.map {
       when (policy.nomisUseRoleCode) {
-        null -> staffRoleRepository.findRoleIncludingInactive(prisonCode, staffId)?.toModel()
+        null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
         else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
       }
     }
