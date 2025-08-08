@@ -55,7 +55,7 @@ class MigrationController(
     attributes: Map<String, MessageAttributeValue> = emptyMap(),
     retryPolicy: RetryPolicy = DEFAULT_RETRY_POLICY,
     backOffPolicy: BackOffPolicy = DEFAULT_BACKOFF_POLICY,
-  ): SendMessageResponse {
+  ) {
     val retryTemplate =
       RetryTemplate().apply {
         setRetryPolicy(retryPolicy)
@@ -64,10 +64,11 @@ class MigrationController(
     val sendRequest =
       SendMessageRequest
         .builder()
+        .queueUrl(queueUrl)
         .messageBody(objectMapper.writeValueAsString(event))
         .messageAttributes(eventTypeSqsMap(event.eventType) + attributes)
         .build()
 
-    return retryTemplate.execute<SendMessageResponse, Exception> { sqsClient.sendMessage(sendRequest).get() }
+    retryTemplate.execute<SendMessageResponse, Exception> { sqsClient.sendMessage(sendRequest).get() }
   }
 }
