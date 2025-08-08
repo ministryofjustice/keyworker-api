@@ -1,4 +1,4 @@
-package uk.gov.justice.hmpps.casenotes.config.container
+package uk.gov.justice.digital.hmpps.keyworker.config.container
 
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.PostgreSQLContainer
