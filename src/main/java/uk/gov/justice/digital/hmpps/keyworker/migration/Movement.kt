@@ -11,9 +11,9 @@ data class Movement(
   val movementTime: LocalTime,
   val fromAgency: String?,
   val toAgency: String?,
-  val movementType: String,
-  val movementReasonCode: String,
-  val directionCode: String,
+  val movementType: String?,
+  val movementReasonCode: String?,
+  val directionCode: String?,
 ) {
   val occurredAt: LocalDateTime = lazy { LocalDateTime.of(movementDate, movementTime) }.value
   val deallocationReason: DeallocationReason? =
