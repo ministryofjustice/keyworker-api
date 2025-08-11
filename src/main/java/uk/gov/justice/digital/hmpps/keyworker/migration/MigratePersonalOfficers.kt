@@ -1,8 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.migration
 
 import com.microsoft.applicationinsights.TelemetryClient
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -15,8 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
-import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonalOfficerMigrationInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
@@ -34,9 +35,9 @@ class MigratePersonalOfficers(
   private val staffRoleRepository: StaffRoleRepository,
   private val telemetryClient: TelemetryClient,
 ) {
-  fun handle(event: HmppsDomainEvent<PersonalOfficerMigrationInformation>) =
+  @Async
+  fun migrate(prisonCode: String) =
     try {
-      val prisonCode = event.additionalInformation.prisonCode
       val historicAllocations =
         prisonApi
           .getPersonalOfficerHistory(prisonCode)
@@ -44,12 +45,17 @@ class MigratePersonalOfficers(
       val currentResidentIds = prisonerSearch.findAllPrisoners(prisonCode).personIdentifiers()
       val expiredResidentIds = historicAllocations.keys - currentResidentIds
       val movementMap =
-        expiredResidentIds
-          .flatMap { pi ->
+        Flux
+          .fromIterable(expiredResidentIds)
+          .flatMap({ pi ->
             historicAllocations[pi]
               ?.maxByOrNull { it.assigned }
-              ?.let { prisonApi.getPersonMovements(pi, it.assigned.toLocalDate()) } ?: emptyList()
-          }.groupBy { it.offenderNo }
+              ?.let { prisonApi.getPersonMovements(pi, it.assigned.toLocalDate()) } ?: Mono.just(emptyList())
+          }, 20)
+          .collectList()
+          .block()!!
+          .filter { it.isNotEmpty() }
+          .associateBy { it.first().offenderNo }
 
       ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
       val results =

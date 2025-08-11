@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Compl
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.MigrateCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Other
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.PrisonMerged
-import uk.gov.justice.digital.hmpps.keyworker.migration.MigratePersonalOfficers
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationCaseNoteService
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
 import uk.gov.justice.digital.hmpps.keyworker.services.MigrateAllocationCaseNotes
@@ -32,7 +31,6 @@ class DomainEventListener(
   private val prisonStats: PrisonStatisticCalculator,
   private val caseNote: AllocationCaseNoteService,
   private val migrateCaseNotes: MigrateAllocationCaseNotes,
-  private val migratePersonalOfficers: MigratePersonalOfficers,
   private val objectMapper: ObjectMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -61,11 +59,6 @@ class DomainEventListener(
       MigrateCaseNotes ->
         migrateCaseNotes.handle(
           objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
-        )
-
-      EventType.MigratePersonalOfficers ->
-        migratePersonalOfficers.handle(
-          objectMapper.readValue<HmppsDomainEvent<PersonalOfficerMigrationInformation>>(notification.message),
         )
 
       is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)

@@ -77,7 +77,7 @@ class PrisonApiClient(
   fun getPersonMovements(
     personIdentifier: String,
     after: LocalDate,
-  ): List<Movement> =
+  ): Mono<List<Movement>> =
     webClient
       .get()
       .uri {
@@ -93,7 +93,6 @@ class PrisonApiClient(
           else -> res.createError()
         }
       }.retryRequestOnTransientException()
-      .block() ?: emptyList()
 
   companion object {
     const val GET_KEYWORKER_INFO = "/staff/roles/{agencyId}/role/KW"
