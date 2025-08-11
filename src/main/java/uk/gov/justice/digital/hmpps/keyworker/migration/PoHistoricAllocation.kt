@@ -31,7 +31,8 @@ class PoAllocationHistory(
             val lastMovement = it.latestDepartureFromPrison() ?: it.earliestArrivalAtAnotherPrison()
             deallocatedAt = lastMovement?.occurredAt ?: LocalDateTime.now()
             deallocatedBy = SYSTEM_USERNAME
-            deallocationReasonCode = lastMovement?.deallocationReason?.reasonCode ?: DeallocationReason.MISSING.reasonCode
+            deallocationReasonCode =
+              lastMovement?.deallocationReason?.reasonCode ?: DeallocationReason.MISSING.reasonCode
           }
         },
       )
@@ -53,7 +54,10 @@ class MovementHistory(
 ) {
   val movements = history.sortedByDescending { it.occurredAt }
 
-  fun latestDepartureFromPrison() = movements.firstOrNull { it.directionCode == "OUT" && it.fromAgency == prisonCode }
+  fun latestDepartureFromPrison() =
+    movements.firstOrNull {
+      it.deallocationReason != null && it.directionCode == "OUT" && it.fromAgency == prisonCode
+    }
 
   fun earliestArrivalAtAnotherPrison() = movements.lastOrNull { it.movementType == "ADM" && it.toAgency != prisonCode }
 }
