@@ -35,24 +35,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    webTestClient
-      .post()
-      .uri(INIT_MIGRATION_URL, "NE1")
-      .headers(setHeaders(username = "keyworker-ui", roles = emptyList()))
-      .exchange()
-      .expectStatus()
-      .isForbidden
-  }
-
-  @Test
-  fun `202 accepted with correct role`() {
-    webTestClient
-      .post()
-      .uri(INIT_MIGRATION_URL, "NE1")
-      .headers(setHeaders(username = "keyworker-ui", roles = listOf(Roles.ALLOCATIONS_UI)))
-      .exchange()
-      .expectStatus()
-      .isAccepted
+    initMigration("NE1", null).expectStatus().isForbidden
   }
 
   @Test
@@ -68,7 +51,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
       prisoners(historicAllocations.map { it.offenderNo }.toSet()),
     )
 
-    publishEventToTopic(migrationEvent(prisonCode))
+    initMigration(prisonCode)
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
@@ -81,9 +64,11 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
         assertThat(allocations.first().isActive).isTrue()
       }
 
-    staffRoleRepository.findAllByPrisonCodeAndStaffIdIn(prisonCode, historicAllocations.map { it.staffId }.toSet()).also {
-      assertThat(it.size).isEqualTo(2)
-    }
+    staffRoleRepository
+      .findAllByPrisonCodeAndStaffIdIn(prisonCode, historicAllocations.map { it.staffId }.toSet())
+      .also {
+        assertThat(it.size).isEqualTo(2)
+      }
   }
 
   @Test
@@ -172,7 +157,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
       ),
     )
 
-    publishEventToTopic(migrationEvent(prisonCode))
+    initMigration(prisonCode)
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val transferred =
@@ -251,6 +236,15 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
       EventType.MigratePersonalOfficers.name,
       PersonalOfficerMigrationInformation(prisonCode),
     )
+
+  private fun initMigration(
+    prisonCode: String,
+    role: String? = Roles.ALLOCATIONS_UI,
+  ) = webTestClient
+    .post()
+    .uri(INIT_MIGRATION_URL, prisonCode)
+    .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+    .exchange()
 
   companion object {
     const val INIT_MIGRATION_URL = "/prisons/{prisonCode}/personal-officer/migrate"
