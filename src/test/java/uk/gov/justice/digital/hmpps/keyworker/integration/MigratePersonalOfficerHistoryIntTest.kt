@@ -10,9 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
-import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
-import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonalOfficerMigrationInformation
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
@@ -52,9 +49,10 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     )
 
     initMigration(prisonCode)
-    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
+    await untilCallTo { allocationRepository.findAllByPersonIdentifier(personIdentifiers.first()) } matches { it != null }
+
     personIdentifiers
       .map {
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
@@ -158,7 +156,8 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     )
 
     initMigration(prisonCode)
-    await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
+
+    await untilCallTo { allocationRepository.findAllByPersonIdentifier(transferredPi) } matches { it != null }
 
     val transferred =
       allocationRepository.findAllByPersonIdentifier(transferredPi).sortedByDescending { a -> a.allocatedAt }
@@ -230,12 +229,6 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     createdAt: LocalDateTime = LocalDateTime.now(),
     createdBy: String = ANOTHER_USERNAME,
   ) = PoHistoricAllocation(prisonCode, personIdentifier, staffId, userId, assigned, createdAt, createdBy)
-
-  private fun migrationEvent(prisonCode: String) =
-    HmppsDomainEvent(
-      EventType.MigratePersonalOfficers.name,
-      PersonalOfficerMigrationInformation(prisonCode),
-    )
 
   private fun initMigration(
     prisonCode: String,
