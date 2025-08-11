@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
@@ -48,6 +51,8 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     initMigration(prisonCode)
 
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
+    await untilCallTo { allocationRepository.findAllByPersonIdentifier(personIdentifiers.first()) } matches { it != null }
+
     personIdentifiers
       .map {
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
@@ -151,6 +156,8 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     )
 
     initMigration(prisonCode)
+
+    await untilCallTo { allocationRepository.findAllByPersonIdentifier(transferredPi) } matches { it != null }
 
     val transferred =
       allocationRepository.findAllByPersonIdentifier(transferredPi).sortedByDescending { a -> a.allocatedAt }
