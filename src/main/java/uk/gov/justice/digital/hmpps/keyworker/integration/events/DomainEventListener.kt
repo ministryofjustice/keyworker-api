@@ -39,9 +39,7 @@ class DomainEventListener(
   @SqsListener("domaineventsqueue", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-complexity-event-queue", kind = SpanKind.SERVER)
   fun eventListener(notification: Notification<String>) {
-    val eventType = EventType.from(notification.eventType)
-
-    when (eventType) {
+    when (val eventType = EventType.from(notification.eventType)) {
       ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
       PrisonMerged -> {
         val domainEvent = objectMapper.readValue<HmppsDomainEvent<MergeInformation>>(notification.message)
