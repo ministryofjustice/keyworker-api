@@ -54,7 +54,7 @@ jobs:
     timeout-minutes: 240
     environment: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: refresh cache
         id: initial-cache
