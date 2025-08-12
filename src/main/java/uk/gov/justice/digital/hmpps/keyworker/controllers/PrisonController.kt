@@ -63,7 +63,9 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
     @RequestParam to: LocalDate,
-  ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to)
+    @RequestParam(required = false) comparisonFrom: LocalDate?,
+    @RequestParam(required = false) comparisonTo: LocalDate?,
+  ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to, comparisonFrom, comparisonTo)
 
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
@@ -74,8 +76,10 @@ class PrisonController(
     @PathVariable staffId: Long,
     @RequestParam(required = false) from: LocalDate?,
     @RequestParam(required = false) to: LocalDate?,
+    @RequestParam(required = false) comparisonFrom: LocalDate?,
+    @RequestParam(required = false) comparisonTo: LocalDate?,
     @RequestParam(required = false, defaultValue = "false") includeStats: Boolean,
-  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, includeStats)
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, comparisonFrom, comparisonTo, includeStats)
 
   @Operation(hidden = true)
   @GetMapping("/staff/{staffId}/job-classifications")

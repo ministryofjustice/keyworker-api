@@ -128,7 +128,7 @@ class PrisonStatsIntTest : IntegrationTest() {
     }
 
     val res =
-      getPrisonStatsSpec(prisonCode, start, end, policy)
+      getPrisonStatsSpec(prisonCode, start, end, prevStart, prevEnd, policy)
         .expectStatus()
         .isOk
         .expectBody(PrisonStats::class.java)
@@ -184,6 +184,8 @@ class PrisonStatsIntTest : IntegrationTest() {
     prisonCode: String,
     from: LocalDate = now().minusDays(29),
     to: LocalDate = now().minusDays(1),
+    comparisonFrom: LocalDate? = null,
+    comparisonTo: LocalDate? = null,
     policy: AllocationPolicy,
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
@@ -192,6 +194,8 @@ class PrisonStatsIntTest : IntegrationTest() {
       it.path(GET_STATS)
       it.queryParam("from", from)
       it.queryParam("to", to)
+      it.queryParam("comparisonFrom", comparisonFrom)
+      it.queryParam("comparisonTo", comparisonTo)
       it.build(prisonCode)
     }.headers(setHeaders(username = "allocations-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)

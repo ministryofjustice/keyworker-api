@@ -82,14 +82,12 @@ class GetStaffDetails(
     staffId: Long,
     from: LocalDate?,
     to: LocalDate?,
+    comparisonFrom: LocalDate?,
+    comparisonTo: LocalDate?,
     includeStats: Boolean,
   ): StaffDetails {
     val reportingPeriod =
-      if (from != null && to != null) {
-        ReportingPeriod(from.atStartOfDay(), to.atStartOfDay())
-      } else {
-        ReportingPeriod.currentMonth()
-      }
+      ReportingPeriod.of(from, to, ReportingPeriod.of(comparisonFrom, comparisonTo)) ?: ReportingPeriod.currentMonth()
 
     val context = AllocationContext.get()
     val staffWithRole =
