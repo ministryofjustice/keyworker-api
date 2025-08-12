@@ -82,7 +82,7 @@ class PrisonApiClient(
         .buffer(500)
         .flatMap({ ids ->
           webClient
-            .put()
+            .post()
             .uri {
               it.path(MOVEMENTS_URL)
               it.queryParam("allBookings", true)
