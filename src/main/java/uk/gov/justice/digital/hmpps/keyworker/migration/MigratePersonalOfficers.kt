@@ -4,8 +4,6 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -44,18 +42,7 @@ class MigratePersonalOfficers(
           .groupBy { it.offenderNo }
       val currentResidentIds = prisonerSearch.findAllPrisoners(prisonCode).personIdentifiers()
       val expiredResidentIds = historicAllocations.keys - currentResidentIds
-      val movementMap =
-        Flux
-          .fromIterable(expiredResidentIds)
-          .flatMap({ pi ->
-            historicAllocations[pi]
-              ?.maxByOrNull { it.assigned }
-              ?.let { prisonApi.getPersonMovements(pi, it.assigned.toLocalDate()) } ?: Mono.just(emptyList())
-          }, 20)
-          .collectList()
-          .block()!!
-          .filter { it.isNotEmpty() }
-          .associateBy { it.first().offenderNo }
+      val movementMap = prisonApi.getPersonMovements(expiredResidentIds)
 
       ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
       val results =

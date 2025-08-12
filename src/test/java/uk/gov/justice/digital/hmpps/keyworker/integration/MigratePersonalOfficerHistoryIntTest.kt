@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
@@ -51,7 +48,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     initMigration(prisonCode)
 
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
-    await untilCallTo { allocationRepository.findAllByPersonIdentifier(personIdentifiers.first()) } matches { it != null }
+    Thread.sleep(1000) // TODO look into alternative
 
     personIdentifiers
       .map {
@@ -84,13 +81,21 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners((1..10).map { personIdentifier() }.toSet()))
     val transferredPi = transferredPrisoner.keys.first()
     val transferredAt = LocalDateTime.now().minusDays(5)
+    val releasedPi = releasedPrisoner.keys.first()
+    val releasedAt = LocalDateTime.now().minusDays(3)
     prisonMockServer.stubGetMovements(
-      transferredPi,
-      transferredPrisoner.values
-        .flatten()
-        .maxBy { it.assigned }
-        .assigned,
+      setOf(transferredPi, releasedPi),
       listOf(
+        Movement(
+          releasedPi,
+          releasedAt.toLocalDate(),
+          releasedAt.toLocalTime(),
+          prisonCode,
+          "OUT",
+          "REL",
+          "CR",
+          "OUT",
+        ),
         Movement(
           transferredPi,
           transferredAt.toLocalDate(),
@@ -133,31 +138,9 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
         ),
       ),
     )
-    val releasedPi = releasedPrisoner.keys.first()
-    val releasedAt = LocalDateTime.now().minusDays(3)
-    prisonMockServer.stubGetMovements(
-      releasedPi,
-      releasedPrisoner.values
-        .flatten()
-        .maxBy { it.assigned }
-        .assigned,
-      listOf(
-        Movement(
-          releasedPi,
-          releasedAt.toLocalDate(),
-          releasedAt.toLocalTime(),
-          prisonCode,
-          "OUT",
-          "REL",
-          "CR",
-          "OUT",
-        ),
-      ),
-    )
 
     initMigration(prisonCode)
-
-    await untilCallTo { allocationRepository.findAllByPersonIdentifier(transferredPi) } matches { it != null }
+    Thread.sleep(1000) // TODO look into alternative
 
     val transferred =
       allocationRepository.findAllByPersonIdentifier(transferredPi).sortedByDescending { a -> a.allocatedAt }

@@ -10,7 +10,6 @@ import org.hibernate.envers.AuditReaderFactory
 import org.hibernate.envers.RevisionType
 import org.hibernate.envers.query.AuditEntity
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -311,10 +310,7 @@ abstract class IntegrationTest {
     caseNotesMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
     nomisUserRolesMockServer.resetAll()
-  }
 
-  @AfterEach
-  fun resetDb() {
     flyway.clean()
     flyway.migrate()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
