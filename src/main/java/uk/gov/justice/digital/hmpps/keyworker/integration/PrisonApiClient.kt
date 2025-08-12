@@ -86,6 +86,7 @@ class PrisonApiClient(
             .uri {
               it.path(MOVEMENTS_URL)
               it.queryParam("allBookings", true)
+              it.queryParam("latestOnly", false)
               it.build()
             }.bodyValue(ids)
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
