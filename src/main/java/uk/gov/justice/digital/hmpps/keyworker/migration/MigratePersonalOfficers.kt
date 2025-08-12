@@ -91,7 +91,14 @@ class MigratePersonalOfficers(
               )
             }
 
-          allocationRepository.saveAll(allocations) to staffRoleRepository.saveAll(staffRoles)
+          allocations
+            .chunked(1000)
+            .map {
+              allocationRepository.saveAll(it)
+              allocationRepository.flush()
+              allocationRepository.clear()
+              it
+            }.flatten() to staffRoleRepository.saveAll(staffRoles)
         }!!
 
       telemetryClient.trackEvent(
