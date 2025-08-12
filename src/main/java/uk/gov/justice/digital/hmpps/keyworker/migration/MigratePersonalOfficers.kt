@@ -91,6 +91,15 @@ class MigratePersonalOfficers(
               )
             }
 
+          telemetryClient.trackEvent(
+            "PreMigrateCount",
+            mapOf(
+              "allocationCount" to allocations.size.toString(),
+              "staffCount" to staffRoles.size.toString(),
+            ),
+            null,
+          )
+
           allocations
             .chunked(1000)
             .map {
