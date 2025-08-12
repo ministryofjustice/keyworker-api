@@ -29,7 +29,7 @@ data class ReportingPeriod(
       if (from == null || to == null) {
         null
       } else {
-        ReportingPeriod(from.atStartOfDay(), to.atStartOfDay())
+        ReportingPeriod(from.atStartOfDay(), to.atStartOfDay(), previous)
       }
 
     fun currentMonth(): ReportingPeriod =
