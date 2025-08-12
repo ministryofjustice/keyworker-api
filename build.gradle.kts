@@ -124,3 +124,7 @@ tasks.named<JacocoReport>("jacocoTestReport") {
     xml.required.set(true)
   }
 }
+
+dependencyCheck {
+  suppressionFile = ".dependency-check-ignore.xml"
+}
