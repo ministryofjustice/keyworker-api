@@ -280,7 +280,7 @@ class PrisonMockServer : WireMockServer(9999) {
   ) {
     stubFor(
       WireMock
-        .put(WireMock.urlPathEqualTo("/api/movements/offenders"))
+        .post(WireMock.urlPathEqualTo("/api/movements/offenders"))
         .withQueryParam("allBookings", equalTo("true"))
         .withQueryParam("latestOnly", equalTo("false"))
         .withRequestBody(equalToJson(objectMapper.writeValueAsString(personIdentifiers), true, true))
