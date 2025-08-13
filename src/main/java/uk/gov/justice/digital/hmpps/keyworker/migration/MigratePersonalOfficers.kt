@@ -23,6 +23,8 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import java.math.BigDecimal
+import java.time.Duration
+import java.time.LocalDateTime
 
 @Service
 class MigratePersonalOfficers(
@@ -109,6 +111,8 @@ class MigratePersonalOfficers(
       telemetryClient.trackEvent(
         "InitialMigrationComplete",
         mapOf(
+          "prisonCode" to prisonCode,
+          "timeTaken" to Duration.between(AllocationContext.get().requestAt, LocalDateTime.now()).toString(),
           "policy" to AllocationPolicy.PERSONAL_OFFICER.name,
           "totalMigrationCount" to results.first.size.toString(),
           "activeCount" to results.first.count { it.isActive }.toString(),
