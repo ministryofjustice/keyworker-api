@@ -275,15 +275,13 @@ class PrisonMockServer : WireMockServer(9999) {
   }
 
   fun stubGetMovements(
-    personIdentifiers: Set<String>,
+    personIdentifier: String,
     response: List<Movement>,
   ) {
     stubFor(
       WireMock
-        .post(WireMock.urlPathEqualTo("/api/movements/offenders"))
+        .get(WireMock.urlPathEqualTo("/api/movements/offender/$personIdentifier"))
         .withQueryParam("allBookings", equalTo("true"))
-        .withQueryParam("latestOnly", equalTo("false"))
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(personIdentifiers), true, true))
         .willReturn(
           WireMock
             .aResponse()

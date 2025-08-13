@@ -41,8 +41,6 @@ class MigratePersonalOfficers(
           .getPersonalOfficerHistory(prisonCode)
           .groupBy { it.offenderNo }
       val currentResidentIds = prisonerSearch.findAllPrisoners(prisonCode).personIdentifiers()
-      val expiredResidentIds = historicAllocations.keys - currentResidentIds
-      val movementMap = prisonApi.getPersonMovements(expiredResidentIds)
 
       ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
       val results =
@@ -66,13 +64,14 @@ class MigratePersonalOfficers(
 
           val allocations =
             historicAllocations
+              .asSequence()
               .map {
                 PoAllocationHistory(
                   it.value,
                   if (it.key in currentResidentIds) {
                     null
                   } else {
-                    MovementHistory(prisonCode, movementMap[it.key] ?: emptyList())
+                    RelevantMovement(prisonCode, prisonApi.getPersonMovements(it.key))
                   },
                 )
               }.flatMap { it.allocations.map { a -> a.asAllocation(allocReason, deallocReason) } }
@@ -91,15 +90,6 @@ class MigratePersonalOfficers(
               )
             }
 
-          telemetryClient.trackEvent(
-            "PreMigrateCount",
-            mapOf(
-              "allocationCount" to allocations.size.toString(),
-              "staffCount" to staffRoles.size.toString(),
-            ),
-            null,
-          )
-
           allocations
             .chunked(1000)
             .map {
@@ -107,7 +97,8 @@ class MigratePersonalOfficers(
               allocationRepository.flush()
               allocationRepository.clear()
               it
-            }.flatten() to staffRoleRepository.saveAll(staffRoles)
+            }.flatten()
+            .toList() to staffRoleRepository.saveAll(staffRoles)
         }!!
 
       telemetryClient.trackEvent(

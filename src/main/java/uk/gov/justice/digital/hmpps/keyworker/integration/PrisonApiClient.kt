@@ -2,12 +2,12 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
@@ -73,36 +73,27 @@ class PrisonApiClient(
       .retryRequestOnTransientException()
       .block() ?: emptyList()
 
-  fun getPersonMovements(personIdentifiers: Set<String>): Map<String, List<Movement>> =
-    if (personIdentifiers.isEmpty()) {
-      emptyMap()
-    } else {
-      Flux
-        .fromIterable(personIdentifiers)
-        .buffer(500)
-        .flatMap({ ids ->
-          webClient
-            .post()
-            .uri {
-              it.path(MOVEMENTS_URL)
-              it.queryParam("allBookings", true)
-              it.queryParam("latestOnly", false)
-              it.build()
-            }.bodyValue(ids)
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .retrieve()
-            .bodyToFlux<Movement>()
-            .retryRequestOnTransientException()
-        }, 5)
-        .collectList()
-        .block()!!
-        .groupBy { it.offenderNo }
-    }
+  fun getPersonMovements(personIdentifier: String): List<Movement> =
+    webClient
+      .get()
+      .uri {
+        it.path(MOVEMENTS_URL)
+        it.queryParam("allBookings", true)
+        it.build(personIdentifier)
+      }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .exchangeToMono { res ->
+        when (res.statusCode()) {
+          HttpStatus.NOT_FOUND -> Mono.just(emptyList())
+          HttpStatus.OK -> res.bodyToMono<List<Movement>>()
+          else -> res.createError()
+        }
+      }.retryRequestOnTransientException()
+      .block()!!
 
   companion object {
     const val GET_KEYWORKER_INFO = "/staff/roles/{agencyId}/role/KW"
     const val STAFF_BY_IDS_URL = "/staff"
     const val PERSONAL_OFFICER_HISTORY_URL = "/personal-officer/{agencyId}/allocation-history"
-    const val MOVEMENTS_URL = "/movements/offenders"
+    const val MOVEMENTS_URL = "/movements/offender/{offenderNo}"
   }
 }

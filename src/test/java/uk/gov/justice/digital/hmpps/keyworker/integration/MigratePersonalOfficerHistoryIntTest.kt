@@ -84,18 +84,8 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     val releasedPi = releasedPrisoner.keys.first()
     val releasedAt = LocalDateTime.now().minusDays(3)
     prisonMockServer.stubGetMovements(
-      setOf(transferredPi, releasedPi),
+      transferredPi,
       listOf(
-        Movement(
-          releasedPi,
-          releasedAt.toLocalDate(),
-          releasedAt.toLocalTime(),
-          prisonCode,
-          "OUT",
-          "REL",
-          "CR",
-          "OUT",
-        ),
         Movement(
           transferredPi,
           transferredAt.toLocalDate(),
@@ -134,6 +124,21 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           prisonCode,
           "TRN",
           "NOTR",
+          "OUT",
+        ),
+      ),
+    )
+    prisonMockServer.stubGetMovements(
+      releasedPi,
+      listOf(
+        Movement(
+          releasedPi,
+          releasedAt.toLocalDate(),
+          releasedAt.toLocalTime(),
+          prisonCode,
+          "OUT",
+          "REL",
+          "CR",
           "OUT",
         ),
       ),
