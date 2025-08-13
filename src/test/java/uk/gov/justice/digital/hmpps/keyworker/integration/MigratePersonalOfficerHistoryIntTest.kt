@@ -145,7 +145,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     )
 
     initMigration(prisonCode)
-    Thread.sleep(1000) // TODO look into alternative
+    Thread.sleep(3000) // TODO look into alternative
 
     val transferred =
       allocationRepository.findAllByPersonIdentifier(transferredPi).sortedByDescending { a -> a.allocatedAt }
