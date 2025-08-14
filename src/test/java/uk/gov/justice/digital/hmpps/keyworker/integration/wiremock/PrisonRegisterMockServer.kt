@@ -28,4 +28,27 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
         ),
     )
   }
+
+  fun stubGetPrisons(
+    prisonCodes: Set<String>,
+    prisons: Set<Prison>,
+  ) {
+    stubFor(
+      WireMock
+        .post(WireMock.urlPathEqualTo("/prisons/prisonsByIds"))
+        .withRequestBody(
+          equalToJson(
+            objectMapper.writeValueAsString(PrisonsByIdsRequest(prisonCodes)),
+            true,
+            true,
+          ),
+        ).willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(prisons)),
+        ),
+    )
+  }
 }

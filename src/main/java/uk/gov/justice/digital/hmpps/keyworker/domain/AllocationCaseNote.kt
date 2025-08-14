@@ -66,15 +66,21 @@ interface AllocationCaseNoteRepository : JpaRepository<AllocationCaseNote, UUID>
 
   @Query(
     """
-    select acn from AllocationCaseNote acn
-    where acn.prisonCode = :prisonCode and acn.personIdentifier in :personIdentifiers
-    and acn.occurredAt < :before
+      with latest as (
+        select acn.id as id, row_number() over (partition by acn.personIdentifier order by acn.occurredAt desc) as row
+        from AllocationCaseNote acn
+        where acn.prisonCode = :prisonCode and acn.personIdentifier in :personIdentifiers
+        and acn.occurredAt < :before
+    )
+    select note 
+    from AllocationCaseNote note
+    join latest l on l.id = note.id and l.row = 1
   """,
   )
   fun findLatestCaseNotesBefore(
     prisonCode: String,
     personIdentifiers: Set<String>,
-    caseNoteTypes: Set<CaseNoteTypeKey>,
+    caseNoteTypes: CaseNoteTypeKey,
     before: LocalDateTime,
   ): List<AllocationCaseNote>
 }

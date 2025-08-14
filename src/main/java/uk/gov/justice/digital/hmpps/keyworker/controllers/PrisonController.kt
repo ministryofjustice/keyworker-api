@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonPolicies
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
@@ -54,6 +55,20 @@ class PrisonController(
   fun getPrisonConfiguration(
     @PathVariable("prisonCode") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
+
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping(value = ["/policies"])
+  fun getPrisonPolicies(
+    @PathVariable("prisonCode") prisonCode: String,
+  ) = prisonService.getPrisonPolicies(prisonCode)
+
+  @CaseloadIdHeader
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping(value = ["/policies"])
+  fun setPrisonPolicies(
+    @PathVariable("prisonCode") prisonCode: String,
+    @RequestBody policies: PrisonPolicies,
+  ) = prisonService.setPrisonPolicies(prisonCode, policies)
 
   @PolicyHeader
   @Tag(name = PRISON)
