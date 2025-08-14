@@ -69,7 +69,7 @@ interface AllocationCaseNoteRepository : JpaRepository<AllocationCaseNote, UUID>
       with latest as (
         select acn.id as id, row_number() over (partition by acn.personIdentifier order by acn.occurredAt desc) as row
         from AllocationCaseNote acn
-        where acn.prisonCode = :prisonCode and acn.personIdentifier in :personIdentifiers
+        where acn.prisonCode = :prisonCode and acn.personIdentifier in :personIdentifiers and acn.caseNoteType in :caseNoteTypes
         and acn.occurredAt < :before
     )
     select note 
