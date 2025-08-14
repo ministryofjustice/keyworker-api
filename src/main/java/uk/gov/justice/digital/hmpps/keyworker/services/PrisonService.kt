@@ -66,7 +66,7 @@ class PrisonService(
         prisonConfig.save(
           configs[pe.policy.name]?.apply {
             enabled = pe.enabled
-          } ?: PrisonConfiguration.default(prisonCode, pe.policy),
+          } ?: PrisonConfiguration.default(prisonCode, pe.policy).apply { enabled = pe.enabled },
         )
       }.let { p ->
         PrisonPolicies(p.map { PolicyEnabled(AllocationPolicy.of(it.policy)!!, it.enabled) }.toSet())
