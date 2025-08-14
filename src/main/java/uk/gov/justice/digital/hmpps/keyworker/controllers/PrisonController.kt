@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonPolicies
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
@@ -55,6 +56,20 @@ class PrisonController(
     @PathVariable("prisonCode") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @GetMapping(value = ["/policies"])
+  fun getPrisonPolicies(
+    @PathVariable("prisonCode") prisonCode: String,
+  ) = prisonService.getPrisonPolicies(prisonCode)
+
+  @CaseloadIdHeader
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PutMapping(value = ["/policies"])
+  fun setPrisonPolicies(
+    @PathVariable("prisonCode") prisonCode: String,
+    @RequestBody policies: PrisonPolicies,
+  ) = prisonService.setPrisonPolicies(prisonCode, policies)
+
   @PolicyHeader
   @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
@@ -63,7 +78,9 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
     @RequestParam to: LocalDate,
-  ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to)
+    @RequestParam(required = false) comparisonFrom: LocalDate?,
+    @RequestParam(required = false) comparisonTo: LocalDate?,
+  ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to, comparisonFrom, comparisonTo)
 
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
@@ -74,8 +91,10 @@ class PrisonController(
     @PathVariable staffId: Long,
     @RequestParam(required = false) from: LocalDate?,
     @RequestParam(required = false) to: LocalDate?,
+    @RequestParam(required = false) comparisonFrom: LocalDate?,
+    @RequestParam(required = false) comparisonTo: LocalDate?,
     @RequestParam(required = false, defaultValue = "false") includeStats: Boolean,
-  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, includeStats)
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, comparisonFrom, comparisonTo, includeStats)
 
   @Operation(hidden = true)
   @GetMapping("/staff/{staffId}/job-classifications")

@@ -109,9 +109,9 @@ class CaseNoteRetriever(
       )
 
     private val recordedEventTypes =
-      mapOf<AllocationPolicy, Set<CaseNoteTypeKey>>(
-        AllocationPolicy.KEY_WORKER to setOf(CaseNoteTypeKey(KW_TYPE, KW_SESSION_SUBTYPE)),
-        AllocationPolicy.PERSONAL_OFFICER to setOf(CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE)),
+      mapOf<AllocationPolicy, CaseNoteTypeKey>(
+        AllocationPolicy.KEY_WORKER to CaseNoteTypeKey(KW_TYPE, KW_SESSION_SUBTYPE),
+        AllocationPolicy.PERSONAL_OFFICER to CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE),
       )
   }
 }

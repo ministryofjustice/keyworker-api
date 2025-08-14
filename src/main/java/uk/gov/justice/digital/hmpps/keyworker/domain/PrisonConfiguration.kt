@@ -9,6 +9,7 @@ import org.hibernate.envers.Audited
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.util.UUID
@@ -51,24 +52,24 @@ class PrisonConfiguration(
     }
 
   companion object {
-    fun default(code: String) =
-      PrisonConfiguration(
-        code,
-        enabled = true,
-        allowAutoAllocation = true,
-        capacity = 6,
-        maximumCapacity = 9,
-        frequencyInWeeks = 1,
-        hasPrisonersWithHighComplexityNeeds = false,
-        AllocationContext.get().policy.name,
-      )
+    fun default(
+      code: String,
+      policy: AllocationPolicy = AllocationContext.get().policy,
+    ) = PrisonConfiguration(
+      code,
+      enabled = true,
+      allowAutoAllocation = true,
+      capacity = 6,
+      maximumCapacity = 9,
+      frequencyInWeeks = 1,
+      hasPrisonersWithHighComplexityNeeds = false,
+      policy.name,
+    )
   }
 }
 
 interface PrisonConfigurationRepository : JpaRepository<PrisonConfiguration, UUID> {
   fun findByCode(code: String): PrisonConfiguration?
-
-  fun findAllByEnabledIsTrue(): List<PrisonConfiguration>
 
   @Query(
     """
@@ -77,4 +78,23 @@ interface PrisonConfigurationRepository : JpaRepository<PrisonConfiguration, UUI
     nativeQuery = true,
   )
   fun findEnabledPrisonsForPolicyCode(policyCode: String): List<PrisonConfiguration>
+
+  @Query(
+    """
+      select * from prison_configuration where prison_code = :prisonCode and policy_code in :policies
+    """,
+    nativeQuery = true,
+  )
+  fun findConfigurationsForPolicies(
+    prisonCode: String,
+    policies: Set<String>,
+  ): List<PrisonConfiguration>
+
+  @Query(
+    """
+      select policy_code from prison_configuration where prison_code = :prisonCode and is_enabled = true
+    """,
+    nativeQuery = true,
+  )
+  fun findEnabledPrisonPolicies(prisonCode: String): Set<String>
 }

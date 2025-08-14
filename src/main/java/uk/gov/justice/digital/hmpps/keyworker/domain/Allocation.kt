@@ -81,7 +81,9 @@ fun List<Allocation>.filterApplicable(reportingPeriod: ReportingPeriod) =
       it.allocatedAt.isBefore(reportingPeriod.to)
   }
 
-interface AllocationRepository : JpaRepository<Allocation, UUID> {
+interface AllocationRepository :
+  JpaRepository<Allocation, UUID>,
+  ClearableRepository {
   @Query(
     """
     with allocations as (select a.id as id, a.person_identifier as personIdentifier, a.allocated_at as assignedAt

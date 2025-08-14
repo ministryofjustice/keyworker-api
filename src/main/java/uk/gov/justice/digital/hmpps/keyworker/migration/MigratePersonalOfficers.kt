@@ -23,6 +23,8 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import java.math.BigDecimal
+import java.time.Duration
+import java.time.LocalDateTime
 
 @Service
 class MigratePersonalOfficers(
@@ -43,19 +45,7 @@ class MigratePersonalOfficers(
           .getPersonalOfficerHistory(prisonCode)
           .groupBy { it.offenderNo }
       val currentResidentIds = prisonerSearch.findAllPrisoners(prisonCode).personIdentifiers()
-      val expiredResidentIds = historicAllocations.keys - currentResidentIds
-      val movementMap =
-        Flux
-          .fromIterable(expiredResidentIds)
-          .flatMap({ pi ->
-            historicAllocations[pi]
-              ?.maxByOrNull { it.assigned }
-              ?.let { prisonApi.getPersonMovements(pi, it.assigned.toLocalDate()) } ?: Mono.just(emptyList())
-          }, 20)
-          .collectList()
-          .block()!!
-          .filter { it.isNotEmpty() }
-          .associateBy { it.first().offenderNo }
+      val nonResidentIds = historicAllocations.keys - currentResidentIds
 
       ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
       val results =
@@ -77,18 +67,21 @@ class MigratePersonalOfficers(
           val allocReason = { code: String -> requireNotNull(rd[ReferenceDataDomain.ALLOCATION_REASON to code]) }
           val deallocReason = { code: String -> rd[ReferenceDataDomain.DEALLOCATION_REASON to code] }
 
-          val allocations =
-            historicAllocations
-              .map {
-                PoAllocationHistory(
-                  it.value,
-                  if (it.key in currentResidentIds) {
-                    null
-                  } else {
-                    MovementHistory(prisonCode, movementMap[it.key] ?: emptyList())
-                  },
-                )
-              }.flatMap { it.allocations.map { a -> a.asAllocation(allocReason, deallocReason) } }
+          val allocations: List<Allocation> =
+            Flux
+              .fromIterable(historicAllocations.entries)
+              .flatMap({ e ->
+                if (e.key in currentResidentIds) {
+                  Mono.just(PoAllocationHistory(e.value, null))
+                } else {
+                  prisonApi.getPersonMovements(e.key).map {
+                    PoAllocationHistory(e.value, RelevantMovement(prisonCode, it))
+                  }
+                }
+              }, 20)
+              .flatMap { Flux.fromIterable(it.allocations).map { a -> a.asAllocation(allocReason, deallocReason) } }
+              .collectList()
+              .block()!!
 
           val staffAllocations = allocations.filter { it.isActive }.groupBy { it.staffId }
           val staffRoles =
@@ -97,25 +90,34 @@ class MigratePersonalOfficers(
                 rd[ReferenceDataDomain.STAFF_POSITION to "PRO"]!!,
                 rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE to "FT"]!!,
                 BigDecimal(35),
-                staffAllocations[it]!!.minOf { a -> a.allocatedAt }.toLocalDate(),
+                requireNotNull(staffAllocations[it]).minOf { a -> a.allocatedAt }.toLocalDate(),
                 null,
                 prisonCode,
                 it,
               )
             }
 
-          allocationRepository.saveAll(allocations) to staffRoleRepository.saveAll(staffRoles)
+          allocations
+            .chunked(1000)
+            .map {
+              allocationRepository.saveAll(it)
+              allocationRepository.flush()
+              allocationRepository.clear()
+              it
+            }.flatten()
+            .toList() to staffRoleRepository.saveAll(staffRoles)
         }!!
 
       telemetryClient.trackEvent(
         "InitialMigrationComplete",
         mapOf(
+          "prisonCode" to prisonCode,
+          "timeTaken" to Duration.between(AllocationContext.get().requestAt, LocalDateTime.now()).toString(),
           "policy" to AllocationPolicy.PERSONAL_OFFICER.name,
           "totalMigrationCount" to results.first.size.toString(),
           "activeCount" to results.first.count { it.isActive }.toString(),
           "deallocatedCount" to results.first.count { !it.isActive }.toString(),
-          "notResidentCount" to
-            results.first.count { it.deallocationReason?.code == DeallocationReason.MISSING.reasonCode }.toString(),
+          "notResidentCount" to nonResidentIds.size.toString(),
           "staffRolesAssigned" to results.second.size.toString(),
         ),
         null,
@@ -139,5 +141,6 @@ class MigratePersonalOfficers(
     deallocatedAt,
     deallocationReasonCode?.let { deallocationReason(it) },
     deallocatedBy,
+    policy = AllocationPolicy.PERSONAL_OFFICER.name,
   )
 }

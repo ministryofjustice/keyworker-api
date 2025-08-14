@@ -10,8 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 
 class PrisonMockServer : WireMockServer(9999) {
   fun stubAllocationHistory(
@@ -278,14 +276,12 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubGetMovements(
     personIdentifier: String,
-    after: LocalDateTime,
     response: List<Movement>,
   ) {
     stubFor(
       WireMock
         .get(WireMock.urlPathEqualTo("/api/movements/offender/$personIdentifier"))
         .withQueryParam("allBookings", equalTo("true"))
-        .withQueryParam("movementsAfter", equalTo(ISO_LOCAL_DATE.format(after)))
         .willReturn(
           WireMock
             .aResponse()

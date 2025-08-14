@@ -20,18 +20,18 @@ data class PoHistoricAllocation(
 
 class PoAllocationHistory(
   history: List<PoHistoricAllocation>,
-  val movementHistory: MovementHistory?,
+  val relevantMovement: RelevantMovement?,
 ) {
   val allocations =
     buildList {
       val sorted = history.sortedByDescending { it.assigned }
       add(
         sorted.first().apply {
-          movementHistory?.also {
-            val lastMovement = it.latestDepartureFromPrison() ?: it.earliestArrivalAtAnotherPrison()
-            deallocatedAt = lastMovement?.occurredAt ?: LocalDateTime.now()
+          relevantMovement?.also {
+            deallocatedAt = it.movement?.occurredAt ?: LocalDateTime.now()
             deallocatedBy = SYSTEM_USERNAME
-            deallocationReasonCode = lastMovement?.deallocationReason?.reasonCode ?: DeallocationReason.MISSING.reasonCode
+            deallocationReasonCode =
+              it.movement?.deallocationReason?.reasonCode ?: DeallocationReason.MISSING.reasonCode
           }
         },
       )
@@ -47,13 +47,16 @@ class PoAllocationHistory(
     }
 }
 
-class MovementHistory(
-  val prisonCode: String,
+class RelevantMovement(
+  prisonCode: String,
   history: List<Movement>,
 ) {
-  val movements = history.sortedByDescending { it.occurredAt }
+  val movement: Movement?
 
-  fun latestDepartureFromPrison() = movements.firstOrNull { it.directionCode == "OUT" && it.fromAgency == prisonCode }
-
-  fun earliestArrivalAtAnotherPrison() = movements.lastOrNull { it.movementType == "ADM" && it.toAgency != prisonCode }
+  init {
+    val movements = history.sortedByDescending { it.occurredAt }
+    movement = movements.firstOrNull {
+      it.deallocationReason != null && it.directionCode == "OUT" && it.fromAgency == prisonCode
+    } ?: movements.lastOrNull { it.movementType == "ADM" && it.toAgency != prisonCode }
+  }
 }

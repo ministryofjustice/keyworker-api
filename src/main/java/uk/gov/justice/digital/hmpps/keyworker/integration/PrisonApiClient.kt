@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
-import java.time.LocalDate
 
 @Component
 class PrisonApiClient(
@@ -74,16 +73,12 @@ class PrisonApiClient(
       .retryRequestOnTransientException()
       .block() ?: emptyList()
 
-  fun getPersonMovements(
-    personIdentifier: String,
-    after: LocalDate,
-  ): Mono<List<Movement>> =
+  fun getPersonMovements(personIdentifier: String): Mono<List<Movement>> =
     webClient
       .get()
       .uri {
         it.path(MOVEMENTS_URL)
         it.queryParam("allBookings", true)
-        it.queryParam("movementsAfter", after)
         it.build(personIdentifier)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .exchangeToMono { res ->
