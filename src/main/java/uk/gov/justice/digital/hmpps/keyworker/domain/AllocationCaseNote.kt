@@ -83,4 +83,21 @@ interface AllocationCaseNoteRepository : JpaRepository<AllocationCaseNote, UUID>
     caseNoteTypes: CaseNoteTypeKey,
     before: LocalDateTime,
   ): List<AllocationCaseNote>
+
+  @Query(
+    """
+      with latest as (
+        select acn.id as id, row_number() over (partition by acn.caseNoteType.type, acn.caseNoteType.subType order by acn.occurredAt desc) as row
+        from AllocationCaseNote acn
+        where acn.personIdentifier = :personIdentifier and acn.caseNoteType in :caseNoteTypes
+    )
+    select note 
+    from AllocationCaseNote note
+    join latest l on l.id = note.id and l.row = 1
+  """,
+  )
+  fun findLatestRecordedEvents(
+    personIdentifier: String,
+    caseNoteTypes: Set<CaseNoteTypeKey>,
+  ): List<AllocationCaseNote>
 }

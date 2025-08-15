@@ -190,6 +190,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           now().minusDays(90),
           now().plusDays(180),
           "DEF",
+          "DEF",
           "Default Prison",
           "DEF-A-1",
           "STANDARD",

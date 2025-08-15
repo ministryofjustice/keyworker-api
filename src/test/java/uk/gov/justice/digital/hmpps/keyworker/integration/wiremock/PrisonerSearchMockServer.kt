@@ -60,6 +60,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
           LocalDate.now().minusDays(30),
           LocalDate.now().plusDays(90),
           prisonCode,
+          prisonCode,
           "Description of $prisonCode",
           "$prisonCode-A-1",
           "STANDARD",

@@ -132,6 +132,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           now().minusDays(30),
           now().plusDays(90),
           prisonCode,
+          prisonCode,
           "Description of $prisonCode",
           "$prisonCode-A-1",
           "STANDARD",

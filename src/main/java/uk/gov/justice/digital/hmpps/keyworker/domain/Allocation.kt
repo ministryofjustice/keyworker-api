@@ -191,11 +191,14 @@ interface AllocationRepository :
   @Query(
     """
       select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.is_active = true
+      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies
     """,
     nativeQuery = true,
   )
-  fun findCurrentAllocations(personIdentifier: String): List<Allocation>
+  fun findCurrentAllocations(
+    personIdentifier: String,
+    policies: Set<String>,
+  ): List<Allocation>
 
   @Query(
     """

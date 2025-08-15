@@ -363,6 +363,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       LocalDate.now().minusDays(10),
       null,
       prisonCode,
+      prisonCode,
       "Description of $prisonCode",
       null,
       null,
