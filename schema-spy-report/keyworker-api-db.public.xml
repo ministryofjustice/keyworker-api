@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><database name="keyworker-api-db" schema="public" type="PostgreSQL - 16.9 (Debian 16.9-1.pgdg130+1)">
+<?xml version="1.0" encoding="UTF-8"?><database name="keyworker-api-db" schema="public" type="PostgreSQL - 16.10 (Debian 16.10-1.pgdg13+1)">
    <sequences>
       <sequence increment="1" name="audit_revision_id_seq" startValue="1"/>
       <sequence increment="1" name="keyworker_stats_keyworker_stats_id_seq" startValue="1"/>
