@@ -21,4 +21,12 @@ data class RecordedEvent(
   val type: RecordedEventType,
   val occurredAt: LocalDateTime,
   val policy: AllocationPolicy,
+  val author: Author,
+)
+
+data class Author(
+  val staffId: Long,
+  val firstName: String,
+  val lastName: String,
+  val username: String,
 )

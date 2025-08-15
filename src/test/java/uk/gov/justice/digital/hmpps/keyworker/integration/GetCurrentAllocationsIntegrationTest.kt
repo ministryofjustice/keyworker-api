@@ -6,6 +6,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.dto.Author
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
@@ -17,11 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.personalOfficerTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest.Companion.sessionTypes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
@@ -29,6 +25,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
   @Test
@@ -104,29 +101,32 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubStaffSummaries(listOf(staffSummary("Current", "Keyworker", currentAllocation.staffId)))
 
-    val latestSession = LocalDateTime.now().minusWeeks(2)
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      sessionTypes(
-        null,
-        setOf(personIdentifier),
-        LocalDate.now().minusMonths(38),
-        LocalDate.now(),
-      ),
-      NoteUsageResponse(
-        mapOf(
-          personIdentifier to
-            listOf(
-              UsageByPersonIdentifierResponse(
-                personIdentifier,
-                KW_TYPE,
-                KW_SESSION_SUBTYPE,
-                38,
-                LatestNote(latestSession),
-              ),
-            ),
+    val latestCaseNote =
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          KW_TYPE,
+          KW_SESSION_SUBTYPE,
+          LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
+          personIdentifier = personIdentifier,
         ),
+      )
+    (2..5).map {
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          KW_TYPE,
+          KW_SESSION_SUBTYPE,
+          LocalDateTime.now().minusWeeks(it * 2L),
+          personIdentifier = personIdentifier,
+        ),
+      )
+    }
+    prisonMockServer.stubStaffSummaries(
+      listOf(
+        staffSummary("Current", "Keyworker", currentAllocation.staffId),
+        staffSummary("Session", "Keyworker", latestCaseNote.staffId),
       ),
     )
 
@@ -148,7 +148,13 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
-      RecordedEvent(pris, RecordedEventType.SESSION, latestSession, AllocationPolicy.KEY_WORKER),
+      RecordedEvent(
+        pris,
+        RecordedEventType.SESSION,
+        latestCaseNote.occurredAt,
+        AllocationPolicy.KEY_WORKER,
+        Author(latestCaseNote.staffId, "Session", "Keyworker", latestCaseNote.username),
+      ),
     )
   }
 
@@ -192,29 +198,32 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubStaffSummaries(listOf(staffSummary("Personal", "Officer", currentAllocation.staffId)))
 
-    val latestSession = LocalDateTime.now().minusWeeks(1)
-    caseNotesMockServer.stubUsageByPersonIdentifier(
-      personalOfficerTypes(
-        null,
-        setOf(personIdentifier),
-        LocalDate.now().atStartOfDay().minusMonths(38),
-        LocalDate.now().atStartOfDay(),
-      ),
-      NoteUsageResponse(
-        mapOf(
-          personIdentifier to
-            listOf(
-              UsageByPersonIdentifierResponse(
-                personIdentifier,
-                PO_ENTRY_TYPE,
-                PO_ENTRY_SUBTYPE,
-                38,
-                LatestNote(latestSession),
-              ),
-            ),
+    val latestCaseNote =
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          PO_ENTRY_TYPE,
+          PO_ENTRY_SUBTYPE,
+          LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
+          personIdentifier = personIdentifier,
         ),
+      )
+    (2..5).map {
+      givenAllocationCaseNote(
+        caseNote(
+          prisonCode,
+          PO_ENTRY_TYPE,
+          PO_ENTRY_SUBTYPE,
+          LocalDateTime.now().minusWeeks(it * 2L),
+          personIdentifier = personIdentifier,
+        ),
+      )
+    }
+    prisonMockServer.stubStaffSummaries(
+      listOf(
+        staffSummary("Personal", "Officer", currentAllocation.staffId),
+        staffSummary("Session", "Officer", latestCaseNote.staffId),
       ),
     )
 
@@ -236,7 +245,13 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
-      RecordedEvent(pris, RecordedEventType.ENTRY, latestSession, AllocationPolicy.PERSONAL_OFFICER),
+      RecordedEvent(
+        pris,
+        RecordedEventType.ENTRY,
+        latestCaseNote.occurredAt,
+        AllocationPolicy.PERSONAL_OFFICER,
+        Author(latestCaseNote.staffId, "Session", "Officer", latestCaseNote.username),
+      ),
     )
   }
 
