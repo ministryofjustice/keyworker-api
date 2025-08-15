@@ -33,6 +33,7 @@ data class Prisoner(
   val receptionDate: LocalDate,
   val releaseDate: LocalDate?,
   val prisonId: String,
+  val lastPrisonId: String,
   val prisonName: String,
   val cellLocation: String?,
   val csra: String?,

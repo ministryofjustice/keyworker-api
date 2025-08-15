@@ -289,6 +289,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
           LocalDate.now().minusWeeks(it.toLong()),
           null,
           prisonCode,
+          prisonCode,
           "Description of $prisonCode",
           "$prisonCode-A-$it",
           "STANDARD",
