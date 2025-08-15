@@ -6,6 +6,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.dto.Author
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
   @Test
@@ -99,7 +101,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubStaffSummaries(listOf(staffSummary("Current", "Keyworker", currentAllocation.staffId)))
 
     val latestCaseNote =
       givenAllocationCaseNote(
@@ -107,7 +108,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           prisonCode,
           KW_TYPE,
           KW_SESSION_SUBTYPE,
-          LocalDateTime.now().minusWeeks(2),
+          LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
@@ -122,6 +123,12 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
     }
+    prisonMockServer.stubStaffSummaries(
+      listOf(
+        staffSummary("Current", "Keyworker", currentAllocation.staffId),
+        staffSummary("Session", "Keyworker", latestCaseNote.staffId),
+      ),
+    )
 
     val response =
       getCurrentAllocationSpec(personIdentifier)
@@ -141,7 +148,13 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
-      RecordedEvent(pris, RecordedEventType.SESSION, latestCaseNote.occurredAt, AllocationPolicy.KEY_WORKER),
+      RecordedEvent(
+        pris,
+        RecordedEventType.SESSION,
+        latestCaseNote.occurredAt,
+        AllocationPolicy.KEY_WORKER,
+        Author(latestCaseNote.staffId, "Session", "Keyworker", latestCaseNote.username),
+      ),
     )
   }
 
@@ -185,7 +198,6 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "A110C473",
         ),
       )
-    prisonMockServer.stubStaffSummaries(listOf(staffSummary("Personal", "Officer", currentAllocation.staffId)))
 
     val latestCaseNote =
       givenAllocationCaseNote(
@@ -193,7 +205,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           prisonCode,
           PO_ENTRY_TYPE,
           PO_ENTRY_SUBTYPE,
-          LocalDateTime.now().minusWeeks(2),
+          LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
@@ -208,6 +220,12 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
     }
+    prisonMockServer.stubStaffSummaries(
+      listOf(
+        staffSummary("Personal", "Officer", currentAllocation.staffId),
+        staffSummary("Session", "Officer", latestCaseNote.staffId),
+      ),
+    )
 
     val response =
       getCurrentAllocationSpec(personIdentifier)
@@ -227,7 +245,13 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
-      RecordedEvent(pris, RecordedEventType.ENTRY, latestCaseNote.occurredAt, AllocationPolicy.PERSONAL_OFFICER),
+      RecordedEvent(
+        pris,
+        RecordedEventType.ENTRY,
+        latestCaseNote.occurredAt,
+        AllocationPolicy.PERSONAL_OFFICER,
+        Author(latestCaseNote.staffId, "Session", "Officer", latestCaseNote.username),
+      ),
     )
   }
 

@@ -6,9 +6,11 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNoteRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
+import uk.gov.justice.digital.hmpps.keyworker.dto.Author
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
@@ -238,12 +240,18 @@ private val recordedEventTypeMap =
     CaseNoteTypeKey(PO_ENTRY_TYPE, PO_ENTRY_SUBTYPE) to RecordedEventType.ENTRY,
   )
 
-fun List<AllocationCaseNote>.asRecordedEvents(prisons: (String) -> Prison): List<RecordedEvent> =
+fun List<AllocationCaseNote>.asRecordedEvents(
+  prisons: (String) -> Prison,
+  staff: (Long) -> StaffSummary,
+): List<RecordedEvent> =
   map { acn ->
     RecordedEvent(
       prisons(acn.prisonCode).asCodedDescription(),
       requireNotNull(recordedEventTypeMap[acn.caseNoteType]),
       acn.occurredAt,
       caseNoteTypes.entries.single { acn.caseNoteType in it.value }.key,
+      staff(acn.staffId).asAuthor(acn.username),
     )
   }
+
+private fun StaffSummary.asAuthor(username: String) = Author(staffId, firstName, lastName, username)

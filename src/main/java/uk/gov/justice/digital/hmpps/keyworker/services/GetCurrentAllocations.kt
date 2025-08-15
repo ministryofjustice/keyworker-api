@@ -36,7 +36,9 @@ class GetCurrentAllocations(
             .findPrisons((allocations.map { it.prisonCode } + caseNotes.map { it.prisonCode }).toSet())
             .associateBy { it.prisonId }
         val staff =
-          prisonApi.findStaffSummariesFromIds(allocations.map { it.staffId }.toSet()).associateBy { it.staffId }
+          prisonApi
+            .findStaffSummariesFromIds((allocations.map { it.staffId } + caseNotes.map { it.staffId }).toSet())
+            .associateBy { it.staffId }
         if (allocations.isEmpty()) {
           CurrentPersonStaffAllocation(personIdentifier, false, emptyList(), emptyList())
         } else {
@@ -51,7 +53,7 @@ class GetCurrentAllocations(
                 staff[it.staffId]!!,
               )
             },
-            caseNotes.asRecordedEvents { requireNotNull(prisons[it]) },
+            caseNotes.asRecordedEvents({ requireNotNull(prisons[it]) }, { requireNotNull(staff[it]) }),
           )
         }
       }
