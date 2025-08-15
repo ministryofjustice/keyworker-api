@@ -103,3 +103,5 @@ private fun PrisonConfigRequest.asPrisonConfig(prisonCode: String) =
     hasPrisonersWithHighComplexityNeeds ?: false,
     AllocationContext.get().policy.name,
   )
+
+fun Prison?.orDefault(code: String) = this ?: Prison(code, code)

@@ -102,10 +102,13 @@ class CaseNoteRetriever(
         date.atStartOfDay(),
       ).associate { it.personIdentifier to LatestNote(it.occurredAt) }
 
-  fun findMostRecentCaseNotes(personIdentifier: String): List<AllocationCaseNote> {
+  fun findMostRecentCaseNotes(
+    personIdentifier: String,
+    policies: Set<String>,
+  ): List<AllocationCaseNote> {
     val cnt =
-      AllocationPolicy.entries
-        .mapNotNull { caseNoteTypes[it] }
+      policies
+        .mapNotNull { AllocationPolicy.of(it)?.let { p -> caseNoteTypes[p] } }
         .flatten()
         .toSet()
     return acr.findLatestRecordedEvents(personIdentifier, cnt)

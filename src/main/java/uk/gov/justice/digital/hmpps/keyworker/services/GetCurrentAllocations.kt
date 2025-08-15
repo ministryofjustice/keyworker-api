@@ -4,9 +4,11 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PolicyRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.orDefault
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
@@ -16,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.asRecordedEvent
 @Service
 class GetCurrentAllocations(
   private val prisonerSearch: PrisonerSearchClient,
+  private val prisonConfig: PrisonConfigurationRepository,
   private val allocationRepository: AllocationRepository,
   private val caseNoteRetriever: CaseNoteRetriever,
   private val prisonApi: PrisonApiClient,
@@ -26,11 +29,12 @@ class GetCurrentAllocations(
     val person =
       prisonerSearch.findPrisonerDetails(setOf(personIdentifier)).firstOrNull()
         ?: return CurrentPersonStaffAllocation(personIdentifier, false, emptyList(), emptyList())
+    val prisonPolicies = prisonConfig.findEnabledPrisonPolicies(person.lastPrisonId)
     return when (person.complexityOfNeedLevel) {
       ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(personIdentifier, true, emptyList(), emptyList())
       else -> {
-        val allocations = allocationRepository.findCurrentAllocations(personIdentifier)
-        val caseNotes = caseNoteRetriever.findMostRecentCaseNotes(personIdentifier)
+        val allocations = allocationRepository.findCurrentAllocations(personIdentifier, prisonPolicies)
+        val caseNotes = caseNoteRetriever.findMostRecentCaseNotes(personIdentifier, prisonPolicies)
         val prisons =
           prisonService
             .findPrisons((allocations.map { it.prisonCode } + caseNotes.map { it.prisonCode }).toSet())
@@ -49,11 +53,11 @@ class GetCurrentAllocations(
             allocations.map {
               CurrentAllocation(
                 policies[it.policy]!!.asCodedDescription(),
-                prisons[it.prisonCode]!!.asCodedDescription(),
-                staff[it.staffId]!!,
+                prisons[it.prisonCode].orDefault(it.prisonCode).asCodedDescription(),
+                staff[it.staffId].orDefault(it.staffId),
               )
             },
-            caseNotes.asRecordedEvents({ requireNotNull(prisons[it]) }, { requireNotNull(staff[it]) }),
+            caseNotes.asRecordedEvents({ prisons[it].orDefault(it) }, { staff[it].orDefault(it) }),
           )
         }
       }

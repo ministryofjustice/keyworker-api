@@ -17,3 +17,5 @@ data class StaffAllocationCount(
   val lastName: String,
   val allocationCount: Int,
 )
+
+fun StaffSummary?.orDefault(id: Long) = this ?: StaffSummary(id, "", "")

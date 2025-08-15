@@ -275,6 +275,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           now().minusDays(index / 2 + 1L),
           now().plusDays(index * 2 + 2L),
           "DEF",
+          "DEF",
           "Default Prison",
           "DEF-A-1",
           "STANDARD",
