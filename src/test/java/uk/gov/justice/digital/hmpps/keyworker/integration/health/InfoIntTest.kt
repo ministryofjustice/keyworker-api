@@ -20,6 +20,9 @@ import java.util.function.Consumer
 class InfoIntTest : IntegrationTest() {
   @Test
   fun `keyworker enabled prisons are returned based on config file`() {
+    val prisonCode = "AAP"
+    givenPrisonConfig(prisonConfig(prisonCode, true))
+
     val response =
       webTestClient
         .get()
@@ -32,7 +35,8 @@ class InfoIntTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    assertThat(response.activeAgencies).containsOnly("KEF")
+    assertThat(response.activeAgencies).isNotEmpty
+    assertThat(response.activeAgencies).contains(prisonCode)
   }
 
   @Test
