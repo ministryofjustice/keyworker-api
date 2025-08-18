@@ -108,7 +108,7 @@ class GetStaffDetails(
     val allAllocations =
       allocationRepository.findActiveForPrisonStaffBetween(
         prisonCode,
-        staffId,
+        setOf(staffId),
         reportingPeriod.from,
         reportingPeriod.to.plusDays(1),
       )

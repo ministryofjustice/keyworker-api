@@ -1,20 +1,24 @@
 package uk.gov.justice.digital.hmpps.keyworker.sar
 
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import java.time.LocalDateTime
 
 data class SubjectAccessResponse(
   val prn: String,
-  val content: List<SarKeyWorker>,
+  val content: List<SarAllocation>,
 )
 
-data class SarKeyWorker(
+data class SarAllocation(
   val allocatedAt: LocalDateTime,
   val allocationExpiredAt: LocalDateTime?,
   val prisonCode: String,
   val allocationType: String,
   val allocationReason: String,
   val deallocationReason: String?,
+  @Deprecated("This field will be removed in a future release.")
   val keyworker: StaffMember,
+  val staffMember: StaffMember,
+  val policy: CodedDescription,
 ) {
   val activeAllocation: Boolean = allocationExpiredAt == null
 }

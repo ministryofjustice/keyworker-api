@@ -140,20 +140,6 @@ interface AllocationRepository :
   @Query(
     """
       select sa from Allocation sa
-      where sa.staffId = :staffId and sa.prisonCode = :prisonCode
-      and sa.allocatedAt <= :toDate and (sa.deallocatedAt is null or sa.deallocatedAt >= :fromDate)
-    """,
-  )
-  fun findActiveForPrisonStaffBetween(
-    prisonCode: String,
-    staffId: Long,
-    fromDate: LocalDateTime,
-    toDate: LocalDateTime,
-  ): List<Allocation>
-
-  @Query(
-    """
-      select sa from Allocation sa
       where sa.staffId in :staffIds and sa.prisonCode = :prisonCode
       and sa.allocatedAt <= :toDate and (sa.deallocatedAt is null or sa.deallocatedAt >= :fromDate)
     """,
@@ -256,6 +242,21 @@ interface AllocationRepository :
     nativeQuery = true,
   )
   fun findActiveForAllPolicies(personIdentifier: String): List<Allocation>
+
+  @Query(
+    """
+      select a.* from allocation a
+      where a.person_identifier = :personIdentifier 
+      and (cast(:from as date) is null or :from <= a.allocated_at)
+      and (cast(:to as date) is null or :to >= a.allocated_at)
+    """,
+    nativeQuery = true,
+  )
+  fun findAllocationsForSar(
+    personIdentifier: String,
+    from: LocalDate?,
+    to: LocalDate?,
+  ): List<Allocation>
 
   @Query(
     """
