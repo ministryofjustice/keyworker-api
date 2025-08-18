@@ -11,7 +11,7 @@ generic-service:
     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth/.well-known/jwks.json"
     COMPLEXITY_OF_NEED_URI: https://complexity-of-need-preprod.hmpps.service.justice.gov.uk
     NOMIS_USER_ROLES_API_URI_ROOT: "https://nomis-user-roles-api-preprod.prison.service.justice.gov.uk"
-    KEYWORKER_ENABLED_FOR_PRISONS: "BCI,BWI,HII,LFI,LPI,PNI,RSI,WMI"
+    KEYWORKER_ENABLED_FOR_PRISONS: "BCI,BWI,FEI,FWI,HII,LFI,LPI,OWI,PNI,PRI,PVI,RSI,WMI,WSI,WWI"
 
   ingress:
     host: keyworker-api-preprod.prison.service.justice.gov.uk
