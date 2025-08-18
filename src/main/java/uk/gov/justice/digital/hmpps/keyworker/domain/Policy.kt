@@ -5,6 +5,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
 import org.springframework.data.jpa.repository.JpaRepository
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 
 @Immutable
 @Entity
@@ -16,3 +17,5 @@ class Policy(
 )
 
 interface PolicyRepository : JpaRepository<Policy, String>
+
+fun Policy.asCodedDescription() = CodedDescription(code, description)
