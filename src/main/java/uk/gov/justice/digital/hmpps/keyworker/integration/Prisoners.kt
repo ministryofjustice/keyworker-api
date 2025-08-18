@@ -40,7 +40,26 @@ data class Prisoner(
   val complexityOfNeedLevel: ComplexityOfNeedLevel?,
   val lastAdmissionDate: LocalDate?,
   val alerts: List<PrisonAlert>,
-)
+) {
+  companion object {
+    fun fields() =
+      setOf(
+        Prisoner::prisonerNumber.name,
+        Prisoner::firstName.name,
+        Prisoner::lastName.name,
+        Prisoner::receptionDate.name,
+        Prisoner::releaseDate.name,
+        Prisoner::prisonId.name,
+        Prisoner::prisonName.name,
+        Prisoner::lastPrisonId.name,
+        Prisoner::cellLocation.name,
+        Prisoner::csra.name,
+        Prisoner::complexityOfNeedLevel.name,
+        Prisoner::lastAdmissionDate.name,
+        Prisoner::alerts.name,
+      )
+  }
+}
 
 fun List<PrisonAlert>.getRelevantAlertCodes() =
   filter {
