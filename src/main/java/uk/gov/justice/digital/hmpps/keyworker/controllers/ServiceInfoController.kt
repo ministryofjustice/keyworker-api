@@ -23,7 +23,7 @@ class ServiceInfoController(
     @PathVariable policy: String,
   ): ActiveAgenciesResponse =
     when (policy.asKeyword()) {
-      "keyworker" -> ActiveAgenciesResponse(keyworkerEnabledFor)
+      "keyworker" if ("***" !in keyworkerEnabledFor) -> ActiveAgenciesResponse(keyworkerEnabledFor)
       else -> ActiveAgenciesResponse(prisonService.findPolicyEnabledPrisons(policy))
     }
 }
