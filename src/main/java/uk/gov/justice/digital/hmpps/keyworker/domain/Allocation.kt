@@ -246,7 +246,7 @@ interface AllocationRepository :
   @Query(
     """
       select a.* from allocation a
-      where a.person_identifier = :personIdentifier 
+      where a.person_identifier = :personIdentifier and a.allocation_type <> 'P'
       and (cast(:from as date) is null or :from <= a.allocated_at)
       and (cast(:to as date) is null or :to >= a.allocated_at)
     """,
