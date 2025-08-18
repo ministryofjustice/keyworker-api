@@ -95,6 +95,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           "ADM",
           "26",
           "IN",
+          transferredAt.plusHours(1),
         ),
         Movement(
           transferredPi,
@@ -105,6 +106,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           "TRN",
           "COMP",
           "OUT",
+          transferredAt,
         ),
         Movement(
           transferredPi,
@@ -115,6 +117,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           "ADM",
           "25",
           "IN",
+          transferredAt.minusHours(1),
         ),
         Movement(
           transferredPi,
@@ -125,6 +128,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           "TRN",
           "NOTR",
           "OUT",
+          transferredAt.minusHours(2),
         ),
       ),
     )
@@ -140,6 +144,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
           "REL",
           "CR",
           "OUT",
+          releasedAt,
         ),
       ),
     )

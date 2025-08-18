@@ -74,8 +74,14 @@ class MigratePersonalOfficers(
                 if (e.key in currentResidentIds) {
                   Mono.just(PoAllocationHistory(e.value, null))
                 } else {
-                  prisonApi.getPersonMovements(e.key).map {
-                    PoAllocationHistory(e.value, RelevantMovement(prisonCode, it))
+                  prisonApi.getPersonMovements(e.key).map { ms ->
+                    PoAllocationHistory(
+                      e.value,
+                      RelevantMovement(
+                        prisonCode,
+                        ms.filter { m -> m.createdAt.isAfter(e.value.maxOf { it.assigned }) },
+                      ),
+                    )
                   }
                 }
               }, 20)
