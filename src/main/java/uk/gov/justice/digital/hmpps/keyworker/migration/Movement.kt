@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.migration
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -14,6 +15,8 @@ data class Movement(
   val movementType: String?,
   val movementReasonCode: String?,
   val directionCode: String?,
+  @field:JsonAlias("createDateTime")
+  val createdAt: LocalDateTime,
 ) {
   val occurredAt: LocalDateTime = lazy { LocalDateTime.of(movementDate, movementTime) }.value
   val deallocationReason: DeallocationReason? =

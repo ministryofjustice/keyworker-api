@@ -51,12 +51,8 @@ class RelevantMovement(
   prisonCode: String,
   history: List<Movement>,
 ) {
-  val movement: Movement?
-
-  init {
-    val movements = history.sortedByDescending { it.occurredAt }
-    movement = movements.firstOrNull {
+  val movement: Movement? =
+    history.sortedByDescending { it.occurredAt }.firstOrNull {
       it.deallocationReason != null && it.directionCode == "OUT" && it.fromAgency == prisonCode
-    } ?: movements.lastOrNull { it.movementType == "ADM" && it.toAgency != prisonCode }
-  }
+    }
 }
