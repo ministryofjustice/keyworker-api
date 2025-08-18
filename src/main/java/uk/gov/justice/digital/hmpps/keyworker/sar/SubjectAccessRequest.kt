@@ -21,7 +21,7 @@ class SubjectAccessRequest(
     fromDate: LocalDate?,
     toDate: LocalDate?,
   ): SubjectAccessResponse? {
-    val allocations = allocationRepository.findAllocationsForSar(prn, fromDate, toDate)
+    val allocations = allocationRepository.findAllocationsForSar(prn, fromDate, toDate?.plusDays(1))
     val policyMap = policyRepository.findAll().associateBy(Policy::code)
     val staffMap: Map<Long, StaffMember> =
       prisonApi.findStaffSummariesFromIds(allocations.map { it.staffId }.toSet()).associate {
