@@ -21,6 +21,7 @@ class PrisonerSearchClient(
       .uri {
         it.path("/prisoner-search/prison/{prisonCode}")
         it.queryParam("size", Int.MAX_VALUE)
+        it.queryParam("responseFields", Prisoner.fields())
         it.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
