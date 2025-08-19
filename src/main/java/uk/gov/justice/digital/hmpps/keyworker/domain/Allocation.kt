@@ -128,6 +128,8 @@ interface AllocationRepository :
   @Query(
     """
       select sa from Allocation sa
+      join fetch sa.allocationReason
+      left join fetch sa.deallocationReason
       where sa.staffId = :staffId and sa.prisonCode = :prisonCode
       and sa.isActive = true
     """,
@@ -140,6 +142,8 @@ interface AllocationRepository :
   @Query(
     """
       select sa from Allocation sa
+      join fetch sa.allocationReason
+      left join fetch sa.deallocationReason
       where sa.staffId in :staffIds and sa.prisonCode = :prisonCode
       and sa.allocatedAt <= :toDate and (sa.deallocatedAt is null or sa.deallocatedAt >= :fromDate)
     """,
