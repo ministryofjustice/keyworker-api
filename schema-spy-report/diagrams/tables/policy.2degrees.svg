@@ -70,14 +70,14 @@
 <text text-anchor="start" x="127.5219" y="-614.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
 <polygon fill="none" stroke="#000000" points="22,-587.7 22,-606.7 162,-606.7 162,-587.7 22,-587.7"/>
 <text text-anchor="start" x="25" y="-593.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="22,-568.7 22,-587.7 81,-587.7 81,-568.7 22,-568.7"/>
-<polygon fill="none" stroke="#000000" points="22,-568.7 22,-587.7 81,-587.7 81,-568.7 22,-568.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="22,-568.7 22,-587.7 65,-587.7 65,-568.7 22,-568.7"/>
+<polygon fill="none" stroke="#000000" points="22,-568.7 22,-587.7 65,-587.7 65,-568.7 22,-568.7"/>
 <text text-anchor="start" x="25" y="-574.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="81,-568.7 81,-587.7 117,-587.7 117,-568.7 81,-568.7"/>
-<polygon fill="none" stroke="#000000" points="81,-568.7 81,-587.7 117,-587.7 117,-568.7 81,-568.7"/>
-<text text-anchor="start" x="107.8862" y="-574.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="117,-568.7 117,-587.7 162,-587.7 162,-568.7 117,-568.7"/>
-<polygon fill="none" stroke="#000000" points="117,-568.7 117,-587.7 162,-587.7 162,-568.7 117,-568.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="65,-568.7 65,-587.7 125,-587.7 125,-568.7 65,-568.7"/>
+<polygon fill="none" stroke="#000000" points="65,-568.7 65,-587.7 125,-587.7 125,-568.7 65,-568.7"/>
+<text text-anchor="start" x="83.4956" y="-574.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">55 rows</text>
+<polygon fill="#ffffff" stroke="transparent" points="125,-568.7 125,-587.7 162,-587.7 162,-568.7 125,-568.7"/>
+<polygon fill="none" stroke="#000000" points="125,-568.7 125,-587.7 162,-587.7 162,-568.7 125,-568.7"/>
 <text text-anchor="start" x="143.4053" y="-574.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">5 &gt;</text>
 </a>
 </g>
