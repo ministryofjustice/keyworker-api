@@ -157,11 +157,15 @@ class StaffSearch(
       }
 
     val staffCaseNoteSummaries =
-      caseNoteRetriever.findCaseNoteSummaries(
-        staffMembers.keys,
-        reportingPeriod.from.toLocalDate(),
-        reportingPeriod.to.toLocalDate(),
-      )
+      if (includeStats) {
+        caseNoteRetriever.findCaseNoteSummaries(
+          staffMembers.keys,
+          reportingPeriod.from.toLocalDate(),
+          reportingPeriod.to.toLocalDate(),
+        )
+      } else {
+        emptyMap()
+      }
 
     return AllocatableSearchResponse(
       staffMembers.values
