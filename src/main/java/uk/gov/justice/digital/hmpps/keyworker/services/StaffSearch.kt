@@ -167,6 +167,10 @@ class StaffSearch(
         emptyMap()
       }
 
+    val activeStatusProvider =
+      lazy {
+        referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!!
+      }
     return AllocatableSearchResponse(
       staffMembers.values
         .map {
@@ -182,7 +186,7 @@ class StaffSearch(
                 CaseNoteSummaries.empty()
               }
             },
-            lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
+            activeStatusProvider,
             includeStats,
           )
         }.filter { ss -> (request.status == StaffStatus.ALL || request.status.name == ss.status.code) },
