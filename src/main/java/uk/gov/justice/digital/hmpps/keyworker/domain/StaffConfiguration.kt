@@ -54,6 +54,7 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
         config_ids as (select sc.id as config_id from StaffConfiguration sc where sc.staffId in :staffIds)
         select coalesce(ac.id, config.staffId) as staffId, ac.count as allocationCount, config as staffConfig from counts ac
         full outer join StaffConfiguration config on ac.id = config.staffId
+        left join fetch config.status
         where config.id is null or config.id in (select config_id from config_ids)
         """,
   )

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.statistics
 
-import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
@@ -20,7 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.temporal.ChronoUnit.DAYS
 
 @Service
@@ -35,7 +33,6 @@ class PrisonStatisticCalculator(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
   private val staffRoleRepository: StaffRoleRepository,
-  private val telemetryClient: TelemetryClient,
 ) {
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
     with(info.additionalInformation) {
@@ -46,11 +43,6 @@ class PrisonStatisticCalculator(
       val prisoners = prisonerSearch.findAllPrisoners(prisonCode)
 
       if (prisoners.isEmpty()) {
-        telemetryClient.trackEvent(
-          "EmptyPrison",
-          mapOf("prisonCode" to prisonCode, "date" to ISO_LOCAL_DATE.format(date)),
-          null,
-        )
         return
       }
 
@@ -69,16 +61,6 @@ class PrisonStatisticCalculator(
       val eligiblePrisoners = prisoners.personIdentifiers() - prisonersWithComplexNeeds
 
       if (eligiblePrisoners.isEmpty()) {
-        telemetryClient.trackEvent(
-          "NoEligiblePrisoners",
-          mapOf(
-            "prisonCode" to prisonCode,
-            "date" to ISO_LOCAL_DATE.format(date),
-            "totalPrisoners" to prisoners.size.toString(),
-            "withComplexNeeds" to prisonersWithComplexNeeds.size.toString(),
-          ),
-          null,
-        )
         return
       }
 
@@ -89,7 +71,8 @@ class PrisonStatisticCalculator(
           .associateBy { it.personIdentifier }
 
       val cnSummaries = caseNoteRetriever.findCaseNoteSummaries(prisonCode, date, date)
-      val previousRecordedEntries = caseNoteRetriever.findMostRecentCaseNoteBefore(prisonCode, cnSummaries.personIdentifiers(), date)
+      val previousRecordedEntries =
+        caseNoteRetriever.findMostRecentCaseNoteBefore(prisonCode, cnSummaries.personIdentifiers(), date)
 
       val activeStaffCount = getActiveStaffCount()
 
@@ -114,23 +97,6 @@ class PrisonStatisticCalculator(
               }
           },
         )
-
-      val overSixMonths =
-        summaries.data.filter {
-          val sixMonthsInDays = DAYS.between(LocalDate.now().minusMonths(6), LocalDate.now())
-          (it.eligibilityToAllocationInDays ?: 0) > sixMonthsInDays ||
-            (it.eligibilityToRecordedEntryInDays ?: 0) > sixMonthsInDays
-        }
-
-      if (overSixMonths.isNotEmpty()) {
-        telemetryClient.trackEvent(
-          "OverSixMonths",
-          overSixMonths.associate {
-            it.personIdentifier to ISO_LOCAL_DATE.format(it.eligibilityDate!!)
-          } + ("policy" to policy.name),
-          mapOf(),
-        )
-      }
 
       statisticRepository.save(
         PrisonStatistic(
