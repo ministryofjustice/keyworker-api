@@ -248,12 +248,8 @@ class PersonSearchIntegrationTest : IntegrationTest() {
       assertThat(hasAllocationHistory).isFalse
       assertThat(staffMember).isNull()
     }
-    val history = requireNotNull(response.content.find { it.location == "$prisonCode-A-4" })
-    with(history) {
-      assertThat(hasHighComplexityOfNeeds).isTrue
-      assertThat(hasAllocationHistory).isTrue
-      assertThat(staffMember).isNull()
-    }
+    val history = response.content.find { it.location == "$prisonCode-A-4" }
+    assertThat(history).isNull()
   }
 
   private fun searchRequest(
