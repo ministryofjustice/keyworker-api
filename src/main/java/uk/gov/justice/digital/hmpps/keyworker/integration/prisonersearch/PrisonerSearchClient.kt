@@ -33,8 +33,11 @@ class PrisonerSearchClient(
   fun findPrisonerDetails(prisonNumbers: Set<String>): List<Prisoner> =
     webClient
       .post()
-      .uri("/prisoner-search/prisoner-numbers")
-      .bodyValue(PrisonerNumbers(prisonNumbers))
+      .uri {
+        it.path("/prisoner-search/prisoner-numbers")
+        it.queryParam("responseFields", Prisoner.fields())
+        it.build()
+      }.bodyValue(PrisonerNumbers(prisonNumbers))
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
       .retrieve()
@@ -55,6 +58,7 @@ class PrisonerSearchClient(
           request.cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
           ub.queryParam("page", 0)
           ub.queryParam("size", Int.MAX_VALUE)
+          ub.queryParam("responseFields", Prisoner.fields())
         }
         ub.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
