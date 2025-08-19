@@ -59,7 +59,7 @@ class PersonSearch(
     allocationCount: (Long) -> Int?,
   ): PrisonerSummary? {
     val summary = summary(prisonerNumber)
-    return if (excludeActive && (summary?.activeCount ?: 0) > 0) {
+    return if (excludeActive && ((summary?.activeCount ?: 0) > 0 || complexityOfNeedLevel == HIGH)) {
       null
     } else {
       PrisonerSummary(
