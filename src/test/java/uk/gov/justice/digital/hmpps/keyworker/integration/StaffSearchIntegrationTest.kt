@@ -338,7 +338,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     val staff = response.content.single()
-    assertThat(staff.capacity).isEqualTo(6)
+    assertThat(staff.capacity).isEqualTo(9)
     assertThat(staff.allocated).isEqualTo(2)
     assertThat(staff.numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 7 else 0)
     assertThat(staff.numberOfEntries).isEqualTo(3)
