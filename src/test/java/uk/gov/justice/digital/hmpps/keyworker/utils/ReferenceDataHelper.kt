@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
@@ -18,6 +19,7 @@ object ReferenceDataHelper {
       ReferenceDataDomain.ALLOCATION_REASON of reason.reasonCode,
       description,
       reason.ordinal,
+      AllocationPolicy.KEY_WORKER.name,
       newId(),
     )
   }
@@ -30,6 +32,7 @@ object ReferenceDataHelper {
       ReferenceDataDomain.DEALLOCATION_REASON of reason.reasonCode,
       description,
       reason.ordinal,
+      AllocationPolicy.KEY_WORKER.name,
       newId(),
     )
   }
@@ -42,6 +45,7 @@ object ReferenceDataHelper {
       ReferenceDataDomain.STAFF_STATUS of status.name,
       description,
       status.ordinal,
+      AllocationPolicy.KEY_WORKER.name,
       newId(),
     )
   }
