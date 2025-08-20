@@ -330,7 +330,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       )
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, prisonDescription))
-    assertThat(response.capacity).isEqualTo(6)
+    assertThat(response.capacity).isEqualTo(9)
     assertThat(response.allocated).isEqualTo(0)
     assertThat(response.allocations.size).isEqualTo(0)
     assertThat(response.allowAutoAllocation).isTrue

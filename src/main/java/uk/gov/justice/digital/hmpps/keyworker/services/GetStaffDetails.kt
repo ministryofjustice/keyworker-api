@@ -148,7 +148,7 @@ class GetStaffDetails(
       staff.lastName,
       staffInfo?.staffConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
-      staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
+      staffInfo?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
       staffInfo?.allocationCount ?: 0,
       allocations ?: emptyList(),
       stats,
