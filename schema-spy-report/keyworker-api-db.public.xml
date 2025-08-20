@@ -92,6 +92,9 @@
             <column ascending="true" name="rev_id"/>
             <column ascending="true" name="id"/>
          </index>
+         <index name="idx_allocation_audit_id" unique="false">
+            <column ascending="true" name="id"/>
+         </index>
       </table>
       <table catalog="keyworker-api-db" name="allocation_case_note" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
@@ -112,6 +115,12 @@
          </index>
          <index name="idx_case_note_person_identifier" unique="false">
             <column ascending="true" name="person_identifier"/>
+         </index>
+         <index name="idx_case_note_prison_code_created_at" unique="false">
+            <column ascending="true" name="prison_code"/>
+            <column ascending="true" name="created_at"/>
+            <column ascending="true" name="type"/>
+            <column ascending="true" name="sub_type"/>
          </index>
          <index name="idx_case_note_prison_code_occurred_at" unique="false">
             <column ascending="true" name="prison_code"/>

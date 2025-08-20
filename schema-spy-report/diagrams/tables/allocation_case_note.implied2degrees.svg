@@ -149,6 +149,7 @@
 <text text-anchor="start" x="322" y="-580.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">version</text>
 <polygon fill="none" stroke="#000000" points="462,-573.7 462,-595.7 556,-595.7 556,-573.7 462,-573.7"/>
 <text text-anchor="start" x="465" y="-581.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">int4[10]</text>
+<polygon fill="#ffffff" stroke="transparent" points="302,-551.7 302,-573.7 462,-573.7 462,-551.7 302,-551.7"/>
 <polygon fill="none" stroke="#000000" points="302,-551.7 302,-573.7 462,-573.7 462,-551.7 302,-551.7"/>
 <text text-anchor="start" x="322" y="-558.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">created_at</text>
 <polygon fill="none" stroke="#000000" points="462,-551.7 462,-573.7 556,-573.7 556,-551.7 462,-551.7"/>
