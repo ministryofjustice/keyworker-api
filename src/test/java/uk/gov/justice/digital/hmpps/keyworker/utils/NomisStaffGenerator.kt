@@ -29,7 +29,7 @@ object NomisStaffGenerator {
     staffId: Long,
     toDate: LocalDate? = null,
     firstname: (Long) -> String = { "First Name $it" },
-    lastName: (Long) -> String = { "Last Name $it" }
+    lastName: (Long) -> String = { "Last Name $it" },
   ): StaffLocationRoleDto =
     StaffLocationRoleDto
       .builder()
@@ -46,7 +46,7 @@ object NomisStaffGenerator {
   fun staffRoles(
     staffIds: List<Long>,
     firstname: (Long) -> String = { "First Name $it" },
-    lastName: (Long) -> String = { "Last Name $it" }
+    lastName: (Long) -> String = { "Last Name $it" },
   ): List<StaffLocationRoleDto> = staffIds.map { staffLocationRole(it, null, firstname, lastName) }
 
   fun staffSummaries(staffIds: Set<Long>): List<StaffSummary> = staffIds.map { StaffSummary(it, "First$it", "Last$it") }
