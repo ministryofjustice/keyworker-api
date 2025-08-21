@@ -363,17 +363,17 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
     val staffIds = (0..5).map { newId() }
+    val si = staffIds.mapIndexed { i, si -> si to i }.toMap()
+    val forename = { id: Long -> if (si[id]!! % 2 == 0) "John" else "Jane" }
+    val surname = { id: Long -> if (si[id]!! % 4 == 0) "Smith" else "Doe" }
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds, forename, surname))
     } else {
+      prisonMockServer.stubStaffSummaries(staffIds.map { StaffSummary(it, forename(it), surname(it)) })
       staffIds.forEach {
         givenStaffRole(staffRole(prisonCode, it))
       }
     }
-    val si = staffIds.mapIndexed { i, si -> si to i }.toMap()
-    val forename = { id: Long -> if (si[id]!! % 2 == 0) "John" else "Jane" }
-    val surname = { id: Long -> if (si[id]!! % 4 == 0) "Smith" else "Doe" }
-    prisonMockServer.stubStaffSummaries(staffIds.map { StaffSummary(it, forename(it), surname(it)) })
 
     val staffConfigs: List<StaffConfiguration> =
       staffIds.mapIndexedNotNull { index, staffId ->
