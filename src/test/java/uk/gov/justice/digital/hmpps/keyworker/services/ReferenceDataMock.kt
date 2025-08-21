@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
@@ -14,6 +15,7 @@ object ReferenceDataMock {
           ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it.name),
           "Description of ${it.name}",
           it.ordinal,
+          AllocationPolicy.KEY_WORKER.name,
           it.ordinal.toLong(),
         )
       }.associateBy { it.code }

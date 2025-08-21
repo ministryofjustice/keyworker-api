@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -15,6 +17,7 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
     webTestClient
       .get()
       .uri(REFERENCE_DATA_URL, "any-domain")
+      .header(PolicyHeader.NAME, AllocationPolicy.KEY_WORKER.name)
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -22,13 +25,17 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getReferenceDataSpec("any-domain", "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getReferenceDataSpec(
+      "any-domain",
+      AllocationPolicy.PERSONAL_OFFICER,
+      "ROLE_ANY__OTHER_RW",
+    ).expectStatus().isForbidden
   }
 
   @Test
   fun `200 ok - can retrieve staff status`() {
     val rd =
-      getReferenceDataSpec("staff-status")
+      getReferenceDataSpec("staff-status", policy = AllocationPolicy.PERSONAL_OFFICER)
         .expectStatus()
         .isOk
         .expectBodyList(CodedDescription::class.java)
@@ -46,9 +53,12 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("referenceDataDomains")
-  fun `200 ok - can retrieve reference data domains with correct role`(domain: String) {
+  fun `200 ok - can retrieve reference data domains with correct role`(
+    domain: String,
+    policy: AllocationPolicy,
+  ) {
     val rd =
-      getReferenceDataSpec(domain)
+      getReferenceDataSpec(domain, policy)
         .expectStatus()
         .isOk
         .expectBodyList(CodedDescription::class.java)
@@ -60,11 +70,13 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
   private fun getReferenceDataSpec(
     domain: String,
+    policy: AllocationPolicy,
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .get()
     .uri(REFERENCE_DATA_URL, domain)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+    .header(PolicyHeader.NAME, policy.name)
     .exchange()
 
   companion object {
@@ -72,12 +84,12 @@ class ReferenceDataIntegrationTest : IntegrationTest() {
 
     @JvmStatic
     fun referenceDataDomains() =
-      ReferenceDataDomain.entries.flatMap {
-        listOf(
-          Arguments.of(it.name),
-          Arguments.of(it.name.lowercase()),
-          Arguments.of(it.name.lowercase().replace("_", "-")),
-        )
+      ReferenceDataDomain.entries.flatMap { rdd ->
+        AllocationPolicy.entries.map { ap ->
+          Arguments.of(rdd.name, ap)
+          Arguments.of(rdd.name.lowercase(), ap)
+          Arguments.of(rdd.name.lowercase().replace("_", "-"), ap)
+        }
       }
   }
 }
