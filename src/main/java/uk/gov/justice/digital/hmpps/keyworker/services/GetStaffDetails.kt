@@ -112,7 +112,12 @@ class GetStaffDetails(
         reportingPeriod.from,
         reportingPeriod.to.plusDays(1),
       )
-    val activeAllocations = allAllocations.filter { it.isActive }
+    val activeAllocations =
+      if (reportingPeriod.to.toLocalDate().isEqual(LocalDate.now())) {
+        allAllocations.filter { it.isActive }
+      } else {
+        allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
+      }
     val prisonerDetails =
       if (activeAllocations.isEmpty()) {
         emptyMap()

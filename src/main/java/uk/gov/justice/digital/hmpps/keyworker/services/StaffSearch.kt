@@ -145,7 +145,7 @@ class StaffSearch(
           prisonCode,
           staffMembers.keys.toSet(),
           reportingPeriod.from,
-          reportingPeriod.to,
+          reportingPeriod.to.plusDays(1),
         ).filterApplicable(reportingPeriod)
         .groupBy { it.staffId }
 
