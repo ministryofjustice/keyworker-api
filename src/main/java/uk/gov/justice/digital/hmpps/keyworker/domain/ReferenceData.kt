@@ -81,8 +81,6 @@ fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
   findByKey(key)
     ?: throw EntityNotFoundException("Reference data not found")
 
-fun ReferenceData.asKeyworkerStatus(): StaffStatus = StaffStatus.valueOf(code)
-
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
   this?.let {
     CodedDescription(code, description)
