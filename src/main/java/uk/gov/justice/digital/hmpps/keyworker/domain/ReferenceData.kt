@@ -8,22 +8,28 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
+import jakarta.persistence.SecondaryTable
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
+import org.hibernate.annotations.TenantId
 import org.springframework.data.jpa.repository.JpaRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 
 @Immutable
 @Entity
-@Table
+@Table(name = "reference_data_policy")
+@SecondaryTable(name = "reference_data")
 class ReferenceData(
   @Embedded
   val key: ReferenceDataKey,
+  @Column(table = "reference_data")
   val description: String,
+  @Column(table = "reference_data")
   val sequenceNumber: Int,
+  @TenantId
+  val policyCode: String,
   @Id
-  @Column(name = "id")
   val id: Long,
 ) : ReferenceDataLookup by key
 
@@ -34,8 +40,10 @@ interface ReferenceDataLookup {
 
 @Embeddable
 data class ReferenceDataKey(
+  @Column(table = "reference_data")
   @Enumerated(EnumType.STRING)
   override val domain: ReferenceDataDomain,
+  @Column(table = "reference_data")
   override val code: String,
 ) : ReferenceDataLookup
 
@@ -72,8 +80,6 @@ fun ReferenceDataRepository.getKeyworkerStatus(status: StaffStatus): ReferenceDa
 fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
   findByKey(key)
     ?: throw EntityNotFoundException("Reference data not found")
-
-fun ReferenceData.asKeyworkerStatus(): StaffStatus = StaffStatus.valueOf(code)
 
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
   this?.let {
