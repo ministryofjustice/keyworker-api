@@ -176,6 +176,7 @@
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="prison_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_configuration"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="prison_statistic_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_statistic"/>
+            <child catalog="keyworker-api-db" column="policy_code" foreignKey="reference_data_policy_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data_policy"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="staff_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="staff_configuration_audit"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="staff_role"/>
@@ -290,6 +291,7 @@
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child catalog="keyworker-api-db" column="allocation_reason_id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child catalog="keyworker-api-db" column="deallocation_reason_id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
+            <child catalog="keyworker-api-db" column="id" foreignKey="reference_data_policy_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data_policy"/>
             <child catalog="keyworker-api-db" column="status_id" foreignKey="key_worker_status_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration"/>
             <child catalog="keyworker-api-db" column="allocation_reason_id" foreignKey="offender_key_worker_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="zz_archived_legacy_keyworker_allocation"/>
             <child catalog="keyworker-api-db" column="deallocation_reason_id" foreignKey="offender_key_worker_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="zz_archived_legacy_keyworker_allocation"/>
@@ -309,6 +311,18 @@
          <index name="unq_reference_data_domain_sequence" unique="true">
             <column ascending="true" name="domain"/>
             <column ascending="true" name="sequence_number"/>
+         </index>
+      </table>
+      <table catalog="keyworker-api-db" name="reference_data_policy" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent catalog="keyworker-api-db" column="id" foreignKey="reference_data_policy_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
+            <parent catalog="keyworker-api-db" column="code" foreignKey="reference_data_policy_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
+         </column>
+         <index name="idx_reference_data_policy" unique="true">
+            <column ascending="true" name="id"/>
+            <column ascending="true" name="policy_code"/>
          </index>
       </table>
       <table catalog="keyworker-api-db" name="staff_configuration" remarks="Stores Key worker basic details, including status and capacity." schema="public" type="TABLE">

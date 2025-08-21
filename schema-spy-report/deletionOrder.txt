@@ -6,11 +6,12 @@ zz_archived_legacy_keyworker_allocation
 staff_role
 staff_configuration_audit
 staff_configuration
+reference_data_policy
 prison_statistic
 prison_configuration
 allocation_case_note_audit
 allocation_case_note
-reference_data
 audit_revision
+reference_data
 prison_migration_date_history
 policy

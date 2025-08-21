@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>policy - keyworker-api-db.public</title>
+        <title>reference_data_policy - keyworker-api-db.public</title>
         <!-- Tell the browser to be responsive to screen width -->
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
@@ -73,7 +73,7 @@
             <div class="content-wrapper">
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
-                    <h1>policy</h1><p><span id="recordNumber">-1</span> rows</p><br />
+                    <h1>reference_data_policy</h1><p><span id="recordNumber">-1</span> rows</p><br />
                 </section>
                 <!-- Main content -->
                 <section class="content">
@@ -109,7 +109,29 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="code">code</span></td>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="id">id</span></td>
+                                    <td>int8</td>
+                                    <td>19</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="reference_data_policy.id references reference_data.id via reference_data_policy_id_fkey"><a href='reference_data.html'>reference_data</a><span class='relatedKey'>.id</span></td>
+                                                <td class="constraint detail">reference_data_policy_id_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="policy_code">policy_code</span></td>
                                     <td>varchar</td>
                                     <td>16</td>
                                     <td title=''></td>
@@ -117,77 +139,15 @@
                                     <td>null</td>
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
                                             <tr>
-                                                <td title="allocation.policy_code references policy.code via allocation_policy_code_fkey"><a href='allocation.html'>allocation</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">allocation_policy_code_fkey</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="allocation_audit.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='allocation_audit.html'>allocation_audit</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="prison_configuration.policy_code references policy.code via prison_configuration_policy_code_fkey"><a href='prison_configuration.html'>prison_configuration</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">prison_configuration_policy_code_fkey</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="prison_configuration_audit.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='prison_configuration_audit.html'>prison_configuration_audit</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="prison_statistic.policy_code references policy.code via prison_statistic_policy_code_fkey"><a href='prison_statistic.html'>prison_statistic</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">prison_statistic_policy_code_fkey</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="reference_data_policy.policy_code references policy.code via reference_data_policy_policy_code_fkey"><a href='reference_data_policy.html'>reference_data_policy</a><span class='relatedKey'>.policy_code</span></td>
+                                                <td title="reference_data_policy.policy_code references policy.code via reference_data_policy_policy_code_fkey"><a href='policy.html'>policy</a><span class='relatedKey'>.code</span></td>
                                                 <td class="constraint detail">reference_data_policy_policy_code_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
-                                            <tr>
-                                                <td title="staff_configuration.policy_code references policy.code via staff_configuration_policy_code_fkey"><a href='staff_configuration.html'>staff_configuration</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">staff_configuration_policy_code_fkey</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="staff_configuration_audit.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='staff_configuration_audit.html'>staff_configuration_audit</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="staff_role.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='staff_role.html'>staff_role</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td title="staff_role_audit.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='staff_role_audit.html'>staff_role_audit</a><span class='relatedKey'>.policy_code</span></td>
-                                                <td class="constraint detail">Implied Constraint</td>
-                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
-                                        </table>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td><span id="description">description</span></td>
-                                    <td>varchar</td>
-                                    <td>255</td>
-                                    <td title=''></td>
-                                    <td title=''></td>
-                                    <td>null</td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
-                                        </table>
-                                    </td>
-                                    <td>
-                                        <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
                                     <td></td>
@@ -223,10 +183,10 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> policy_pkey</td>
-                                    <td>Primary key</td>
-                                    <td><span title='Ascending'>Asc</span></td>
-                                    <td>code</td>
+                                    <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> idx_reference_data_policy</td>
+                                    <td>Must be unique</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>id + policy_code</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -253,19 +213,19 @@
                                 <div class="tab-content no-padding">
                                     <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="oneDegreeImg" data="../diagrams/tables/policy.1degree.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="oneDegreeImg" data="../diagrams/tables/reference_data_policy.1degree.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                     <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="twodegreesDegreeImg" data="../diagrams/tables/policy.2degrees.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="twodegreesDegreeImg" data="../diagrams/tables/reference_data_policy.2degrees.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                     <div class="chart tab-pane " id="oneimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="oneimpliedDegreeImg" data="../diagrams/tables/policy.implied1degrees.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="oneimpliedDegreeImg" data="../diagrams/tables/reference_data_policy.implied1degrees.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                     <div class="chart tab-pane " id="twoimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
                                         
-                                        <a name='diagram'><object type="image/svg+xml" id="twoimpliedDegreeImg" data="../diagrams/tables/policy.implied2degrees.svg" class="diagram" border="0" align="left"></object></a>
+                                        <a name='diagram'><object type="image/svg+xml" id="twoimpliedDegreeImg" data="../diagrams/tables/reference_data_policy.implied2degrees.svg" class="diagram" border="0" align="left"></object></a>
                                     </div>
                                 </div>
                             </div>
