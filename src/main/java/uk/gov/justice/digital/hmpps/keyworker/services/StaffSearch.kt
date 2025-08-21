@@ -195,15 +195,28 @@ class StaffSearch(
 
   fun findAllocatableStaff(prisonCode: String): List<AllocatableStaff> {
     val policy = AllocationContext.get().policy
-    val roleInfo =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> getKeyworkerRoleInfo(prisonCode)
-        else -> staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
+    val (staff, roles) = if (policy == AllocationPolicy.KEY_WORKER) {
+      val keyworkers = prisonApi.getKeyworkersForPrison(prisonCode)
+      val staff = keyworkers.map { StaffSummary(it.staffId, it.firstName, it.lastName) }
+      val rd = referenceDataRepository.findAllByKeyIn(keyworkers.flatMap { it.rdKeys() }.toSet()).associateBy { it.key }
+      val cd: (ReferenceDataKey) -> CodedDescription = { rdKey -> requireNotNull(rd[rdKey]).asCodedDescription() }
+      staff to keyworkers.associate {
+        it.staffId to
+          StaffRoleInfo(
+            cd(ReferenceDataDomain.STAFF_POSITION of it.position),
+            cd(ReferenceDataDomain.STAFF_SCHEDULE_TYPE of it.scheduleType),
+            it.hoursPerWeek,
+            it.fromDate,
+            it.toDate,
+          )
       }
+    } else {
+      val staffRoles = staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
+      val staff = prisonApi.findStaffSummariesFromIds(staffRoles.map { it.key }.toSet())
+      staff to staffRoles
+    }
 
-    val staff = prisonApi.findStaffSummariesFromIds(roleInfo.map { it.key }.toSet())
-
-    return staff.map { AllocatableStaff(it, requireNotNull(roleInfo[it.staffId])) }
+    return staff.map { AllocatableStaff(it, requireNotNull(roles[it.staffId])) }
   }
 
   private fun getKeyworkerRoleInfo(prisonCode: String): Map<Long, StaffRoleInfo> {
