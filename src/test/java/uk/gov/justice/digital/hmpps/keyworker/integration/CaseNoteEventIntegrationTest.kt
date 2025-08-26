@@ -12,12 +12,17 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.data.repository.findByIdOrNull
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteCreated
@@ -36,7 +41,10 @@ import java.util.UUID
 class CaseNoteEventIntegrationTest : IntegrationTest() {
   @ParameterizedTest
   @MethodSource("caseNoteCreated")
-  fun `creates a new allocation case note when case note created`(caseNote: CaseNote) {
+  fun `creates a new recorded event when case note created`(
+    caseNote: CaseNote,
+    policy: AllocationPolicy,
+  ) {
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteCreated, caseNoteInfo(caseNote), caseNote.personIdentifier)
 
@@ -44,21 +52,30 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    setContext(AllocationContext.get().copy(policy = policy))
+    val acn = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(acn).isNotNull()
     acn!!.verifyAgainst(caseNote)
 
-    verifyAudit(acn, acn.id, RevisionType.ADD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
+    verifyAudit(acn, acn.id, RevisionType.ADD, setOf(RecordedEvent::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteUpdated")
-  fun `updates allocation case note when case note updated`(caseNote: CaseNote) {
+  fun `updates recorded event when case note updated`(
+    caseNote: CaseNote,
+    policy: AllocationPolicy,
+  ) {
+    setContext(AllocationContext.get().copy(policy = policy))
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteUpdated, caseNoteInfo(caseNote), caseNote.personIdentifier)
     val existingOccurredAt = LocalDateTime.now().minusDays(4).truncatedTo(ChronoUnit.SECONDS)
-    givenAllocationCaseNote(caseNote.copy(occurredAt = existingOccurredAt).asAllocationCaseNote())
-    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    givenRecordedEvent(
+      caseNote.copy(occurredAt = existingOccurredAt).asRecordedEvent { type, code ->
+        requireNotNull(caseNoteRecordedEventRepository.findByKey(CaseNoteTypeKey(type, code)))
+      },
+    )
+    val existing = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(existing).isNotNull()
     assertThat(existing!!.occurredAt).isEqualTo(existingOccurredAt)
 
@@ -66,24 +83,28 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    val acn = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(acn).isNotNull()
     acn!!.verifyAgainst(caseNote)
 
-    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
+    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(RecordedEvent::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteMoved")
-  fun `moves allocation case note when case note moved`(caseNote: CaseNote) {
+  fun `moves recorded event when case note moved`(
+    caseNote: CaseNote,
+    policy: AllocationPolicy,
+  ) {
+    setContext(AllocationContext.get().copy(policy = policy))
     caseNotesMockServer.stubGetCaseNote(caseNote)
     val event = caseNoteEvent(CaseNoteMoved, caseNoteInfo(caseNote, personIdentifier()), caseNote.personIdentifier)
-    givenAllocationCaseNote(
-      caseNote
-        .copy(personIdentifier = event.additionalInformation.previousNomsNumber!!)
-        .asAllocationCaseNote(),
+    givenRecordedEvent(
+      caseNote.copy(personIdentifier = event.additionalInformation.previousNomsNumber!!).asRecordedEvent { type, code ->
+        requireNotNull(caseNoteRecordedEventRepository.findByKey(CaseNoteTypeKey(type, code)))
+      },
     )
-    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    val existing = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(existing).isNotNull()
     assertThat(existing!!.personIdentifier).isNotEqualTo(caseNote.personIdentifier)
     assertThat(existing.personIdentifier).isEqualTo(event.additionalInformation.previousNomsNumber)
@@ -92,19 +113,27 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    val acn = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(acn).isNotNull()
     acn!!.verifyAgainst(caseNote)
 
-    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
+    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(RecordedEvent::class.simpleName!!), AllocationContext.get())
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteDeleted")
-  fun `deletes allocation case note when case note deleted`(caseNote: CaseNote) {
+  fun `deletes recorded event when case note deleted`(
+    caseNote: CaseNote,
+    policy: AllocationPolicy,
+  ) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val event = caseNoteEvent(CaseNoteDeleted, caseNoteInfo(caseNote), caseNote.personIdentifier)
-    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
-    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    givenRecordedEvent(
+      caseNote.asRecordedEvent { type, code ->
+        requireNotNull(caseNoteRecordedEventRepository.findByKey(CaseNoteTypeKey(type, code)))
+      },
+    )
+    val existing = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(existing).isNotNull()
     existing!!.verifyAgainst(caseNote)
 
@@ -112,15 +141,25 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    val acn = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(acn).isNull()
 
-    verifyAudit(existing, existing.id, RevisionType.DEL, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
+    verifyAudit(
+      existing,
+      existing.id,
+      RevisionType.DEL,
+      setOf(RecordedEvent::class.simpleName!!),
+      AllocationContext.get(),
+    )
   }
 
   @ParameterizedTest
   @MethodSource("caseNoteTypeChanged")
-  fun `deletes allocation case note when case note changed to type not of interest`(caseNote: CaseNote) {
+  fun `deletes recorded event when case note changed to type not of interest`(
+    caseNote: CaseNote,
+    policy: AllocationPolicy,
+  ) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val updateCaseNote = caseNote.copy(type = "ANY", subType = "OTHER")
     caseNotesMockServer.stubGetCaseNote(updateCaseNote)
     val event =
@@ -129,8 +168,12 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         caseNoteInfo(updateCaseNote),
         caseNote.personIdentifier,
       )
-    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
-    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    givenRecordedEvent(
+      caseNote.asRecordedEvent { type, code ->
+        requireNotNull(caseNoteRecordedEventRepository.findByKey(CaseNoteTypeKey(type, code)))
+      },
+    )
+    val existing = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(existing).isNotNull()
     existing!!.verifyAgainst(caseNote)
 
@@ -138,15 +181,25 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    val acn = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(acn).isNull()
 
-    verifyAudit(existing, existing.id, RevisionType.DEL, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
+    verifyAudit(
+      existing,
+      existing.id,
+      RevisionType.DEL,
+      setOf(RecordedEvent::class.simpleName!!),
+      AllocationContext.get(),
+    )
   }
 
   @ParameterizedTest
   @MethodSource("sessionEntrySwap")
-  fun `swap session for entry and vice versa`(caseNote: CaseNote) {
+  fun `swap session for entry and vice versa`(
+    caseNote: CaseNote,
+    policy: AllocationPolicy,
+  ) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val subType = if (caseNote.subType == KW_SESSION_SUBTYPE) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE
     val updateCaseNote = caseNote.copy(subType = subType)
     caseNotesMockServer.stubGetCaseNote(updateCaseNote)
@@ -156,8 +209,19 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
         caseNoteInfo(updateCaseNote),
         caseNote.personIdentifier,
       )
-    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
-    val existing = caseNoteRepository.findByIdOrNull(caseNote.id)
+    givenRecordedEvent(
+      caseNote.asRecordedEvent { type, code ->
+        requireNotNull(
+          caseNoteRecordedEventRepository.findByKey(
+            CaseNoteTypeKey(
+              type,
+              code,
+            ),
+          ),
+        )
+      },
+    )
+    val existing = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(existing).isNotNull()
     existing!!.verifyAgainst(caseNote)
 
@@ -165,11 +229,10 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acn = caseNoteRepository.findByIdOrNull(caseNote.id)
+    val acn = recordedEventRepository.findByIdOrNull(caseNote.id)
     assertThat(acn).isNotNull()
-    assertThat(acn!!.subType).isEqualTo(subType)
 
-    verifyAudit(acn, acn.id, RevisionType.MOD, setOf(AllocationCaseNote::class.simpleName!!), AllocationContext.get())
+    verifyAudit(acn!!, acn.id, RevisionType.MOD, setOf(RecordedEvent::class.simpleName!!), AllocationContext.get())
   }
 
   @Test
@@ -180,7 +243,7 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    assertThat(caseNoteRepository.findByIdOrNull(caseNote.id)).isNull()
+    assertThat(recordedEventRepository.findByIdOrNull(caseNote.id)).isNull()
   }
 
   private fun caseNoteInfo(
@@ -242,54 +305,65 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     @JvmStatic
     fun caseNoteCreated() =
       listOf(
-        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
-        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(PO_ENTRY_SUBTYPE, PO_ENTRY_TYPE), AllocationPolicy.PERSONAL_OFFICER),
       )
 
     @JvmStatic
     fun caseNoteUpdated() =
       listOf(
-        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
-        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(PO_ENTRY_SUBTYPE, PO_ENTRY_TYPE), AllocationPolicy.PERSONAL_OFFICER),
       )
 
     @JvmStatic
     fun caseNoteMoved() =
       listOf(
-        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
-        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(PO_ENTRY_SUBTYPE, PO_ENTRY_TYPE), AllocationPolicy.PERSONAL_OFFICER),
       )
 
     @JvmStatic
     fun caseNoteDeleted() =
       listOf(
-        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
-        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(PO_ENTRY_SUBTYPE, PO_ENTRY_TYPE), AllocationPolicy.PERSONAL_OFFICER),
       )
 
     @JvmStatic
     fun caseNoteTypeChanged() =
       listOf(
-        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
-        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(PO_ENTRY_SUBTYPE, PO_ENTRY_TYPE), AllocationPolicy.PERSONAL_OFFICER),
       )
 
     @JvmStatic
     fun sessionEntrySwap() =
       listOf(
-        Arguments.of(caseNote(KW_SESSION_SUBTYPE)),
-        Arguments.of(caseNote(KW_ENTRY_SUBTYPE)),
+        Arguments.of(caseNote(KW_SESSION_SUBTYPE), AllocationPolicy.KEY_WORKER),
+        Arguments.of(caseNote(KW_ENTRY_SUBTYPE), AllocationPolicy.KEY_WORKER),
       )
   }
 }
 
-private fun AllocationCaseNote.verifyAgainst(note: CaseNote) {
+private fun RecordedEvent.verifyAgainst(note: CaseNote) {
   assertThat(prisonCode).isEqualTo(note.prisonCode)
   assertThat(staffId).isEqualTo(note.staffId)
   assertThat(username).isEqualTo(note.staffUsername)
   assertThat(personIdentifier).isEqualTo(note.personIdentifier)
   assertThat(occurredAt.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(note.occurredAt.truncatedTo(ChronoUnit.SECONDS))
   assertThat(id).isEqualTo(note.id)
-  assertThat(type).isEqualTo(note.type)
-  assertThat(subType).isEqualTo(note.subType)
+  assertThat(type.code).isEqualTo(
+    when (note.type to note.subType) {
+      KW_TYPE to KW_SESSION_SUBTYPE -> RecordedEventType.SESSION.name
+      KW_TYPE to KW_ENTRY_SUBTYPE -> RecordedEventType.ENTRY.name
+      PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE -> RecordedEventType.ENTRY.name
+      else -> throw AssertionError("Unexpected case note")
+    },
+  )
 }

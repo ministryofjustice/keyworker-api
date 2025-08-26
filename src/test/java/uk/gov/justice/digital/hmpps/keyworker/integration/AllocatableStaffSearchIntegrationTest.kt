@@ -20,11 +20,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
@@ -83,27 +78,26 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       }
 
     staffConfigs
-      .mapIndexed { index, kw ->
+      .mapIndexed { index, sc ->
         (0..index)
           .map {
             givenAllocation(
               staffAllocation(
                 personIdentifier(),
                 prisonCode,
-                kw.staffId,
+                sc.staffId,
                 allocatedAt = LocalDateTime.now().minusMonths(1),
                 allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
               ),
             )
           }.apply {
-            kw.generateCaseNotes(
+            sc.generateRecordedEvent(
               policy,
               prisonCode,
               ReportingPeriod.currentMonth(),
               filter {
                 it.allocationType != AllocationType.PROVISIONAL
-              }.map { it.personIdentifier }
-                .toSet(),
+              }.map { it.personIdentifier }.toSet(),
               index,
             )
           }
@@ -255,7 +249,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
               ),
             )
             personIdentifier
-          }.apply { kw.generateCaseNotes(policy, prisonCode, currentMonth, this.toSet(), index) }
+          }.apply { kw.generateRecordedEvent(policy, prisonCode, currentMonth, toSet(), index) }
       }.flatten()
 
     val response =
@@ -313,7 +307,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     givenAllocation(staffAllocation(personIdentifier, prisonCode, staffId))
 
     val reportingPeriod = ReportingPeriod.currentMonth()
-    staffConfig.generateCaseNotes(policy, prisonCode, reportingPeriod, setOf(personIdentifier), 7)
+    staffConfig.generateRecordedEvent(policy, prisonCode, reportingPeriod, setOf(personIdentifier), 7)
 
     val response =
       searchStaffSpec(prisonCode, request, policy, true)
@@ -399,7 +393,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
               ),
             )
             personIdentifier
-          }.apply { s.generateCaseNotes(policy, prisonCode, ReportingPeriod.currentMonth(), this.toSet(), index) }
+          }.apply { s.generateRecordedEvent(policy, prisonCode, ReportingPeriod.currentMonth(), toSet(), index) }
       }.flatten()
 
     val request = searchRequest("John Smith")
@@ -437,7 +431,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     .header(PolicyHeader.NAME, policy.name)
     .exchange()
 
-  private fun StaffConfiguration.generateCaseNotes(
+  private fun StaffConfiguration.generateRecordedEvent(
     policy: AllocationPolicy,
     prisonCode: String,
     reportingPeriod: ReportingPeriod,
@@ -445,17 +439,11 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     index: Int,
   ) {
     val currentDateRange = dateRange(reportingPeriod.from.toLocalDate(), reportingPeriod.to.toLocalDate())
-    val (entryType, entrySubtype) =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_ENTRY_SUBTYPE
-        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
-      }
     (1..index / 2).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          entryType,
-          entrySubtype,
+          type = RecordedEventType.ENTRY,
           currentDateRange.random().atStartOfDay(),
           personIdentifier = personIdentifiers.random(),
           staffId = staffId,
@@ -465,11 +453,10 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
 
     if (policy == AllocationPolicy.KEY_WORKER) {
       (1..index).map {
-        givenAllocationCaseNote(
-          caseNote(
+        givenRecordedEvent(
+          recordedEvent(
             prisonCode,
-            KW_TYPE,
-            KW_SESSION_SUBTYPE,
+            type = RecordedEventType.SESSION,
             currentDateRange.random().atStartOfDay(),
             personIdentifier = personIdentifiers.random(),
             staffId = staffId,

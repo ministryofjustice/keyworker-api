@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
-import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEvent
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -33,14 +33,18 @@ data class CaseNote(
   }
 }
 
-fun CaseNote.asAllocationCaseNote(): AllocationCaseNote =
-  AllocationCaseNote(
-    prisonCode,
-    personIdentifier,
-    staffId,
-    staffUsername,
-    CaseNoteTypeKey(type, subType),
-    occurredAt,
-    createdAt,
-    id,
-  )
+fun CaseNote.asRecordedEvent(rdProvider: (String, String) -> CaseNoteRecordedEvent): () -> RecordedEvent =
+  {
+    val type = rdProvider(type, subType).type
+    RecordedEvent(
+      prisonCode,
+      personIdentifier,
+      staffId,
+      staffUsername,
+      occurredAt,
+      createdAt,
+      type,
+      type.policyCode,
+      id,
+    )
+  }

@@ -23,15 +23,18 @@ import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 class ReferenceData(
   @Embedded
   val key: ReferenceDataKey,
-  @Column(table = "reference_data")
-  val description: String,
+  @Column(table = "reference_data", name = "description")
+  val mainDescription: String,
   @Column(table = "reference_data")
   val sequenceNumber: Int,
+  val descriptionOverride: String?,
   @TenantId
   val policyCode: String,
   @Id
   val id: Long,
-) : ReferenceDataLookup by key
+) : ReferenceDataLookup by key {
+  fun description(): String = descriptionOverride ?: mainDescription
+}
 
 interface ReferenceDataLookup {
   val domain: ReferenceDataDomain
@@ -53,6 +56,7 @@ enum class ReferenceDataDomain {
   STAFF_POSITION,
   STAFF_SCHEDULE_TYPE,
   STAFF_STATUS,
+  RECORDED_EVENT_TYPE,
   ;
 
   companion object {
@@ -66,7 +70,7 @@ enum class ReferenceDataDomain {
 infix fun ReferenceDataDomain.of(code: String): ReferenceDataKey = ReferenceDataKey(this, code)
 
 interface ReferenceDataRepository : JpaRepository<ReferenceData, Long> {
-  fun findByKeyDomain(domain: ReferenceDataDomain): List<ReferenceData>
+  fun findByKeyDomainOrderBySequenceNumber(domain: ReferenceDataDomain): List<ReferenceData>
 
   fun findByKey(key: ReferenceDataKey): ReferenceData?
 
@@ -83,7 +87,7 @@ fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
 
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
   this?.let {
-    CodedDescription(code, description)
+    CodedDescription(code, description())
   } ?: CodedDescription("ACTIVE", "Active")
 
-fun ReferenceData.asCodedDescription(): CodedDescription = CodedDescription(code, description)
+fun ReferenceData.asCodedDescription(): CodedDescription = CodedDescription(code, description())

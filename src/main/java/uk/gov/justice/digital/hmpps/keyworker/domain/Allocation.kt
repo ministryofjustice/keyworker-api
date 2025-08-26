@@ -249,17 +249,18 @@ interface AllocationRepository :
 
   @Query(
     """
-      select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.allocation_type <> 'P'
-      and (cast(:from as date) is null or :from <= a.allocated_at)
-      and (cast(:to as date) is null or :to >= a.allocated_at)
+      select a from Allocation a
+      join fetch a.allocationReason ar
+      left join fetch a.deallocationReason dr
+      where a.personIdentifier = :personIdentifier
+      and (cast(:from as timestamp) is null or :from <= a.allocatedAt)
+      and (cast(:to as timestamp) is null or :to >= a.allocatedAt)
     """,
-    nativeQuery = true,
   )
   fun findAllocationsForSar(
     personIdentifier: String,
-    from: LocalDate?,
-    to: LocalDate?,
+    from: LocalDateTime?,
+    to: LocalDateTime?,
   ): List<Allocation>
 
   @Query(

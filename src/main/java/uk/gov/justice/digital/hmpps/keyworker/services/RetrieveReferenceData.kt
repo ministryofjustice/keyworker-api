@@ -12,5 +12,5 @@ class RetrieveReferenceData(
   private val repository: ReferenceDataRepository,
 ) {
   fun findAllByDomain(domain: ReferenceDataDomain): List<CodedDescription> =
-    repository.findByKeyDomain(domain).map { CodedDescription(it.code, it.description) }
+    repository.findByKeyDomainOrderBySequenceNumber(domain).map { CodedDescription(it.code, it.description()) }
 }

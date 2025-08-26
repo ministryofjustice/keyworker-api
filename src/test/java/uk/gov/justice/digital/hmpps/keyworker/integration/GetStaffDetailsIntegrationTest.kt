@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
+import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
@@ -150,17 +151,11 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     val currentDateRange = dateRange(currentMonth.from.toLocalDate(), currentMonth.to.toLocalDate())
 
-    val (entryType, entrySubtype) =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_ENTRY_SUBTYPE
-        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
-      }
     (1..15).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          entryType,
-          entrySubtype,
+          ENTRY,
           currentDateRange.random().atStartOfDay(),
           personIdentifier = caseNoteIdentifiers.random(),
           staffId = staffConfig.staffId,
@@ -170,11 +165,10 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     if (policy == AllocationPolicy.KEY_WORKER) {
       (1..38).map {
-        givenAllocationCaseNote(
-          caseNote(
+        givenRecordedEvent(
+          recordedEvent(
             prisonCode,
-            KW_TYPE,
-            KW_SESSION_SUBTYPE,
+            SESSION,
             currentDateRange.random().atStartOfDay(),
             personIdentifier = caseNoteIdentifiers.random(),
             staffId = staffConfig.staffId,

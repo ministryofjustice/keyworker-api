@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asAllocationCaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformation
@@ -43,7 +42,14 @@ class MergePrisonerIntTest : IntegrationTest() {
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
     val newNoms = personIdentifier()
     val caseNote = caseNote(KW_SESSION_SUBTYPE, personIdentifier = alloc.personIdentifier)
-    givenAllocationCaseNote(caseNote.asAllocationCaseNote())
+//    givenRecordedEvent(
+//      caseNote.asRecordedEvent(
+//        { type, subtype ->
+//          requireNotNull(
+//            caseNoteRecordedEventRepository.findByKey(CaseNoteTypeKey(type, subtype))
+//          ).type
+//        }
+//      ))
     caseNotesMockServer.stubGetAllocationCaseNotes(
       newNoms,
       CaseNotes(listOf(caseNote.copy(personIdentifier = newNoms))),

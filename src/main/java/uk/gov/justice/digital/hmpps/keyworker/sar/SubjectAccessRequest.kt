@@ -1,6 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.sar
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
@@ -12,6 +15,7 @@ import java.time.LocalDate
 
 @Service
 class SubjectAccessRequest(
+  private val ach: AllocationContextHolder,
   private val allocationRepository: AllocationRepository,
   private val policyRepository: PolicyRepository,
   private val prisonApi: PrisonApiClient,
@@ -21,7 +25,12 @@ class SubjectAccessRequest(
     fromDate: LocalDate?,
     toDate: LocalDate?,
   ): SubjectAccessResponse? {
-    val allocations = allocationRepository.findAllocationsForSar(prn, fromDate, toDate?.plusDays(1))
+    val allocations =
+      AllocationPolicy.entries
+        .map {
+          ach.setContext(AllocationContext.get().copy(policy = it))
+          allocationRepository.findAllocationsForSar(prn, fromDate?.atStartOfDay(), toDate?.atStartOfDay()?.plusDays(1))
+        }.flatten()
     val policyMap = policyRepository.findAll().associateBy(Policy::code)
     val staffMap: Map<Long, StaffMember> =
       prisonApi.findStaffSummariesFromIds(allocations.map { it.staffId }.toSet()).associate {
@@ -48,8 +57,8 @@ class SubjectAccessRequest(
       AllocationType.MANUAL -> "Manual"
       AllocationType.PROVISIONAL -> "Provisional"
     },
-    allocationReason.description,
-    deallocationReason?.description,
+    allocationReason.description(),
+    deallocationReason?.description(),
     getStaff(staffId),
     getStaff(staffId),
     getPolicy(policy).asCodedDescription(),

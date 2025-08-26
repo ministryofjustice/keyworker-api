@@ -14,10 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
@@ -103,22 +99,20 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
 
-    val latestCaseNote =
-      givenAllocationCaseNote(
-        caseNote(
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          KW_TYPE,
-          KW_SESSION_SUBTYPE,
+          RecordedEventType.SESSION,
           LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
     (2..5).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          KW_TYPE,
-          KW_SESSION_SUBTYPE,
+          RecordedEventType.SESSION,
           LocalDateTime.now().minusWeeks(it * 2L),
           personIdentifier = personIdentifier,
         ),
@@ -127,7 +121,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(
       listOf(
         staffSummary("Current", "Keyworker", currentAllocation.staffId),
-        staffSummary("Session", "Keyworker", latestCaseNote.staffId),
+        staffSummary("Session", "Keyworker", latestRecordedEvent.staffId),
       ),
     )
 
@@ -152,9 +146,9 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       RecordedEvent(
         pris,
         RecordedEventType.SESSION,
-        latestCaseNote.occurredAt,
+        latestRecordedEvent.occurredAt,
         AllocationPolicy.KEY_WORKER,
-        Author(latestCaseNote.staffId, "Session", "Keyworker", latestCaseNote.username),
+        Author(latestRecordedEvent.staffId, "Session", "Keyworker", latestRecordedEvent.username),
       ),
     )
   }
@@ -201,22 +195,20 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
 
-    val latestCaseNote =
-      givenAllocationCaseNote(
-        caseNote(
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
           "OUT",
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
     (2..5).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(it * 2L),
           personIdentifier = personIdentifier,
         ),
@@ -247,9 +239,9 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       RecordedEvent(
         CodedDescription("OUT", "OUT"),
         RecordedEventType.ENTRY,
-        latestCaseNote.occurredAt,
+        latestRecordedEvent.occurredAt,
         AllocationPolicy.PERSONAL_OFFICER,
-        Author(latestCaseNote.staffId, "", "", latestCaseNote.username),
+        Author(latestRecordedEvent.staffId, "", "", latestRecordedEvent.username),
       ),
     )
   }
@@ -296,22 +288,20 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
 
-    val latestCaseNote =
-      givenAllocationCaseNote(
-        caseNote(
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
     (2..5).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(it * 2L),
           personIdentifier = personIdentifier,
         ),
@@ -320,7 +310,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(
       listOf(
         staffSummary("Personal", "Officer", currentAllocation.staffId),
-        staffSummary("Session", "Officer", latestCaseNote.staffId),
+        staffSummary("Session", "Officer", latestRecordedEvent.staffId),
       ),
     )
 

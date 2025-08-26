@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic.percentage
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventRetriever
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 
@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit.DAYS
 class PrisonStatsService(
   private val prisonConfig: PrisonConfigurationRepository,
   private val statistics: PrisonStatisticRepository,
-  private val caseNoteRetriever: CaseNoteRetriever,
+  private val recordedEventRetriever: RecordedEventRetriever,
 ) {
   fun getPrisonStats(
     prisonCode: String,
@@ -54,7 +54,7 @@ class PrisonStatsService(
     val prisonersAssigned = map { it.prisonersAssignedCount }.average().toInt()
     val sessions = totalSessions()
     val projectedSessions = projectedSessions(eligiblePrisoners, from, to, config.frequencyInWeeks)
-    val cnTotals = caseNoteRetriever.findCaseNoteTotals(config.code, from, to)
+    val cnTotals = recordedEventRetriever.findCaseNoteTotals(config.code, from, to)
     return PrisonStatSummary(
       from,
       to,

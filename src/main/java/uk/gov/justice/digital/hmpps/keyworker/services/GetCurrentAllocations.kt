@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.orDefault
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.asRecordedEvents
 
 @Service
@@ -20,7 +20,7 @@ class GetCurrentAllocations(
   private val prisonerSearch: PrisonerSearchClient,
   private val prisonConfig: PrisonConfigurationRepository,
   private val allocationRepository: AllocationRepository,
-  private val caseNoteRetriever: CaseNoteRetriever,
+  private val recordedEventRetriever: RecordedEventRetriever,
   private val prisonApi: PrisonApiClient,
   private val prisonService: PrisonService,
   private val policyRepository: PolicyRepository,
@@ -34,7 +34,7 @@ class GetCurrentAllocations(
       ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(personIdentifier, true, emptyList(), emptyList())
       else -> {
         val allocations = allocationRepository.findCurrentAllocations(personIdentifier, prisonPolicies)
-        val caseNotes = caseNoteRetriever.findMostRecentCaseNotes(personIdentifier, prisonPolicies)
+        val caseNotes = recordedEventRetriever.findMostRecentRecordedEvents(personIdentifier, prisonPolicies)
         val prisons =
           prisonService
             .findPrisons((allocations.map { it.prisonCode } + caseNotes.map { it.prisonCode }).toSet())
