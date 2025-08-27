@@ -5,6 +5,8 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
@@ -29,7 +31,7 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
   @Test
   fun `can migrate case notes that do not exist`() {
     val personIdentifier = personIdentifier()
-    val caseNotes =
+    val kwNotes =
       (0..20).map {
         caseNote(
           if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
@@ -38,16 +40,35 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
           now().minusWeeks(it.toLong()),
         )
       }
-    caseNotesMockServer.stubGetAllocationCaseNotes(personIdentifier, CaseNotes(caseNotes))
+
+    val poNotes =
+      (0..5).map {
+        caseNote(
+          PO_ENTRY_SUBTYPE,
+          PO_ENTRY_TYPE,
+          personIdentifier,
+          now().minusWeeks(it * 2L),
+        )
+      }
+
+    caseNotesMockServer.stubGetAllocationCaseNotes(personIdentifier, CaseNotes(kwNotes + poNotes))
 
     publishEventToTopic(migrateEvent(personIdentifier))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
-    val acns = recordedEventRepository.findAll().filter { it.personIdentifier == personIdentifier }
-    assertThat(acns).hasSize(21)
+    val acns =
+      AllocationPolicy.entries
+        .flatMap {
+          setContext(AllocationContext.get().copy(policy = it))
+          transactionTemplate.execute {
+            recordedEventRepository.findAll()
+          }!!
+        }.filter { it.personIdentifier == personIdentifier }
+    assertThat(acns).hasSize(27)
 
-    acns.forEach { acn -> acn.verifyAgainst(caseNotes.first { it.id == acn.id }) }
+    val allNotes = kwNotes + poNotes
+    acns.forEach { acn -> acn.verifyAgainst(allNotes.first { it.id == acn.id }) }
   }
 
   @Test

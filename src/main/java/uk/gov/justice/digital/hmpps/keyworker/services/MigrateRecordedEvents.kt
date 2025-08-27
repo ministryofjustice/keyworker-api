@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -13,26 +13,42 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEv
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteMigrationInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 
-@Transactional
 @Service
 class MigrateRecordedEvents(
   private val ach: AllocationContextHolder,
   private val caseNoteRecordedEventMapping: CaseNoteRecordedEventRepository,
   private val caseNoteApi: CaseNotesApiClient,
-  private val caseNoteRepository: RecordedEventRepository,
+  private val recordedEventRepository: RecordedEventRepository,
+  private val transactionTemplate: TransactionTemplate,
 ) {
   fun handle(event: HmppsDomainEvent<CaseNoteMigrationInformation>) {
-    val rd = caseNoteRecordedEventMapping.findAll().associateBy { it.key }
-    event.personReference.nomsNumber()?.also {
-      val ofInterest =
-        caseNoteApi.getCaseNotesOfInterest(it).content.map { cn ->
-          cn.asRecordedEvent({ type, subtype -> requireNotNull(rd[CaseNoteTypeKey(type, subtype)]) })()
+    val rd =
+      AllocationPolicy.entries
+        .flatMap { policy ->
+          ach.setContext(AllocationContext.get().copy(policy = policy))
+          caseNoteRecordedEventMapping.findAll()
+        }.associateBy { it.key }
+    event.personReference.nomsNumber()?.also { pi ->
+      val notesByPolicy =
+        caseNoteApi
+          .getCaseNotesOfInterest(pi)
+          .content
+          .mapNotNull { cn ->
+            rd[CaseNoteTypeKey(cn.type, cn.subType)]?.policyCode?.let { it to cn }
+          }.groupBy({ AllocationPolicy.valueOf(it.first) }, { it.second })
+      recordedEventRepository.deleteAllByPersonIdentifier(pi)
+      AllocationPolicy.entries.forEach { policy ->
+        ach.setContext(AllocationContext.get().copy(policy = policy))
+        transactionTemplate.execute {
+          val trd = caseNoteRecordedEventMapping.findAll().associateBy { it.key }
+          notesByPolicy[policy]?.takeIf { it.isNotEmpty() }?.let { notes ->
+            val recordedEvents =
+              notes.map {
+                it.asRecordedEvent { type, subType -> requireNotNull(trd[CaseNoteTypeKey(type, subType)]) }()
+              }
+            recordedEventRepository.saveAll(recordedEvents)
+          }
         }
-      caseNoteRepository.deleteAllByPersonIdentifier(it)
-      val policyMapped = ofInterest.groupBy { re -> AllocationPolicy.valueOf(re.policyCode) }
-      policyMapped.forEach { e ->
-        ach.setContext(AllocationContext.get().copy(policy = e.key))
-        caseNoteRepository.saveAll(e.value)
       }
     }
   }
