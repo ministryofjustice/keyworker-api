@@ -5,14 +5,17 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Com
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import java.time.LocalDateTime
 
 data class CaseNotes(
   val content: List<CaseNote>,
 )
 
 data class SearchCaseNotes(
-  val includeSensitive: Boolean = true,
   val typeSubTypes: Set<TypeSubTypeRequest> = CaseNotesOfInterest.asRequest(),
+  val occurredFrom: LocalDateTime? = null,
+  val occurredTo: LocalDateTime? = null,
+  val includeSensitive: Boolean = true,
   val page: Int = 1,
   val size: Int = Int.MAX_VALUE,
   val sort: String = "occurredAt,asc",

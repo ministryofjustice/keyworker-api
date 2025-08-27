@@ -23,6 +23,8 @@ data class CaseNote(
   val prisonCode: String,
   @JsonAlias("creationDateTime")
   val createdAt: LocalDateTime,
+  val text: String,
+  val amendments: List<CaseNoteAmendment>,
 ) {
   companion object {
     const val KW_TYPE = "KA"
@@ -32,6 +34,12 @@ data class CaseNote(
     const val PO_ENTRY_SUBTYPE = "POE"
   }
 }
+
+data class CaseNoteAmendment(
+  val createdAt: LocalDateTime,
+  val authorName: String,
+  val additionalNoteText: String,
+)
 
 fun CaseNote.asRecordedEvent(rdProvider: (String, String) -> CaseNoteRecordedEvent): () -> RecordedEvent =
   {

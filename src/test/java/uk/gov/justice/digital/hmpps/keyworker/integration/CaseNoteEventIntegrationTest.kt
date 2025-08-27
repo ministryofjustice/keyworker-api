@@ -31,12 +31,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseN
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteUpdated
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
-import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 class CaseNoteEventIntegrationTest : IntegrationTest() {
   @ParameterizedTest
@@ -279,29 +276,6 @@ class CaseNoteEventIntegrationTest : IntegrationTest() {
     )
 
   companion object {
-    private fun caseNote(
-      subType: String,
-      type: String = KW_TYPE,
-      personIdentifier: String = personIdentifier(),
-      occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
-      staffId: Long = NomisIdGenerator.newId(),
-      staffUsername: String = NomisIdGenerator.username(),
-      prisonCode: String = "LEI",
-      createdAt: LocalDateTime = LocalDateTime.now(),
-      id: UUID = IdGenerator.newUuid(),
-    ): CaseNote =
-      CaseNote(
-        id,
-        type,
-        subType,
-        occurredAt,
-        personIdentifier,
-        staffId,
-        staffUsername,
-        prisonCode,
-        createdAt,
-      )
-
     @JvmStatic
     fun caseNoteCreated() =
       listOf(

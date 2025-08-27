@@ -48,7 +48,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
     )
   }
 
-  fun stubFindPrisonDetails(
+  fun stubFindPrisonerDetails(
     prisonCode: String,
     prisonNumbers: Set<String>,
     prisoners: List<Prisoner> =

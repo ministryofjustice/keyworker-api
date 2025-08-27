@@ -33,24 +33,28 @@ class PrisonerSearchClient(
       .block()!!
 
   fun findPrisonerDetails(prisonNumbers: Set<String>): List<Prisoner> =
-    Flux
-      .fromIterable(prisonNumbers)
-      .buffer(1000)
-      .flatMap {
-        webClient
-          .post()
-          .uri {
-            it.path("/prisoner-search/prisoner-numbers")
-            it.queryParam("responseFields", Prisoner.fields())
-            it.build()
-          }.bodyValue(PrisonerNumbers(prisonNumbers))
-          .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-          .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-          .retrieve()
-          .bodyToFlux<Prisoner>()
-          .retryRequestOnTransientException()
-      }.collectList()
-      .block()!!
+    if (prisonNumbers.isEmpty()) {
+      emptyList()
+    } else {
+      Flux
+        .fromIterable(prisonNumbers)
+        .buffer(1000)
+        .flatMap {
+          webClient
+            .post()
+            .uri {
+              it.path("/prisoner-search/prisoner-numbers")
+              it.queryParam("responseFields", Prisoner.fields())
+              it.build()
+            }.bodyValue(PrisonerNumbers(prisonNumbers))
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .retrieve()
+            .bodyToFlux<Prisoner>()
+            .retryRequestOnTransientException()
+        }.collectList()
+        .block()!!
+    }
 
   fun findFilteredPrisoners(
     prisonCode: String,
@@ -61,8 +65,8 @@ class PrisonerSearchClient(
       .uri { ub ->
         ub.path("/prison/{prisonCode}/prisoners")
         with(request) {
-          request.query?.also { ub.queryParam("term", it) }
-          request.cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
+          query?.also { ub.queryParam("term", it) }
+          cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
           ub.queryParam("page", 0)
           ub.queryParam("size", Int.MAX_VALUE)
           ub.queryParam("responseFields", Prisoner.fields())

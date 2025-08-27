@@ -51,4 +51,7 @@ interface CaseNoteRecordedEventRepository : JpaRepository<CaseNoteRecordedEvent,
     type: String,
     subType: String,
   ): String?
+
+  @EntityGraph(attributePaths = ["type"])
+  override fun findAll(): List<CaseNoteRecordedEvent>
 }

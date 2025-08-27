@@ -97,7 +97,7 @@ class PrisonStatisticCalculator(
           { newAllocations[it]?.assignedAt?.toLocalDate() },
           { pi, date ->
             cnSummaries
-              .findLatestCaseNote(pi)
+              .findLatestRecordedEvent(pi)
               ?.occurredAt
               ?.toLocalDate()
               ?.takeIf {

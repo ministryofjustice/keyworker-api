@@ -163,7 +163,7 @@ class RecordedEventSummaries(
   fun findByPersonIdentifier(personIdentifier: String): RecordedEventSummaries =
     RecordedEventSummaries(listOfNotNull(data[personIdentifier]))
 
-  fun findLatestCaseNote(personIdentifier: String): RecordedEventEntity? = data[personIdentifier]?.latestOccurrence
+  fun findLatestRecordedEvent(personIdentifier: String): RecordedEventEntity? = data[personIdentifier]?.latestOccurrence
 
   fun personIdentifiers(): Set<String> = data.keys
 
