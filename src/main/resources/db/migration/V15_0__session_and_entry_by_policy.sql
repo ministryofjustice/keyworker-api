@@ -67,17 +67,21 @@ values ('KA', 'KS', 'KEY_WORKER',
        ('REPORT', 'POE', 'PERSONAL_OFFICER',
         (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'ENTRY'));
 
+create index if not exists idx_recorded_event_type_id on recorded_event (type_id);
+
 update recorded_event re
 set type_id = cntret.recorded_event_type_id
 from case_note_type_recorded_event_type cntret
 where re.cn_type = cntret.cn_type
-  and re.cn_sub_type = cntret.cn_sub_type;
+  and re.cn_sub_type = cntret.cn_sub_type
+  and re.type_id is null;
 
 update recorded_event_audit rea
 set type_id = cntret.recorded_event_type_id
 from case_note_type_recorded_event_type cntret
 where rea.cn_type = cntret.cn_type
-  and rea.cn_sub_type = cntret.cn_sub_type;
+  and rea.cn_sub_type = cntret.cn_sub_type
+  and re.type_id is null;
 
 alter table recorded_event
     drop column if exists cn_type,
@@ -91,5 +95,3 @@ alter table recorded_event
     alter policy_code set not null;
 alter table recorded_event
     alter type_id set not null;
-
-create index if not exists idx_recorded_event_type_id on recorded_event (type_id)
