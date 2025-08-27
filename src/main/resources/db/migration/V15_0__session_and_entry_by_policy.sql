@@ -65,19 +65,22 @@ values ('KA', 'KS', 'KEY_WORKER',
        ('KA', 'KE', 'KEY_WORKER',
         (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'ENTRY')),
        ('REPORT', 'POE', 'PERSONAL_OFFICER',
-        (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'ENTRY'));
+        (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'ENTRY'))
+on conflict do nothing ;
 
 create index if not exists idx_recorded_event_type_id on recorded_event (type_id);
 
 update recorded_event re
-set type_id = cntret.recorded_event_type_id
+set type_id     = cntret.recorded_event_type_id,
+    policy_code = cntret.policy_code
 from case_note_type_recorded_event_type cntret
 where re.cn_type = cntret.cn_type
   and re.cn_sub_type = cntret.cn_sub_type
   and re.type_id is null;
 
-update recorded_event_audit rea
-set type_id = cntret.recorded_event_type_id
+update recorded_event rea
+set type_id     = cntret.recorded_event_type_id,
+    policy_code = cntret.policy_code
 from case_note_type_recorded_event_type cntret
 where rea.cn_type = cntret.cn_type
   and rea.cn_sub_type = cntret.cn_sub_type
