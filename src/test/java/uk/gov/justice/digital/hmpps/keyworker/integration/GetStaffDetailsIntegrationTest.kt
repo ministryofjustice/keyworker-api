@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
-import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
@@ -147,7 +146,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           ),
         )
       }
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, personIdentifiers, prisoners)
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, personIdentifiers, prisoners)
 
     val currentDateRange = dateRange(currentMonth.from.toLocalDate(), currentMonth.to.toLocalDate())
 

@@ -265,7 +265,7 @@ private fun Allocation.asAllocation(
     cns.findByPersonIdentifier(prisoner.prisonerNumber),
   ),
   cns
-    .findLatestCaseNote(prisoner.prisonerNumber)
+    .findLatestRecordedEvent(prisoner.prisonerNumber)
     ?.let { LatestSession(it.occurredAt.toLocalDate()) },
 )
 

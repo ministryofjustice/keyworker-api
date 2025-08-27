@@ -73,4 +73,21 @@ class CaseNotesApiClient(
         }
       }.retryRequestOnTransientException()
       .block()!!
+
+  fun searchAuthorNotes(
+    prisonCode: String,
+    staffId: Long,
+    request: SearchCaseNotes,
+  ): CaseNotes =
+    webClient
+      .post()
+      .uri("/search/case-notes/prisons/$prisonCode/authors/$staffId")
+      .bodyValue(request)
+      .exchangeToMono { res ->
+        when (res.statusCode()) {
+          HttpStatus.OK -> res.bodyToMono<CaseNotes>()
+          else -> res.createError()
+        }
+      }.retryRequestOnTransientException()
+      .block()!!
 }

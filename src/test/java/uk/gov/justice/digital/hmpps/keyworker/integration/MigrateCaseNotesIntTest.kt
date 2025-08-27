@@ -8,23 +8,22 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteMigrationInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
-import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
-import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 class MigrateCaseNotesIntTest : IntegrationTest() {
   @Test
@@ -33,9 +32,10 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
     val caseNotes =
       (0..20).map {
         caseNote(
+          if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
+          KW_TYPE,
           personIdentifier,
           now().minusWeeks(it.toLong()),
-          if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
         )
       }
     caseNotesMockServer.stubGetAllocationCaseNotes(personIdentifier, CaseNotes(caseNotes))
@@ -56,9 +56,10 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
     val caseNotes =
       (0..20).map {
         caseNote(
+          if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
+          KW_TYPE,
           personIdentifier,
           now().minusWeeks(it.toLong()),
-          if (it % 3 == 0) KW_ENTRY_SUBTYPE else KW_SESSION_SUBTYPE,
         )
       }
     transactionTemplate.execute {
@@ -97,29 +98,10 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
     assertThat(personIdentifier).isEqualTo(note.personIdentifier)
     assertThat(occurredAt.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(note.occurredAt.truncatedTo(ChronoUnit.SECONDS))
     assertThat(id).isEqualTo(note.id)
-    // TODO verify correct type
+    when (note.type to note.subType) {
+      KW_TYPE to KW_SESSION_SUBTYPE -> assertThat(type.code).isEqualTo(RecordedEventType.SESSION.name)
+      KW_TYPE to KW_ENTRY_SUBTYPE -> assertThat(type.code).isEqualTo(RecordedEventType.ENTRY.name)
+      PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE -> assertThat(type.code).isEqualTo(RecordedEventType.ENTRY.name)
+    }
   }
-
-  private fun caseNote(
-    personIdentifier: String,
-    occurredAt: LocalDateTime,
-    subType: String,
-    type: String = KW_TYPE,
-    staffId: Long = NomisIdGenerator.newId(),
-    staffUsername: String = NomisIdGenerator.username(),
-    prisonCode: String = "MIG",
-    createdAt: LocalDateTime = now(),
-    id: UUID = IdGenerator.newUuid(),
-  ): CaseNote =
-    CaseNote(
-      id,
-      type,
-      subType,
-      occurredAt,
-      personIdentifier,
-      staffId,
-      staffUsername,
-      prisonCode,
-      createdAt,
-    )
 }

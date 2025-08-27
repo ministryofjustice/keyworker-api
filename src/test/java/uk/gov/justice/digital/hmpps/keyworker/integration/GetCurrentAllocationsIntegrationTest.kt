@@ -43,7 +43,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
   fun `200 ok when person identifier does not exist`() {
     val prisonCode = "DNE"
     val personIdentifier = personIdentifier()
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier), emptyList())
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier), emptyList())
 
     val response =
       getCurrentAllocationSpec(personIdentifier)
@@ -65,7 +65,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -161,7 +161,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -254,7 +254,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, false))
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -332,7 +332,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "COM"
     val prisonNumber = personIdentifier()
 
-    prisonerSearchMockServer.stubFindPrisonDetails(
+    prisonerSearchMockServer.stubFindPrisonerDetails(
       prisonCode,
       setOf(prisonNumber),
       listOf(

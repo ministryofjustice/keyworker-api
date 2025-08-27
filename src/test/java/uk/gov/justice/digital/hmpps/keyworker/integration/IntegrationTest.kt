@@ -55,6 +55,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
@@ -76,6 +79,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -302,6 +306,33 @@ abstract class IntegrationTest {
 
       localStackContainer?.also { setLocalStackProperties(it, registry) }
     }
+
+    fun caseNote(
+      subType: String,
+      type: String = KW_TYPE,
+      personIdentifier: String = personIdentifier(),
+      occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
+      staffId: Long = newId(),
+      staffUsername: String = NomisIdGenerator.username(),
+      prisonCode: String = "LEI",
+      createdAt: LocalDateTime = LocalDateTime.now(),
+      text: String = "Some notes about the Recorded Event",
+      amendments: List<CaseNoteAmendment> = listOf(),
+      id: UUID = IdGenerator.newUuid(),
+    ): CaseNote =
+      CaseNote(
+        id,
+        type,
+        subType,
+        occurredAt,
+        personIdentifier,
+        staffId,
+        staffUsername,
+        prisonCode,
+        createdAt,
+        text,
+        amendments,
+      )
   }
 
   @BeforeEach

@@ -96,7 +96,10 @@ tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
       jvmTarget = JVM_21
-      freeCompilerArgs.add("-Xwhen-guards")
+      freeCompilerArgs.addAll(
+        "-Xwhen-guards",
+        "-Xannotation-default-target=param-property",
+      )
     }
   }
   test {
