@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services.casenotes
+package uk.gov.justice.digital.hmpps.keyworker.services.recordedevents
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext

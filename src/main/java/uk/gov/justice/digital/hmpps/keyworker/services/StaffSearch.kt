@@ -39,8 +39,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventRetriever
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventSummaries
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
 
 @Service
 class StaffSearch(

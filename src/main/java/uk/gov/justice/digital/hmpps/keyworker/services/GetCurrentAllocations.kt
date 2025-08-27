@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.orDefault
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventRetriever
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.asRecordedEvents
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.asRecordedEvents
 
 @Service
 class GetCurrentAllocations(
@@ -34,14 +34,14 @@ class GetCurrentAllocations(
       ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(personIdentifier, true, emptyList(), emptyList())
       else -> {
         val allocations = allocationRepository.findCurrentAllocations(personIdentifier, prisonPolicies)
-        val caseNotes = recordedEventRetriever.findMostRecentRecordedEvents(personIdentifier, prisonPolicies)
+        val recordedEvents = recordedEventRetriever.findMostRecentRecordedEvents(personIdentifier, prisonPolicies)
         val prisons =
           prisonService
-            .findPrisons((allocations.map { it.prisonCode } + caseNotes.map { it.prisonCode }).toSet())
+            .findPrisons((allocations.map { it.prisonCode } + recordedEvents.map { it.prisonCode }).toSet())
             .associateBy { it.prisonId }
         val staff =
           prisonApi
-            .findStaffSummariesFromIds((allocations.map { it.staffId } + caseNotes.map { it.staffId }).toSet())
+            .findStaffSummariesFromIds((allocations.map { it.staffId } + recordedEvents.map { it.staffId }).toSet())
             .associateBy { it.staffId }
         if (allocations.isEmpty()) {
           CurrentPersonStaffAllocation(personIdentifier, false, emptyList(), emptyList())
@@ -57,7 +57,7 @@ class GetCurrentAllocations(
                 staff[it.staffId].orDefault(it.staffId),
               )
             },
-            caseNotes.asRecordedEvents({ prisons[it].orDefault(it) }, { staff[it].orDefault(it) }),
+            recordedEvents.asRecordedEvents({ prisons[it].orDefault(it) }, { staff[it].orDefault(it) }),
           )
         }
       }

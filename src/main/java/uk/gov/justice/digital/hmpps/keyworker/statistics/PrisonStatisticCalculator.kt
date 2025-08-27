@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.Compl
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 

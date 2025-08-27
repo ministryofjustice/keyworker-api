@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic.percentage
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 
