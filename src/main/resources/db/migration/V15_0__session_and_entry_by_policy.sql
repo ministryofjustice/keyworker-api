@@ -81,7 +81,7 @@ set type_id = cntret.recorded_event_type_id
 from case_note_type_recorded_event_type cntret
 where rea.cn_type = cntret.cn_type
   and rea.cn_sub_type = cntret.cn_sub_type
-  and re.type_id is null;
+  and rea.type_id is null;
 
 alter table recorded_event
     drop column if exists cn_type,
