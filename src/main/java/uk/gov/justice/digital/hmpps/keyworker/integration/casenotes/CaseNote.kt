@@ -36,6 +36,7 @@ data class CaseNote(
 }
 
 data class CaseNoteAmendment(
+  @JsonAlias("creationDateTime")
   val createdAt: LocalDateTime,
   val authorName: String,
   val additionalNoteText: String,
