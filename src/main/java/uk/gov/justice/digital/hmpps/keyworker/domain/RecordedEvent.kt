@@ -28,7 +28,7 @@ class RecordedEvent(
   val createdAt: LocalDateTime,
   @Audited(targetAuditMode = NOT_AUDITED)
   @ManyToOne
-  @JoinColumn(name = "recorded_event_type_id")
+  @JoinColumn(name = "type_id")
   val type: ReferenceData,
   @TenantId
   val policyCode: String,
