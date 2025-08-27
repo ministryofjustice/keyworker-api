@@ -9,6 +9,7 @@ data class RecordedEventResponse(
 data class StaffRecordedEvent(
   val prisoner: RecordedEventPrisoner,
   val type: CodedDescription,
+  val createdAt: LocalDateTime,
   val occurredAt: LocalDateTime,
   val text: String,
   val amendments: List<RecordedEventAmendment>,

@@ -61,6 +61,7 @@ class RecordedEventsSearch(
   ) = StaffRecordedEvent(
     prisoner(personIdentifier).forRecordedEvent(),
     rd(type, subType).asCodedDescription(),
+    createdAt,
     occurredAt,
     text,
     amendments.map { RecordedEventAmendment(it.createdAt, it.authorName, it.additionalNoteText) },
