@@ -3,11 +3,12 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   "allocation_audit":"policy_code":w -> "policy":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_audit":"prison_code":w -> "prison_migration_date_history":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_audit":"rev_id":w -> "audit_revision":"id.type":e [arrowhead=none dir=back arrowtail=crowodot];
-  "allocation_case_note_audit":"prison_code":w -> "prison_migration_date_history":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "allocation_case_note_audit":"rev_id":w -> "audit_revision":"id.type":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_configuration_audit":"policy_code":w -> "policy":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration_audit":"prison_code":w -> "prison_migration_date_history":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration_audit":"rev_id":w -> "audit_revision":"id.type":e [arrowhead=none dir=back arrowtail=crowodot];
+  "recorded_event_audit":"policy_code":w -> "policy":"elipses":e [arrowhead=none dir=back arrowtail=crowodot];
+  "recorded_event_audit":"prison_code":w -> "prison_migration_date_history":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "recorded_event_audit":"rev_id":w -> "audit_revision":"id.type":e [arrowhead=none dir=back arrowtail=crowodot];
   "staff_configuration_audit":"policy_code":w -> "policy":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "staff_configuration_audit":"rev_id":w -> "audit_revision":"id.type":e [arrowhead=none dir=back arrowtail=crowodot];
   "staff_role_audit":"policy_code":w -> "policy":"elipses":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
@@ -27,19 +28,6 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     URL="../../tables/allocation_audit.html"
     target="_top"
     tooltip="allocation_audit"
-  ];
-  "allocation_case_note_audit" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="180" HEIGHT="16"><B>allocation_case_note_audit</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="rev_id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="180" HEIGHT="16">rev_id</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="prison_code" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="180" HEIGHT="16">prison_code</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
-    </TABLE>>
-    URL="../../tables/allocation_case_note_audit.html"
-    target="_top"
-    tooltip="allocation_case_note_audit"
   ];
   "audit_revision" [
    label=<
@@ -61,7 +49,7 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
       <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="39" HEIGHT="16"><B>policy</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
       <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">10 &gt;</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">13 &gt;</TD></TR>
     </TABLE>>
     URL="../../tables/policy.html"
     target="_top"
@@ -92,6 +80,20 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     URL="../../tables/prison_migration_date_history.html"
     target="_top"
     tooltip="prison_migration_date_history"
+  ];
+  "recorded_event_audit" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="146" HEIGHT="16"><B>recorded_event_audit</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="rev_id" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="146" HEIGHT="16">rev_id</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="prison_code" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="146" HEIGHT="16">prison_code</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="policy_code" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/foreignKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="146" HEIGHT="16">policy_code</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 3</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
+    </TABLE>>
+    URL="../../tables/recorded_event_audit.html"
+    target="_top"
+    tooltip="recorded_event_audit"
   ];
   "staff_configuration_audit" [
    label=<

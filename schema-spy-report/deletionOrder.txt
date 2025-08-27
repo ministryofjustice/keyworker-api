@@ -1,5 +1,7 @@
 allocation
 staff_role_audit
+recorded_event_audit
+recorded_event
 prison_configuration_audit
 allocation_audit
 zz_archived_legacy_keyworker_allocation
@@ -9,8 +11,7 @@ staff_configuration
 reference_data_policy
 prison_statistic
 prison_configuration
-allocation_case_note_audit
-allocation_case_note
+case_note_type_recorded_event_type
 audit_revision
 reference_data
 prison_migration_date_history

@@ -128,6 +128,11 @@
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
                                             <tr>
+                                                <td title="case_note_type_recorded_event_type.policy_code&#39;s name implies that it&#39;s a child of policy.code, but it doesn&#39;t reference that column."><a href='case_note_type_recorded_event_type.html'>case_note_type_recorded_event_type</a><span class='relatedKey'>.policy_code</span></td>
+                                                <td class="constraint detail">Implied Constraint</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
                                                 <td title="prison_configuration.policy_code references policy.code via prison_configuration_policy_code_fkey"><a href='prison_configuration.html'>prison_configuration</a><span class='relatedKey'>.policy_code</span></td>
                                                 <td class="constraint detail">prison_configuration_policy_code_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
@@ -140,6 +145,16 @@
                                             <tr>
                                                 <td title="prison_statistic.policy_code references policy.code via prison_statistic_policy_code_fkey"><a href='prison_statistic.html'>prison_statistic</a><span class='relatedKey'>.policy_code</span></td>
                                                 <td class="constraint detail">prison_statistic_policy_code_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="recorded_event.policy_code references policy.code via recorded_event_policy_code_fkey"><a href='recorded_event.html'>recorded_event</a><span class='relatedKey'>.policy_code</span></td>
+                                                <td class="constraint detail">recorded_event_policy_code_fkey</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="recorded_event_audit.policy_code references policy.code via recorded_event_audit_policy_code_fkey"><a href='recorded_event_audit.html'>recorded_event_audit</a><span class='relatedKey'>.policy_code</span></td>
+                                                <td class="constraint detail">recorded_event_audit_policy_code_fkey</td>
                                                 <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
                                             </tr>
                                             <tr>

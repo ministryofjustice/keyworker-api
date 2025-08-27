@@ -66,14 +66,14 @@
 <polygon fill="#000000" stroke="#000000" points="274.5005,-665.6079 282.4585,-669.2998 278.5003,-665.6539 282.5,-665.7 282.5,-665.7 282.5,-665.7 278.5003,-665.6539 282.5415,-662.1002 274.5005,-665.6079 274.5005,-665.6079"/>
 <ellipse fill="none" stroke="#000000" cx="271.3007" cy="-665.571" rx="3.2" ry="3.2"/>
 </g>
-<!-- allocation_case_note_audit -->
+<!-- prison_configuration_audit -->
 <g id="node3" class="node">
-<title>allocation_case_note_audit</title>
-<g id="a_node3"><a xlink:href="../../tables/allocation_case_note_audit.html" xlink:title="allocation_case_note_audit" target="_top">
+<title>prison_configuration_audit</title>
+<g id="a_node3"><a xlink:href="../../tables/prison_configuration_audit.html" xlink:title="prison_configuration_audit" target="_top">
 <polygon fill="#ffffff" stroke="transparent" points="246,-556.2 246,-617.2 465,-617.2 465,-556.2 246,-556.2"/>
 <polygon fill="#f5f5f5" stroke="transparent" points="246.5,-593.7 246.5,-616.7 465.5,-616.7 465.5,-593.7 246.5,-593.7"/>
 <polygon fill="none" stroke="#000000" points="246.5,-593.7 246.5,-616.7 465.5,-616.7 465.5,-593.7 246.5,-593.7"/>
-<text text-anchor="start" x="251.5" y="-602.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">allocation_case_note_audit</text>
+<text text-anchor="start" x="251.5" y="-602.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">prison_configuration_audit</text>
 <text text-anchor="start" x="431.0219" y="-601.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
 <polygon fill="none" stroke="#000000" points="246.5,-574.7 246.5,-593.7 465.5,-593.7 465.5,-574.7 246.5,-574.7"/>
 <text text-anchor="start" x="249.5" y="-580.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
@@ -89,42 +89,42 @@
 </a>
 </g>
 </g>
-<!-- allocation_case_note_audit&#45;&gt;audit_revision -->
+<!-- prison_configuration_audit&#45;&gt;audit_revision -->
 <g id="edge2" class="edge">
-<title>allocation_case_note_audit:w&#45;&gt;audit_revision:e</title>
+<title>prison_configuration_audit:w&#45;&gt;audit_revision:e</title>
 <path fill="none" stroke="#000000" d="M232.0549,-582.3002C211.3392,-577.7868 204.279,-562.9064 183,-545.7 162.2153,-528.8933 168.7296,-501.7 142,-501.7"/>
 <polygon fill="#000000" stroke="#000000" points="238.5373,-582.9283 246.1527,-587.2832 242.5187,-583.3142 246.5,-583.7 246.5,-583.7 246.5,-583.7 242.5187,-583.3142 246.8473,-580.1168 238.5373,-582.9283 238.5373,-582.9283"/>
 <ellipse fill="none" stroke="#000000" cx="235.3522" cy="-582.6196" rx="3.2" ry="3.2"/>
 </g>
-<!-- prison_configuration_audit -->
+<!-- recorded_event_audit -->
 <g id="node4" class="node">
-<title>prison_configuration_audit</title>
-<g id="a_node4"><a xlink:href="../../tables/prison_configuration_audit.html" xlink:title="prison_configuration_audit" target="_top">
-<polygon fill="#ffffff" stroke="transparent" points="246,-474.2 246,-535.2 465,-535.2 465,-474.2 246,-474.2"/>
-<polygon fill="#f5f5f5" stroke="transparent" points="246.5,-511.7 246.5,-534.7 465.5,-534.7 465.5,-511.7 246.5,-511.7"/>
-<polygon fill="none" stroke="#000000" points="246.5,-511.7 246.5,-534.7 465.5,-534.7 465.5,-511.7 246.5,-511.7"/>
-<text text-anchor="start" x="251.5" y="-520.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">prison_configuration_audit</text>
-<text text-anchor="start" x="431.0219" y="-519.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
-<polygon fill="none" stroke="#000000" points="246.5,-492.7 246.5,-511.7 465.5,-511.7 465.5,-492.7 246.5,-492.7"/>
-<text text-anchor="start" x="249.5" y="-498.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="246.5,-473.7 246.5,-492.7 354.5,-492.7 354.5,-473.7 246.5,-473.7"/>
-<polygon fill="none" stroke="#000000" points="246.5,-473.7 246.5,-492.7 354.5,-492.7 354.5,-473.7 246.5,-473.7"/>
-<text text-anchor="start" x="249.5" y="-479.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="354.5,-473.7 354.5,-492.7 409.5,-492.7 409.5,-473.7 354.5,-473.7"/>
-<polygon fill="none" stroke="#000000" points="354.5,-473.7 354.5,-492.7 409.5,-492.7 409.5,-473.7 354.5,-473.7"/>
-<text text-anchor="start" x="400.3862" y="-479.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="409.5,-473.7 409.5,-492.7 465.5,-492.7 465.5,-473.7 409.5,-473.7"/>
-<polygon fill="none" stroke="#000000" points="409.5,-473.7 409.5,-492.7 465.5,-492.7 465.5,-473.7 409.5,-473.7"/>
-<text text-anchor="start" x="456.3862" y="-479.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<title>recorded_event_audit</title>
+<g id="a_node4"><a xlink:href="../../tables/recorded_event_audit.html" xlink:title="recorded_event_audit" target="_top">
+<polygon fill="#ffffff" stroke="transparent" points="263,-474.2 263,-535.2 448,-535.2 448,-474.2 263,-474.2"/>
+<polygon fill="#f5f5f5" stroke="transparent" points="263.5,-511.7 263.5,-534.7 448.5,-534.7 448.5,-511.7 263.5,-511.7"/>
+<polygon fill="none" stroke="#000000" points="263.5,-511.7 263.5,-534.7 448.5,-534.7 448.5,-511.7 263.5,-511.7"/>
+<text text-anchor="start" x="268.5" y="-520.3" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00" fill="#000000">recorded_event_audit</text>
+<text text-anchor="start" x="414.0219" y="-519.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
+<polygon fill="none" stroke="#000000" points="263.5,-492.7 263.5,-511.7 448.5,-511.7 448.5,-492.7 263.5,-492.7"/>
+<text text-anchor="start" x="266.5" y="-498.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
+<polygon fill="#ffffff" stroke="transparent" points="263.5,-473.7 263.5,-492.7 354.5,-492.7 354.5,-473.7 263.5,-473.7"/>
+<polygon fill="none" stroke="#000000" points="263.5,-473.7 263.5,-492.7 354.5,-492.7 354.5,-473.7 263.5,-473.7"/>
+<text text-anchor="start" x="266.5" y="-479.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
+<polygon fill="#ffffff" stroke="transparent" points="354.5,-473.7 354.5,-492.7 401.5,-492.7 401.5,-473.7 354.5,-473.7"/>
+<polygon fill="none" stroke="#000000" points="354.5,-473.7 354.5,-492.7 401.5,-492.7 401.5,-473.7 354.5,-473.7"/>
+<text text-anchor="start" x="392.3862" y="-479.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="401.5,-473.7 401.5,-492.7 448.5,-492.7 448.5,-473.7 401.5,-473.7"/>
+<polygon fill="none" stroke="#000000" points="401.5,-473.7 401.5,-492.7 448.5,-492.7 448.5,-473.7 401.5,-473.7"/>
+<text text-anchor="start" x="439.3862" y="-479.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>
 </g>
-<!-- prison_configuration_audit&#45;&gt;audit_revision -->
+<!-- recorded_event_audit&#45;&gt;audit_revision -->
 <g id="edge3" class="edge">
-<title>prison_configuration_audit:w&#45;&gt;audit_revision:e</title>
-<path fill="none" stroke="#000000" d="M231.9559,-501.7C196.9779,-501.7 183.1832,-501.7 142,-501.7"/>
-<polygon fill="#000000" stroke="#000000" points="238.5,-501.7001 246.5,-505.3 242.5,-501.7 246.5,-501.7 246.5,-501.7 246.5,-501.7 242.5,-501.7 246.5,-498.1 238.5,-501.7001 238.5,-501.7001"/>
-<ellipse fill="none" stroke="#000000" cx="235.3" cy="-501.7001" rx="3.2" ry="3.2"/>
+<title>recorded_event_audit:w&#45;&gt;audit_revision:e</title>
+<path fill="none" stroke="#000000" d="M249.0379,-501.7C206.5451,-501.7 190.832,-501.7 142,-501.7"/>
+<polygon fill="#000000" stroke="#000000" points="255.5,-501.7001 263.5,-505.3 259.5,-501.7 263.5,-501.7 263.5,-501.7 263.5,-501.7 259.5,-501.7 263.5,-498.1 255.5,-501.7001 255.5,-501.7001"/>
+<ellipse fill="none" stroke="#000000" cx="252.3" cy="-501.7001" rx="3.2" ry="3.2"/>
 </g>
 <!-- staff_configuration_audit -->
 <g id="node5" class="node">

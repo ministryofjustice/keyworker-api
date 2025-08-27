@@ -4,14 +4,17 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
   "allocation":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "allocation_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "allocation_case_note":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
-  "allocation_case_note_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "case_note_type_recorded_event_type":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration":"policy_code":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_configuration":"prison_code":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_configuration_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "prison_statistic":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "prison_statistic":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "recorded_event":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
+  "recorded_event":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
+  "recorded_event_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
+  "recorded_event_audit":"elipses":w -> "prison_migration_date_history":"prison_code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
   "reference_data_policy":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "staff_configuration":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot];
   "staff_configuration_audit":"elipses":w -> "policy":"code":e [arrowhead=none dir=back arrowtail=crowodot style=dashed];
@@ -41,27 +44,16 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     target="_top"
     tooltip="allocation_audit"
   ];
-  "allocation_case_note" [
+  "case_note_type_recorded_event_type" [
    label=<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="139" HEIGHT="16"><B>allocation_case_note</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="250" HEIGHT="16"><B>case_note_type_recorded_event_type</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
       <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
       <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 1</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
     </TABLE>>
-    URL="../../tables/allocation_case_note.html"
+    URL="../../tables/case_note_type_recorded_event_type.html"
     target="_top"
-    tooltip="allocation_case_note"
-  ];
-  "allocation_case_note_audit" [
-   label=<
-    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
-      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="180" HEIGHT="16"><B>allocation_case_note_audit</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
-      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 2</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
-    </TABLE>>
-    URL="../../tables/allocation_case_note_audit.html"
-    target="_top"
-    tooltip="allocation_case_note_audit"
+    tooltip="case_note_type_recorded_event_type"
   ];
   "policy" [
    label=<
@@ -69,7 +61,7 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
       <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="39" HEIGHT="16"><B>policy</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
       <TR><TD PORT="code" COLSPAN="3" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" ALIGN="LEFT"><TR ALIGN="LEFT"><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="15" HEIGHT="16"><IMG SRC="../../images/primaryKeys.png"/></TD><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="76" HEIGHT="16">code</TD></TR></TABLE></TD></TR>
       <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
-      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">10 &gt;</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">13 &gt;</TD></TR>
     </TABLE>>
     URL="../../tables/policy.html"
     target="_top"
@@ -127,6 +119,28 @@ digraph "twoDegreesRelationshipsDiagramImplied" {
     URL="../../tables/prison_statistic.html"
     target="_top"
     tooltip="prison_statistic"
+  ];
+  "recorded_event" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="105" HEIGHT="16"><B>recorded_event</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 3</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
+    </TABLE>>
+    URL="../../tables/recorded_event.html"
+    target="_top"
+    tooltip="recorded_event"
+  ];
+  "recorded_event_audit" [
+   label=<
+    <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" BGCOLOR="#ffffff">
+      <TR><TD COLSPAN="3"  BGCOLOR="#f5f5f5"><TABLE BORDER="0" CELLSPACING="0"><TR><TD ALIGN="LEFT" FIXEDSIZE="TRUE" WIDTH="146" HEIGHT="16"><B>recorded_event_audit</B></TD><TD ALIGN="RIGHT">[table]</TD></TR></TABLE></TD></TR>
+      <TR><TD PORT="elipses" COLSPAN="3" ALIGN="LEFT">...</TD></TR>
+      <TR><TD ALIGN="LEFT" BGCOLOR="#ffffff">&lt; 3</TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD><TD ALIGN="RIGHT" BGCOLOR="#ffffff">  </TD></TR>
+    </TABLE>>
+    URL="../../tables/recorded_event_audit.html"
+    target="_top"
+    tooltip="recorded_event_audit"
   ];
   "reference_data_policy" [
    label=<
