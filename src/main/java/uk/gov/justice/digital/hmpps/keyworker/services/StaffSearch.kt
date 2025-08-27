@@ -39,15 +39,15 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteSummaries
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
 
 @Service
 class StaffSearch(
   private val nomisUsersApi: NomisUserRolesApiClient,
   private val prisonApi: PrisonApiClient,
   private val caseNoteApi: CaseNotesApiClient,
-  private val caseNoteRetriever: CaseNoteRetriever,
+  private val recordedEventRetriever: RecordedEventRetriever,
   private val staffRoleRepository: StaffRoleRepository,
   private val allocationRepository: AllocationRepository,
   private val prisonConfigRepository: PrisonConfigurationRepository,
@@ -158,7 +158,7 @@ class StaffSearch(
 
     val staffCaseNoteSummaries =
       if (includeStats) {
-        caseNoteRetriever.findCaseNoteSummaries(
+        recordedEventRetriever.findRecordedEventSummaries(
           staffMembers.keys,
           reportingPeriod.from.toLocalDate(),
           reportingPeriod.to.toLocalDate(),
@@ -181,9 +181,9 @@ class StaffSearch(
             { staffId -> applicableAllocationsByStaff[staffId].orEmpty() },
             { staffId ->
               if (includeStats) {
-                staffCaseNoteSummaries[staffId] ?: CaseNoteSummaries.empty()
+                staffCaseNoteSummaries[staffId] ?: RecordedEventSummaries.empty()
               } else {
-                CaseNoteSummaries.empty()
+                RecordedEventSummaries.empty()
               }
             },
             activeStatusProvider,
@@ -275,7 +275,7 @@ class StaffSearch(
     reportingPeriod: ReportingPeriod,
     staffConfig: (Long) -> StaffWithAllocationCount?,
     applicableAllocations: (Long) -> List<Allocation>,
-    cnSummary: (Long) -> CaseNoteSummaries,
+    cnSummary: (Long) -> RecordedEventSummaries,
     activeStatusProvider: Lazy<ReferenceData>,
     includeStats: Boolean,
   ): AllocatableSummary {

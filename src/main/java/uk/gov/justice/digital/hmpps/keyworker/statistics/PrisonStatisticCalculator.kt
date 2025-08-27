@@ -11,13 +11,14 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 
@@ -28,7 +29,7 @@ class PrisonStatisticCalculator(
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeedApi: ComplexityOfNeedApiClient,
   private val allocationRepository: AllocationRepository,
-  private val caseNoteRetriever: CaseNoteRetriever,
+  private val recordedEventRetriever: RecordedEventRetriever,
   private val prisonApi: PrisonApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
@@ -70,9 +71,17 @@ class PrisonStatisticCalculator(
           .findNewAllocationsAt(prisonCode, date, date.plusDays(1), policy.name)
           .associateBy { it.personIdentifier }
 
-      val cnSummaries = caseNoteRetriever.findCaseNoteSummaries(prisonCode, date, date)
-      val previousRecordedEntries =
-        caseNoteRetriever.findMostRecentCaseNoteBefore(prisonCode, cnSummaries.personIdentifiers(), date)
+      val cnSummaries = recordedEventRetriever.findRecordedEventSummaries(prisonCode, date, date)
+      val previousRecordedEvent =
+        recordedEventRetriever.findMostRecentEventBefore(
+          prisonCode,
+          cnSummaries.personIdentifiers(),
+          date,
+          when (policy) {
+            AllocationPolicy.KEY_WORKER -> RecordedEventType.SESSION
+            AllocationPolicy.PERSONAL_OFFICER -> RecordedEventType.ENTRY
+          },
+        )
 
       val activeStaffCount = getActiveStaffCount()
 
@@ -92,7 +101,7 @@ class PrisonStatisticCalculator(
               ?.occurredAt
               ?.toLocalDate()
               ?.takeIf {
-                val previous = previousRecordedEntries[pi]?.occurredAt?.toLocalDate()
+                val previous = previousRecordedEvent[pi]?.occurredAt?.toLocalDate()
                 previous == null || date?.isAfter(previous) == true
               }
           },

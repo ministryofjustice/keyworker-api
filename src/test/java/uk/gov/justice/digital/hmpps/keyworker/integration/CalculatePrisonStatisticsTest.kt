@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import io.jsonwebtoken.security.Jwks.OP.policy
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -11,12 +10,8 @@ import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
@@ -77,30 +72,28 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         )
       }
     }
-    val (recordedType, recordedSubType) =
+    val recordedEventType =
       when (policy) {
-        AllocationPolicy.KEY_WORKER -> KW_TYPE to KW_SESSION_SUBTYPE
-        AllocationPolicy.PERSONAL_OFFICER -> PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE
+        AllocationPolicy.KEY_WORKER -> RecordedEventType.SESSION
+        else -> RecordedEventType.ENTRY
       }
-    val caseNotes =
+    val recordedEvents =
       prisoners.content.mapIndexedNotNull { idx, prisoner ->
         if (idx % 9 == 0) {
-          givenAllocationCaseNote(
-            caseNote(
+          givenRecordedEvent(
+            recordedEvent(
               prisonCode,
-              recordedType,
-              recordedSubType,
+              recordedEventType,
               yesterday.atTime(LocalTime.now()),
               personIdentifier = prisoner.prisonerNumber,
             ),
           )
         } else {
           if (policy == AllocationPolicy.KEY_WORKER && idx % 15 == 0) {
-            givenAllocationCaseNote(
-              caseNote(
+            givenRecordedEvent(
+              recordedEvent(
                 prisonCode,
-                KW_TYPE,
-                KW_ENTRY_SUBTYPE,
+                RecordedEventType.ENTRY,
                 yesterday.atTime(LocalTime.now()),
                 personIdentifier = prisoner.prisonerNumber,
               ),
@@ -110,13 +103,12 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         }
       }
 
-    caseNotes.map { it.personIdentifier }.forEachIndexed { index, personIdentifier ->
+    recordedEvents.map { it.personIdentifier }.forEachIndexed { index, personIdentifier ->
       if (index % 2 == 0) {
-        givenAllocationCaseNote(
-          caseNote(
+        givenRecordedEvent(
+          recordedEvent(
             prisonCode,
-            recordedType,
-            recordedSubType,
+            recordedEventType,
             yesterday.minusDays(10).atTime(LocalTime.now()),
             personIdentifier = personIdentifier,
           ),
@@ -204,22 +196,20 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     )
     eligiblePrisoners.mapIndexedNotNull { idx, pi ->
       if (idx % 9 == 0) {
-        givenAllocationCaseNote(
-          caseNote(
+        givenRecordedEvent(
+          recordedEvent(
             prisonCode,
-            KW_TYPE,
-            KW_SESSION_SUBTYPE,
+            RecordedEventType.SESSION,
             yesterday.atTime(LocalTime.now()),
             personIdentifier = pi,
           ),
         )
       } else {
         if (idx % 15 == 0) {
-          givenAllocationCaseNote(
-            caseNote(
+          givenRecordedEvent(
+            recordedEvent(
               prisonCode,
-              KW_TYPE,
-              KW_ENTRY_SUBTYPE,
+              RecordedEventType.ENTRY,
               yesterday.atTime(LocalTime.now()),
               personIdentifier = pi,
             ),

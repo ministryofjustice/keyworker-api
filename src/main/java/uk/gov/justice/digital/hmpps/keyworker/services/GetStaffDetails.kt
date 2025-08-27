@@ -32,8 +32,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
 import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteRetriever
-import uk.gov.justice.digital.hmpps.keyworker.services.casenotes.CaseNoteSummaries
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -50,7 +50,7 @@ class GetStaffDetails(
   private val allocationRepository: AllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val prisonRegisterApi: PrisonRegisterClient,
-  private val caseNotesRetriever: CaseNoteRetriever,
+  private val caseNotesRetriever: RecordedEventRetriever,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
   fun getJobClassificationsFor(
@@ -189,14 +189,14 @@ class GetStaffDetails(
     reportingPeriod: ReportingPeriod,
     prisonConfig: PrisonConfiguration,
     staffId: Long,
-  ): Pair<StaffCountStats, CaseNoteSummaries> {
+  ): Pair<StaffCountStats, RecordedEventSummaries> {
     val applicableAllocations = filterApplicable(reportingPeriod)
     val cns =
-      caseNotesRetriever.findCaseNoteSummaries(
+      caseNotesRetriever.findRecordedEventSummaries(
         setOf(staffId),
         reportingPeriod.from.toLocalDate(),
         reportingPeriod.to.toLocalDate(),
-      )[staffId] ?: CaseNoteSummaries.empty()
+      )[staffId] ?: RecordedEventSummaries.empty()
 
     return Pair(
       applicableAllocations.staffCountStatsFromApplicableAllocations(reportingPeriod, prisonConfig, cns),
@@ -208,7 +208,7 @@ class GetStaffDetails(
 fun List<Allocation>.staffCountStatsFromApplicableAllocations(
   reportingPeriod: ReportingPeriod,
   prisonConfig: PrisonConfiguration,
-  cns: CaseNoteSummaries,
+  cns: RecordedEventSummaries,
 ): StaffCountStats {
   val projectedSessions =
     if (isNotEmpty()) {
@@ -252,7 +252,7 @@ private fun Allocation.asAllocation(
   prisoner: Prisoner,
   reportingPeriod: ReportingPeriod,
   prisonConfig: PrisonConfiguration,
-  cns: CaseNoteSummaries,
+  cns: RecordedEventSummaries,
 ) = AllocationModel(
   prisoner.asPrisoner(),
   listOf(

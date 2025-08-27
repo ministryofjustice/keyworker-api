@@ -18,10 +18,10 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Compl
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.MigrateCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.Other
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.PrisonMerged
-import uk.gov.justice.digital.hmpps.keyworker.services.AllocationCaseNoteService
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
-import uk.gov.justice.digital.hmpps.keyworker.services.MigrateAllocationCaseNotes
+import uk.gov.justice.digital.hmpps.keyworker.services.MigrateRecordedEvents
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonInformation
+import uk.gov.justice.digital.hmpps.keyworker.services.RecordedEventService
 import uk.gov.justice.digital.hmpps.keyworker.statistics.PrisonStatisticCalculator
 
 @Service
@@ -29,8 +29,8 @@ class DomainEventListener(
   private val complexityOfNeedEventProcessor: ComplexityOfNeedEventProcessor,
   private val mergePrisonNumbers: MergePrisonNumbers,
   private val prisonStats: PrisonStatisticCalculator,
-  private val caseNote: AllocationCaseNoteService,
-  private val migrateCaseNotes: MigrateAllocationCaseNotes,
+  private val recordedEvent: RecordedEventService,
+  private val migrateRecordedEvents: MigrateRecordedEvents,
   private val objectMapper: ObjectMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -49,15 +49,15 @@ class DomainEventListener(
         prisonStats.calculate(prisonStatsInfo)
       }
 
-      CaseNoteCreated if (notification.isOfInterest()) -> caseNote.new(information(notification))
-      CaseNoteMoved if (notification.isOfInterest()) -> caseNote.update(information(notification))
-      CaseNoteUpdated -> caseNote.update(information(notification))
-      CaseNoteDeleted -> caseNote.delete(information(notification))
+      CaseNoteCreated if (notification.isOfInterest()) -> recordedEvent.new(information(notification))
+      CaseNoteMoved if (notification.isOfInterest()) -> recordedEvent.update(information(notification))
+      CaseNoteUpdated -> recordedEvent.update(information(notification))
+      CaseNoteDeleted -> recordedEvent.delete(information(notification))
 
       CaseNoteCreated, CaseNoteMoved -> return
 
       MigrateCaseNotes ->
-        migrateCaseNotes.handle(
+        migrateRecordedEvents.handle(
           objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
         )
 
