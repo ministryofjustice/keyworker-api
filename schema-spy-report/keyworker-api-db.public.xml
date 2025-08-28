@@ -101,7 +101,7 @@
          <column autoUpdated="true" defaultValue="nextval('audit_revision_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child catalog="keyworker-api-db" column="rev_id" foreignKey="allocation_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation_audit"/>
             <child catalog="keyworker-api-db" column="rev_id" foreignKey="prison_configuration_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
-            <child catalog="keyworker-api-db" column="rev_id" foreignKey="allocation_case_note_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="recorded_event_audit"/>
+            <child catalog="keyworker-api-db" column="rev_id" foreignKey="recorded_event_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="recorded_event_audit"/>
             <child catalog="keyworker-api-db" column="rev_id" foreignKey="staff_configuration_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration_audit"/>
             <child catalog="keyworker-api-db" column="rev_id" foreignKey="staff_role_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_role_audit"/>
          </column>
@@ -270,10 +270,10 @@
             <parent catalog="keyworker-api-db" column="id" foreignKey="recorded_event_type_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
          </column>
          <primaryKey column="id" sequenceNumberInPK="1"/>
-         <index name="allocation_case_note_pkey" unique="true">
+         <index name="recorded_event_pkey" unique="true">
             <column ascending="true" name="id"/>
          </index>
-         <index name="idx_case_note_person_identifier" unique="false">
+         <index name="idx_recorded_event_person_identifier" unique="false">
             <column ascending="true" name="person_identifier"/>
          </index>
          <index name="idx_recorded_event_type_id" unique="false">
@@ -282,7 +282,7 @@
       </table>
       <table catalog="keyworker-api-db" name="recorded_event_audit" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="rev_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
-            <parent catalog="keyworker-api-db" column="id" foreignKey="allocation_case_note_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="audit_revision"/>
+            <parent catalog="keyworker-api-db" column="id" foreignKey="recorded_event_audit_rev_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="audit_revision"/>
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="rev_type" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
@@ -299,7 +299,7 @@
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="type_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5"/>
       </table>
-      <table catalog="keyworker-api-db" name="reference_data" remarks="" schema="public" type="TABLE">
+      <table catalog="keyworker-api-db" name="reference_data" numRows="57" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child catalog="keyworker-api-db" column="allocation_reason_id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child catalog="keyworker-api-db" column="deallocation_reason_id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
@@ -326,7 +326,7 @@
             <column ascending="true" name="sequence_number"/>
          </index>
       </table>
-      <table catalog="keyworker-api-db" name="reference_data_policy" remarks="" schema="public" type="TABLE">
+      <table catalog="keyworker-api-db" name="reference_data_policy" numRows="113" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
             <parent catalog="keyworker-api-db" column="id" foreignKey="reference_data_policy_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
          </column>
