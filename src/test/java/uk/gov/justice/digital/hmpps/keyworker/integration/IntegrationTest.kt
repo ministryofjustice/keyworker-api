@@ -346,8 +346,8 @@ abstract class IntegrationTest {
     prisonerSearchMockServer.resetAll()
     nomisUserRolesMockServer.resetAll()
 
-    flyway.clean()
-    flyway.migrate()
+//    flyway.clean()
+//    flyway.migrate()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
   }
 
@@ -463,7 +463,17 @@ abstract class IntegrationTest {
     policy.name,
   )
 
-  protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration = prisonConfigRepository.save(prisonConfig)
+  protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration =
+    prisonConfigRepository.findByCode(prisonConfig.code)?.let {
+      it.apply {
+        enabled = it.enabled
+        allowAutoAllocation = it.allowAutoAllocation
+        capacity = it.capacity
+        maximumCapacity = it.maximumCapacity
+        frequencyInWeeks = it.frequencyInWeeks
+        hasPrisonersWithHighComplexityNeeds = it.hasPrisonersWithHighComplexityNeeds
+      }
+    } ?: prisonConfigRepository.save(prisonConfig)
 
   protected fun prisonStat(
     prisonCode: String,
