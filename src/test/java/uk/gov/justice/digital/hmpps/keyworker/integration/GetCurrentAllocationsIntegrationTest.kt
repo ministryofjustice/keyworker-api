@@ -249,7 +249,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
   @Test
   fun `200 ok and no allocations returned if policy not active`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
-    val prisonCode = "CAP"
+    val prisonCode = "CNA"
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, false))
 

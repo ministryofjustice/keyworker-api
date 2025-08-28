@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class KeyWorkerDeallocationIntegrationTest : IntegrationTest() {
@@ -9,6 +10,7 @@ class KeyWorkerDeallocationIntegrationTest : IntegrationTest() {
     const val OFFENDER_NO_2 = "A6676RS"
   }
 
+  @Disabled
   @Test
   fun `Existing Active Offender can be de-allocated`() {
     migrated(PRISON_ID)

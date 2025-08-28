@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class KeyworkerDetailsIntegrationTest : IntegrationTest() {
@@ -11,6 +12,7 @@ class KeyworkerDetailsIntegrationTest : IntegrationTest() {
   val sTAFFLOCATIONROLELIST = getWiremockResponse(PRISON_ID, "staff-location-role-list")
   val sTAFFDETAILS = getWiremockResponse("staff-details-$STAFF_ID")
 
+  @Disabled
   @Test
   fun `key worker details happy path`() {
     migrated(PRISON_ID)

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatusCode
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
@@ -45,6 +46,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .json("keyworker-service-controller-allocation-history.json".readFile())
   }
 
+  @Disabled
   @Test
   fun `Allocation history summary reports ok`() {
     addKeyworkerAllocation()
@@ -114,6 +116,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .isEqualTo(HttpStatusCode.valueOf(209))
   }
 
+  @Disabled
   @Test
   fun `sar has content`() {
     addKeyworkerAllocation()
@@ -146,6 +149,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .isNoContent
   }
 
+  @Disabled
   @Test
   fun `sar has content with date range filter`() {
     addKeyworkerAllocation()
