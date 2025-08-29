@@ -165,7 +165,7 @@
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="staff_id">staff_id</span></td>
+                                    <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="staff_id">staff_id</span></td>
                                     <td>int8</td>
                                     <td>19</td>
                                     <td title=''></td>
@@ -199,7 +199,7 @@
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="occurred_at">occurred_at</span></td>
+                                    <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="occurred_at">occurred_at</span></td>
                                     <td>timestamp</td>
                                     <td>29,6</td>
                                     <td title=''></td>
@@ -233,7 +233,7 @@
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td><span id="created_at">created_at</span></td>
+                                    <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="created_at">created_at</span></td>
                                     <td>timestamp</td>
                                     <td>29,6</td>
                                     <td title=''></td>
@@ -330,16 +330,34 @@
                                     <td>id</td>
                                 </tr>
                                 <tr>
-                                    <td title='Indexed'>idx_recorded_event_person_identifier</td>
+                                    <td title='Indexed'>idx_recorded_event_person_identifier_policy</td>
                                     <td>Performance</td>
-                                    <td><span title='Ascending'>Asc</span></td>
-                                    <td>person_identifier</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>person_identifier + policy_code</td>
                                 </tr>
                                 <tr>
-                                    <td title='Indexed'>idx_recorded_event_type_id</td>
+                                    <td title='Indexed'>idx_recorded_event_prison_code_created_at_policy</td>
                                     <td>Performance</td>
-                                    <td><span title='Ascending'>Asc</span></td>
-                                    <td>type_id</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>prison_code + created_at + policy_code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>idx_recorded_event_prison_code_occurred_at_policy</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>prison_code + occurred_at + policy_code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>idx_recorded_event_staff_id_policy</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>staff_id + policy_code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>idx_recorded_event_type_id_policy</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span>/<span title='Ascending'>Asc</span></td>
+                                    <td>type_id + policy_code</td>
                                 </tr>
                                 </tbody>
                             </table>
