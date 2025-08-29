@@ -20,14 +20,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
@@ -35,6 +27,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
+import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
@@ -176,9 +169,17 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       }
     }
 
+    val previousMonth = currentMonth.previousPeriod()
     val response =
-      getStaffDetailSpec(prisonCode, staffConfig.staffId, policy, true)
-        .expectStatus()
+      getStaffDetailSpec(
+        prisonCode,
+        staffConfig.staffId,
+        policy,
+        currentMonth.from.toLocalDate(),
+        currentMonth.to.toLocalDate(),
+        previousMonth.from.toLocalDate(),
+        previousMonth.to.toLocalDate(),
+      ).expectStatus()
         .isOk
         .expectBody(StaffDetails::class.java)
         .returnResult()
@@ -267,7 +268,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     }
 
     val withoutStats =
-      getStaffDetailSpec(prisonCode, staffConfig.staffId, policy, false)
+      getStaffDetailSpec(prisonCode, staffConfig.staffId, policy)
         .expectStatus()
         .isOk
         .expectBody(StaffDetails::class.java)
@@ -395,77 +396,24 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     prisonCode: String,
     staffId: Long,
     policy: AllocationPolicy,
-    includeStats: Boolean = false,
+    from: LocalDate? = null,
+    to: LocalDate? = null,
+    comparisonFrom: LocalDate? = null,
+    comparisonTo: LocalDate? = null,
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .get()
     .uri {
       it.path(GET_STAFF_DETAILS)
-      it.queryParam("includeStats", includeStats)
+      it.queryParam("from", from)
+      it.queryParam("to", to)
+      it.queryParam("comparisonFrom", comparisonFrom)
+      it.queryParam("comparisonTo", comparisonTo)
       it.build(prisonCode, staffId)
     }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
     .header(CaseloadIdHeader.NAME, prisonCode)
     .exchange()
-
-  private fun caseNoteResponse(
-    personIdentifiers: Set<String>,
-    policy: AllocationPolicy,
-  ): NoteUsageResponse<UsageByPersonIdentifierResponse> =
-    when (policy) {
-      AllocationPolicy.KEY_WORKER ->
-        NoteUsageResponse(
-          personIdentifiers
-            .mapIndexed { index, pi ->
-              buildSet {
-                if (index % 4 != 0) {
-                  add(
-                    UsageByPersonIdentifierResponse(
-                      pi,
-                      KW_TYPE,
-                      KW_SESSION_SUBTYPE,
-                      (index % 4) + 1,
-                      LatestNote(LocalDateTime.now().minusDays(index * 2L)),
-                    ),
-                  )
-                }
-                if (index % 3 == 0) {
-                  add(
-                    UsageByPersonIdentifierResponse(
-                      pi,
-                      KW_TYPE,
-                      KW_ENTRY_SUBTYPE,
-                      (index % 2) + 2,
-                      LatestNote(LocalDateTime.now().minusDays(index + 1L)),
-                    ),
-                  )
-                }
-              }
-            }.flatten()
-            .groupBy { it.personIdentifier },
-        )
-
-      AllocationPolicy.PERSONAL_OFFICER ->
-        NoteUsageResponse(
-          personIdentifiers
-            .mapIndexed { index, pi ->
-              buildSet {
-                if (index % 3 == 0) {
-                  add(
-                    UsageByPersonIdentifierResponse(
-                      pi,
-                      PO_ENTRY_TYPE,
-                      PO_ENTRY_SUBTYPE,
-                      (index % 2) + 2,
-                      LatestNote(LocalDateTime.now().minusDays(index + 1L)),
-                    ),
-                  )
-                }
-              }
-            }.flatten()
-            .groupBy { it.personIdentifier },
-        )
-    }
 
   fun staffSummary(
     firstName: String = "First",

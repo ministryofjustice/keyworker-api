@@ -84,8 +84,8 @@ class GetStaffDetails(
     to: LocalDate?,
     comparisonFrom: LocalDate?,
     comparisonTo: LocalDate?,
-    includeStats: Boolean,
   ): StaffDetails {
+    val includeStats = from != null && to != null && comparisonFrom != null && comparisonTo != null
     val reportingPeriod =
       ReportingPeriod.of(from, to, ReportingPeriod.of(comparisonFrom, comparisonTo)) ?: ReportingPeriod.currentMonth()
 
