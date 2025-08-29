@@ -11,6 +11,7 @@ import org.hibernate.annotations.SQLRestriction
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -155,8 +156,10 @@ interface AllocationRepository :
     toDate: LocalDateTime,
   ): List<Allocation>
 
+  @EntityGraph(attributePaths = ["allocationReason"])
   fun findAllByPersonIdentifierInAndIsActiveTrue(personIdentifiers: Set<String>): List<Allocation>
 
+  @EntityGraph(attributePaths = ["allocationReason", "deallocationReason"])
   fun findAllByPersonIdentifier(personIdentifier: String): List<Allocation>
 
   @Query(
