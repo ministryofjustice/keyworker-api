@@ -47,25 +47,22 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
   fun deleteAllByPersonIdentifier(personIdentifier: String)
 
   @EntityGraph(attributePaths = ["type"])
-  fun findByPrisonCodeAndTypeKeyInAndOccurredAtBetween(
+  fun findByPrisonCodeAndOccurredAtBetween(
     prisonCode: String,
-    rdKeys: Set<ReferenceDataKey>,
     from: LocalDateTime,
     to: LocalDateTime,
   ): List<RecordedEvent>
 
   @EntityGraph(attributePaths = ["type"])
-  fun findByStaffIdInAndTypeKeyInAndOccurredAtBetween(
+  fun findByStaffIdInAndOccurredAtBetween(
     staffId: Set<Long>,
-    rdKeys: Set<ReferenceDataKey>,
     from: LocalDateTime,
     to: LocalDateTime,
   ): List<RecordedEvent>
 
   @EntityGraph(attributePaths = ["type"])
-  fun findByPrisonCodeAndTypeKeyInAndCreatedAtBetween(
+  fun findByPrisonCodeAndCreatedAtBetween(
     prisonCode: String,
-    rdKeys: Set<ReferenceDataKey>,
     from: LocalDateTime,
     to: LocalDateTime,
   ): List<RecordedEvent>
@@ -96,7 +93,7 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
       with latest as (
         select acn.id as id, row_number() over (partition by acn.type.key.code order by acn.occurredAt desc) as row
         from RecordedEvent acn
-        where acn.personIdentifier = :personIdentifier and acn.type.key in :rdKeys
+        where acn.personIdentifier = :personIdentifier
     )
     select re 
     from RecordedEvent re
@@ -104,10 +101,7 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
     join latest l on l.id = re.id and l.row = 1
   """,
   )
-  fun findLatestRecordedEvents(
-    personIdentifier: String,
-    rdKeys: Set<ReferenceDataKey>,
-  ): List<RecordedEvent>
+  fun findLatestRecordedEvents(personIdentifier: String): List<RecordedEvent>
 
   @Query("select re.policy_code from recorded_event re where re.id = :id", nativeQuery = true)
   fun findPolicyForId(id: UUID): String?

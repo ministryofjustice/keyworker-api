@@ -29,12 +29,8 @@ class RecordedEventRetriever(
     to: LocalDate,
   ): RecordedEventTotals =
     rer
-      .findByPrisonCodeAndTypeKeyInAndOccurredAtBetween(
+      .findByPrisonCodeAndOccurredAtBetween(
         prisonCode,
-        setOf(
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.SESSION.name,
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.ENTRY.name,
-        ),
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay(),
       ).let {
@@ -47,12 +43,8 @@ class RecordedEventRetriever(
     to: LocalDate,
   ): Map<Long, RecordedEventSummaries> =
     rer
-      .findByStaffIdInAndTypeKeyInAndOccurredAtBetween(
+      .findByStaffIdInAndOccurredAtBetween(
         staffId,
-        setOf(
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.SESSION.name,
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.ENTRY.name,
-        ),
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay(),
       ).takeIf { it.isNotEmpty() }
@@ -72,12 +64,8 @@ class RecordedEventRetriever(
     to: LocalDate,
   ): RecordedEventSummaries =
     rer
-      .findByPrisonCodeAndTypeKeyInAndCreatedAtBetween(
+      .findByPrisonCodeAndCreatedAtBetween(
         prisonCode,
-        setOf(
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.SESSION.name,
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.ENTRY.name,
-        ),
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay(),
       ).takeIf { it.isNotEmpty() }
@@ -109,13 +97,7 @@ class RecordedEventRetriever(
   ): List<RecordedEventEntity> =
     policies.flatMap {
       ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.valueOf(it)))
-      rer.findLatestRecordedEvents(
-        personIdentifier,
-        setOf(
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.SESSION.name,
-          ReferenceDataDomain.RECORDED_EVENT_TYPE of RecordedEventType.ENTRY.name,
-        ),
-      )
+      rer.findLatestRecordedEvents(personIdentifier)
     }
 }
 
