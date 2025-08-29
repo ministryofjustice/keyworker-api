@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Author
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
@@ -56,6 +57,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.prisonNumber).isEqualTo(personIdentifier)
     assertThat(response.allocations).isEmpty()
     assertThat(response.latestRecordedEvents).isEmpty()
+    assertThat(response.policies).isEmpty()
   }
 
   @Test
@@ -81,7 +83,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "AS$i",
           active = false,
           deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
-          deallocationReason = DeallocationReason.entries.filter { it != DeallocationReason.PRISON_USES_KEY_WORK }.random(),
+          deallocationReason =
+            DeallocationReason.entries
+              .filter { it != DeallocationReason.PRISON_USES_KEY_WORK }
+              .random(),
           deallocatedBy = "DE$i",
         ),
       )
@@ -150,6 +155,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         AllocationPolicy.KEY_WORKER,
         Author(latestRecordedEvent.staffId, "Session", "Keyworker", latestRecordedEvent.username),
       ),
+    )
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, true),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
     )
   }
 
@@ -244,6 +253,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         Author(latestRecordedEvent.staffId, "", "", latestRecordedEvent.username),
       ),
     )
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, false),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, true),
+    )
   }
 
   @Test
@@ -325,6 +338,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.prisonNumber).isEqualTo(personIdentifier)
     assertThat(response.allocations).isEmpty()
     assertThat(response.latestRecordedEvents).isEmpty()
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, false),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
+    )
   }
 
   @Test
@@ -365,6 +382,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.prisonNumber).isEqualTo(prisonNumber)
     assertThat(response.allocations).isEmpty()
     assertThat(response.hasHighComplexityOfNeeds).isTrue
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, false),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
+    )
   }
 
   private fun getCurrentAllocationSpec(

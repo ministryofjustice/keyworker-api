@@ -43,10 +43,7 @@ class PrisonService(
   fun getPrisonPolicies(prisonCode: String): PrisonPolicies {
     val activePolicies = prisonConfig.findEnabledPrisonPolicies(prisonCode)
     return PrisonPolicies(
-      AllocationPolicy.entries
-        .map {
-          PolicyEnabled(it, it.name in activePolicies)
-        }.toSet(),
+      AllocationPolicy.entries.map { PolicyEnabled(it, it.name in activePolicies) }.toSet(),
     )
   }
 

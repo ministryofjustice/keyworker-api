@@ -5,9 +5,10 @@ import java.time.LocalDateTime
 
 data class CurrentPersonStaffAllocation(
   val prisonNumber: String,
-  val hasHighComplexityOfNeeds: Boolean,
-  val allocations: List<CurrentAllocation>,
-  val latestRecordedEvents: List<RecordedEvent>,
+  val hasHighComplexityOfNeeds: Boolean = false,
+  val allocations: List<CurrentAllocation> = listOf(),
+  val latestRecordedEvents: List<RecordedEvent> = listOf(),
+  val policies: List<PolicyEnabled> = listOf(),
 )
 
 data class CurrentAllocation(

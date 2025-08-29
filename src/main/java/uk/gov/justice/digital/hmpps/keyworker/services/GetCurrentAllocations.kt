@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PolicyRepository
@@ -8,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationReposito
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.dto.orDefault
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
@@ -28,10 +30,15 @@ class GetCurrentAllocations(
   fun currentFor(personIdentifier: String): CurrentPersonStaffAllocation {
     val person =
       prisonerSearch.findPrisonerDetails(setOf(personIdentifier)).firstOrNull()
-        ?: return CurrentPersonStaffAllocation(personIdentifier, false, emptyList(), emptyList())
+        ?: return CurrentPersonStaffAllocation(personIdentifier)
     val prisonPolicies = prisonConfig.findEnabledPrisonPolicies(person.lastPrisonId)
     return when (person.complexityOfNeedLevel) {
-      ComplexityOfNeedLevel.HIGH -> CurrentPersonStaffAllocation(personIdentifier, true, emptyList(), emptyList())
+      ComplexityOfNeedLevel.HIGH ->
+        CurrentPersonStaffAllocation(
+          personIdentifier,
+          hasHighComplexityOfNeeds = true,
+          policies = prisonPolicies.enabled(),
+        )
       else -> {
         val allocations = allocationRepository.findCurrentAllocations(personIdentifier, prisonPolicies)
         val recordedEvents = recordedEventRetriever.findMostRecentRecordedEvents(personIdentifier, prisonPolicies)
@@ -44,7 +51,7 @@ class GetCurrentAllocations(
             .findStaffSummariesFromIds((allocations.map { it.staffId } + recordedEvents.map { it.staffId }).toSet())
             .associateBy { it.staffId }
         if (allocations.isEmpty()) {
-          CurrentPersonStaffAllocation(personIdentifier, false, emptyList(), emptyList())
+          CurrentPersonStaffAllocation(personIdentifier, policies = prisonPolicies.enabled())
         } else {
           val policies = policyRepository.findAll().associateBy { it.code }
           return CurrentPersonStaffAllocation(
@@ -58,6 +65,7 @@ class GetCurrentAllocations(
               )
             },
             recordedEvents.asRecordedEvents({ prisons[it].orDefault(it) }, { staff[it].orDefault(it) }),
+            prisonPolicies.enabled(),
           )
         }
       }
@@ -66,3 +74,8 @@ class GetCurrentAllocations(
 
   private fun Policy.asCodedDescription(): CodedDescription = CodedDescription(code, description)
 }
+
+fun Set<String>.enabled() =
+  AllocationPolicy.entries.map {
+    PolicyEnabled(it, it.name in this)
+  }
