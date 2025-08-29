@@ -22,7 +22,7 @@ class PrisonerSearchClient(
       .get()
       .uri {
         it.path("/prisoner-search/prison/{prisonCode}")
-        it.queryParam("size", Int.MAX_VALUE)
+        it.queryParam("size", PRISONER_SEARCH_LIMIT)
         it.queryParam("responseFields", Prisoner.fields())
         it.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -68,7 +68,7 @@ class PrisonerSearchClient(
           query?.also { ub.queryParam("term", it) }
           cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
           ub.queryParam("page", 0)
-          ub.queryParam("size", Int.MAX_VALUE)
+          ub.queryParam("size", PRISONER_SEARCH_LIMIT)
           ub.queryParam("responseFields", Prisoner.fields())
         }
         ub.build(prisonCode)
@@ -78,6 +78,10 @@ class PrisonerSearchClient(
       .bodyToMono<Prisoners>()
       .retryRequestOnTransientException()
       .block()!!
+
+  companion object {
+    const val PRISONER_SEARCH_LIMIT = 10000
+  }
 }
 
 data class PrisonerNumbers(

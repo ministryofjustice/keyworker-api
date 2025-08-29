@@ -24,18 +24,15 @@ class PrisonStatsService(
     prisonCode: String,
     from: LocalDate,
     to: LocalDate,
-    comparisonFrom: LocalDate?,
-    comparisonTo: LocalDate?,
+    comparisonFrom: LocalDate,
+    comparisonTo: LocalDate,
   ): PrisonStats {
-    val dateRange = DAYS.between(from, to.plusDays(1))
-    val previousTo = comparisonTo ?: from.minusDays(1)
-    val previousFrom = comparisonFrom ?: from.minusDays(dateRange)
     val prisonConfig = prisonConfig.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
-    val allStats = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, previousFrom, to)
+    val allStats = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, comparisonFrom, to)
     val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig)
     val previous =
       allStats
-        .filter { it.date in (previousFrom..previousTo) }
+        .filter { it.date in (comparisonFrom..comparisonTo) }
         .asStats(prisonConfig)
 
     return PrisonStats(

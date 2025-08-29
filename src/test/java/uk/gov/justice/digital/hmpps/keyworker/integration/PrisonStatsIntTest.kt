@@ -173,8 +173,8 @@ class PrisonStatsIntTest : IntegrationTest() {
     prisonCode: String,
     from: LocalDate = now().minusDays(29),
     to: LocalDate = now().minusDays(1),
-    comparisonFrom: LocalDate? = null,
-    comparisonTo: LocalDate? = null,
+    comparisonFrom: LocalDate = now().minusDays(58),
+    comparisonTo: LocalDate = now().minusDays(30),
     policy: AllocationPolicy,
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient

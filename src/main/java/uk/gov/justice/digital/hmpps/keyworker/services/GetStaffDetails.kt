@@ -84,8 +84,8 @@ class GetStaffDetails(
     to: LocalDate?,
     comparisonFrom: LocalDate?,
     comparisonTo: LocalDate?,
-    includeStats: Boolean,
   ): StaffDetails {
+    val includeStats = from != null && to != null && comparisonFrom != null && comparisonTo != null
     val reportingPeriod =
       ReportingPeriod.of(from, to, ReportingPeriod.of(comparisonFrom, comparisonTo)) ?: ReportingPeriod.currentMonth()
 
@@ -119,14 +119,11 @@ class GetStaffDetails(
         allocationRepository.findActiveForPrisonStaff(prisonCode, staffId)
       }
     val prisonerDetails =
-      if (activeAllocations.isEmpty()) {
-        emptyMap()
-      } else {
-        prisonerSearch
-          .findPrisonerDetails(activeAllocations.map { it.personIdentifier }.toSet())
-          .filter { it.prisonId == prisonCode }
-          .associateBy { it.prisonerNumber }
-      }
+      prisonerSearch
+        .findPrisonerDetails(activeAllocations.map { it.personIdentifier }.toSet())
+        .filter { it.prisonId == prisonCode }
+        .associateBy { it.prisonerNumber }
+
     val prisonName =
       prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
 
