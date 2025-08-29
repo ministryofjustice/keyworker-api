@@ -10,16 +10,16 @@ data class Movement(
   val offenderNo: String,
   val movementDate: LocalDate,
   val movementTime: LocalTime,
-  val fromAgency: String?,
+  override val fromAgency: String?,
   val toAgency: String?,
   val movementType: String?,
   val movementReasonCode: String?,
-  val directionCode: String?,
+  override val directionCode: String?,
   @field:JsonAlias("createDateTime")
   val createdAt: LocalDateTime,
-) {
-  val occurredAt: LocalDateTime = lazy { LocalDateTime.of(movementDate, movementTime) }.value
-  val deallocationReason: DeallocationReason? =
+) : DeallocatingMovement {
+  override val occurredAt: LocalDateTime = lazy { LocalDateTime.of(movementDate, movementTime) }.value
+  override val deallocationReason: DeallocationReason? =
     lazy {
       when (movementType) {
         "TRN" if (directionCode == "OUT") -> DeallocationReason.TRANSFER
@@ -29,3 +29,17 @@ data class Movement(
       }
     }.value
 }
+
+interface DeallocatingMovement {
+  val directionCode: String?
+  val fromAgency: String?
+  val occurredAt: LocalDateTime?
+  val deallocationReason: DeallocationReason?
+}
+
+data class DeallocateAll(
+  override val fromAgency: String?,
+  override val deallocationReason: DeallocationReason = DeallocationReason.PRISON_USES_KEY_WORK,
+  override val occurredAt: LocalDateTime = LocalDateTime.now(),
+  override val directionCode: String = "OUT",
+) : DeallocatingMovement
