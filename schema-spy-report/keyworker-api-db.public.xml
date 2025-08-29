@@ -284,9 +284,10 @@
          <index name="recorded_event_pkey" unique="true">
             <column ascending="true" name="id"/>
          </index>
-         <index name="idx_recorded_event_person_identifier_policy" unique="false">
+         <index name="idx_recorded_event_person_identifier_occurred_at_policy" unique="false">
             <column ascending="true" name="person_identifier"/>
             <column ascending="true" name="policy_code"/>
+            <column ascending="true" name="occurred_at"/>
          </index>
          <index name="idx_recorded_event_prison_code_created_at_policy" unique="false">
             <column ascending="true" name="prison_code"/>
@@ -298,9 +299,10 @@
             <column ascending="true" name="occurred_at"/>
             <column ascending="true" name="policy_code"/>
          </index>
-         <index name="idx_recorded_event_staff_id_policy" unique="false">
+         <index name="idx_recorded_event_staff_id_occurred_at_policy" unique="false">
             <column ascending="true" name="staff_id"/>
             <column ascending="true" name="policy_code"/>
+            <column ascending="true" name="occurred_at"/>
          </index>
          <index name="idx_recorded_event_type_id_policy" unique="false">
             <column ascending="true" name="type_id"/>
