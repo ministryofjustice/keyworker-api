@@ -78,8 +78,8 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
     @RequestParam to: LocalDate,
-    @RequestParam(required = false) comparisonFrom: LocalDate,
-    @RequestParam(required = false) comparisonTo: LocalDate,
+    @RequestParam comparisonFrom: LocalDate,
+    @RequestParam comparisonTo: LocalDate,
   ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to, comparisonFrom, comparisonTo)
 
   @PolicyHeader
