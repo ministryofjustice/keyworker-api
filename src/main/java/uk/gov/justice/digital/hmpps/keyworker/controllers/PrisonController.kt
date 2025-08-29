@@ -56,12 +56,14 @@ class PrisonController(
     @PathVariable("prisonCode") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
+  @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
     @PathVariable("prisonCode") prisonCode: String,
   ) = prisonService.getPrisonPolicies(prisonCode)
 
+  @Tag(name = PRISON)
   @CaseloadIdHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping(value = ["/policies"])
