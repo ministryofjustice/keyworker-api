@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import java.time.LocalDate
@@ -30,6 +29,26 @@ class PrisonStatsIntTest : IntegrationTest() {
     getPrisonStatsSpec("DNM", policy = AllocationPolicy.PERSONAL_OFFICER, role = "ROLE_ANY__OTHER_RW")
       .expectStatus()
       .isForbidden
+  }
+
+  @Test
+  fun `200 ok - when stats do not exist for date ranges`() {
+    val prisonCode = "NSP"
+    givenPrisonConfig(prisonConfig(prisonCode, true))
+    val start = LocalDate.of(2021, 6, 5)
+    val end = LocalDate.of(2021, 6, 13)
+    val prevStart = LocalDate.of(2021, 5, 27)
+    val prevEnd = LocalDate.of(2021, 6, 4)
+
+    val res =
+      getPrisonStatsSpec(prisonCode, start, end, prevStart, prevEnd, AllocationPolicy.KEY_WORKER)
+        .expectStatus()
+        .isOk
+        .expectBody(PrisonStats::class.java)
+        .returnResult()
+        .responseBody
+
+    println(res)
   }
 
   @ParameterizedTest
@@ -145,7 +164,11 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(avgReceptionToRecordedEventDays).isEqualTo(14)
       assertThat(projectedRecordedEvents).isEqualTo(51)
       assertThat(percentageAssigned).isEqualTo(93.75)
-      assertThat(recordedEventComplianceRate).isEqualTo(84.31)
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEventComplianceRate).isEqualTo(84.31)
+      } else {
+        assertThat(recordedEventComplianceRate).isNull()
+      }
     }
 
     with(res.previous) {
@@ -165,7 +188,11 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(avgReceptionToRecordedEventDays).isEqualTo(4)
       assertThat(projectedRecordedEvents).isEqualTo(46)
       assertThat(percentageAssigned).isEqualTo(90.28)
-      assertThat(recordedEventComplianceRate).isEqualTo(95.65)
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEventComplianceRate).isEqualTo(95.65)
+      } else {
+        assertThat(recordedEventComplianceRate).isNull()
+      }
     }
   }
 
