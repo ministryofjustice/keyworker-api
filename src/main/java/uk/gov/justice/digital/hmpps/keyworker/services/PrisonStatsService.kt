@@ -29,11 +29,11 @@ class PrisonStatsService(
   ): PrisonStats {
     val prisonConfig = prisonConfig.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val allStats = statistics.findAllByPrisonCodeAndDateBetween(prisonCode, comparisonFrom, to)
-    val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig)
+    val current = allStats.filter { it.date in (from..to) }.asStats(prisonConfig, from, to)
     val previous =
       allStats
         .filter { it.date in (comparisonFrom..comparisonTo) }
-        .asStats(prisonConfig)
+        .asStats(prisonConfig, comparisonFrom, comparisonTo)
 
     return PrisonStats(
       prisonCode,
@@ -43,42 +43,37 @@ class PrisonStatsService(
     )
   }
 
-  private fun List<PrisonStatistic>.asStats(config: PrisonConfiguration): PrisonStatSummary? {
-    if (isEmpty()) return null
-    val from = start()
-    val to = end()
+  private fun List<PrisonStatistic>.asStats(
+    config: PrisonConfiguration,
+    from: LocalDate,
+    to: LocalDate,
+  ): PrisonStatSummary {
     val eligiblePrisoners = averageEligiblePrisoners()
-    val prisonersAssigned = map { it.prisonersAssignedCount }.average().toInt()
-    val sessions = totalSessions()
-    val projectedSessions = projectedSessions(eligiblePrisoners, from, to, config.frequencyInWeeks)
+    val prisonersAssigned = map { it.prisonersAssignedCount }.takeIf { it.isNotEmpty() }?.average()?.toInt()
+    val projectedSessions = eligiblePrisoners?.let { projectedSessions(it, from, to, config.frequencyInWeeks) }
     val cnTotals = recordedEventRetriever.findCaseNoteTotals(config.code, from, to)
     return PrisonStatSummary(
       from,
       to,
-      map { it.prisonerCount }.average().toInt(),
-      map { it.highComplexityOfNeedPrisonerCount }.average().toInt(),
+      map { it.prisonerCount }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
+      map { it.highComplexityOfNeedPrisonerCount }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
       eligiblePrisoners,
       prisonersAssigned,
-      map { it.eligibleStaffCount }.average().toInt(),
+      map { it.eligibleStaffCount }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
       listOfNotNull(
         cnTotals.sessionCount?.let { RecordedEventCount(RecordedEventType.SESSION, it) },
         cnTotals.entryCount?.let { RecordedEventCount(RecordedEventType.ENTRY, it) },
       ),
-      mapNotNull { it.receptionToAllocationDays }.average().toInt(),
-      mapNotNull { it.receptionToRecordedEventDays }.average().toInt(),
+      mapNotNull { it.receptionToAllocationDays }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
+      mapNotNull { it.receptionToRecordedEventDays }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
       projectedSessions,
-      percentage(prisonersAssigned, eligiblePrisoners),
-      percentage(sessions, projectedSessions) ?: 0.0,
+      prisonersAssigned?.let { percentage(it, eligiblePrisoners) },
+      cnTotals.sessionCount?.let { percentage(it, projectedSessions) },
     )
   }
 
-  private fun List<PrisonStatistic>.start() = minOf { it.date }
-
-  private fun List<PrisonStatistic>.end() = maxOf { it.date }
-
-  private fun List<PrisonStatistic>.averageEligiblePrisoners() = map { it.eligiblePrisonerCount }.average().toInt()
-
-  private fun List<PrisonStatistic>.totalSessions() = sumOf { it.recordedSessionCount }
+  private fun List<PrisonStatistic>.averageEligiblePrisoners() =
+    map { it.eligiblePrisonerCount }.takeIf { it.isNotEmpty() }?.average()?.toInt()
 
   private fun List<PrisonStatistic>.projectedSessions(
     eligible: Int,

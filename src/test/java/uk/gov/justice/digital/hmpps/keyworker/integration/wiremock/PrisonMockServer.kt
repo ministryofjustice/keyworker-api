@@ -291,4 +291,21 @@ class PrisonMockServer : WireMockServer(9999) {
         ),
     )
   }
+
+  fun stubStaffEmail(
+    staffId: Long,
+    staffEmail: String?,
+  ) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/staff/$staffId/emails"))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(if (staffEmail == null) HttpStatus.NO_CONTENT.value() else HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(setOfNotNull(staffEmail))),
+        ),
+    )
+  }
 }

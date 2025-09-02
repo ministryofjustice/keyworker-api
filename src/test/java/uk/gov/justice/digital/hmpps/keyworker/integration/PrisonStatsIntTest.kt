@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import java.time.LocalDate
@@ -30,6 +29,67 @@ class PrisonStatsIntTest : IntegrationTest() {
     getPrisonStatsSpec("DNM", policy = AllocationPolicy.PERSONAL_OFFICER, role = "ROLE_ANY__OTHER_RW")
       .expectStatus()
       .isForbidden
+  }
+
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `200 ok - when stats do not exist for date ranges`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
+    val prisonCode = "NSP"
+    givenPrisonConfig(prisonConfig(prisonCode, true))
+    val start = LocalDate.of(2021, 6, 5)
+    val end = LocalDate.of(2021, 6, 13)
+    val prevStart = LocalDate.of(2021, 5, 27)
+    val prevEnd = LocalDate.of(2021, 6, 4)
+
+    val res =
+      getPrisonStatsSpec(prisonCode, start, end, prevStart, prevEnd, policy)
+        .expectStatus()
+        .isOk
+        .expectBody(PrisonStats::class.java)
+        .returnResult()
+        .responseBody
+
+    with(requireNotNull(res).current) {
+      assertThat(from).isEqualTo(start)
+      assertThat(to).isEqualTo(end)
+      assertThat(totalPrisoners).isNull()
+      assertThat(highComplexityOfNeedPrisoners).isNull()
+      assertThat(eligiblePrisoners).isNull()
+      assertThat(prisonersAssigned).isNull()
+      assertThat(eligibleStaff).isNull()
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(0)
+      } else {
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isNull()
+      }
+      assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(0)
+      assertThat(avgReceptionToAllocationDays).isNull()
+      assertThat(avgReceptionToRecordedEventDays).isNull()
+      assertThat(projectedRecordedEvents).isNull()
+      assertThat(percentageAssigned).isNull()
+      assertThat(recordedEventComplianceRate).isNull()
+    }
+    with(res.previous) {
+      assertThat(from).isEqualTo(prevStart)
+      assertThat(to).isEqualTo(prevEnd)
+      assertThat(totalPrisoners).isNull()
+      assertThat(highComplexityOfNeedPrisoners).isNull()
+      assertThat(eligiblePrisoners).isNull()
+      assertThat(prisonersAssigned).isNull()
+      assertThat(eligibleStaff).isNull()
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isEqualTo(0)
+      } else {
+        assertThat(recordedEvents.find { it.type == RecordedEventType.SESSION }?.count).isNull()
+      }
+      assertThat(recordedEvents.find { it.type == RecordedEventType.ENTRY }?.count).isEqualTo(0)
+      assertThat(avgReceptionToAllocationDays).isNull()
+      assertThat(avgReceptionToRecordedEventDays).isNull()
+      assertThat(projectedRecordedEvents).isNull()
+      assertThat(percentageAssigned).isNull()
+      assertThat(recordedEventComplianceRate).isNull()
+    }
   }
 
   @ParameterizedTest
@@ -126,7 +186,6 @@ class PrisonStatsIntTest : IntegrationTest() {
 
     assertThat(res!!).isNotNull()
     with(res.current) {
-      assertThat(this!!).isNotNull()
       assertThat(from).isEqualTo(start)
       assertThat(to).isEqualTo(end)
       assertThat(totalPrisoners).isEqualTo(100)
@@ -145,11 +204,14 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(avgReceptionToRecordedEventDays).isEqualTo(14)
       assertThat(projectedRecordedEvents).isEqualTo(51)
       assertThat(percentageAssigned).isEqualTo(93.75)
-      assertThat(recordedEventComplianceRate).isEqualTo(84.31)
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEventComplianceRate).isEqualTo(84.31)
+      } else {
+        assertThat(recordedEventComplianceRate).isNull()
+      }
     }
 
     with(res.previous) {
-      assertThat(this!!).isNotNull()
       assertThat(from).isEqualTo(prevStart)
       assertThat(to).isEqualTo(prevEnd)
       assertThat(totalPrisoners).isEqualTo(90)
@@ -165,7 +227,11 @@ class PrisonStatsIntTest : IntegrationTest() {
       assertThat(avgReceptionToRecordedEventDays).isEqualTo(4)
       assertThat(projectedRecordedEvents).isEqualTo(46)
       assertThat(percentageAssigned).isEqualTo(90.28)
-      assertThat(recordedEventComplianceRate).isEqualTo(95.65)
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        assertThat(recordedEventComplianceRate).isEqualTo(95.65)
+      } else {
+        assertThat(recordedEventComplianceRate).isNull()
+      }
     }
   }
 

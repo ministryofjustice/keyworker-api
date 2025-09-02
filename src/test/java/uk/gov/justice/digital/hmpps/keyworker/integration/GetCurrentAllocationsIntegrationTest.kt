@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Author
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentStaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
@@ -37,7 +38,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getCurrentAllocationSpec(personIdentifier(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getCurrentAllocationSpec(personIdentifier(), role = "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
   @Test
@@ -129,9 +130,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         staffSummary("Session", "Keyworker", latestRecordedEvent.staffId),
       ),
     )
+    prisonMockServer.stubStaffEmail(currentAllocation.staffId, "current-staff@justice.gov.uk")
 
     val response =
-      getCurrentAllocationSpec(personIdentifier)
+      getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -144,7 +146,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       CurrentAllocation(
         CodedDescription("KEY_WORKER", "Key worker"),
         pris,
-        StaffSummary(currentAllocation.staffId, "Current", "Keyworker"),
+        CurrentStaffSummary(currentAllocation.staffId, "Current", "Keyworker", setOf("current-staff@justice.gov.uk")),
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
@@ -226,9 +228,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(
       listOf(staffSummary("Personal", "Officer", currentAllocation.staffId)),
     )
+    prisonMockServer.stubStaffEmail(currentAllocation.staffId, null)
 
     val response =
-      getCurrentAllocationSpec(personIdentifier)
+      getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -241,7 +244,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       CurrentAllocation(
         CodedDescription("PERSONAL_OFFICER", "Personal officer"),
         pris,
-        StaffSummary(currentAllocation.staffId, "Personal", "Officer"),
+        CurrentStaffSummary(currentAllocation.staffId, "Personal", "Officer", emptySet()),
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
@@ -390,12 +393,14 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
 
   private fun getCurrentAllocationSpec(
     prisonNumber: String,
+    includeContactDetails: Boolean = false,
     role: String? = Roles.ALLOCATIONS_RO,
   ): WebTestClient.ResponseSpec =
     webTestClient
       .get()
       .uri {
         it.path(GET_CURRENT_ALLOCATION)
+        it.queryParam("includeContactDetails", includeContactDetails)
         it.build(prisonNumber)
       }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
       .exchange()
