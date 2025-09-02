@@ -59,7 +59,7 @@ class PrisonStatsService(
       map { it.highComplexityOfNeedPrisonerCount }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
       eligiblePrisoners,
       prisonersAssigned,
-      if (isEmpty()) null else map { it.eligibleStaffCount }.average().toInt(),
+      map { it.eligibleStaffCount }.takeIf { it.isNotEmpty() }?.average()?.toInt(),
       listOfNotNull(
         cnTotals.sessionCount?.let { RecordedEventCount(RecordedEventType.SESSION, it) },
         cnTotals.entryCount?.let { RecordedEventCount(RecordedEventType.ENTRY, it) },

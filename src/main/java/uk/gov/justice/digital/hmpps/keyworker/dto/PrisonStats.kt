@@ -4,8 +4,8 @@ import java.time.LocalDate
 
 data class PrisonStats(
   val prisonCode: String,
-  val current: PrisonStatSummary?,
-  val previous: PrisonStatSummary?,
+  val current: PrisonStatSummary,
+  val previous: PrisonStatSummary,
   val hasPrisonersWithHighComplexityOfNeed: Boolean,
 )
 
