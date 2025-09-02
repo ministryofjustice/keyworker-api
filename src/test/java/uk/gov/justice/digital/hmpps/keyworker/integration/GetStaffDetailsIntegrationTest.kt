@@ -296,7 +296,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         staffRole(
           prisonCode,
           staff.staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "CHAP"),
+          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
           withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "PT"),
           BigDecimal(36.5),
           now().minusWeeks(6),
@@ -312,16 +312,32 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    assertThat(response.staffRole)
-      .isEqualTo(
-        StaffRoleInfo(
-          CodedDescription("CHAP", "Chaplain"),
-          CodedDescription("PT", "Part Time"),
-          BigDecimal(36.5),
-          now().minusWeeks(6),
-          null,
-        ),
-      )
+    when (policy) {
+      AllocationPolicy.KEY_WORKER ->
+        assertThat(response.staffRole)
+          .isEqualTo(
+            StaffRoleInfo(
+              CodedDescription("CHAP", "Chaplain"),
+              CodedDescription("PT", "Part Time"),
+              BigDecimal(36.5),
+              now().minusWeeks(6),
+              null,
+            ),
+          )
+
+      AllocationPolicy.PERSONAL_OFFICER ->
+        assertThat(response.staffRole)
+          .isEqualTo(
+            StaffRoleInfo(
+              CodedDescription("PRO", "Prison Officer"),
+              CodedDescription("PT", "Part Time"),
+              BigDecimal(36.5),
+              now().minusWeeks(6),
+              null,
+            ),
+          )
+    }
+
     assertThat(response.status).isEqualTo(CodedDescription("ACTIVE", "Active"))
     assertThat(response.prison).isEqualTo(CodedDescription(prisonCode, prisonDescription))
     assertThat(response.capacity).isEqualTo(9)
@@ -357,7 +373,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         staffRole(
           prisonCode,
           staffConfig.staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "AO"),
+          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
           withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
           BigDecimal(36.5),
           now().minusWeeks(6),
@@ -373,16 +389,31 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .returnResult()
         .responseBody!!
 
-    assertThat(response.staffRole)
-      .isEqualTo(
-        StaffRoleInfo(
-          CodedDescription("AO", "Admin Officer"),
-          CodedDescription("FT", "Full Time"),
-          BigDecimal(36.5),
-          now().minusWeeks(6),
-          null,
-        ),
-      )
+    when (policy) {
+      AllocationPolicy.KEY_WORKER ->
+        assertThat(response.staffRole)
+          .isEqualTo(
+            StaffRoleInfo(
+              CodedDescription("AO", "Admin Officer"),
+              CodedDescription("FT", "Full Time"),
+              BigDecimal(36.5),
+              now().minusWeeks(6),
+              null,
+            ),
+          )
+      AllocationPolicy.PERSONAL_OFFICER ->
+        assertThat(response.staffRole)
+          .isEqualTo(
+            StaffRoleInfo(
+              CodedDescription("PRO", "Prison Officer"),
+              CodedDescription("FT", "Full Time"),
+              BigDecimal(36.5),
+              now().minusWeeks(6),
+              null,
+            ),
+          )
+    }
+
     assertThat(response.status).isEqualTo(
       CodedDescription(
         "UNAVAILABLE_ANNUAL_LEAVE",
