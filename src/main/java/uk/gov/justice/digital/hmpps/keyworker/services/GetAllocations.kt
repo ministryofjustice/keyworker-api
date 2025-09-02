@@ -27,7 +27,7 @@ class GetAllocations(
     val prisons = prisonService.findPrisons(allocations.map { it.prisonCode }.toSet()).associateBy { it.prisonId }
     check(prisons.keys.containsAll(allocations.map { it.prisonCode }.toSet()))
     val staffIds = allocations.map { it.staffId }.toSet()
-    val staff = prisonApi.findStaffSummariesFromIds(staffIds).associateBy { it.staffId }
+    val staff = prisonApi.getStaffSummariesFromIds(staffIds).associateBy { it.staffId }
     check(staff.keys.containsAll(staffIds))
 
     return StaffAllocationHistory(

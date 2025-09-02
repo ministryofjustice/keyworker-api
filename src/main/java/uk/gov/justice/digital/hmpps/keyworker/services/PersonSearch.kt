@@ -36,7 +36,7 @@ class PersonSearch(
         emptyMap()
       } else {
         prisonApi
-          .findStaffSummariesFromIds(summaries.values.mapNotNull { it.staffId }.toSet())
+          .getStaffSummariesFromIds(summaries.values.mapNotNull { it.staffId }.toSet())
           .associateBy { it.staffId }
       }
 

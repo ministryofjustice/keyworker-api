@@ -214,7 +214,7 @@ class StaffSearch(
           }
       } else {
         val staffRoles = staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
-        val staff = prisonApi.findStaffSummariesFromIds(staffRoles.map { it.key }.toSet())
+        val staff = prisonApi.getStaffSummariesFromIds(staffRoles.map { it.key }.toSet())
         staff to staffRoles
       }
 

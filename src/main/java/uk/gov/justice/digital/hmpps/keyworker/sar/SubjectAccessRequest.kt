@@ -33,7 +33,7 @@ class SubjectAccessRequest(
         }.flatten()
     val policyMap = policyRepository.findAll().associateBy(Policy::code)
     val staffMap: Map<Long, StaffMember> =
-      prisonApi.findStaffSummariesFromIds(allocations.map { it.staffId }.toSet()).associate {
+      prisonApi.getStaffSummariesFromIds(allocations.map { it.staffId }.toSet()).associate {
         it.staffId to StaffMember(it.firstName, it.lastName)
       }
     val result =
