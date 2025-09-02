@@ -14,7 +14,7 @@ data class CurrentPersonStaffAllocation(
 data class CurrentAllocation(
   val policy: CodedDescription,
   val prison: CodedDescription,
-  val staffMember: StaffSummary,
+  val staffMember: CurrentStaffSummary,
 )
 
 data class RecordedEvent(
@@ -30,4 +30,11 @@ data class Author(
   val firstName: String,
   val lastName: String,
   val username: String,
+)
+
+data class CurrentStaffSummary(
+  val staffId: Long,
+  val firstName: String,
+  val lastName: String,
+  val emailAddresses: Set<String>,
 )

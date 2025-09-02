@@ -94,7 +94,7 @@ class GetStaffDetails(
       if (context.policy == AllocationPolicy.KEY_WORKER) {
         prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffWithRole()
       } else {
-        prisonApi.findStaffSummariesFromIds(setOf(staffId)).firstOrNull()?.let {
+        prisonApi.getStaffSummariesFromIds(setOf(staffId)).firstOrNull()?.let {
           it to staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.toModel()
         }
       }

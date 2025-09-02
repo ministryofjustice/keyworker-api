@@ -8,10 +8,10 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.Author
+import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentStaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.services.asCodedDescription
@@ -207,7 +207,7 @@ class PersonOfficerRecordedEventSummary(
 
 fun List<RecordedEventEntity>.asRecordedEvents(
   prisons: (String) -> Prison,
-  staff: (Long) -> StaffSummary,
+  staff: (Long) -> CurrentStaffSummary,
 ): List<RecordedEvent> =
   map { acn ->
     RecordedEvent(
@@ -219,4 +219,4 @@ fun List<RecordedEventEntity>.asRecordedEvents(
     )
   }
 
-private fun StaffSummary.asAuthor(username: String) = Author(staffId, firstName, lastName, username)
+private fun CurrentStaffSummary.asAuthor(username: String) = Author(staffId, firstName, lastName, username)
