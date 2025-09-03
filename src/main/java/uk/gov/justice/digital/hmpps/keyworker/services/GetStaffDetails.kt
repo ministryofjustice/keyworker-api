@@ -190,6 +190,7 @@ class GetStaffDetails(
     val applicableAllocations = filterApplicable(reportingPeriod)
     val cns =
       caseNotesRetriever.findRecordedEventSummaries(
+        prisonConfig.code,
         setOf(staffId),
         reportingPeriod.from.toLocalDate(),
         reportingPeriod.to.toLocalDate(),
