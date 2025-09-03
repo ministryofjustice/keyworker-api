@@ -38,12 +38,6 @@
             <column ascending="true" name="prison_code"/>
             <column ascending="true" name="policy_code"/>
          </index>
-         <index name="idx_allocation_people_at" unique="false">
-            <column ascending="true" name="staff_id"/>
-            <column ascending="true" name="person_identifier"/>
-            <column ascending="true" name="allocated_at"/>
-            <column ascending="true" name="policy_code"/>
-         </index>
          <index name="idx_allocation_person_identifier" unique="false">
             <column ascending="true" name="person_identifier"/>
             <column ascending="true" name="policy_code"/>
@@ -62,6 +56,14 @@
             <column ascending="true" name="allocated_at"/>
             <column ascending="true" name="deallocated_at"/>
             <column ascending="true" name="policy_code"/>
+         </index>
+         <index name="idx_allocation_with_and_at" unique="false">
+            <column ascending="true" name="staff_id"/>
+            <column ascending="true" name="person_identifier"/>
+            <column ascending="true" name="allocated_at"/>
+            <column ascending="true" name="policy_code"/>
+            <column ascending="true" name="prison_code"/>
+            <column ascending="true" name="deallocated_at"/>
          </index>
          <index name="uq_allocation" unique="true">
             <column ascending="true" name="person_identifier"/>
@@ -299,10 +301,11 @@
             <column ascending="true" name="occurred_at"/>
             <column ascending="true" name="policy_code"/>
          </index>
-         <index name="idx_recorded_event_staff_id_occurred_at_policy" unique="false">
+         <index name="idx_recorded_event_staff_id_occurred_at_policy_prison_code" unique="false">
             <column ascending="true" name="staff_id"/>
             <column ascending="true" name="policy_code"/>
             <column ascending="true" name="occurred_at"/>
+            <column ascending="true" name="prison_code"/>
          </index>
          <index name="idx_recorded_event_type_id_policy" unique="false">
             <column ascending="true" name="type_id"/>
