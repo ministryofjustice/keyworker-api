@@ -223,16 +223,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.stats?.current).isNotNull()
     with(response.stats!!.current) {
       assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3) })
-      assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 18 else 14)
+      assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 20 else 16)
       assertThat(recordedEvents).isEqualTo(
         if (policy == AllocationPolicy.KEY_WORKER) {
           listOf(
-            RecordedEventCount(SESSION, 18),
-            RecordedEventCount(ENTRY, 14),
+            RecordedEventCount(SESSION, 20),
+            RecordedEventCount(ENTRY, 16),
           )
         } else {
           listOf(
-            RecordedEventCount(ENTRY, 14),
+            RecordedEventCount(ENTRY, 16),
           )
         },
       )
