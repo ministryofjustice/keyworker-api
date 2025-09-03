@@ -34,10 +34,6 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffWithRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
@@ -58,17 +54,17 @@ class StaffSearch(
     prisonCode: String,
     request: StaffSearchRequest,
   ): StaffSearchResponse {
-    val context = AllocationContext.get()
     val staffMembers = searchStaff(prisonCode, request.query)
     val staffIds = staffMembers.map { it.staffId }.toSet()
-    val staffIdStrings = staffIds.map { it.toString() }.toSet()
 
-    val sessions =
-      when (context.policy) {
-        AllocationPolicy.KEY_WORKER -> caseNoteApi.getUsageByStaffIds(lastMonthSessions(staffIdStrings))
-        else -> NoteUsageResponse(emptyMap())
-      }
-    val entries = caseNoteApi.getUsageByStaffIds(lastMonthEntries(staffIdStrings))
+    val currentMonth = ReportingPeriod.currentMonth()
+    val recordedEvents =
+      recordedEventRetriever.findRecordedEventSummaries(
+        prisonCode,
+        staffIds,
+        currentMonth.from.toLocalDate(),
+        currentMonth.to.toLocalDate(),
+      )
 
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
     val staffDetail =
@@ -84,8 +80,8 @@ class StaffSearch(
           it.searchResponse(
             { staffId -> staffDetail[staffId] },
             prisonConfig,
-            { staffId -> sessions.content[staffId.toString()]?.firstOrNull() },
-            { staffId -> entries.content[staffId.toString()]?.firstOrNull() },
+            { staffId -> recordedEvents[staffId]?.sessionCount },
+            { staffId -> recordedEvents[staffId]?.entryCount },
             lazy { referenceDataRepository.findByKey(ReferenceDataDomain.STAFF_STATUS of StaffStatus.ACTIVE.name)!! },
           )
         }.filter { ss ->
@@ -159,6 +155,7 @@ class StaffSearch(
     val staffCaseNoteSummaries =
       if (includeStats) {
         recordedEventRetriever.findRecordedEventSummaries(
+          prisonCode,
           staffMembers.keys,
           reportingPeriod.from.toLocalDate(),
           reportingPeriod.to.toLocalDate(),
@@ -199,7 +196,8 @@ class StaffSearch(
       if (policy == AllocationPolicy.KEY_WORKER) {
         val keyworkers = prisonApi.getKeyworkersForPrison(prisonCode)
         val staff = keyworkers.map { StaffSummary(it.staffId, it.firstName, it.lastName) }
-        val rd = referenceDataRepository.findAllByKeyIn(keyworkers.flatMap { it.rdKeys() }.toSet()).associateBy { it.key }
+        val rd =
+          referenceDataRepository.findAllByKeyIn(keyworkers.flatMap { it.rdKeys() }.toSet()).associateBy { it.key }
         val cd: (ReferenceDataKey) -> CodedDescription = { rdKey -> requireNotNull(rd[rdKey]).asCodedDescription() }
         staff to
           keyworkers.associate {
@@ -248,8 +246,8 @@ class StaffSearch(
   private fun StaffWithRole.searchResponse(
     staffConfig: (Long) -> StaffWithAllocationCount?,
     prisonConfig: PrisonConfiguration,
-    sessions: (Long) -> UsageByAuthorIdResponse?,
-    entries: (Long) -> UsageByAuthorIdResponse?,
+    sessions: (Long) -> Int?,
+    entries: (Long) -> Int?,
     activeStatusProvider: Lazy<ReferenceData>,
   ): StaffSearchResult {
     val kwa = staffConfig(staffId)
@@ -262,8 +260,8 @@ class StaffSearch(
       kwa?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
       kwa?.allocationCount ?: 0,
       kwa?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
-      sessions(staffId)?.count ?: 0,
-      entries(staffId)?.count ?: 0,
+      sessions(staffId) ?: 0,
+      entries(staffId) ?: 0,
       staffRole,
       username,
       email,

@@ -38,13 +38,15 @@ class RecordedEventRetriever(
       }
 
   fun findRecordedEventSummaries(
-    staffId: Set<Long>,
+    prisonCode: String,
+    staffIds: Set<Long>,
     from: LocalDate,
     to: LocalDate,
   ): Map<Long, RecordedEventSummaries> =
     rer
       .findByStaffIdInAndOccurredAtBetween(
-        staffId,
+        prisonCode,
+        staffIds,
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay(),
       ).takeIf { it.isNotEmpty() }
