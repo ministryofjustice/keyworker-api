@@ -59,6 +59,7 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
    join fetch re.type t
    where re.staffId in :staffIds
    and re.occurredAt between :from and :to
+   and re.prisonCode = :prisonCode
    and re.personIdentifier in (
     select a.personIdentifier from Allocation a 
     where a.staffId = re.staffId
@@ -68,6 +69,7 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
  """,
   )
   fun findByStaffIdInAndOccurredAtBetween(
+    prisonCode: String,
     staffIds: Set<Long>,
     from: LocalDateTime,
     to: LocalDateTime,

@@ -60,6 +60,7 @@ class StaffSearch(
     val currentMonth = ReportingPeriod.currentMonth()
     val recordedEvents =
       recordedEventRetriever.findRecordedEventSummaries(
+        prisonCode,
         staffIds,
         currentMonth.from.toLocalDate(),
         currentMonth.to.toLocalDate(),
@@ -154,6 +155,7 @@ class StaffSearch(
     val staffCaseNoteSummaries =
       if (includeStats) {
         recordedEventRetriever.findRecordedEventSummaries(
+          prisonCode,
           staffMembers.keys,
           reportingPeriod.from.toLocalDate(),
           reportingPeriod.to.toLocalDate(),
