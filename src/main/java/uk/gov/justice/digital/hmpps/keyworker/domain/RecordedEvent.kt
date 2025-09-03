@@ -53,9 +53,22 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
     to: LocalDateTime,
   ): List<RecordedEvent>
 
-  @EntityGraph(attributePaths = ["type"])
+  @Query(
+    """
+   select re from RecordedEvent re
+   join fetch re.type t
+   where re.staffId in :staffIds
+   and re.occurredAt between :from and :to
+   and re.personIdentifier in (
+    select a.personIdentifier from Allocation a 
+    where a.staffId = re.staffId
+    and a.allocatedAt <= :to
+    and (a.deallocatedAt is null or a.deallocatedAt >= :from)
+    )
+ """,
+  )
   fun findByStaffIdInAndOccurredAtBetween(
-    staffId: Set<Long>,
+    staffIds: Set<Long>,
     from: LocalDateTime,
     to: LocalDateTime,
   ): List<RecordedEvent>
