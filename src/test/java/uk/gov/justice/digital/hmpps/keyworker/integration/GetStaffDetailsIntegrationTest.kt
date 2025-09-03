@@ -143,26 +143,30 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     val currentDateRange = dateRange(currentMonth.from.toLocalDate(), currentMonth.to.toLocalDate())
 
-    (1..15).map {
-      givenRecordedEvent(
-        recordedEvent(
-          prisonCode,
-          ENTRY,
-          currentDateRange.random().atStartOfDay(),
-          personIdentifier = caseNoteIdentifiers.random(),
-          staffId = staffConfig.staffId,
-        ),
-      )
+    caseNoteIdentifiers.mapIndexedNotNull { idx, pi ->
+      if (idx % 5 == 0) {
+        null
+      } else {
+        givenRecordedEvent(
+          recordedEvent(
+            prisonCode,
+            ENTRY,
+            currentDateRange.random().atStartOfDay(),
+            personIdentifier = pi,
+            staffId = staffConfig.staffId,
+          ),
+        )
+      }
     }
 
     if (policy == AllocationPolicy.KEY_WORKER) {
-      (1..38).map {
+      caseNoteIdentifiers.map {
         givenRecordedEvent(
           recordedEvent(
             prisonCode,
             SESSION,
             currentDateRange.random().atStartOfDay(),
-            personIdentifier = caseNoteIdentifiers.random(),
+            personIdentifier = it,
             staffId = staffConfig.staffId,
           ),
         )
@@ -219,16 +223,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.stats?.current).isNotNull()
     with(response.stats!!.current) {
       assertThat(projectedComplianceEvents).isEqualTo(allocations.sumOf { (if (it.isActive) 4 else 3) })
-      assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 38 else 15)
+      assertThat(recordedComplianceEvents).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 20 else 16)
       assertThat(recordedEvents).isEqualTo(
         if (policy == AllocationPolicy.KEY_WORKER) {
           listOf(
-            RecordedEventCount(SESSION, 38),
-            RecordedEventCount(ENTRY, 15),
+            RecordedEventCount(SESSION, 20),
+            RecordedEventCount(ENTRY, 16),
           )
         } else {
           listOf(
-            RecordedEventCount(ENTRY, 15),
+            RecordedEventCount(ENTRY, 16),
           )
         },
       )
