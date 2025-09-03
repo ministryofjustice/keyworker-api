@@ -63,6 +63,7 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
    and re.personIdentifier in (
     select a.personIdentifier from Allocation a 
     where a.staffId = re.staffId
+    and a.prisonCode = :prisonCode
     and a.allocatedAt <= :to
     and (a.deallocatedAt is null or a.deallocatedAt >= :from)
     )
