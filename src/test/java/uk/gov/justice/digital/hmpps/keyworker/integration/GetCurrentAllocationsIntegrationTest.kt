@@ -86,7 +86,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
           deallocationReason =
             DeallocationReason.entries
-              .filter { it != DeallocationReason.PRISON_USES_KEY_WORK }
+              .filter { it !in listOf(DeallocationReason.PRISON_USES_KEY_WORK, DeallocationReason.MIGRATION) }
               .random(),
           deallocatedBy = "DE$i",
         ),
