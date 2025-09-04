@@ -125,7 +125,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
         assertThat(allocations).hasSize(3)
         allocations.verifyTimeline()
         assertThat(allocations.first().isActive).isFalse()
-        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.DUP.reasonCode)
+        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.MIGRATION.reasonCode)
       }
 
     staffRoleRepository

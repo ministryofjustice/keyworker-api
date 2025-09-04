@@ -58,7 +58,7 @@ class MigratePersonalOfficers(
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.OVERRIDE.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.NO_LONGER_IN_PRISON.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.PRISON_USES_KEY_WORK.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.DUP.reasonCode,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.MIGRATION.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.TRANSFER.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.RELEASED.reasonCode,
                   ReferenceDataDomain.STAFF_POSITION of "PRO",
@@ -175,7 +175,7 @@ class MigratePersonalOfficers(
       val movement =
         when (prisonCode) {
           in MIGRATING_PRISON_CODES -> null
-          FORD_PRISON_CODE -> DeallocateAll(prisonCode, DeallocationReason.DUP)
+          FORD_PRISON_CODE -> DeallocateAll(prisonCode, DeallocationReason.MIGRATION)
           else -> DeallocateAll(prisonCode)
         }
       return movement?.let { RelevantMovement(prisonCode, listOf(movement)) }

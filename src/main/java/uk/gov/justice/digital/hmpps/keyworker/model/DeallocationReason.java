@@ -15,6 +15,7 @@ public enum DeallocationReason {
     CHANGE_IN_COMPLEXITY_OF_NEED("CHANGE_IN_COMPLEXITY_OF_NEED"),
     NO_LONGER_IN_PRISON("NO_LONGER_IN_PRISON"),
     PRISON_USES_KEY_WORK("PRISON_USES_KEY_WORK"),
+    MIGRATION("MIGRATION"),
     ;
 
     private final String reasonCode;
