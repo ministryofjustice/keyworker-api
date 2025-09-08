@@ -223,6 +223,19 @@ class PrisonMockServer : WireMockServer(9999) {
     )
   }
 
+  fun stubKeyworkerSearchNotFound(prisonCode: String) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonCode/role/KW"))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.NOT_FOUND.value()),
+        ),
+    )
+  }
+
   fun stubPrisonerStatus(
     offenderNo: String,
     json: String,

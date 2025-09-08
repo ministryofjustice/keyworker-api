@@ -22,6 +22,22 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   }
 
   @Test
+  fun `404 not found from prison api is not a keyworker`() {
+    val prisonCode = "GFF"
+    prisonMockServer.stubKeyworkerSearchNotFound(prisonCode)
+
+    val res =
+      getStaffJobClassifications(prisonCode, newId())
+        .expectStatus()
+        .isOk
+        .expectBody<JobClassificationResponse>()
+        .returnResult()
+        .responseBody!!
+
+    assertThat(res.policies).isEmpty()
+  }
+
+  @Test
   fun `can retrieve all job classification policies for a staff member`() {
     val prisonCode = "AJC"
     val staffId = newId()
