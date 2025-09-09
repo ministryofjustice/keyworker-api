@@ -51,11 +51,16 @@ class PrisonApiClient(
       .header("Sort-Fields", "staffId")
       .header("Sort-Order", "ASC")
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-      .retrieve()
-      .bodyToMono<List<NomisStaffRole>>()
-      .retryRequestOnTransientException()
-      .block()!!
-      .filter { staffId != null || !it.isExpired() }
+      .exchangeToMono {
+        when (it.statusCode()) {
+          HttpStatus.NOT_FOUND -> Mono.empty()
+          HttpStatus.OK -> it.bodyToMono<List<NomisStaffRole>>()
+          else -> it.createError()
+        }
+      }.retryRequestOnTransientException()
+      .block()
+      ?.filter { staffId != null || !it.isExpired() }
+      ?: emptyList()
 
   fun getKeyworkerForPrison(
     prisonCode: String,
