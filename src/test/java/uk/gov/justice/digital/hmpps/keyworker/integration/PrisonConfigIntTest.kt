@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 
 class PrisonConfigIntTest : IntegrationTest() {
@@ -86,14 +87,53 @@ class PrisonConfigIntTest : IntegrationTest() {
     @JvmStatic
     fun prisonConfigArgs() =
       listOf(
-        Arguments.of("ZEZE", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(false, false, false, 9, 1)),
-        Arguments.of("ZEON", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(false, true, false, 9, 1)),
-        Arguments.of("ONZE", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(true, false, true, 9, 1)),
-        Arguments.of("ONON", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(true, true, true, 9, 1)),
-        Arguments.of("ZEZE", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(true, true, true, 9, 1)),
-        Arguments.of("ZEON", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(true, false, true, 9, 1)),
-        Arguments.of("ONZE", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(false, true, false, 9, 1)),
-        Arguments.of("ONON", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(false, false, false, 9, 1)),
+        Arguments.of(
+          "ZEZE",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(
+            false,
+            false,
+            false,
+            9,
+            1,
+            AllocationOrder.BY_ALLOCATIONS,
+          ),
+        ),
+        Arguments.of(
+          "ZEON",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(false, true, false, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONZE",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(true, false, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONON",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(true, true, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ZEZE",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(true, true, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ZEON",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(true, false, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONZE",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(false, true, false, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONON",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(false, false, false, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
       )
   }
 }

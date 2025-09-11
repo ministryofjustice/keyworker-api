@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.domain
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.TenantId
@@ -34,6 +36,9 @@ class PrisonConfiguration(
   var frequencyInWeeks: Int,
   @Column(name = "has_prisoners_with_high_complexity_needs")
   var hasPrisonersWithHighComplexityNeeds: Boolean,
+  @Enumerated(EnumType.STRING)
+  @Column(name = "allocation_order", nullable = false)
+  var allocationOrder: AllocationOrder,
   @TenantId
   @Audited(withModifiedFlag = false)
   @Column(name = "policy_code", updatable = false)
@@ -49,6 +54,7 @@ class PrisonConfiguration(
       allowAutoAllocation = request.allowAutoAllocation
       frequencyInWeeks = request.frequencyInWeeks
       request.hasPrisonersWithHighComplexityNeeds?.also { hasPrisonersWithHighComplexityNeeds = it }
+      allocationOrder = request.allocationOrder
     }
 
   companion object {
@@ -63,9 +69,15 @@ class PrisonConfiguration(
       maximumCapacity = 9,
       frequencyInWeeks = 1,
       hasPrisonersWithHighComplexityNeeds = false,
+      allocationOrder = AllocationOrder.BY_ALLOCATIONS,
       policy.name,
     )
   }
+}
+
+enum class AllocationOrder {
+  BY_ALLOCATIONS,
+  BY_NAME,
 }
 
 interface PrisonConfigurationRepository : JpaRepository<PrisonConfiguration, UUID> {
