@@ -180,7 +180,7 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
 
   private fun getPrisonPolicies(
     prisonCode: String,
-    role: String? = Roles.ALLOCATIONS_UI,
+    role: String? = Roles.ALLOCATIONS_RO,
   ) = webTestClient
     .get()
     .uri(PRISON_POLICIES_URL, prisonCode)

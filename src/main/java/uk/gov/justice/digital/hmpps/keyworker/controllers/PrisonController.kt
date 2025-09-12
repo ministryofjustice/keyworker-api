@@ -57,7 +57,7 @@ class PrisonController(
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
   @Tag(name = PRISON)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PreAuthorize("hasAnyRole('${Roles.ALLOCATIONS_UI}', '${Roles.ALLOCATIONS_RO}')")
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
     @PathVariable("prisonCode") prisonCode: String,
