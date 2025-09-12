@@ -460,12 +460,12 @@
                                     <td>((allocation_type &#61; ANY (ARRAY[&#39;A&#39;::bpchar, &#39;M&#39;::bpchar, &#39;P&#39;::bpchar])))</td>
                                 </tr>
                                 <tr>
-                                    <td>ch_allocation_is_active</td>
-                                    <td>((NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))</td>
-                                </tr>
-                                <tr>
                                     <td>ch_allocation_is_not_active</td>
                                     <td>((NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))</td>
+                                </tr>
+                                <tr>
+                                    <td>ch_allocation_is_active</td>
+                                    <td>((NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))</td>
                                 </tr>
                                 </tbody>
                             </table>
