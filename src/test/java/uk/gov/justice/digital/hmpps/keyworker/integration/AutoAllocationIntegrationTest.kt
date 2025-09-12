@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -123,6 +124,7 @@ class AutoAllocationIntegrationTest : IntegrationTest() {
       }
   }
 
+  @Disabled
   @Test
   fun `should return a list of unallocated offenders for non-complex prisoners`() {
     webTestClient

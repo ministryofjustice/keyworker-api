@@ -56,12 +56,14 @@ class PrisonController(
     @PathVariable("prisonCode") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
+  @Tag(name = PRISON)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
     @PathVariable("prisonCode") prisonCode: String,
   ) = prisonService.getPrisonPolicies(prisonCode)
 
+  @Tag(name = PRISON)
   @CaseloadIdHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping(value = ["/policies"])
@@ -78,8 +80,8 @@ class PrisonController(
     @PathVariable prisonCode: String,
     @RequestParam from: LocalDate,
     @RequestParam to: LocalDate,
-    @RequestParam(required = false) comparisonFrom: LocalDate?,
-    @RequestParam(required = false) comparisonTo: LocalDate?,
+    @RequestParam comparisonFrom: LocalDate,
+    @RequestParam comparisonTo: LocalDate,
   ): PrisonStats = statsService.getPrisonStats(prisonCode, from, to, comparisonFrom, comparisonTo)
 
   @PolicyHeader
@@ -93,8 +95,7 @@ class PrisonController(
     @RequestParam(required = false) to: LocalDate?,
     @RequestParam(required = false) comparisonFrom: LocalDate?,
     @RequestParam(required = false) comparisonTo: LocalDate?,
-    @RequestParam(required = false, defaultValue = "false") includeStats: Boolean,
-  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, comparisonFrom, comparisonTo, includeStats)
+  ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, comparisonFrom, comparisonTo)
 
   @Operation(hidden = true)
   @GetMapping("/staff/{staffId}/job-classifications")

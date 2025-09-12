@@ -15,6 +15,7 @@ object ReferenceDataMock {
           ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it.name),
           "Description of ${it.name}",
           it.ordinal,
+          null,
           AllocationPolicy.KEY_WORKER.name,
           it.ordinal.toLong(),
         )

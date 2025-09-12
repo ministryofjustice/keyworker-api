@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.migration.MigratePersonalOfficers
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
@@ -35,7 +36,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
   @Test
   fun `migration creates migrated personal officer records all prisoners residents`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
-    val prisonCode = "PM1"
+    val prisonCode = MigratePersonalOfficers.MIGRATING_PRISON_CODES.first()
     val historicAllocations =
       generateHistoricAllocations(prisonCode, personIdentifier(), 3) +
         generateHistoricAllocations(prisonCode, personIdentifier(), 3)
@@ -64,6 +65,72 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
       .also {
         assertThat(it.size).isEqualTo(2)
       }
+  }
+
+  @Test
+  fun `migration creates migrated personal officer records for prisons that moved to keyworker policy`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    val prisonCode = "SNP"
+    val historicAllocations =
+      generateHistoricAllocations(prisonCode, personIdentifier(), 3) +
+        generateHistoricAllocations(prisonCode, personIdentifier(), 3)
+    prisonMockServer.stubPoAllocationHistory(prisonCode, historicAllocations)
+    prisonerSearchMockServer.stubFindAllPrisoners(
+      prisonCode,
+      prisoners(historicAllocations.map { it.offenderNo }.toSet()),
+    )
+
+    initMigration(prisonCode)
+
+    val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
+    Thread.sleep(1000) // TODO look into alternative
+
+    personIdentifiers
+      .map {
+        allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
+      }.forEach { allocations ->
+        assertThat(allocations).hasSize(3)
+        allocations.verifyTimeline()
+        assertThat(allocations.first().isActive).isFalse()
+        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.PRISON_USES_KEY_WORK.reasonCode)
+      }
+
+    staffRoleRepository
+      .findAllByPrisonCodeAndStaffIdIn(prisonCode, historicAllocations.map { it.staffId }.toSet())
+      .also { assertThat(it).isEmpty() }
+  }
+
+  @Test
+  fun `migration creates migrated personal officer records for Ford (FDI)`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    val prisonCode = MigratePersonalOfficers.FORD_PRISON_CODE
+    val historicAllocations =
+      generateHistoricAllocations(prisonCode, personIdentifier(), 3) +
+        generateHistoricAllocations(prisonCode, personIdentifier(), 3)
+    prisonMockServer.stubPoAllocationHistory(prisonCode, historicAllocations)
+    prisonerSearchMockServer.stubFindAllPrisoners(
+      prisonCode,
+      prisoners(historicAllocations.map { it.offenderNo }.toSet()),
+    )
+
+    initMigration(prisonCode)
+
+    val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
+    Thread.sleep(1000) // TODO look into alternative
+
+    personIdentifiers
+      .map {
+        allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
+      }.forEach { allocations ->
+        assertThat(allocations).hasSize(3)
+        allocations.verifyTimeline()
+        assertThat(allocations.first().isActive).isFalse()
+        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.MIGRATION.reasonCode)
+      }
+
+    staffRoleRepository
+      .findAllByPrisonCodeAndStaffIdIn(prisonCode, historicAllocations.map { it.staffId }.toSet())
+      .also { assertThat(it).isEmpty() }
   }
 
   @Test

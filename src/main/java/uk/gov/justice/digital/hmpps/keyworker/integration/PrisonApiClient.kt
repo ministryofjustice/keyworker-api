@@ -7,6 +7,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
@@ -17,9 +18,11 @@ import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 class PrisonApiClient(
   @Qualifier("prisonApiWebClient") private val webClient: WebClient,
 ) {
-  fun findStaffSummariesFromIds(ids: Set<Long>): List<StaffSummary> =
+  fun getStaffSummariesFromIds(ids: Set<Long>): List<StaffSummary> = findStaffSummariesFromIds(ids).block()!!
+
+  fun findStaffSummariesFromIds(ids: Set<Long>): Mono<List<StaffSummary>> =
     if (ids.isEmpty()) {
-      emptyList()
+      Mono.just(emptyList())
     } else {
       webClient
         .post()
@@ -28,7 +31,6 @@ class PrisonApiClient(
         .retrieve()
         .bodyToMono<List<StaffSummary>>()
         .retryRequestOnTransientException()
-        .block()!!
     }
 
   fun getKeyworkersForPrison(
@@ -49,11 +51,16 @@ class PrisonApiClient(
       .header("Sort-Fields", "staffId")
       .header("Sort-Order", "ASC")
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-      .retrieve()
-      .bodyToMono<List<NomisStaffRole>>()
-      .retryRequestOnTransientException()
-      .block()!!
-      .filter { staffId != null || !it.isExpired() }
+      .exchangeToMono {
+        when (it.statusCode()) {
+          HttpStatus.NOT_FOUND -> Mono.empty()
+          HttpStatus.OK -> it.bodyToMono<List<NomisStaffRole>>()
+          else -> it.createError()
+        }
+      }.retryRequestOnTransientException()
+      .block()
+      ?.filter { staffId != null || !it.isExpired() }
+      ?: emptyList()
 
   fun getKeyworkerForPrison(
     prisonCode: String,
@@ -89,10 +96,35 @@ class PrisonApiClient(
         }
       }.retryRequestOnTransientException()
 
+  private fun getStaffEmail(staffId: Long): Mono<Pair<Long, Set<String>>> =
+    webClient
+      .get()
+      .uri(STAFF_EMAIL_URL, staffId)
+      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+      .exchangeToMono { res ->
+        when (res.statusCode()) {
+          HttpStatus.NOT_FOUND, HttpStatus.NO_CONTENT -> Mono.just(emptySet())
+          HttpStatus.OK -> res.bodyToMono<Set<String>>()
+          else -> res.createError()
+        }
+      }.retryRequestOnTransientException()
+      .map { staffId to it }
+
+  fun getStaffEmails(staffIds: Set<Long>): Mono<List<Pair<Long, Set<String>>>> {
+    if (staffIds.isEmpty()) {
+      return Mono.just(emptyList())
+    }
+    return Flux
+      .fromIterable(staffIds)
+      .flatMap({ getStaffEmail(it) }, 10)
+      .collectList()
+  }
+
   companion object {
     const val GET_KEYWORKER_INFO = "/staff/roles/{agencyId}/role/KW"
     const val STAFF_BY_IDS_URL = "/staff"
     const val PERSONAL_OFFICER_HISTORY_URL = "/personal-officer/{agencyId}/allocation-history"
     const val MOVEMENTS_URL = "/movements/offender/{offenderNo}"
+    const val STAFF_EMAIL_URL = "/staff/{staffId}/emails"
   }
 }

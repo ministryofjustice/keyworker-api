@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
@@ -18,5 +19,6 @@ class CurrentAllocationController(
   @GetMapping("/prisoners/{personIdentifier}/allocations/current")
   fun getCurrentAllocation(
     @PathVariable personIdentifier: String,
-  ): CurrentPersonStaffAllocation = allocations.currentFor(personIdentifier)
+    @RequestParam(required = false, defaultValue = "false") includeContactDetails: Boolean,
+  ): CurrentPersonStaffAllocation = allocations.currentFor(personIdentifier, includeContactDetails)
 }

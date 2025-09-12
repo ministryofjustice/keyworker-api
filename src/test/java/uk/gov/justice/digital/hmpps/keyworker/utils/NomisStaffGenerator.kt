@@ -28,12 +28,14 @@ object NomisStaffGenerator {
   fun staffLocationRole(
     staffId: Long,
     toDate: LocalDate? = null,
+    firstname: (Long) -> String = { "First Name $it" },
+    lastName: (Long) -> String = { "Last Name $it" },
   ): StaffLocationRoleDto =
     StaffLocationRoleDto
       .builder()
       .staffId(staffId)
-      .firstName("First Name $staffId")
-      .lastName("Last Name $staffId")
+      .firstName(firstname(staffId))
+      .lastName(lastName(staffId))
       .position(positionTypes.random())
       .scheduleType(scheduleTypes.random())
       .hoursPerWeek(BigDecimal.valueOf(37.5))
@@ -41,7 +43,11 @@ object NomisStaffGenerator {
       .toDate(toDate)
       .build()
 
-  fun staffRoles(staffIds: List<Long>): List<StaffLocationRoleDto> = staffIds.map { staffLocationRole(it) }
+  fun staffRoles(
+    staffIds: List<Long>,
+    firstname: (Long) -> String = { "First Name $it" },
+    lastName: (Long) -> String = { "Last Name $it" },
+  ): List<StaffLocationRoleDto> = staffIds.map { staffLocationRole(it, null, firstname, lastName) }
 
   fun staffSummaries(staffIds: Set<Long>): List<StaffSummary> = staffIds.map { StaffSummary(it, "First$it", "Last$it") }
 }

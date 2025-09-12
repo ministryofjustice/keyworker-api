@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
 class CaseNotesMockServer : WireMockServer(9997) {
   fun stubUsageByPersonIdentifier(
@@ -65,6 +66,23 @@ class CaseNotesMockServer : WireMockServer(9997) {
     stubFor(
       post("/search/case-notes/$personIdentifier")
         .withRequestBody(equalToJson(objectMapper.writeValueAsString(SearchCaseNotes()), true, true))
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(objectMapper.writeValueAsString(response))
+            .withStatus(200),
+        ),
+    )
+
+  fun stubSearchStaffCaseNotes(
+    prisonCode: String,
+    staffId: Long,
+    request: SearchCaseNotes,
+    response: CaseNotes,
+  ): StubMapping =
+    stubFor(
+      post("/search/case-notes/prisons/$prisonCode/authors/$staffId")
+        .withRequestBody(equalToJson(objectMapper.writeValueAsString(request), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

@@ -5,15 +5,16 @@ import java.time.LocalDateTime
 
 data class CurrentPersonStaffAllocation(
   val prisonNumber: String,
-  val hasHighComplexityOfNeeds: Boolean,
-  val allocations: List<CurrentAllocation>,
-  val latestRecordedEvents: List<RecordedEvent>,
+  val hasHighComplexityOfNeeds: Boolean = false,
+  val allocations: List<CurrentAllocation> = listOf(),
+  val latestRecordedEvents: List<RecordedEvent> = listOf(),
+  val policies: List<PolicyEnabled> = listOf(),
 )
 
 data class CurrentAllocation(
   val policy: CodedDescription,
   val prison: CodedDescription,
-  val staffMember: StaffSummary,
+  val staffMember: CurrentStaffSummary,
 )
 
 data class RecordedEvent(
@@ -29,4 +30,11 @@ data class Author(
   val firstName: String,
   val lastName: String,
   val username: String,
+)
+
+data class CurrentStaffSummary(
+  val staffId: Long,
+  val firstName: String,
+  val lastName: String,
+  val emailAddresses: Set<String>,
 )

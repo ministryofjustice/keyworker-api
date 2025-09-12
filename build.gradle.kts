@@ -4,10 +4,10 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.6"
-  kotlin("plugin.spring") version "2.2.10"
-  kotlin("plugin.jpa") version "2.2.10"
-  id("io.gatling.gradle") version "3.14.3.5"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.1"
+  kotlin("plugin.spring") version "2.2.20"
+  kotlin("plugin.jpa") version "2.2.20"
+  id("io.gatling.gradle") version "3.14.3.7"
   jacoco
 }
 
@@ -31,16 +31,16 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.10")
   implementation("javax.activation:activation:1.1.1")
   implementation("io.swagger:swagger-annotations:1.6.16")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
   implementation("org.apache.commons:commons-text:1.14.0")
-  implementation("io.opentelemetry:opentelemetry-api:1.53.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.54.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.19.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.19.1")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.21.1")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.3")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.11.0")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
-  implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+  implementation("org.openapitools:jackson-databind-nullable:0.2.7")
 
   compileOnly("org.projectlombok:lombok")
   implementation("org.flywaydb:flyway-core")
@@ -62,7 +62,7 @@ dependencies {
   testImplementation("io.github.http-builder-ng:http-builder-ng-apache:1.0.4")
   testImplementation("com.github.tomjankes:wiremock-groovy:0.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
-  testImplementation("io.jsonwebtoken:jjwt:0.12.7")
+  testImplementation("io.jsonwebtoken:jjwt:0.13.0")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:postgresql:1.21.3")
   testImplementation("org.testcontainers:localstack:1.21.3")
@@ -78,6 +78,7 @@ allOpen {
 
 dependencyCheck {
   suppressionFiles.add("suppressions.xml")
+  nvd.datafeedUrl = "file:///opt/vulnz/cache"
 }
 
 tasks {
@@ -96,7 +97,10 @@ tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
       jvmTarget = JVM_21
-      freeCompilerArgs.add("-Xwhen-guards")
+      freeCompilerArgs.addAll(
+        "-Xwhen-guards",
+        "-Xannotation-default-target=param-property",
+      )
     }
   }
   test {

@@ -11,6 +11,7 @@ import org.hibernate.annotations.SQLRestriction
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -155,8 +156,10 @@ interface AllocationRepository :
     toDate: LocalDateTime,
   ): List<Allocation>
 
+  @EntityGraph(attributePaths = ["allocationReason"])
   fun findAllByPersonIdentifierInAndIsActiveTrue(personIdentifiers: Set<String>): List<Allocation>
 
+  @EntityGraph(attributePaths = ["allocationReason", "deallocationReason"])
   fun findAllByPersonIdentifier(personIdentifier: String): List<Allocation>
 
   @Query(
@@ -181,7 +184,7 @@ interface AllocationRepository :
   @Query(
     """
       select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies
+      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies and a.allocation_type <> 'P'
     """,
     nativeQuery = true,
   )
@@ -249,17 +252,18 @@ interface AllocationRepository :
 
   @Query(
     """
-      select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.allocation_type <> 'P'
-      and (cast(:from as date) is null or :from <= a.allocated_at)
-      and (cast(:to as date) is null or :to >= a.allocated_at)
+      select a from Allocation a
+      join fetch a.allocationReason ar
+      left join fetch a.deallocationReason dr
+      where a.personIdentifier = :personIdentifier
+      and (cast(:from as timestamp) is null or :from <= a.allocatedAt)
+      and (cast(:to as timestamp) is null or :to >= a.allocatedAt)
     """,
-    nativeQuery = true,
   )
   fun findAllocationsForSar(
     personIdentifier: String,
-    from: LocalDate?,
-    to: LocalDate?,
+    from: LocalDateTime?,
+    to: LocalDateTime?,
   ): List<Allocation>
 
   @Query(

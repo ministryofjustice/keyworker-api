@@ -15,16 +15,20 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.StaffSearch
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventsSearch
 
 @RestController
 @RequestMapping(value = ["/search"])
 class SearchController(
   private val staffSearch: StaffSearch,
   private val personSearch: PersonSearch,
+  private val recordedEventSearch: RecordedEventsSearch,
 ) {
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
@@ -44,6 +48,16 @@ class SearchController(
     @PathVariable prisonCode: String,
     @RequestBody request: StaffSearchRequest,
   ): StaffSearchResponse = staffSearch.searchForStaff(prisonCode, request)
+
+  @PolicyHeader
+  @Tag(name = MANAGE_STAFF)
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @PostMapping("/prisons/{prisonCode}/staff/{staffId}/recorded-events")
+  fun searchStaffRecordedEvents(
+    @PathVariable prisonCode: String,
+    @PathVariable staffId: Long,
+    @RequestBody request: RecordedEventRequest,
+  ): RecordedEventResponse = recordedEventSearch.searchForAuthor(prisonCode, staffId, request)
 
   @PolicyHeader
   @Tag(name = MANAGE_ALLOCATIONS)

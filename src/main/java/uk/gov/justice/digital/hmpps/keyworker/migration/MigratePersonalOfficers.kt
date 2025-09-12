@@ -56,7 +56,9 @@ class MigratePersonalOfficers(
                 setOf(
                   ReferenceDataDomain.ALLOCATION_REASON of AllocationReason.MANUAL.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.OVERRIDE.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.MISSING.reasonCode,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.NO_LONGER_IN_PRISON.reasonCode,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.PRISON_USES_KEY_WORK.reasonCode,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.MIGRATION.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.TRANSFER.reasonCode,
                   ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.RELEASED.reasonCode,
                   ReferenceDataDomain.STAFF_POSITION of "PRO",
@@ -72,7 +74,7 @@ class MigratePersonalOfficers(
               .fromIterable(historicAllocations.entries)
               .flatMap({ e ->
                 if (e.key in currentResidentIds) {
-                  Mono.just(PoAllocationHistory(e.value, null))
+                  Mono.just(PoAllocationHistory(e.value, deallocatingMovement(prisonCode)))
                 } else {
                   prisonApi.getPersonMovements(e.key).map { ms ->
                     PoAllocationHistory(
@@ -149,4 +151,34 @@ class MigratePersonalOfficers(
     deallocatedBy,
     policy = AllocationPolicy.PERSONAL_OFFICER.name,
   )
+
+  companion object {
+    val MIGRATING_PRISON_CODES =
+      setOf(
+        "EHI",
+        "GNI",
+        "HBI",
+        "HDI",
+        "HVI",
+        "KMI",
+        "KVI",
+        "LYI",
+        "NSI",
+        "SPI",
+        "SUI",
+        "TCI",
+        "UPI",
+      )
+    const val FORD_PRISON_CODE = "FDI"
+
+    fun deallocatingMovement(prisonCode: String): RelevantMovement? {
+      val movement =
+        when (prisonCode) {
+          in MIGRATING_PRISON_CODES -> null
+          FORD_PRISON_CODE -> DeallocateAll(prisonCode, DeallocationReason.MIGRATION)
+          else -> DeallocateAll(prisonCode)
+        }
+      return movement?.let { RelevantMovement(prisonCode, listOf(movement)) }
+    }
+  }
 }

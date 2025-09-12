@@ -223,6 +223,19 @@ class PrisonMockServer : WireMockServer(9999) {
     )
   }
 
+  fun stubKeyworkerSearchNotFound(prisonCode: String) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/staff/roles/$prisonCode/role/KW"))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(HttpStatus.NOT_FOUND.value()),
+        ),
+    )
+  }
+
   fun stubPrisonerStatus(
     offenderNo: String,
     json: String,
@@ -288,6 +301,23 @@ class PrisonMockServer : WireMockServer(9999) {
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
             .withBody(objectMapper.writeValueAsString(response)),
+        ),
+    )
+  }
+
+  fun stubStaffEmail(
+    staffId: Long,
+    staffEmail: String?,
+  ) {
+    stubFor(
+      WireMock
+        .get(WireMock.urlPathEqualTo("/api/staff/$staffId/emails"))
+        .willReturn(
+          WireMock
+            .aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(if (staffEmail == null) HttpStatus.NO_CONTENT.value() else HttpStatus.OK.value())
+            .withBody(objectMapper.writeValueAsString(setOfNotNull(staffEmail))),
         ),
     )
   }

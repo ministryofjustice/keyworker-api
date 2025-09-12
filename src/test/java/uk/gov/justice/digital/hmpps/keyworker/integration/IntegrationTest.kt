@@ -34,15 +34,15 @@ import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContain
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNote
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationCaseNoteRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
-import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
@@ -52,8 +52,12 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
+import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
@@ -75,6 +79,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -125,10 +130,13 @@ abstract class IntegrationTest {
   internal lateinit var jwtAuthHelper: JwtAuthHelper
 
   @Autowired
-  internal lateinit var caseNoteRepository: AllocationCaseNoteRepository
+  internal lateinit var recordedEventRepository: RecordedEventRepository
 
   @Autowired
   internal lateinit var referenceDataRepository: ReferenceDataRepository
+
+  @Autowired
+  internal lateinit var caseNoteRecordedEventRepository: CaseNoteRecordedEventRepository
 
   @MockitoBean
   internal lateinit var telemetryClient: TelemetryClient
@@ -298,6 +306,33 @@ abstract class IntegrationTest {
 
       localStackContainer?.also { setLocalStackProperties(it, registry) }
     }
+
+    fun caseNote(
+      subType: String,
+      type: String = KW_TYPE,
+      personIdentifier: String = personIdentifier(),
+      occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
+      staffId: Long = newId(),
+      staffUsername: String = NomisIdGenerator.username(),
+      prisonCode: String = "LEI",
+      createdAt: LocalDateTime = LocalDateTime.now(),
+      text: String = "Some notes about the Recorded Event",
+      amendments: List<CaseNoteAmendment> = listOf(),
+      id: UUID = IdGenerator.newUuid(),
+    ): CaseNote =
+      CaseNote(
+        id,
+        type,
+        subType,
+        occurredAt,
+        personIdentifier,
+        staffId,
+        staffUsername,
+        prisonCode,
+        createdAt,
+        text,
+        amendments,
+      )
   }
 
   @BeforeEach
@@ -311,8 +346,8 @@ abstract class IntegrationTest {
     prisonerSearchMockServer.resetAll()
     nomisUserRolesMockServer.resetAll()
 
-    flyway.clean()
-    flyway.migrate()
+//    flyway.clean()
+//    flyway.migrate()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
   }
 
@@ -428,7 +463,17 @@ abstract class IntegrationTest {
     policy.name,
   )
 
-  protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration = prisonConfigRepository.save(prisonConfig)
+  protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration =
+    prisonConfigRepository.findByCode(prisonConfig.code)?.let {
+      it.apply {
+        enabled = it.enabled
+        allowAutoAllocation = it.allowAutoAllocation
+        capacity = it.capacity
+        maximumCapacity = it.maximumCapacity
+        frequencyInWeeks = it.frequencyInWeeks
+        hasPrisonersWithHighComplexityNeeds = it.hasPrisonersWithHighComplexityNeeds
+      }
+    } ?: prisonConfigRepository.save(prisonConfig)
 
   protected fun prisonStat(
     prisonCode: String,
@@ -512,7 +557,10 @@ abstract class IntegrationTest {
 
   protected fun givenAllocation(allocation: Allocation): Allocation = allocationRepository.save(allocation)
 
-  protected fun givenAllocationCaseNote(acn: AllocationCaseNote): AllocationCaseNote = caseNoteRepository.save(acn)
+  protected fun givenRecordedEvent(re: () -> RecordedEvent): RecordedEvent =
+    transactionTemplate.execute {
+      recordedEventRepository.save(re())
+    }!!
 
   protected fun withReferenceData(
     domain: ReferenceDataDomain,
@@ -525,6 +573,8 @@ abstract class IntegrationTest {
 
   protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.DEALLOCATION_REASON, reasonCode)
 
+  protected fun RecordedEventType.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.RECORDED_EVENT_TYPE, name)
+
   protected fun dateRange(
     start: LocalDate,
     end: LocalDate,
@@ -536,24 +586,28 @@ abstract class IntegrationTest {
     }
   }
 
-  protected fun caseNote(
+  protected fun recordedEvent(
     prisonCode: String,
-    type: String,
-    subType: String,
+    type: RecordedEventType,
     occurredAt: LocalDateTime,
     createdAt: LocalDateTime = occurredAt,
     personIdentifier: String = personIdentifier(),
     staffId: Long = newId(),
     username: String = "US3R",
     id: UUID = IdGenerator.newUuid(),
-  ) = AllocationCaseNote(
-    prisonCode,
-    personIdentifier,
-    staffId,
-    username,
-    CaseNoteTypeKey(type, subType),
-    occurredAt,
-    createdAt,
-    id,
-  )
+  ): () -> RecordedEvent =
+    {
+      val type = type.asReferenceData()
+      RecordedEvent(
+        prisonCode,
+        personIdentifier,
+        staffId,
+        username,
+        occurredAt,
+        createdAt,
+        type,
+        type.policyCode,
+        id,
+      )
+    }
 }

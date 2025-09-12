@@ -31,7 +31,7 @@ class PoAllocationHistory(
             deallocatedAt = it.movement?.occurredAt ?: LocalDateTime.now()
             deallocatedBy = SYSTEM_USERNAME
             deallocationReasonCode =
-              it.movement?.deallocationReason?.reasonCode ?: DeallocationReason.MISSING.reasonCode
+              it.movement?.deallocationReason?.reasonCode ?: DeallocationReason.NO_LONGER_IN_PRISON.reasonCode
           }
         },
       )
@@ -49,9 +49,9 @@ class PoAllocationHistory(
 
 class RelevantMovement(
   prisonCode: String,
-  history: List<Movement>,
+  history: List<DeallocatingMovement>,
 ) {
-  val movement: Movement? =
+  val movement: DeallocatingMovement? =
     history.sortedByDescending { it.occurredAt }.firstOrNull {
       it.deallocationReason != null && it.directionCode == "OUT" && it.fromAgency == prisonCode
     }

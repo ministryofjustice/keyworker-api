@@ -19,6 +19,7 @@ object ReferenceDataHelper {
       ReferenceDataDomain.ALLOCATION_REASON of reason.reasonCode,
       description,
       reason.ordinal,
+      null,
       AllocationPolicy.KEY_WORKER.name,
       newId(),
     )
@@ -32,6 +33,7 @@ object ReferenceDataHelper {
       ReferenceDataDomain.DEALLOCATION_REASON of reason.reasonCode,
       description,
       reason.ordinal,
+      null,
       AllocationPolicy.KEY_WORKER.name,
       newId(),
     )
@@ -45,6 +47,7 @@ object ReferenceDataHelper {
       ReferenceDataDomain.STAFF_STATUS of status.name,
       description,
       status.ordinal,
+      null,
       AllocationPolicy.KEY_WORKER.name,
       newId(),
     )

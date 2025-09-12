@@ -10,14 +10,12 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.Author
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentStaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
@@ -40,14 +38,14 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getCurrentAllocationSpec(personIdentifier(), "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
+    getCurrentAllocationSpec(personIdentifier(), role = "ROLE_ANY__OTHER_RW").expectStatus().isForbidden
   }
 
   @Test
   fun `200 ok when person identifier does not exist`() {
     val prisonCode = "DNE"
     val personIdentifier = personIdentifier()
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier), emptyList())
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier), emptyList())
 
     val response =
       getCurrentAllocationSpec(personIdentifier)
@@ -60,6 +58,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.prisonNumber).isEqualTo(personIdentifier)
     assertThat(response.allocations).isEmpty()
     assertThat(response.latestRecordedEvents).isEmpty()
+    assertThat(response.policies).isEmpty()
   }
 
   @Test
@@ -69,7 +68,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -85,7 +84,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           allocatedBy = "AS$i",
           active = false,
           deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
-          deallocationReason = DeallocationReason.entries.random(),
+          deallocationReason =
+            DeallocationReason.entries
+              .filter { it !in listOf(DeallocationReason.PRISON_USES_KEY_WORK, DeallocationReason.MIGRATION) }
+              .random(),
           deallocatedBy = "DE$i",
         ),
       )
@@ -103,22 +105,20 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
 
-    val latestCaseNote =
-      givenAllocationCaseNote(
-        caseNote(
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          KW_TYPE,
-          KW_SESSION_SUBTYPE,
+          RecordedEventType.SESSION,
           LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
     (2..5).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          KW_TYPE,
-          KW_SESSION_SUBTYPE,
+          RecordedEventType.SESSION,
           LocalDateTime.now().minusWeeks(it * 2L),
           personIdentifier = personIdentifier,
         ),
@@ -127,12 +127,13 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(
       listOf(
         staffSummary("Current", "Keyworker", currentAllocation.staffId),
-        staffSummary("Session", "Keyworker", latestCaseNote.staffId),
+        staffSummary("Session", "Keyworker", latestRecordedEvent.staffId),
       ),
     )
+    prisonMockServer.stubStaffEmail(currentAllocation.staffId, "current-staff@justice.gov.uk")
 
     val response =
-      getCurrentAllocationSpec(personIdentifier)
+      getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -145,17 +146,102 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       CurrentAllocation(
         CodedDescription("KEY_WORKER", "Key worker"),
         pris,
-        StaffSummary(currentAllocation.staffId, "Current", "Keyworker"),
+        CurrentStaffSummary(currentAllocation.staffId, "Current", "Keyworker", setOf("current-staff@justice.gov.uk")),
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
       RecordedEvent(
         pris,
         RecordedEventType.SESSION,
-        latestCaseNote.occurredAt,
+        latestRecordedEvent.occurredAt,
         AllocationPolicy.KEY_WORKER,
-        Author(latestCaseNote.staffId, "Session", "Keyworker", latestCaseNote.username),
+        Author(latestRecordedEvent.staffId, "Session", "Keyworker", latestRecordedEvent.username),
       ),
+    )
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, true),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
+    )
+  }
+
+  @Test
+  fun `200 ok and recorded events returned without allocation`() {
+    val prisonCode = "CWA"
+    val personIdentifier = personIdentifier()
+    givenPrisonConfig(prisonConfig(prisonCode, true))
+
+    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
+
+    val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
+    val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
+    val keyworkers = listOf(previous, current)
+
+    keyworkers.mapIndexed { i, a ->
+      givenAllocation(
+        staffAllocation(
+          personIdentifier = personIdentifier,
+          prisonCode = prisonCode,
+          staffId = a.staffId,
+          allocatedAt = LocalDateTime.now().minusWeeks(12L - (3 * i)),
+          allocatedBy = "AS$i",
+          active = false,
+          deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
+          deallocationReason =
+            DeallocationReason.entries
+              .filter { it !in listOf(DeallocationReason.PRISON_USES_KEY_WORK, DeallocationReason.MIGRATION) }
+              .random(),
+          deallocatedBy = "DE$i",
+        ),
+      )
+    }
+
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
+          prisonCode,
+          RecordedEventType.SESSION,
+          LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
+          personIdentifier = personIdentifier,
+        ),
+      )
+    (2..5).map {
+      givenRecordedEvent(
+        recordedEvent(
+          prisonCode,
+          RecordedEventType.SESSION,
+          LocalDateTime.now().minusWeeks(it * 2L),
+          personIdentifier = personIdentifier,
+        ),
+      )
+    }
+    prisonMockServer.stubStaffSummaries(
+      listOf(staffSummary("Session", "Keyworker", latestRecordedEvent.staffId)),
+    )
+
+    val response =
+      getCurrentAllocationSpec(personIdentifier, true)
+        .expectStatus()
+        .isOk
+        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(response.prisonNumber).isEqualTo(personIdentifier)
+    val pris = CodedDescription(prisonCode, "Description of $prisonCode")
+    assertThat(response.allocations).isEmpty()
+    assertThat(response.latestRecordedEvents).containsOnly(
+      RecordedEvent(
+        pris,
+        RecordedEventType.SESSION,
+        latestRecordedEvent.occurredAt,
+        AllocationPolicy.KEY_WORKER,
+        Author(latestRecordedEvent.staffId, "Session", "Keyworker", latestRecordedEvent.username),
+      ),
+    )
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, true),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
     )
   }
 
@@ -167,7 +253,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -201,22 +287,20 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
 
-    val latestCaseNote =
-      givenAllocationCaseNote(
-        caseNote(
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
           "OUT",
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
     (2..5).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(it * 2L),
           personIdentifier = personIdentifier,
         ),
@@ -225,9 +309,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(
       listOf(staffSummary("Personal", "Officer", currentAllocation.staffId)),
     )
+    prisonMockServer.stubStaffEmail(currentAllocation.staffId, null)
 
     val response =
-      getCurrentAllocationSpec(personIdentifier)
+      getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
         .expectBody(CurrentPersonStaffAllocation::class.java)
@@ -240,29 +325,33 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       CurrentAllocation(
         CodedDescription("PERSONAL_OFFICER", "Personal officer"),
         pris,
-        StaffSummary(currentAllocation.staffId, "Personal", "Officer"),
+        CurrentStaffSummary(currentAllocation.staffId, "Personal", "Officer", emptySet()),
       ),
     )
     assertThat(response.latestRecordedEvents).containsOnly(
       RecordedEvent(
         CodedDescription("OUT", "OUT"),
         RecordedEventType.ENTRY,
-        latestCaseNote.occurredAt,
+        latestRecordedEvent.occurredAt,
         AllocationPolicy.PERSONAL_OFFICER,
-        Author(latestCaseNote.staffId, "", "", latestCaseNote.username),
+        Author(latestRecordedEvent.staffId, "", "", latestRecordedEvent.username),
       ),
+    )
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, false),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, true),
     )
   }
 
   @Test
   fun `200 ok and no allocations returned if policy not active`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
-    val prisonCode = "CAP"
+    val prisonCode = "CNA"
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, false))
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
-    prisonerSearchMockServer.stubFindPrisonDetails(prisonCode, setOf(personIdentifier))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -296,22 +385,20 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
         ),
       )
 
-    val latestCaseNote =
-      givenAllocationCaseNote(
-        caseNote(
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
           personIdentifier = personIdentifier,
         ),
       )
     (2..5).map {
-      givenAllocationCaseNote(
-        caseNote(
+      givenRecordedEvent(
+        recordedEvent(
           prisonCode,
-          PO_ENTRY_TYPE,
-          PO_ENTRY_SUBTYPE,
+          RecordedEventType.ENTRY,
           LocalDateTime.now().minusWeeks(it * 2L),
           personIdentifier = personIdentifier,
         ),
@@ -320,7 +407,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(
       listOf(
         staffSummary("Personal", "Officer", currentAllocation.staffId),
-        staffSummary("Session", "Officer", latestCaseNote.staffId),
+        staffSummary("Session", "Officer", latestRecordedEvent.staffId),
       ),
     )
 
@@ -335,6 +422,10 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.prisonNumber).isEqualTo(personIdentifier)
     assertThat(response.allocations).isEmpty()
     assertThat(response.latestRecordedEvents).isEmpty()
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, false),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
+    )
   }
 
   @Test
@@ -342,7 +433,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val prisonCode = "COM"
     val prisonNumber = personIdentifier()
 
-    prisonerSearchMockServer.stubFindPrisonDetails(
+    prisonerSearchMockServer.stubFindPrisonerDetails(
       prisonCode,
       setOf(prisonNumber),
       listOf(
@@ -375,16 +466,22 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     assertThat(response.prisonNumber).isEqualTo(prisonNumber)
     assertThat(response.allocations).isEmpty()
     assertThat(response.hasHighComplexityOfNeeds).isTrue
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, false),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
+    )
   }
 
   private fun getCurrentAllocationSpec(
     prisonNumber: String,
+    includeContactDetails: Boolean = false,
     role: String? = Roles.ALLOCATIONS_RO,
   ): WebTestClient.ResponseSpec =
     webTestClient
       .get()
       .uri {
         it.path(GET_CURRENT_ALLOCATION)
+        it.queryParam("includeContactDetails", includeContactDetails)
         it.build(prisonNumber)
       }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
       .exchange()
