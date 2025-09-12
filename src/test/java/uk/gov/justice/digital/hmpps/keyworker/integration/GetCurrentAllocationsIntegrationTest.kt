@@ -165,6 +165,87 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
   }
 
   @Test
+  fun `200 ok and recorded events returned without allocation`() {
+    val prisonCode = "CWA"
+    val personIdentifier = personIdentifier()
+    givenPrisonConfig(prisonConfig(prisonCode, true))
+
+    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
+    prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
+
+    val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
+    val current = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
+    val keyworkers = listOf(previous, current)
+
+    keyworkers.mapIndexed { i, a ->
+      givenAllocation(
+        staffAllocation(
+          personIdentifier = personIdentifier,
+          prisonCode = prisonCode,
+          staffId = a.staffId,
+          allocatedAt = LocalDateTime.now().minusWeeks(12L - (3 * i)),
+          allocatedBy = "AS$i",
+          active = false,
+          deallocatedAt = LocalDateTime.now().minusWeeks(i.toLong()),
+          deallocationReason =
+            DeallocationReason.entries
+              .filter { it !in listOf(DeallocationReason.PRISON_USES_KEY_WORK, DeallocationReason.MIGRATION) }
+              .random(),
+          deallocatedBy = "DE$i",
+        ),
+      )
+    }
+
+    val latestRecordedEvent =
+      givenRecordedEvent(
+        recordedEvent(
+          prisonCode,
+          RecordedEventType.SESSION,
+          LocalDateTime.now().minusWeeks(2).truncatedTo(ChronoUnit.SECONDS),
+          personIdentifier = personIdentifier,
+        ),
+      )
+    (2..5).map {
+      givenRecordedEvent(
+        recordedEvent(
+          prisonCode,
+          RecordedEventType.SESSION,
+          LocalDateTime.now().minusWeeks(it * 2L),
+          personIdentifier = personIdentifier,
+        ),
+      )
+    }
+    prisonMockServer.stubStaffSummaries(
+      listOf(staffSummary("Session", "Keyworker", latestRecordedEvent.staffId)),
+    )
+
+    val response =
+      getCurrentAllocationSpec(personIdentifier, true)
+        .expectStatus()
+        .isOk
+        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .returnResult()
+        .responseBody!!
+
+    assertThat(response.prisonNumber).isEqualTo(personIdentifier)
+    val pris = CodedDescription(prisonCode, "Description of $prisonCode")
+    assertThat(response.allocations).isEmpty()
+    assertThat(response.latestRecordedEvents).containsOnly(
+      RecordedEvent(
+        pris,
+        RecordedEventType.SESSION,
+        latestRecordedEvent.occurredAt,
+        AllocationPolicy.KEY_WORKER,
+        Author(latestRecordedEvent.staffId, "Session", "Keyworker", latestRecordedEvent.username),
+      ),
+    )
+    assertThat(response.policies).containsExactlyInAnyOrder(
+      PolicyEnabled(AllocationPolicy.KEY_WORKER, true),
+      PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, false),
+    )
+  }
+
+  @Test
   fun `200 ok and current personal officer allocation returned`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val prisonCode = "CAP"
