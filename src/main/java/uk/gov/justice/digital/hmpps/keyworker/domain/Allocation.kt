@@ -184,7 +184,7 @@ interface AllocationRepository :
   @Query(
     """
       select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies
+      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies and a.allocation_type <> 'P'
     """,
     nativeQuery = true,
   )
