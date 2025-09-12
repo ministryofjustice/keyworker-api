@@ -68,7 +68,15 @@ class GetCurrentAllocations(
             }.block()!!
             .associateBy { it.staffId }
         if (allocations.isEmpty()) {
-          CurrentPersonStaffAllocation(personIdentifier, policies = prisonPolicies.enabled())
+          CurrentPersonStaffAllocation(
+            personIdentifier,
+            latestRecordedEvents =
+              recordedEvents.asRecordedEvents(
+                { prisons[it].orDefault(it) },
+                { requireNotNull(staff[it]) },
+              ),
+            policies = prisonPolicies.enabled(),
+          )
         } else {
           val policies = policyRepository.findAll().associateBy { it.code }
           return CurrentPersonStaffAllocation(
