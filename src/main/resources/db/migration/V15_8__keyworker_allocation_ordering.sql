@@ -17,3 +17,7 @@ ALTER TABLE prison_configuration ADD CONSTRAINT prison_config_allocation_order_v
 END IF;
 END;
 $$;
+
+ALTER TABLE prison_configuration_audit ADD COLUMN IF NOT EXISTS allocation_order VARCHAR(15);
+
+ALTER TABLE prison_configuration_audit ADD COLUMN IF NOT EXISTS allocation_order_modified BOOLEAN;
