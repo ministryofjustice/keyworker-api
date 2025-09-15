@@ -469,14 +469,15 @@ abstract class IntegrationTest {
   protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration =
     prisonConfigRepository.findByCode(prisonConfig.code)?.let {
       it.apply {
-        enabled = it.enabled
-        allowAutoAllocation = it.allowAutoAllocation
-        capacity = it.capacity
-        maximumCapacity = it.maximumCapacity
-        frequencyInWeeks = it.frequencyInWeeks
-        hasPrisonersWithHighComplexityNeeds = it.hasPrisonersWithHighComplexityNeeds
-        allocationOrder = it.allocationOrder
+        enabled = prisonConfig.enabled
+        allowAutoAllocation = prisonConfig.allowAutoAllocation
+        capacity = prisonConfig.capacity
+        maximumCapacity = prisonConfig.maximumCapacity
+        frequencyInWeeks = prisonConfig.frequencyInWeeks
+        hasPrisonersWithHighComplexityNeeds = prisonConfig.hasPrisonersWithHighComplexityNeeds
+        allocationOrder = prisonConfig.allocationOrder
       }
+      prisonConfigRepository.save(it)
     } ?: prisonConfigRepository.save(prisonConfig)
 
   protected fun prisonStat(

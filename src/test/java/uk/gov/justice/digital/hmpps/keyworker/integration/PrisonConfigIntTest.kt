@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -65,6 +66,38 @@ class PrisonConfigIntTest : IntegrationTest() {
   ) {
     val res = getPrisonConfig(prisonCode, policy)
     assertThat(res).isEqualTo(status)
+  }
+
+  @Test
+  fun `allocation order configuration is persisted and retrieved correctly`() {
+    val prisonCode = "MDI"
+
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    val byAllocationsConfig =
+      prisonConfig(
+        prisonCode,
+        enabled = true,
+        allowAutoAllocation = true,
+        allocationOrder = AllocationOrder.BY_ALLOCATIONS,
+      )
+    givenPrisonConfig(byAllocationsConfig)
+
+    val byAllocationsResponse = getPrisonConfig(prisonCode, AllocationPolicy.KEY_WORKER)
+
+    assertThat(byAllocationsResponse.allocationOrder).isEqualTo(AllocationOrder.BY_ALLOCATIONS)
+
+    val byNameConfig =
+      prisonConfig(
+        prisonCode,
+        enabled = true,
+        allowAutoAllocation = true,
+        allocationOrder = AllocationOrder.BY_NAME,
+      )
+    givenPrisonConfig(byNameConfig)
+
+    val byNameResponse = getPrisonConfig(prisonCode, AllocationPolicy.KEY_WORKER)
+
+    assertThat(byNameResponse.allocationOrder).isEqualTo(AllocationOrder.BY_NAME)
   }
 
   private fun getPrisonConfig(
