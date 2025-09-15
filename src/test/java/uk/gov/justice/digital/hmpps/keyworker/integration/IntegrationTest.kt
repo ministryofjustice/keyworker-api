@@ -475,6 +475,7 @@ abstract class IntegrationTest {
         maximumCapacity = it.maximumCapacity
         frequencyInWeeks = it.frequencyInWeeks
         hasPrisonersWithHighComplexityNeeds = it.hasPrisonersWithHighComplexityNeeds
+        allocationOrder = it.allocationOrder
       }
     } ?: prisonConfigRepository.save(prisonConfig)
 
