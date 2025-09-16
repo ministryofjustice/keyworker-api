@@ -1,9 +1,4 @@
-ALTER TABLE prison_configuration ADD COLUMN IF NOT EXISTS allocation_order VARCHAR (15);
-ALTER TABLE prison_configuration ALTER COLUMN allocation_order SET DEFAULT 'BY_ALLOCATIONS';
-
-UPDATE prison_configuration SET allocation_order = 'BY_ALLOCATIONS' WHERE allocation_order IS NULL;
-
-ALTER TABLE prison_configuration ALTER COLUMN allocation_order SET NOT NULL;
+ALTER TABLE prison_configuration ADD COLUMN IF NOT EXISTS allocation_order VARCHAR (15) NOT NULL DEFAULT 'BY_ALLOCATIONS';
 
 DO
 $$
@@ -18,6 +13,7 @@ END IF;
 END;
 $$;
 
-ALTER TABLE prison_configuration_audit ADD COLUMN IF NOT EXISTS allocation_order VARCHAR(15);
+ALTER TABLE prison_configuration_audit ADD COLUMN IF NOT EXISTS allocation_order VARCHAR(15) NOT NULL DEFAULT 'BY_ALLOCATIONS';
 
-ALTER TABLE prison_configuration_audit ADD COLUMN IF NOT EXISTS allocation_order_modified BOOLEAN;
+ALTER TABLE prison_configuration_audit ADD COLUMN IF NOT EXISTS allocation_order_modified BOOLEAN NOT NULL DEFAULT false;
+UPDATE prison_configuration_audit SET allocation_order_modified = true WHERE rev_type != 0;
