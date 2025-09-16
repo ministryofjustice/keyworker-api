@@ -490,6 +490,11 @@
                                         <td>((NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))</td>
                                     </tr>
                                     <tr>
+                                        <td><a href='tables/prison_configuration.html'>prison_configuration</a></td>
+                                        <td>prison_config_allocation_order_valid</td>
+                                        <td>(((allocation_order)::text &#61; ANY ((ARRAY[&#39;BY_ALLOCATIONS&#39;::character varying, &#39;BY_NAME&#39;::character varying])::text[])))</td>
+                                    </tr>
+                                    <tr>
                                         <td><a href='tables/zz_archived_legacy_keyworker_allocation.html'>zz_archived_legacy_keyworker_allocation</a></td>
                                         <td>offender_key_worker_c1</td>
                                         <td>((alloc_type &#61; ANY (ARRAY[&#39;A&#39;::bpchar, &#39;M&#39;::bpchar, &#39;P&#39;::bpchar])))</td>

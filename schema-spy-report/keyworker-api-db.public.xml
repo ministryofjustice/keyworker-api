@@ -180,6 +180,7 @@
             <parent catalog="keyworker-api-db" column="code" foreignKey="prison_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
          <column autoUpdated="false" defaultValue="gen_random_uuid()" digits="0" id="8" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="allocation_order" nullable="false" remarks="" size="15" type="varchar" typeCode="12"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="prison_configuration_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -188,6 +189,7 @@
             <column ascending="true" name="prison_code"/>
             <column ascending="true" name="policy_code"/>
          </index>
+         <checkConstraint constraint="(((allocation_order)::text = ANY ((ARRAY['BY_ALLOCATIONS'::character varying, 'BY_NAME'::character varying])::text[])))" name="prison_config_allocation_order_valid"/>
       </table>
       <table catalog="keyworker-api-db" name="prison_configuration_audit" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="rev_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
@@ -213,6 +215,8 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="14" name="allow_auto_allocation_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="15" name="frequency_in_weeks_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="16" name="has_prisoners_with_high_complexity_needs_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="17" name="allocation_order" nullable="false" remarks="" size="15" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="18" name="allocation_order_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
          <primaryKey column="rev_id" sequenceNumberInPK="1"/>
          <primaryKey column="id" sequenceNumberInPK="2"/>
          <index name="prison_configuration_audit_pkey" unique="true">
