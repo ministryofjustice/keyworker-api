@@ -67,8 +67,13 @@ class GetCurrentAllocations(
               allStaffIds.map { id -> summary(id, { summaries[id] }, { emails[id] }) }
             }.block()!!
             .associateBy { it.staffId }
+        val mappedEvents = recordedEvents.asRecordedEvents({ prisons[it].orDefault(it) }, { requireNotNull(staff[it]) })
         if (allocations.isEmpty()) {
-          CurrentPersonStaffAllocation(personIdentifier, policies = prisonPolicies.enabled())
+          CurrentPersonStaffAllocation(
+            personIdentifier,
+            latestRecordedEvents = mappedEvents,
+            policies = prisonPolicies.enabled(),
+          )
         } else {
           val policies = policyRepository.findAll().associateBy { it.code }
           return CurrentPersonStaffAllocation(
@@ -81,7 +86,7 @@ class GetCurrentAllocations(
                 requireNotNull(staff[it.staffId]),
               )
             },
-            recordedEvents.asRecordedEvents({ prisons[it].orDefault(it) }, { requireNotNull(staff[it]) }),
+            mappedEvents,
             prisonPolicies.enabled(),
           )
         }

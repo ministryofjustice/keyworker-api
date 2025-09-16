@@ -10,6 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
@@ -61,6 +62,7 @@ class ComplexityOfNeedServiceTest {
             9,
             1,
             true,
+            AllocationOrder.BY_ALLOCATIONS,
           ),
         ),
       )
@@ -88,6 +90,7 @@ class ComplexityOfNeedServiceTest {
             9,
             1,
             true,
+            AllocationOrder.BY_ALLOCATIONS,
           ),
         ),
       )

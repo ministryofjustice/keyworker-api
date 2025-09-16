@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
 
 class PrisonConfigIntTest : IntegrationTest() {
@@ -66,6 +68,38 @@ class PrisonConfigIntTest : IntegrationTest() {
     assertThat(res).isEqualTo(status)
   }
 
+  @Test
+  fun `allocation order configuration is persisted and retrieved correctly`() {
+    val prisonCode = "MDI"
+
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    val byAllocationsConfig =
+      prisonConfig(
+        prisonCode,
+        enabled = true,
+        allowAutoAllocation = true,
+        allocationOrder = AllocationOrder.BY_ALLOCATIONS,
+      )
+    givenPrisonConfig(byAllocationsConfig)
+
+    val byAllocationsResponse = getPrisonConfig(prisonCode, AllocationPolicy.KEY_WORKER)
+
+    assertThat(byAllocationsResponse.allocationOrder).isEqualTo(AllocationOrder.BY_ALLOCATIONS)
+
+    val byNameConfig =
+      prisonConfig(
+        prisonCode,
+        enabled = true,
+        allowAutoAllocation = true,
+        allocationOrder = AllocationOrder.BY_NAME,
+      )
+    givenPrisonConfig(byNameConfig)
+
+    val byNameResponse = getPrisonConfig(prisonCode, AllocationPolicy.KEY_WORKER)
+
+    assertThat(byNameResponse.allocationOrder).isEqualTo(AllocationOrder.BY_NAME)
+  }
+
   private fun getPrisonConfig(
     prisonCode: String,
     policy: AllocationPolicy,
@@ -86,14 +120,53 @@ class PrisonConfigIntTest : IntegrationTest() {
     @JvmStatic
     fun prisonConfigArgs() =
       listOf(
-        Arguments.of("ZEZE", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(false, false, false, 9, 1)),
-        Arguments.of("ZEON", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(false, true, false, 9, 1)),
-        Arguments.of("ONZE", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(true, false, true, 9, 1)),
-        Arguments.of("ONON", AllocationPolicy.KEY_WORKER, PrisonConfigResponse(true, true, true, 9, 1)),
-        Arguments.of("ZEZE", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(true, true, true, 9, 1)),
-        Arguments.of("ZEON", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(true, false, true, 9, 1)),
-        Arguments.of("ONZE", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(false, true, false, 9, 1)),
-        Arguments.of("ONON", AllocationPolicy.PERSONAL_OFFICER, PrisonConfigResponse(false, false, false, 9, 1)),
+        Arguments.of(
+          "ZEZE",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(
+            false,
+            false,
+            false,
+            9,
+            1,
+            AllocationOrder.BY_ALLOCATIONS,
+          ),
+        ),
+        Arguments.of(
+          "ZEON",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(false, true, false, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONZE",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(true, false, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONON",
+          AllocationPolicy.KEY_WORKER,
+          PrisonConfigResponse(true, true, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ZEZE",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(true, true, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ZEON",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(true, false, true, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONZE",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(false, true, false, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
+        Arguments.of(
+          "ONON",
+          AllocationPolicy.PERSONAL_OFFICER,
+          PrisonConfigResponse(false, false, false, 9, 1, AllocationOrder.BY_ALLOCATIONS),
+        ),
       )
   }
 }

@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContain
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
@@ -451,6 +452,7 @@ abstract class IntegrationTest {
     capacity: Int = 9,
     frequencyInWeeks: Int = 1,
     hasPrisonersWithHighComplexityNeeds: Boolean = false,
+    allocationOrder: AllocationOrder = AllocationOrder.BY_ALLOCATIONS,
     policy: AllocationPolicy = AllocationContext.get().policy,
   ) = PrisonConfiguration(
     code,
@@ -460,19 +462,22 @@ abstract class IntegrationTest {
     capacity,
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds,
+    allocationOrder,
     policy.name,
   )
 
   protected fun givenPrisonConfig(prisonConfig: PrisonConfiguration): PrisonConfiguration =
     prisonConfigRepository.findByCode(prisonConfig.code)?.let {
       it.apply {
-        enabled = it.enabled
-        allowAutoAllocation = it.allowAutoAllocation
-        capacity = it.capacity
-        maximumCapacity = it.maximumCapacity
-        frequencyInWeeks = it.frequencyInWeeks
-        hasPrisonersWithHighComplexityNeeds = it.hasPrisonersWithHighComplexityNeeds
+        enabled = prisonConfig.enabled
+        allowAutoAllocation = prisonConfig.allowAutoAllocation
+        capacity = prisonConfig.capacity
+        maximumCapacity = prisonConfig.maximumCapacity
+        frequencyInWeeks = prisonConfig.frequencyInWeeks
+        hasPrisonersWithHighComplexityNeeds = prisonConfig.hasPrisonersWithHighComplexityNeeds
+        allocationOrder = prisonConfig.allocationOrder
       }
+      prisonConfigRepository.save(it)
     } ?: prisonConfigRepository.save(prisonConfig)
 
   protected fun prisonStat(
