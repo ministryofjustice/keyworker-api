@@ -1,20 +1,20 @@
 package uk.gov.justice.digital.hmpps.keyworker.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder;
 import uk.gov.justice.digital.hmpps.keyworker.dto.Prison;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotMigratedException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportAutoAllocationException;
 import uk.gov.justice.digital.hmpps.keyworker.exception.PrisonNotSupportedException;
 import uk.gov.justice.digital.hmpps.keyworker.model.LegacyPrisonConfiguration;
 import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -70,7 +70,6 @@ public class PrisonSupportedService {
     @PreAuthorize("hasRole('KW_MIGRATION')")
     @Transactional
     public void updateSupportedPrison(final String prisonId, final boolean autoAllocate, final Integer capacityTier1, final Integer capacityTier2, final Integer kwSessionFrequencyInWeeks) {
-
         repository.findByPrisonCode(prisonId)
                 .ifPresentOrElse(prison -> {
                     prison.setAllowAutoAllocation(autoAllocate);
@@ -90,6 +89,7 @@ public class PrisonSupportedService {
                             .capacity(capacityTier1 == null ? capacityTiers.get(0) : capacityTier1)
                             .maximumCapacity(capacityTier2 == null ? capacityTiers.get(1) : capacityTier2)
                             .frequencyInWeeks(kwSessionFrequencyInWeeks == null ? keyWorkerSessionDefaultFrequency : kwSessionFrequencyInWeeks)
+                            .allocationOrder(AllocationOrder.BY_ALLOCATIONS)
                             .build();
 
                     // create a new entry for a new supported prison

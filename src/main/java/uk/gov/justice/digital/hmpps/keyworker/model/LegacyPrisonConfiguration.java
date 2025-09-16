@@ -1,10 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +11,8 @@ import org.hibernate.annotations.TenantId;
 import org.hibernate.envers.Audited;
 import org.hibernate.validator.constraints.Length;
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy;
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder;
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator;
-
-import java.util.UUID;
 
 @Audited(withModifiedFlag = true)
 @Entity
@@ -50,6 +47,10 @@ public class LegacyPrisonConfiguration {
 
     @Column(name = "HAS_PRISONERS_WITH_HIGH_COMPLEXITY_NEEDS", nullable = false)
     private boolean hasPrisonersWithHighComplexityNeeds;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "allocation_order")
+    private AllocationOrder allocationOrder;
 
     @TenantId
     @Audited(withModifiedFlag = false)
