@@ -37,7 +37,7 @@ class PrisonConfiguration(
   @Column(name = "has_prisoners_with_high_complexity_needs")
   var hasPrisonersWithHighComplexityNeeds: Boolean,
   @Enumerated(EnumType.STRING)
-  @Column(name = "allocation_order", nullable = false)
+  @Column(name = "allocation_order")
   var allocationOrder: AllocationOrder,
   @TenantId
   @Audited(withModifiedFlag = false)
