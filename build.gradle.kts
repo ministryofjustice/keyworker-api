@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.0.2"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
   id("io.gatling.gradle") version "3.14.4"
@@ -28,12 +28,12 @@ dependencies {
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.retry:spring-retry")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.10")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.11")
   implementation("javax.activation:activation:1.1.1")
   implementation("io.swagger:swagger-annotations:1.6.16")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
   implementation("org.apache.commons:commons-text:1.14.0")
-  implementation("io.opentelemetry:opentelemetry-api:1.54.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.54.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.0")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.21.1")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
