@@ -34,8 +34,13 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
   }
 
   @Test
-  fun `400 - no prn set`() {
-    retrieveSar(null).expectStatus().isEqualTo(400)
+  fun `400 - no prn or crn set`() {
+    retrieveSar(null, crn = null).expectStatus().isEqualTo(400)
+  }
+
+  @Test
+  fun `209 - service does not support crn`() {
+    retrieveSar(null, crn = "A123456").expectStatus().isEqualTo(209)
   }
 
   @Test
@@ -167,6 +172,7 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
 
   private fun retrieveSar(
     prn: String?,
+    crn: String? = null,
     from: LocalDate? = null,
     to: LocalDate? = null,
     role: String? = "ROLE_SAR_DATA_ACCESS",
@@ -175,6 +181,7 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
     .uri { b ->
       b.path(SAR_URL)
       prn?.also { b.queryParam("prn", it) }
+      crn?.also { b.queryParam("crn", it) }
       from?.also { b.queryParam("fromDate", it) }
       to?.also { b.queryParam("toDate", it) }
       b.build()
