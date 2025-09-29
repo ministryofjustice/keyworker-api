@@ -10,10 +10,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.sar.SarAllocation
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffMember
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
-import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -67,15 +65,11 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
       retrieveSar(pi)
         .expectStatus()
         .isOk
-        .expectBody<HmppsSubjectAccessRequestContent>()
+        .expectBody<TestSarContent>()
         .returnResult()
         .responseBody!!
 
-    val sarAllocations: List<SarAllocation> =
-      objectMapper.convertValue(
-        res.content,
-        objectMapper.typeFactory.constructCollectionType(List::class.java, SarAllocation::class.java),
-      )
+    val sarAllocations = res.content
 
     assertThat(sarAllocations.map { it.policy }).containsExactlyInAnyOrder(
       CodedDescription("PERSONAL_OFFICER", "Personal officer"),
@@ -146,18 +140,15 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(listOf(staffMember))
 
     val res =
-      retrieveSar(pi, from, to)
+      retrieveSar(pi, null, from, to)
         .expectStatus()
         .isOk
-        .expectBody<HmppsSubjectAccessRequestContent>()
+        .expectBody<TestSarContent>()
         .returnResult()
         .responseBody!!
 
-    val sarAllocations: List<SarAllocation> =
-      objectMapper.convertValue(
-        res.content,
-        objectMapper.typeFactory.constructCollectionType(List::class.java, SarAllocation::class.java),
-      )
+    val sarAllocations = res.content
+
     assertThat(sarAllocations).hasSize(3)
     assertThat(
       sarAllocations.all {
@@ -197,4 +188,8 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
   companion object {
     const val SAR_URL = "/subject-access-request"
   }
+
+  private data class TestSarContent(
+    val content: List<SarAllocation>,
+  )
 }
