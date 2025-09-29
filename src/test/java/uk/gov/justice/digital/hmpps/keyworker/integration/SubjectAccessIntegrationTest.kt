@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.sar.SarAllocation
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffMember
-import uk.gov.justice.digital.hmpps.keyworker.sar.SubjectAccessResponse
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
@@ -32,8 +32,13 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
   }
 
   @Test
-  fun `209 - no prn set`() {
-    retrieveSar(null).expectStatus().isEqualTo(209)
+  fun `400 - no prn or crn set`() {
+    retrieveSar(null, crn = null).expectStatus().isEqualTo(400)
+  }
+
+  @Test
+  fun `209 - service does not support crn`() {
+    retrieveSar(null, crn = "A123456").expectStatus().isEqualTo(209)
   }
 
   @Test
@@ -60,17 +65,17 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
       retrieveSar(pi)
         .expectStatus()
         .isOk
-        .expectBody<SubjectAccessResponse>()
+        .expectBody<TestSarContent>()
         .returnResult()
         .responseBody!!
 
-    assertThat(res.prn).isEqualTo(pi)
-    assertThat(res.content).hasSize(2)
-    assertThat(res.content.map { it.policy }).containsExactlyInAnyOrder(
+    val sarAllocations = res.content
+
+    assertThat(sarAllocations.map { it.policy }).containsExactlyInAnyOrder(
       CodedDescription("PERSONAL_OFFICER", "Personal officer"),
       CodedDescription("KEY_WORKER", "Key worker"),
     )
-    assertThat(res.content.map { it.staffMember }).containsExactlyInAnyOrderElementsOf(
+    assertThat(sarAllocations.map { it.staffMember }).containsExactlyInAnyOrderElementsOf(
       staffMembers.map { StaffMember(it.firstName, it.lastName) },
     )
   }
@@ -135,28 +140,30 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
     prisonMockServer.stubStaffSummaries(listOf(staffMember))
 
     val res =
-      retrieveSar(pi, from, to)
+      retrieveSar(pi, null, from, to)
         .expectStatus()
         .isOk
-        .expectBody<SubjectAccessResponse>()
+        .expectBody<TestSarContent>()
         .returnResult()
         .responseBody!!
 
-    assertThat(res.prn).isEqualTo(pi)
-    assertThat(res.content).hasSize(3)
+    val sarAllocations = res.content
+
+    assertThat(sarAllocations).hasSize(3)
     assertThat(
-      res.content.all {
+      sarAllocations.all {
         it.allocatedAt.isAfter(from.atStartOfDay()) ||
           it.allocatedAt.isBefore(to.plusDays(1).atStartOfDay())
       },
     ).isTrue()
-    assertThat(res.content.map { it.policy }.distinct()).containsOnly(CodedDescription("KEY_WORKER", "Key worker"))
-    assertThat(res.content.map { it.staffMember }.distinct())
+    assertThat(sarAllocations.map { it.policy }.distinct()).containsOnly(CodedDescription("KEY_WORKER", "Key worker"))
+    assertThat(sarAllocations.map { it.staffMember }.distinct())
       .containsOnly(StaffMember(staffMember.firstName, staffMember.lastName))
   }
 
   private fun retrieveSar(
     prn: String?,
+    crn: String? = null,
     from: LocalDate? = null,
     to: LocalDate? = null,
     role: String? = "ROLE_SAR_DATA_ACCESS",
@@ -165,6 +172,7 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
     .uri { b ->
       b.path(SAR_URL)
       prn?.also { b.queryParam("prn", it) }
+      crn?.also { b.queryParam("crn", it) }
       from?.also { b.queryParam("fromDate", it) }
       to?.also { b.queryParam("toDate", it) }
       b.build()
@@ -180,4 +188,8 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
   companion object {
     const val SAR_URL = "/subject-access-request"
   }
+
+  private data class TestSarContent(
+    val content: List<SarAllocation>,
+  )
 }

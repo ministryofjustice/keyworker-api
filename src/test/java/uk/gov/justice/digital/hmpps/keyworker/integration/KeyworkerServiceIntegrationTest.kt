@@ -103,7 +103,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
   }
 
   @Test
-  fun `sar returns 209 if no prn set`() {
+  fun `sar returns 400 if no prn set`() {
     addKeyworkerAllocation()
     prisonMockServer.stubOffendersAllocationHistory(oFFENDERSHISTORY)
 
@@ -113,7 +113,7 @@ class KeyworkerServiceIntegrationTest : IntegrationTest() {
       .headers(setHeaders(roles = listOf("ROLE_SAR_DATA_ACCESS")))
       .exchange()
       .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(209))
+      .isEqualTo(HttpStatusCode.valueOf(400))
   }
 
   @Disabled
