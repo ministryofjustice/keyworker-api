@@ -4,10 +4,10 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.1"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
-  id("io.gatling.gradle") version "3.14.5"
+  id("io.gatling.gradle") version "3.14.5.1"
   jacoco
 }
 
@@ -35,8 +35,8 @@ dependencies {
   implementation("org.apache.commons:commons-text:1.14.0")
   implementation("io.opentelemetry:opentelemetry-api:1.54.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.1")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.22.0")
-  implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.23.0")
+  implementation("com.fasterxml.uuid:java-uuid-generator:5.1.1")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.11.0")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
