@@ -5,8 +5,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
+import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexityOfNeedGateway
 import uk.gov.justice.digital.hmpps.keyworker.services.DeallocationService
 import java.time.LocalDateTime.now
 
@@ -20,7 +20,7 @@ data class ComplexityOfNeedChange(
 @Service
 class ComplexityOfNeedEventProcessor(
   private val objectMapper: ObjectMapper,
-  private val complexityOfNeedGateway: ComplexityOfNeedGateway,
+  private val complexityOfNeed: ComplexityOfNeedApiClient,
   private val deallocationService: DeallocationService,
   private val allocationContextHolder: AllocationContextHolder,
 ) {
@@ -31,10 +31,11 @@ class ComplexityOfNeedEventProcessor(
       return
     }
 
-    complexityOfNeedGateway
-      .getOffendersWithMeasuredComplexityOfNeed(setOf(event.offenderNo))
-      .firstOrNull()
-      ?.also {
+    complexityOfNeed
+      .getComplexityOfNeed(setOf(event.offenderNo))
+      .firstOrNull {
+        it.personIdentifier == event.offenderNo && it.level == ComplexityOfNeedLevel.HIGH
+      }?.also {
         it.sourceUser?.also { username ->
           allocationContextHolder.setContext(
             AllocationContext

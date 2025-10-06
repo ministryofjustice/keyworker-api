@@ -1,3 +1,1 @@
- # suppress jackson databind warning until ehcache 2.10.10 is published
- # See https://groups.google.com/g/ehcache-users/c/oU3gcjkVBts
- CVE-2020-36518
+

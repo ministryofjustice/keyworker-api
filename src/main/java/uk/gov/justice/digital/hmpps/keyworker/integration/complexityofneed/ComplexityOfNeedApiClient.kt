@@ -28,5 +28,7 @@ data class ComplexityOfNeed(
   @JsonAlias("offenderNo")
   val personIdentifier: String,
   val level: ComplexityOfNeedLevel,
+  val sourceUser: String? = null,
+  val createdTimeStamp: LocalDateTime? = null,
   val updatedTimeStamp: LocalDateTime? = null,
 )

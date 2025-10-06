@@ -113,11 +113,6 @@ public class KeyworkerService {
         return StringUtils.lowerCase(StringUtils.join(List.of(keyworkerDto.getLastName(), keyworkerDto.getFirstName()), " "));
     }
 
-    public List<KeyworkerDto> getKeyworkersAvailableForAutoAllocation(final String prisonId) {
-        final var availableKeyworkers = getAvailableKeyworkers(prisonId, false);
-        return availableKeyworkers.stream().filter(KeyworkerDto::getAutoAllocationAllowed).collect(Collectors.toList());
-    }
-
     public Page<KeyworkerAllocationDetailsDto> getAllocations(final AllocationsFilterDto allocationFilter, final PagingAndSortingDto pagingAndSorting) {
 
         final var prisonId = allocationFilter.getPrisonId();

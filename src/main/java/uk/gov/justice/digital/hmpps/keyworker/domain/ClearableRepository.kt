@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.domain
 import jakarta.persistence.EntityManager
 import org.springframework.transaction.annotation.Transactional
 
-interface ClearableRepository {
+fun interface ClearableRepository {
   fun clear()
 }
 
