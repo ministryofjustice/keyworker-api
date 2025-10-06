@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationsFilterDto
-import uk.gov.justice.digital.hmpps.keyworker.dto.BasicKeyworkerDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDetailsDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.KeyworkerAllocationDto
@@ -410,109 +409,6 @@ class KeyworkerServiceController(
     @PathVariable("prisonId")
     prisonId: String,
   ): KeyworkerDto = keyworkerService.getKeyworkerDetails(prisonId, staffId)
-
-  /** Deprecated - don't need to pass in the prison id  */
-  @Operation(
-    description = "Offenders current Keyworker",
-    summary = "getOffendersKeyworker",
-  )
-  @ApiResponses(
-    value = [
-      ApiResponse(
-        responseCode = "200",
-        description = "OK",
-      ), ApiResponse(
-        responseCode = "400",
-        description = "Invalid request.",
-        content =
-          [
-            Content(
-              mediaType = "application/json",
-              schema = Schema(implementation = ErrorResponse::class),
-            ),
-          ],
-      ), ApiResponse(
-        responseCode = "404",
-        description = "Requested resource not found.",
-        content =
-          [
-            Content(
-              mediaType = "application/json",
-              schema = Schema(implementation = ErrorResponse::class),
-            ),
-          ],
-      ), ApiResponse(
-        responseCode = "500",
-        description = "Unrecoverable error occurred whilst processing request.",
-        content =
-          [
-            Content(
-              mediaType = "application/json",
-              schema = Schema(implementation = ErrorResponse::class),
-            ),
-          ],
-      ),
-    ],
-  )
-  @GetMapping(path = ["/{prisonId}/offender/{offenderNo}"])
-  @Deprecated("")
-  fun deprecatedGetOffendersKeyworker(
-    @Parameter(name = "prisonId", required = true)
-    @PathVariable("prisonId")
-    prisonId: String,
-    @Parameter(name = "offenderNo", required = true)
-    @PathVariable("offenderNo")
-    offenderNo: String,
-  ): BasicKeyworkerDto = keyworkerService.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow { EntityNotFoundException() }
-
-  @Operation(
-    description = "Offenders current Keyworker",
-    summary = "getOffendersKeyworker",
-  )
-  @ApiResponses(
-    value = [
-      ApiResponse(
-        responseCode = "200",
-        description = "OK",
-      ), ApiResponse(
-        responseCode = "400",
-        description = "Invalid request.",
-        content =
-          [
-            Content(
-              mediaType = "application/json",
-              schema = Schema(implementation = ErrorResponse::class),
-            ),
-          ],
-      ), ApiResponse(
-        responseCode = "404",
-        description = "Requested resource not found.",
-        content =
-          [
-            Content(
-              mediaType = "application/json",
-              schema = Schema(implementation = ErrorResponse::class),
-            ),
-          ],
-      ), ApiResponse(
-        responseCode = "500",
-        description = "Unrecoverable error occurred whilst processing request.",
-        content =
-          [
-            Content(
-              mediaType = "application/json",
-              schema = Schema(implementation = ErrorResponse::class),
-            ),
-          ],
-      ),
-    ],
-  )
-  @GetMapping(path = ["/offender/{offenderNo}"])
-  fun getOffendersKeyworker(
-    @Parameter(name = "offenderNo", required = true, example = "A1234BC")
-    @PathVariable("offenderNo")
-    offenderNo: String,
-  ): BasicKeyworkerDto = keyworkerService.getCurrentKeyworkerForPrisoner(offenderNo).orElseThrow { EntityNotFoundException() }
 
   @Operation(
     description = "Initiate auto-allocation process for specified prison.",
