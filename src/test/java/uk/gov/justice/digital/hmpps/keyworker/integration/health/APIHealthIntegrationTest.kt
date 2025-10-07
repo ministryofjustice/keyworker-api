@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.health
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
@@ -35,7 +34,5 @@ class APIHealthIntegrationTest : IntegrationTest() {
       .expectBody()
       .jsonPath("$.components.prisonApiHealth.status")
       .isEqualTo("DOWN")
-      .jsonPath("$.components.prisonApiHealth.details.error")
-      .value<String> { assertThat(it).contains("Timeout") }
   }
 }

@@ -17,8 +17,6 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationTypeConvertor
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator.newUuid
 import java.time.LocalDate
 import java.time.LocalDateTime

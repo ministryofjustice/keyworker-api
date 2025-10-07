@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
@@ -25,7 +26,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAutho
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId

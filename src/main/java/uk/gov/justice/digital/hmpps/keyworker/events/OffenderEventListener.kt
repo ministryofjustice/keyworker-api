@@ -10,14 +10,14 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.services.DeallocationService
-import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonRegisterClient
 import java.time.LocalDateTime
 
 @Service
 class OffenderEventListener(
   private val objectMapper: ObjectMapper,
   private val deallocationService: DeallocationService,
-  private val nomisService: NomisService,
+  private val prisonRegisterApi: PrisonRegisterClient,
   private val ach: AllocationContextHolder,
 ) {
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
@@ -51,7 +51,7 @@ class OffenderEventListener(
       else -> null
     }
 
-  private fun String.isPrison(): Boolean? = nomisService.isPrison(this)
+  private fun String.isPrison(): Boolean = prisonRegisterApi.findPrison(this) != null
 
   companion object {
     const val EXTERNAL_MOVEMENT = "EXTERNAL_MOVEMENT_RECORD-INSERTED"

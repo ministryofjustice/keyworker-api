@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType;
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType;
 
 import java.time.LocalDate;
 import java.util.Optional;

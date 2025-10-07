@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
-import org.flywaydb.core.Flyway
 import org.hibernate.envers.AuditReaderFactory
 import org.hibernate.envers.RevisionType
 import org.hibernate.envers.query.AuditEntity
@@ -36,6 +35,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
@@ -71,12 +71,8 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockSer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonRegisterMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearchMockServer
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyKeyworkerAllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.repository.LegacyPrisonConfigurationRepository
-import uk.gov.justice.digital.hmpps.keyworker.services.NomisService
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
@@ -107,22 +103,10 @@ abstract class IntegrationTest {
   protected lateinit var allocationRepository: AllocationRepository
 
   @Autowired
-  protected lateinit var offenderKeyworkerRepository: LegacyKeyworkerAllocationRepository
-
-  @Autowired
-  protected lateinit var prisonSupportedRepository: LegacyPrisonConfigurationRepository
-
-  @Autowired
   protected lateinit var prisonConfigRepository: PrisonConfigurationRepository
 
   @Autowired
   protected lateinit var prisonStatisticRepository: PrisonStatisticRepository
-
-  @Autowired
-  protected lateinit var nomisService: NomisService
-
-  @Autowired
-  lateinit var flyway: Flyway
 
   @Autowired
   lateinit var webTestClient: WebTestClient
@@ -417,7 +401,7 @@ abstract class IntegrationTest {
   fun subPing(status: Int) {
     addConditionalPingStub(prisonMockServer, status)
     addConditionalPingStub(oAuthMockServer, status)
-    addConditionalPingStub(complexityOfNeedMockServer, status, "/ping")
+    addConditionalPingStub(complexityOfNeedMockServer, status)
   }
 
   fun addConditionalPingStub(

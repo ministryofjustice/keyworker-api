@@ -8,20 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 class ComplexityOfNeedMockServer : WireMockServer(10000) {
-  fun stubComplexOffenders(json: String) {
-    stubFor(
-      WireMock
-        .post(WireMock.urlPathEqualTo("/v1/complexity-of-need/multiple/offender-no"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(json),
-        ),
-    )
-  }
-
   fun stubComplexOffenders(
     personIdentifiers: Set<String>,
     response: List<ComplexOffender>,
@@ -43,7 +29,7 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
   fun stubHealthOKResponse() {
     stubFor(
       WireMock
-        .get(WireMock.urlPathEqualTo("/ping"))
+        .get(WireMock.urlPathEqualTo("/health/ping"))
         .willReturn(
           WireMock
             .aResponse()

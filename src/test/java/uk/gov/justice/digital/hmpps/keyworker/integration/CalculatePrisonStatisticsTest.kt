@@ -9,14 +9,14 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.MANUAL
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.MANUAL
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender

@@ -13,13 +13,14 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEventListener.Companion.EXTERNAL_MOVEMENT
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
 class PrisonerMovementIntTest : IntegrationTest() {
   @Test
   fun `receiving a movement event where no allocation information exists does not cause a failure`() {
     val prisonCode = "POR"
-    prisonMockServer.stubIsPrison(prisonCode, true)
+    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("NIM", prisonCode, "OUT", "TRN"))
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
@@ -45,7 +46,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val prisonCode = "SMO"
     val toPrisonCode = "TOP"
-    prisonMockServer.stubIsPrison(toPrisonCode, true)
+    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(toPrisonCode, toPrisonCode)))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent(prisonCode, toPrisonCode, "OUT", "TRN", alloc.personIdentifier))
@@ -61,7 +62,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
   @Test
   fun `does not deallocate if already at new prison`() {
     val prisonCode = "ARD"
-    prisonMockServer.stubIsPrison(prisonCode, true)
+    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("OTHER", prisonCode, "IN", "ADM", alloc.personIdentifier))
