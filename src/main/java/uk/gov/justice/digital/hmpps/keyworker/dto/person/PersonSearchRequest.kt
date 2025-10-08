@@ -1,4 +1,6 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.person
+
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffAllocationCount
 
 data class PersonSearchRequest(
   val query: String? = null,

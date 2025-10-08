@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId

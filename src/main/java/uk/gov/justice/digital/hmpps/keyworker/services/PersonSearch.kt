@@ -3,17 +3,17 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationSummary
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocationCount
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PrisonerSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffAllocationCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel.HIGH
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
-import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRelevantAlertCodes
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRemainingAlertCount
 
 @Service
 class PersonSearch(

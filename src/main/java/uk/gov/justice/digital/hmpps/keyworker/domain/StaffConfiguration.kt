@@ -12,7 +12,7 @@ import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.time.LocalDate
 import java.util.UUID

@@ -1,4 +1,6 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.staff
+
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 
 data class StaffSearchRequest(
   val query: String?,

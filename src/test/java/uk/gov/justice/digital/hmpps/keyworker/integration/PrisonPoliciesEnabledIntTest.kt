@@ -8,10 +8,11 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PolicyEnabled
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonPolicies
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PolicyEnabled
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonPolicies
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import kotlin.jvm.java
 
 class PrisonPoliciesEnabledIntTest : IntegrationTest() {
   @Test

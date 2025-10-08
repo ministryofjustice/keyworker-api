@@ -19,7 +19,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.servlet.resource.NoResourceFoundException
-import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
 class ExceptionHandler {
@@ -28,6 +28,7 @@ class ExceptionHandler {
     ResponseEntity.status(HttpStatus.FORBIDDEN).body(
       ErrorResponse(
         HttpStatus.FORBIDDEN.value(),
+        null,
         "Authentication problem. Check token and roles - ${e.message}",
         e.message,
       ),
@@ -38,6 +39,7 @@ class ExceptionHandler {
     ResponseEntity.status(BAD_REQUEST).body(
       ErrorResponse(
         BAD_REQUEST.value(),
+        null,
         "Validation failure: ${e.message}",
         e.message,
       ),
@@ -56,6 +58,7 @@ class ExceptionHandler {
     return ResponseEntity.status(BAD_REQUEST).body(
       ErrorResponse(
         BAD_REQUEST.value(),
+        null,
         "Validation failure: $message",
         e.message,
       ),
@@ -67,6 +70,7 @@ class ExceptionHandler {
     ResponseEntity.status(BAD_REQUEST).body(
       ErrorResponse(
         BAD_REQUEST.value(),
+        null,
         "Validation failure: Couldn't read request body",
         e.message,
       ),
@@ -82,6 +86,7 @@ class ExceptionHandler {
       .body(
         ErrorResponse(
           BAD_REQUEST.value(),
+          null,
           "Validation failure: ${e.message}",
           e.devMessage(),
         ),
@@ -94,6 +99,7 @@ class ExceptionHandler {
       .body(
         ErrorResponse(
           BAD_REQUEST.value(),
+          null,
           "Validation failure: ${e.message}",
           e.devMessage(),
         ),
@@ -107,6 +113,7 @@ class ExceptionHandler {
     ResponseEntity.status(NOT_FOUND).body(
       ErrorResponse(
         NOT_FOUND.value(),
+        null,
         "No resource found failure: ${e.message}",
         e.message,
       ),
@@ -117,6 +124,7 @@ class ExceptionHandler {
     ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
       ErrorResponse(
         INTERNAL_SERVER_ERROR.value(),
+        null,
         "An unexpected server error occurred.",
         "${e::class.simpleName} => ${e.message}",
       ),
@@ -140,6 +148,7 @@ class ExceptionHandler {
         .body(
           ErrorResponse(
             BAD_REQUEST.value(),
+            null,
             message,
             "400 BAD_REQUEST $message",
           ),

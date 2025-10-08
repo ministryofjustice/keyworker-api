@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi
 
 import java.math.BigDecimal
 import java.time.LocalDate

@@ -1,6 +1,9 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.person
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PolicyEnabled
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType
 import java.time.LocalDateTime
 
 data class CurrentPersonStaffAllocation(

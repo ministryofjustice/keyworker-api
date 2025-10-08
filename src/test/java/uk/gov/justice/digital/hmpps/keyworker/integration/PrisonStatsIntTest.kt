@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType
 import java.time.LocalDate
 import java.time.LocalDate.now
 

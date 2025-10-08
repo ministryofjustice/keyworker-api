@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.integration
+package uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
@@ -9,8 +9,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransientException
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 

@@ -11,10 +11,13 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonAlert
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate

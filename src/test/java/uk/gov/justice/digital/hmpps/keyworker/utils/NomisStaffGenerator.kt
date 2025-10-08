@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
-import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import java.math.BigDecimal
 import java.time.LocalDate

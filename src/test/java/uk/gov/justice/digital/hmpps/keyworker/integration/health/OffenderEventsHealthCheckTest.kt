@@ -52,7 +52,8 @@ class OffenderEventsHealthCheckTest : IntegrationTest() {
       .expectStatus()
       .isEqualTo(200)
       .expectBody()
-      .jsonPath("$.stats", "UP")
+      .jsonPath("$.status")
+      .isEqualTo("UP")
   }
 
   @Test
@@ -61,6 +62,7 @@ class OffenderEventsHealthCheckTest : IntegrationTest() {
       .expectStatus()
       .isEqualTo(200)
       .expectBody()
-      .jsonPath("$.stats", "UP")
+      .jsonPath("$.status")
+      .isEqualTo("UP")
   }
 }

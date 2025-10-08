@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.prison
 
 import jakarta.validation.constraints.Min
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder

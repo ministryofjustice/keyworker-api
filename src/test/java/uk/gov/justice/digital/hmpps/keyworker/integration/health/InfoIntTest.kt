@@ -7,7 +7,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.dto.ActiveAgenciesResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.ActiveAgenciesResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.IntegrationTest
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter.ISO_DATE

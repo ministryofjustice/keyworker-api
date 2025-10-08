@@ -1,5 +1,7 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.person
 
+import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
 import java.time.LocalDateTime
 
 data class StaffAllocationHistory(

@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonConfigResponse
 
 class PrisonConfigIntTest : IntegrationTest() {
   @BeforeEach

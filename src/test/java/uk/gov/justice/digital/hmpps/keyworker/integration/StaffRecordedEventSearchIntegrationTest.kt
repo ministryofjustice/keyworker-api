@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import io.jsonwebtoken.security.Jwks.OP.policy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -12,7 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE

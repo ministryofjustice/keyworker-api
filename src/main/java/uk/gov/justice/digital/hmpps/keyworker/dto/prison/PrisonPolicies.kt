@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.prison
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentPersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.services.GetCurrentAllocations
 
 @RestController

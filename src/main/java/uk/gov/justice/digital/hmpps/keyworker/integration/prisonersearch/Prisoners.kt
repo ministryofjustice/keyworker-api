@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.integration
+package uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel

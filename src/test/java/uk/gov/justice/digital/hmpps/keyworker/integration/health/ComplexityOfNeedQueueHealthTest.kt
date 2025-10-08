@@ -40,7 +40,8 @@ class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
       .expectStatus()
       .isEqualTo(200)
       .expectBody()
-      .jsonPath("$.stats", "UP")
+      .jsonPath("$.status")
+      .isEqualTo("UP")
   }
 
   @Test
@@ -49,6 +50,7 @@ class ComplexityOfNeedQueueHealthTest : IntegrationTest() {
       .expectStatus()
       .isEqualTo(200)
       .expectBody()
-      .jsonPath("$.stats", "UP")
+      .jsonPath("$.status")
+      .isEqualTo("UP")
   }
 }

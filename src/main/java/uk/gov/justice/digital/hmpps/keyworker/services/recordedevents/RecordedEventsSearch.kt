@@ -10,11 +10,11 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventPrisoner
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRecordedEvent
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.SearchCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.TypeSubTypeRequest
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 
 @Service

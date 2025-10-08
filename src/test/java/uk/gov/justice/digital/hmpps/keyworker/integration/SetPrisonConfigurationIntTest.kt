@@ -13,9 +13,10 @@ import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
-import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonConfigRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonConfigResponse
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import kotlin.jvm.java
 
 class SetPrisonConfigurationIntTest : IntegrationTest() {
   @Test

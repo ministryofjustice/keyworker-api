@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import java.math.BigDecimal
 import java.time.Duration

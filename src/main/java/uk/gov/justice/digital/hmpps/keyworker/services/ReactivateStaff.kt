@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
 import java.time.LocalDate
 
 @Transactional

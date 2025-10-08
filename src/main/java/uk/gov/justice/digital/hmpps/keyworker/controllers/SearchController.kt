@@ -13,12 +13,12 @@ import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.StaffSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventsSearch

@@ -13,7 +13,9 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationStaff
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffSummaries

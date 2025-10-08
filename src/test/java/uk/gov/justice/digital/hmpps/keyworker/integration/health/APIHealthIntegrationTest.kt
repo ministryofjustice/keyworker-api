@@ -18,12 +18,15 @@ class APIHealthIntegrationTest : IntegrationTest() {
       .expectStatus()
       .is2xxSuccessful
       .expectBody()
-      .json("{\"status\":\"UP\"}")
+      .jsonPath("$.status")
+      .isEqualTo("UP")
   }
 
   @Test
   fun `Health page dependency timeout`() {
     prisonMockServer.stubHealthDependencyTimeoutResponse()
+    oAuthMockServer.stubHealthOKResponse()
+    complexityOfNeedMockServer.stubHealthOKResponse()
 
     webTestClient
       .get()

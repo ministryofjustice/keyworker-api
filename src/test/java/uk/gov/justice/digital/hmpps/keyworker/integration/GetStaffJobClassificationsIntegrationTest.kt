@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.time.LocalDate

@@ -55,8 +55,8 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType

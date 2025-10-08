@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType.ENTRY
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE

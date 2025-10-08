@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PolicyRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import java.time.LocalDate
 
 @Service

@@ -10,9 +10,9 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocationHistory
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.StaffAllocationHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier

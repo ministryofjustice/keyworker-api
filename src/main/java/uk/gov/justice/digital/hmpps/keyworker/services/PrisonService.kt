@@ -8,10 +8,10 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
-import uk.gov.justice.digital.hmpps.keyworker.dto.PolicyEnabled
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonPolicies
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PolicyEnabled
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonConfigRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonConfigResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonPolicies
 
 @Transactional
 @Service

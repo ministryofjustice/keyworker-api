@@ -8,24 +8,27 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonStaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonStaffAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonStaffDeallocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffSummaries
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
+import kotlin.jvm.java
 
 class ManageAllocationsIntegrationTest : IntegrationTest() {
   @Test
@@ -203,7 +206,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
         a.id,
         RevisionType.ADD,
         setOf(Allocation::class.simpleName!!),
-        AllocationContext.get().copy(username = "keyworker-ui", policy = policy),
+        AllocationContext.get().copy(username = "keyworker-ui", activeCaseloadId = prisonCode, policy = policy),
       )
     }
   }
@@ -245,7 +248,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
         allocation.id,
         RevisionType.MOD,
         setOf(Allocation::class.simpleName!!),
-        AllocationContext.get().copy(username = "keyworker-ui", policy = policy),
+        AllocationContext.get().copy(username = "keyworker-ui", activeCaseloadId = prisonCode, policy = policy),
       )
     }
   }
@@ -317,7 +320,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
         allocation.id,
         RevisionType.MOD,
         setOf(Allocation::class.simpleName!!),
-        AllocationContext.get().copy(username = "keyworker-ui", policy = policy),
+        AllocationContext.get().copy(username = "keyworker-ui", activeCaseloadId = prisonCode, policy = policy),
       )
     }
   }
@@ -400,6 +403,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     .bodyValue(request)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
+    .header(CaseloadIdHeader.NAME, prisonCode)
     .exchange()
 
   companion object {

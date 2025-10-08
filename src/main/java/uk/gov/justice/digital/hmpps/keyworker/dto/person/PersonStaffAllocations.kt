@@ -1,6 +1,7 @@
-package uk.gov.justice.digital.hmpps.keyworker.dto
+package uk.gov.justice.digital.hmpps.keyworker.dto.person
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
 
 data class PersonStaffAllocations(
   val allocations: List<PersonStaffAllocation>,

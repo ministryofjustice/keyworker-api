@@ -19,9 +19,9 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonStaffAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import java.time.LocalDateTime
 

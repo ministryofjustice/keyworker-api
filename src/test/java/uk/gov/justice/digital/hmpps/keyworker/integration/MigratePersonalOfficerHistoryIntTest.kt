@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.migration.MigratePersonalOfficers
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation

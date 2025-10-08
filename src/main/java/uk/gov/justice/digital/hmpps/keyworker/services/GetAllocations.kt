@@ -4,13 +4,13 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.Actioned
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocation
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocationHistory
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.Actioned
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.StaffAllocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.StaffAllocationHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 
 @Service
 class GetAllocations(

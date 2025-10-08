@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 
@@ -19,7 +20,7 @@ class DeallocationService(
     personIdentifier: String,
     deallocationReason: DeallocationReason,
   ) {
-    val reason = requireNotNull(referenceDataRepository.findByKey(DEALLOCATION_REASON of deallocationReason.name))
+    val reason = referenceDataRepository.getReferenceData(DEALLOCATION_REASON of deallocationReason.name)
     val allocations =
       allocationRepository.findActiveForAllPolicies(personIdentifier).mapNotNull {
         it.takeIf { it.prisonCode != prisonCode }?.apply { deallocate(reason) }

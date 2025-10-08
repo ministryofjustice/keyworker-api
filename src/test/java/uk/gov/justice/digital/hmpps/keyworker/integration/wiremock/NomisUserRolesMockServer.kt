@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest

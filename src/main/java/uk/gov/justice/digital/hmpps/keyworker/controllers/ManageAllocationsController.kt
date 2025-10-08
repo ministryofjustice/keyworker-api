@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationManager
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationRecommender
 

@@ -8,9 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
-import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransientException
 
 @Component

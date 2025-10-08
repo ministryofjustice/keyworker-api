@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocationHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.StaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.services.GetAllocations
 
 @RestController

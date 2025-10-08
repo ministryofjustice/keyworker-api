@@ -8,9 +8,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoners
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerNumbers
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoners
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import java.time.LocalDate
 

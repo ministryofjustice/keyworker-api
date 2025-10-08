@@ -18,28 +18,28 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
-import uk.gov.justice.digital.hmpps.keyworker.dto.LatestSession
-import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffCountStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStats
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.integration.getRelevantAlertCodes
-import uk.gov.justice.digital.hmpps.keyworker.integration.getRemainingAlertCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.JobClassificationResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.LatestSession
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffCountStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffRoleInfo
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRelevantAlertCodes
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRemainingAlertCount
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.DAYS
 import kotlin.math.floor
-import uk.gov.justice.digital.hmpps.keyworker.dto.Allocation as AllocationModel
-import uk.gov.justice.digital.hmpps.keyworker.dto.Prisoner as Person
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.Allocation as AllocationModel
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.Prisoner as Person
 
 @Service
 class GetStaffDetails(

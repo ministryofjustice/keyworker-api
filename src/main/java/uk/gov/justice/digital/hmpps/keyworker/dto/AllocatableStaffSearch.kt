@@ -1,5 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.dto
 
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffCountStats
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffRoleInfo
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
+
 data class AllocatableSearchRequest(
   val query: String?,
   val status: StaffStatus,

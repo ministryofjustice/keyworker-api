@@ -21,15 +21,15 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
 import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetailsRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.dto.map
-import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffDetailsRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffRoleInfo
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.map
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import java.time.LocalDate
 
 @Transactional

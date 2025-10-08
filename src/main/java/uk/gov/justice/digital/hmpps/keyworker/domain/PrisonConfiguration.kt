@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonConfigRequest
+import uk.gov.justice.digital.hmpps.keyworker.dto.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.util.UUID
 

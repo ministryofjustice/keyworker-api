@@ -7,11 +7,11 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
-import uk.gov.justice.digital.hmpps.keyworker.dto.Author
-import uk.gov.justice.digital.hmpps.keyworker.dto.CurrentStaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEvent
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
-import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.Author
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.CurrentStaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.dto.person.RecordedEvent
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventCount
+import uk.gov.justice.digital.hmpps.keyworker.dto.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.services.asCodedDescription
