@@ -13,15 +13,15 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
+import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PrisonStatisticsInfo
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -44,7 +44,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
         )
       }
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staff.map { it.staffId }))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staff.map { it.staffId }))
     } else {
       staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     }
@@ -161,7 +161,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           ),
         )
       }
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(keyworkers.map { it.staffId }))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(keyworkers.map { it.staffId }))
     val prisoners = prisoners(includeComplexNeeds = true)
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     val eligiblePrisoners =
@@ -186,7 +186,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     complexityOfNeedMockServer.stubComplexOffenders(
       prisoners.personIdentifiers(),
       prisoners.content.mapIndexed { index, prisoner ->
-        ComplexOffender(
+        ComplexityOfNeed(
           prisoner.prisonerNumber,
           prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
           createdTimeStamp = LocalDateTime.now().minusDays(index.toLong() + 7),

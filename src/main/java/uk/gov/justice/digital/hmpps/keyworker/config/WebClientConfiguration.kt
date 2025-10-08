@@ -22,14 +22,17 @@ import java.time.Duration.ofSeconds
 
 @Configuration
 class WebClientConfiguration(
-  @Value("\${prison.api.uri.root}") private val prisonApiRootUri: String,
-  @Value("\${manage-users.api.uri.root}") private val manageUsersApiRootUri: String,
-  @Value("\${case-notes.api.uri.root}") private val caseNotesApiRootUri: String,
-  @Value("\${complexity_of_need_uri}") private val complexityOfNeedUri: String,
-  @Value("\${prisoner-search.api.uri.root}") private val prisonerSearchApiRootUri: String,
-  @Value("\${prison-register.api.uri.root}") private val prisonRegisterApiRootUri: String,
-  @Value("\${nomis-user-roles.api.uri.root}") private val nomisUserRolesApiRootUri: String,
+  @Value($$"${prison.api.uri.root}") private val prisonApiRootUri: String,
+  @Value($$"${manage-users.api.uri.root}") private val manageUsersApiRootUri: String,
+  @Value($$"${case-notes.api.uri.root}") private val caseNotesApiRootUri: String,
+  @Value($$"${complexity_of_need_uri}") private val complexityOfNeedUri: String,
+  @Value($$"${prisoner-search.api.uri.root}") private val prisonerSearchApiRootUri: String,
+  @Value($$"${prison-register.api.uri.root}") private val prisonRegisterApiRootUri: String,
+  @Value($$"${nomis-user-roles.api.uri.root}") private val nomisUserRolesApiRootUri: String,
+  @Value($$"${api.health-timeout-ms}") private val healthTimeoutMs: Long,
 ) {
+  val healthTimeout: Duration = Duration.ofMillis(healthTimeoutMs)
+
   @Bean
   fun authorizedClientManager(
     clientRegistrationRepository: ClientRegistrationRepository,
@@ -49,7 +52,7 @@ class WebClientConfiguration(
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, "$prisonApiRootUri/api", ofSeconds(60))
 
   @Bean
-  fun prisonApiHealthWebClient(builder: Builder): WebClient = builder.healthWebClient(prisonApiRootUri)
+  fun prisonApiHealthWebClient(builder: Builder): WebClient = builder.healthWebClient(prisonApiRootUri, healthTimeout)
 
   @Bean
   fun prisonRegisterApiWebClient(
@@ -88,7 +91,7 @@ class WebClientConfiguration(
   ): WebClient = getOAuthWebClient(authorizedClientManager, builder, "$complexityOfNeedUri/v1")
 
   @Bean
-  fun complexityOfNeedHealthWebClient(builder: Builder): WebClient = builder.healthWebClient(complexityOfNeedUri)
+  fun complexityOfNeedHealthWebClient(builder: Builder): WebClient = builder.healthWebClient(complexityOfNeedUri, healthTimeout)
 
   private fun getOAuthWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,

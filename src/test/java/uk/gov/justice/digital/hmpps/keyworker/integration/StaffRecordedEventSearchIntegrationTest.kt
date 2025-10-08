@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmen
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.SearchCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.TypeSubTypeRequest
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer.Companion.caseNote
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
 import java.time.LocalDate

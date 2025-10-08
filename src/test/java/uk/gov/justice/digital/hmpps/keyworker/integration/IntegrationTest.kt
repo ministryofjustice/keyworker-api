@@ -53,12 +53,12 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
@@ -70,13 +70,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.OAuthMockServ
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonRegisterMockServer
 import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.PrisonerSearchMockServer
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -291,33 +287,6 @@ abstract class IntegrationTest {
 
       localStackContainer?.also { setLocalStackProperties(it, registry) }
     }
-
-    fun caseNote(
-      subType: String,
-      type: String = KW_TYPE,
-      personIdentifier: String = personIdentifier(),
-      occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
-      staffId: Long = newId(),
-      staffUsername: String = NomisIdGenerator.username(),
-      prisonCode: String = "LEI",
-      createdAt: LocalDateTime = LocalDateTime.now(),
-      text: String = "Some notes about the Recorded Event",
-      amendments: List<CaseNoteAmendment> = listOf(),
-      id: UUID = IdGenerator.newUuid(),
-    ): CaseNote =
-      CaseNote(
-        id,
-        type,
-        subType,
-        occurredAt,
-        personIdentifier,
-        staffId,
-        staffUsername,
-        prisonCode,
-        createdAt,
-        text,
-        amendments,
-      )
   }
 
   @BeforeEach
@@ -331,12 +300,8 @@ abstract class IntegrationTest {
     prisonerSearchMockServer.resetAll()
     nomisUserRolesMockServer.resetAll()
 
-//    flyway.clean()
-//    flyway.migrate()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
   }
-
-  internal fun setOmicAdminHeaders(): (HttpHeaders) -> Unit = setHeaders(roles = listOf("ROLE_OMIC_ADMIN"))
 
   internal fun setHeaders(
     username: String? = "ITAG_USER",
@@ -354,49 +319,6 @@ abstract class IntegrationTest {
       .get()
       .uri(url)
       .exchange()
-
-  fun migratedFoAutoAllocation(prisonId: String) {
-    prisonMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "auto-allocation"))
-    prisonMockServer.stubAccessCodeListForKeyRole(prisonId)
-    prisonMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
-
-    webTestClient
-      .post()
-      .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true&capacity=6,9&frequency=2")
-      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
-      .exchange()
-      .expectStatus()
-      .is2xxSuccessful
-  }
-
-  fun migrated(prisonId: String) {
-    prisonMockServer.stubAllocationHistory(prisonId, getWiremockResponse(prisonId, "migrated"))
-    prisonMockServer.stubAccessCodeListForKeyRole(prisonId)
-    prisonMockServer.stubAccessCodeListForKeyAdminRole(prisonId)
-
-    webTestClient
-      .post()
-      .uri("/key-worker/enable/$prisonId/auto-allocate?migrate=true")
-      .headers(setHeaders(roles = listOf("ROLE_KW_MIGRATION")))
-      .exchange()
-      .expectStatus()
-      .is2xxSuccessful
-  }
-
-  fun setKeyworkerCapacity(
-    prisonId: String,
-    keyworkerId: Long,
-    capacity: Int,
-  ) {
-    webTestClient
-      .post()
-      .uri("/key-worker/$keyworkerId/prison/$prisonId")
-      .headers(setOmicAdminHeaders())
-      .bodyValue(mapOf("capacity" to capacity, "status" to "ACTIVE"))
-      .exchange()
-      .expectStatus()
-      .is2xxSuccessful
-  }
 
   fun subPing(status: Int) {
     addConditionalPingStub(prisonMockServer, status)
@@ -424,8 +346,6 @@ abstract class IntegrationTest {
     prisonId: String,
     fileName: String,
   ) = "/wiremock-stub-responses/$prisonId/$fileName.json".readFile()
-
-  protected fun getWiremockResponse(fileName: String) = "/wiremock-stub-responses/$fileName.json".readFile()
 
   protected fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
 
@@ -558,9 +478,9 @@ abstract class IntegrationTest {
     referenceDataRepository.findByKey(ReferenceDataKey(domain, code))
       ?: throw IllegalArgumentException("Reference data does not exist: $code")
 
-  protected fun AllocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, reasonCode)
+  protected fun AllocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.ALLOCATION_REASON, name)
 
-  protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.DEALLOCATION_REASON, reasonCode)
+  protected fun DeallocationReason.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.DEALLOCATION_REASON, name)
 
   protected fun RecordedEventType.asReferenceData(): ReferenceData = withReferenceData(ReferenceDataDomain.RECORDED_EVENT_TYPE, name)
 

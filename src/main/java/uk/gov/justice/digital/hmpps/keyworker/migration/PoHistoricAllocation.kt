@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.migration
 
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import java.time.LocalDateTime
 
 data class PoHistoricAllocation(
@@ -31,7 +31,7 @@ class PoAllocationHistory(
             deallocatedAt = it.movement?.occurredAt ?: LocalDateTime.now()
             deallocatedBy = SYSTEM_USERNAME
             deallocationReasonCode =
-              it.movement?.deallocationReason?.reasonCode ?: DeallocationReason.NO_LONGER_IN_PRISON.reasonCode
+              it.movement?.deallocationReason?.name ?: DeallocationReason.NO_LONGER_IN_PRISON.name
           }
         },
       )
@@ -40,7 +40,7 @@ class PoAllocationHistory(
           sorted[idx].apply {
             deallocatedAt = sorted[idx - 1].assigned
             deallocatedBy = sorted[idx - 1].userId
-            deallocationReasonCode = DeallocationReason.OVERRIDE.reasonCode
+            deallocationReasonCode = DeallocationReason.OVERRIDE.name
           },
         )
       }

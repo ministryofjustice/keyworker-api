@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.keyworker.migration
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime

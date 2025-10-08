@@ -10,6 +10,7 @@ import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEvent
@@ -17,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer.Companion.caseNote
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
@@ -45,7 +46,7 @@ class MergePrisonerIntTest : IntegrationTest() {
         )
       },
     )
-    caseNotesMockServer.stubGetAllocationCaseNotes(
+    caseNotesMockServer.stubSearchCaseNotes(
       newNoms,
       CaseNotes(listOf(caseNote.copy(personIdentifier = newNoms))),
     )
@@ -67,7 +68,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val staffId = newId()
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
     val new = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
-    caseNotesMockServer.stubGetAllocationCaseNotes(new.personIdentifier, CaseNotes(listOf()))
+    caseNotesMockServer.stubSearchCaseNotes(new.personIdentifier, CaseNotes(listOf()))
 
     publishEventToTopic(mergeEvent(new.personIdentifier, alloc.personIdentifier))
 
@@ -76,7 +77,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     val merged = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(merged.personIdentifier).isEqualTo(new.personIdentifier)
     assertThat(merged.isActive).isFalse()
-    assertThat(merged.deallocationReason?.code).isEqualTo(DeallocationReason.MERGED.reasonCode)
+    assertThat(merged.deallocationReason?.code).isEqualTo(DeallocationReason.MERGED.name)
   }
 
   private fun mergeEvent(

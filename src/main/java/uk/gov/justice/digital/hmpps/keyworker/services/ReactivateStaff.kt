@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import java.time.LocalDate
 
 @Transactional
@@ -27,7 +27,7 @@ class ReactivateStaff(
         .findAllStaffReturningFromLeave(date)
         .takeIf { it.isNotEmpty() }
         ?.run {
-          val activeStatus = referenceDataRepository.getReferenceData(STAFF_STATUS of ACTIVE.name)
+          val activeStatus = referenceDataRepository.getReferenceData(STAFF_STATUS of StaffStatus.ACTIVE.name)
           map {
             it.apply {
               status = activeStatus

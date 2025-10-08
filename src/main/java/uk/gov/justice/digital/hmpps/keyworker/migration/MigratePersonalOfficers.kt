@@ -18,10 +18,10 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.integration.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.LocalDateTime
@@ -54,13 +54,13 @@ class MigratePersonalOfficers(
             referenceDataRepository
               .findAllByKeyIn(
                 setOf(
-                  ReferenceDataDomain.ALLOCATION_REASON of AllocationReason.MANUAL.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.OVERRIDE.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.NO_LONGER_IN_PRISON.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.PRISON_USES_KEY_WORK.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.MIGRATION.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.TRANSFER.reasonCode,
-                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.RELEASED.reasonCode,
+                  ReferenceDataDomain.ALLOCATION_REASON of AllocationReason.MANUAL.name,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.OVERRIDE.name,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.NO_LONGER_IN_PRISON.name,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.PRISON_USES_KEY_WORK.name,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.MIGRATION.name,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.TRANSFER.name,
+                  ReferenceDataDomain.DEALLOCATION_REASON of DeallocationReason.RELEASED.name,
                   ReferenceDataDomain.STAFF_POSITION of "PRO",
                   ReferenceDataDomain.STAFF_SCHEDULE_TYPE of "FT",
                 ),
@@ -143,7 +143,7 @@ class MigratePersonalOfficers(
     staffId,
     assigned,
     deallocatedAt == null,
-    allocationReason(AllocationReason.MANUAL.reasonCode),
+    allocationReason(AllocationReason.MANUAL.name),
     AllocationType.MANUAL,
     userId,
     deallocatedAt,

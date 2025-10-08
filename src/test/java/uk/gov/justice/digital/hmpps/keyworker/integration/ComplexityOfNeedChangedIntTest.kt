@@ -10,10 +10,10 @@ import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedChange
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
+import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -57,7 +57,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
     complexityOfNeedMockServer.stubComplexOffenders(
       setOf(alloc.personIdentifier),
       listOf(
-        ComplexOffender(
+        ComplexityOfNeed(
           alloc.personIdentifier,
           ComplexityOfNeedLevel.HIGH,
           sourceUser = username,
@@ -71,7 +71,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
-    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.reasonCode)
+    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.name)
     assertThat(deallocated.deallocatedAt?.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(requestedAt?.truncatedTo(ChronoUnit.SECONDS))
     assertThat(deallocated.deallocatedBy).isEqualTo(username)
     val affected = setOf(Allocation::class.simpleName!!)
@@ -80,7 +80,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
       deallocated.id,
       RevisionType.MOD,
       affected,
-      AllocationContext.get().copy(username, requestedAt),
+      AllocationContext.get().copy(username = username, requestAt = requestedAt),
     )
   }
 
@@ -95,7 +95,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
     complexityOfNeedMockServer.stubComplexOffenders(
       setOf(alloc.personIdentifier),
       listOf(
-        ComplexOffender(
+        ComplexityOfNeed(
           alloc.personIdentifier,
           ComplexityOfNeedLevel.HIGH,
           sourceUser = username,
@@ -109,7 +109,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
-    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.reasonCode)
+    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.name)
     assertThat(deallocated.deallocatedAt?.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(requestedAt?.truncatedTo(ChronoUnit.SECONDS))
     assertThat(deallocated.deallocatedBy).isEqualTo(username)
     val affected = setOf(Allocation::class.simpleName!!)
@@ -118,7 +118,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
       deallocated.id,
       RevisionType.MOD,
       affected,
-      AllocationContext.get().copy(username, requestedAt),
+      AllocationContext.get().copy(username = username, requestAt = requestedAt),
     )
   }
 

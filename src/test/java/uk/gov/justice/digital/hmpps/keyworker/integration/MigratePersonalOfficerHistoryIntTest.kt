@@ -7,10 +7,10 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.migration.MigratePersonalOfficers
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate.now
@@ -92,7 +92,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
         assertThat(allocations).hasSize(3)
         allocations.verifyTimeline()
         assertThat(allocations.first().isActive).isFalse()
-        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.PRISON_USES_KEY_WORK.reasonCode)
+        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.PRISON_USES_KEY_WORK.name)
       }
 
     staffRoleRepository
@@ -125,7 +125,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
         assertThat(allocations).hasSize(3)
         allocations.verifyTimeline()
         assertThat(allocations.first().isActive).isFalse()
-        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.MIGRATION.reasonCode)
+        assertThat(allocations.first().deallocationReason?.code).isEqualTo(DeallocationReason.MIGRATION.name)
       }
 
     staffRoleRepository
@@ -226,7 +226,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     transferred.verifyTimeline()
     with(transferred.first()) {
       assertThat(deallocatedBy).isEqualTo(SYSTEM_USERNAME)
-      assertThat(deallocationReason?.code).isEqualTo(DeallocationReason.TRANSFER.reasonCode)
+      assertThat(deallocationReason?.code).isEqualTo(DeallocationReason.TRANSFER.name)
       assertThat(deallocatedAt?.truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(transferredAt?.truncatedTo(ChronoUnit.SECONDS))
     }
@@ -238,7 +238,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     released.verifyTimeline()
     with(released.first()) {
       assertThat(deallocatedBy).isEqualTo(SYSTEM_USERNAME)
-      assertThat(deallocationReason?.code).isEqualTo(DeallocationReason.RELEASED.reasonCode)
+      assertThat(deallocationReason?.code).isEqualTo(DeallocationReason.RELEASED.name)
       assertThat(deallocatedAt?.truncatedTo(ChronoUnit.SECONDS))
         .isEqualTo(releasedAt?.truncatedTo(ChronoUnit.SECONDS))
     }

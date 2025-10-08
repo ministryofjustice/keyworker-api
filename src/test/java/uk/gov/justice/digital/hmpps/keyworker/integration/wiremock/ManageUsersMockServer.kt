@@ -35,6 +35,4 @@ class ManageUsersMockServer : WireMockServer(9998) {
             ).withStatus(200),
         ),
     )
-
-  fun stubGetUserDetailsNotFound(username: String): StubMapping = stubFor(get("/users/$username").willReturn(aResponse().withStatus(404)))
 }

@@ -12,19 +12,19 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.ENTRY
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffDetails
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_EVEN
 import java.time.LocalDate
@@ -74,7 +74,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
       prisonMockServer.stubKeyworkerDetails(
         prisonCode,
         staffConfig.staffId,
-        staffDetail(staffConfig.staffId, "FT", "PRO"),
+        nomisStaffRole(
+          staffConfig.staffId,
+          scheduleType = "FT",
+          position = "PRO",
+          hoursPerWeek = BigDecimal(36.5),
+          fromDate = now().minusWeeks(6),
+        ),
       )
     } else {
       prisonMockServer.stubStaffSummaries(listOf(staffSummary(id = staffConfig.staffId)))
@@ -290,7 +296,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     val prison = Prison("NOAL", "No Allocations")
     val (prisonCode, prisonDescription) = prison
-    val staff = staffDetail(newId(), "PT", "CHAP", "Noah", "Locations")
+    val staff = nomisStaffRole(newId(), { "Noah" }, { "Locations" }, "CHAP", "PT", BigDecimal(36.5), now().minusWeeks(6))
     prisonRegisterMockServer.stubGetPrisons(setOf(prison))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerDetails(prisonCode, staff.staffId, staff)
@@ -358,7 +364,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val prison = Prison("UAL", "Unavailable for Annual Leave)")
     prisonRegisterMockServer.stubGetPrisons(setOf(prison))
     val prisonCode = prison.prisonId
-    val staff = staffDetail(newId(), "FT", "AO", "On", "Holiday")
+    val staff = nomisStaffRole(newId(), { "On" }, { "Holiday" }, "AO", "FT", BigDecimal(36.5), now().minusWeeks(6))
     val staffConfig =
       givenStaffConfig(
         staffConfig(
@@ -405,6 +411,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
               null,
             ),
           )
+
       AllocationPolicy.PERSONAL_OFFICER ->
         assertThat(response.staffRole)
           .isEqualTo(
@@ -458,25 +465,6 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
   companion object {
     const val GET_STAFF_DETAILS = "/prisons/{prisonCode}/staff/{staffId}"
-
-    fun staffDetail(
-      id: Long,
-      scheduleType: String,
-      position: String,
-      firstName: String = "First",
-      lastName: String = "Last",
-      hoursPerWeek: BigDecimal = BigDecimal(36.5),
-    ): StaffLocationRoleDto =
-      StaffLocationRoleDto
-        .builder()
-        .staffId(id)
-        .scheduleType(scheduleType)
-        .position(position)
-        .hoursPerWeek(hoursPerWeek)
-        .firstName(firstName)
-        .lastName(lastName)
-        .fromDate(now().minusWeeks(6))
-        .build()
 
     @JvmStatic
     fun policyProvider() =

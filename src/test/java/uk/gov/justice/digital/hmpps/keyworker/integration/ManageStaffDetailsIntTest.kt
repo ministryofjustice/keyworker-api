@@ -20,14 +20,14 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
-import uk.gov.justice.digital.hmpps.keyworker.integration.GetStaffDetailsIntegrationTest.Companion.staffDetail
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDate.now
@@ -188,7 +188,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
     val nomisRequest =
       if (policy.nomisUseRoleCode != null) {
-        val staffRole = staffDetail(staffId, "PT", "PRO", hoursPerWeek = BigDecimal(20))
+        val staffRole = nomisStaffRole(staffId, scheduleType = "PT", position = "PRO", hoursPerWeek = BigDecimal(20))
         val roleRequest =
           StaffJobClassificationRequest(
             position = staffRole.position,
@@ -260,7 +260,8 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    val staffRole = requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
+    val staffRole =
+      requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
     assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(42))
     assertThat(staffRole.scheduleType.key.code).isEqualTo("PT")
     assertThat(staffRole.toDate).isNull()
@@ -319,7 +320,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
       assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
-      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
+      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.name)
     }
   }
 
@@ -334,7 +335,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
     val nomisRequest =
       if (policy.nomisUseRoleCode != null) {
-        val staffRole = staffDetail(staffId, "PT", "PRO", hoursPerWeek = BigDecimal(20))
+        val staffRole = nomisStaffRole(staffId, scheduleType = "PT", position = "PRO", hoursPerWeek = BigDecimal(20))
         val roleRequest =
           StaffJobClassificationRequest(
             position = staffRole.position,
@@ -375,7 +376,8 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     if (policy.nomisUseRoleCode != null) {
       verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
     } else {
-      val staffRole = requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
+      val staffRole =
+        requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
       assertThat(staffRole.toDate).isEqualTo(now())
       verifyAudit(
         staffRole,
@@ -392,7 +394,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
       assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(now())
-      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
+      assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.name)
     }
   }
 

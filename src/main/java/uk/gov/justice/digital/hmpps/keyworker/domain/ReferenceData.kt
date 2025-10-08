@@ -14,7 +14,6 @@ import org.hibernate.annotations.Immutable
 import org.hibernate.annotations.TenantId
 import org.springframework.data.jpa.repository.JpaRepository
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 
 @Immutable
 @Entity
@@ -76,10 +75,6 @@ interface ReferenceDataRepository : JpaRepository<ReferenceData, Long> {
 
   fun findAllByKeyIn(keys: Set<ReferenceDataKey>): List<ReferenceData>
 }
-
-fun ReferenceDataRepository.getKeyworkerStatus(status: StaffStatus): ReferenceData =
-  findByKey(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, status.name))
-    ?: throw EntityNotFoundException("Keyworker status not found")
 
 fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
   findByKey(key)

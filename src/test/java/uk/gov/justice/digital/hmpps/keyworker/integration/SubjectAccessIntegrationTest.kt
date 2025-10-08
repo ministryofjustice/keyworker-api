@@ -6,8 +6,8 @@ import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.sar.SarAllocation
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffMember
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId

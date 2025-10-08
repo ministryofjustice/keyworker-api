@@ -14,24 +14,18 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthEntries
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest.Companion.lastMonthSessions
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -68,7 +62,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val request = searchRequest(query = "First")
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds.filter { it % 2 != 0L }))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds.filter { it % 2 != 0L }))
     } else {
       staffIds.filter { it % 2 != 0L }.forEach {
         givenStaffRole(staffRole(prisonCode, it))
@@ -178,7 +172,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val request = searchRequest(status = StaffStatus.ALL)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds))
     } else {
       staffIds.forEach {
         givenStaffRole(staffRole(prisonCode, it))
@@ -237,16 +231,15 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       prisonMockServer.stubKeyworkerSearch(
         prisonCode,
         listOf(
-          StaffLocationRoleDto
-            .builder()
-            .staffId(staffId)
-            .firstName("No")
-            .lastName("Config")
-            .position("PRO")
-            .scheduleType("FT")
-            .hoursPerWeek(BigDecimal(34.5))
-            .fromDate(LocalDate.now().minusDays(7))
-            .build(),
+          nomisStaffRole(
+            staffId,
+            position = "PRO",
+            scheduleType = "FT",
+            firstName = { "No" },
+            lastName = { "Config" },
+            hoursPerWeek = BigDecimal.valueOf(34.5),
+            fromDate = LocalDate.now().minusDays(7),
+          ),
         ),
       )
     } else {
@@ -333,7 +326,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val request = searchRequest(hasPolicyStaffRole = true)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds.filter { it % 2 == 0L }))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds.filter { it % 2 == 0L }))
     } else {
       staffIds.filter { it % 2 == 0L }.forEach {
         givenStaffRole(staffRole(prisonCode, it))
@@ -362,42 +355,6 @@ class StaffSearchIntegrationTest : IntegrationTest() {
           )
         }
       }.flatten()
-
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      val sessionUsage =
-        NoteUsageResponse(
-          staffIds
-            .mapIndexed { index, staffId ->
-              UsageByAuthorIdResponse(
-                staffId.toString(),
-                KW_TYPE,
-                KW_SESSION_SUBTYPE,
-                index,
-              )
-            }.groupBy { it.authorId },
-        )
-      caseNotesMockServer.stubUsageByStaffIds(
-        request = lastMonthSessions(staffIds.map(Long::toString).toSet()),
-        response = sessionUsage,
-      )
-    }
-
-    val entryUsage =
-      NoteUsageResponse(
-        staffIds
-          .mapIndexed { index, staffId ->
-            UsageByAuthorIdResponse(
-              staffId.toString(),
-              policy.entryConfig.type,
-              policy.entryConfig.subType,
-              index / 2,
-            )
-          }.groupBy { it.authorId },
-      )
-    caseNotesMockServer.stubUsageByStaffIds(
-      request = lastMonthEntries(staffIds.map(Long::toString).toSet()),
-      response = entryUsage,
-    )
 
     val r1 =
       searchStaffSpec(prisonCode, request, policy)

@@ -11,19 +11,19 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.ErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffDeallocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.events.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffSummaries
 import java.time.LocalDate
 
@@ -130,7 +130,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psa = personStaffAllocation(prisoner.prisonerNumber, staffId)
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf()))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf()))
 
     val res =
       allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
@@ -155,7 +155,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     } else {
       givenStaffRole(staffRole(prisonCode, staffId))
     }
@@ -185,7 +185,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     } else {
       givenStaffRole(staffRole(prisonCode, staffId))
     }
@@ -221,7 +221,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     } else {
       givenStaffRole(staffRole(prisonCode, staffId))
     }
@@ -239,7 +239,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     allocationRepository.findAllById(existingAllocations.map { it.id }).forEach { allocation ->
       assertThat(allocation.isActive).isFalse
       assertThat(allocation.deallocatedAt).isNotNull
-      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.reasonCode)
+      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.OVERRIDE.name)
       verifyAudit(
         allocation,
         allocation.id,
@@ -263,7 +263,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     } else {
       givenStaffRole(staffRole(prisonCode, staffId))
     }
@@ -311,7 +311,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     allocationRepository.findAllById(existing.map { it.id }).forEach { allocation ->
       assertThat(allocation.isActive).isFalse
       assertThat(allocation.deallocatedAt).isNotNull
-      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.reasonCode)
+      assertThat(allocation.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.name)
       verifyAudit(
         allocation,
         allocation.id,

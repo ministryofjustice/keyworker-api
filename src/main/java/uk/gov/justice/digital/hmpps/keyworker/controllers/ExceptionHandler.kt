@@ -123,7 +123,7 @@ class ExceptionHandler {
     )
 
   private fun List<MessageSourceResolvable>.mapErrors() =
-    map { it.defaultMessage }.distinct().sorted().let {
+    mapNotNull { it.defaultMessage }.distinct().sorted().let {
       val validationFailure = "Validation failure"
       val message =
         if (it.size > 1) {

@@ -10,9 +10,9 @@ import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEvent
 import uk.gov.justice.digital.hmpps.keyworker.events.OffenderEventListener.Companion.EXTERNAL_MOVEMENT
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
@@ -36,7 +36,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
-    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.RELEASED.reasonCode)
+    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.RELEASED.name)
     val affected = setOf(Allocation::class.simpleName!!)
     verifyAudit(deallocated, deallocated.id, RevisionType.MOD, affected, AllocationContext.get())
   }
@@ -54,7 +54,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
-    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.TRANSFER.reasonCode)
+    assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.TRANSFER.name)
     val affected = setOf(Allocation::class.simpleName!!)
     verifyAudit(deallocated, deallocated.id, RevisionType.MOD, affected, AllocationContext.get())
   }

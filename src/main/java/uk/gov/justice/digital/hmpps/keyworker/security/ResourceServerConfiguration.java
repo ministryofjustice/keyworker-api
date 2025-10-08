@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.security;
 
-import java.util.Optional;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -12,6 +11,9 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
+import uk.gov.justice.hmpps.kotlin.auth.AuthAwareTokenConverter;
+
+import java.util.Optional;
 
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
@@ -24,10 +26,19 @@ public class ResourceServerConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(httpRequest -> httpRequest.requestMatchers(
-                "/webjars/**", "/favicon.ico", "/csrf",
-                "/health/**", "/*/info", "/info", "/ping",
-                "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**",
-                "/swagger-resources", "/swagger-resources/configuration/ui", "/swagger-resources/configuration/security",
+                "/webjars/**",
+                "/favicon.ico",
+                "/csrf",
+                "/health/**",
+                "/*/info",
+                "/info",
+                "/ping",
+                "/v3/api-docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/swagger-resources",
+                "/swagger-resources/configuration/ui",
+                "/swagger-resources/configuration/security",
                 "/queue-admin/retry-all-dlqs",
                 "/staff/returning-from-leave",
                 "/prison-statistics/calculate"

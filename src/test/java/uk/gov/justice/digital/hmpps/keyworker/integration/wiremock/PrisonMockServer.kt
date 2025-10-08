@@ -5,64 +5,13 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
 import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 class PrisonMockServer : WireMockServer(9999) {
-  fun stubAllocationHistory(
-    prisonId: String,
-    json: String,
-  ) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/key-worker/$prisonId/allocationHistory"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(json),
-        ),
-    )
-  }
-
-  fun stubAccessCodeListForKeyRole(
-    prisonId: String,
-    roleCode: String? = "KEY_WORK",
-  ) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(201)
-            .withBody("[]"),
-        ),
-    )
-  }
-
-  fun stubAccessCodeListForKeyAdminRole(
-    prisonId: String,
-    roleCode: String? = "KW_ADMIN",
-  ) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/users/access-roles/caseload/$prisonId/access-role/$roleCode"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(201)
-            .withBody("[]"),
-        ),
-    )
-  }
-
   fun stubHealthOKResponse() {
     stubFor(
       WireMock
@@ -86,7 +35,7 @@ class PrisonMockServer : WireMockServer(9999) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withFixedDelay(3000)
+            .withFixedDelay(1000)
             .withBody("""{"status":"UP","HttpStatus":200}"""),
         ),
     )
@@ -110,7 +59,7 @@ class PrisonMockServer : WireMockServer(9999) {
   fun stubKeyworkerDetails(
     prisonCode: String,
     staffId: Long,
-    staffDetail: StaffLocationRoleDto?,
+    staffDetail: NomisStaffRole?,
   ) {
     stubFor(
       WireMock
@@ -128,7 +77,7 @@ class PrisonMockServer : WireMockServer(9999) {
 
   fun stubKeyworkerSearch(
     prisonCode: String,
-    response: List<StaffLocationRoleDto>,
+    response: List<NomisStaffRole>,
   ) {
     stubFor(
       WireMock

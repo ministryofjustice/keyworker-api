@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
@@ -32,11 +31,6 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
         ),
     )
   }
-
-  fun stubGetAllStaff(
-    prisonCode: String,
-    response: NomisStaffMembers,
-  ) = stubGetUserStaff(prisonCode, response, StaffSearchRequest(null, StaffStatus.ACTIVE, null))
 
   fun stubGetUserStaff(
     prisonCode: String,

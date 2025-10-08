@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
+import uk.gov.justice.digital.hmpps.keyworker.dto.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaff
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -25,29 +26,32 @@ object NomisStaffGenerator {
 
   fun fromStaffIds(staffIds: List<Long>): List<NomisStaff> = staffIds.map { generate(it) }
 
-  fun staffLocationRole(
-    staffId: Long,
+  fun nomisStaffRole(
+    staffId: Long = newId(),
+    firstName: (Long) -> String = { "First Name $it" },
+    lastName: (Long) -> String = { "Last Name $it" },
+    position: String = positionTypes.random(),
+    scheduleType: String = scheduleTypes.random(),
+    hoursPerWeek: BigDecimal = BigDecimal.valueOf(37.5),
+    fromDate: LocalDate = LocalDate.now().minusDays(staffId * 64),
     toDate: LocalDate? = null,
-    firstname: (Long) -> String = { "First Name $it" },
-    lastName: (Long) -> String = { "Last Name $it" },
-  ): StaffLocationRoleDto =
-    StaffLocationRoleDto
-      .builder()
-      .staffId(staffId)
-      .firstName(firstname(staffId))
-      .lastName(lastName(staffId))
-      .position(positionTypes.random())
-      .scheduleType(scheduleTypes.random())
-      .hoursPerWeek(BigDecimal.valueOf(37.5))
-      .fromDate(LocalDate.now().minusDays(staffId * 64))
-      .toDate(toDate)
-      .build()
+  ): NomisStaffRole =
+    NomisStaffRole(
+      staffId,
+      firstName(staffId),
+      lastName(staffId),
+      position,
+      scheduleType,
+      hoursPerWeek,
+      fromDate,
+      toDate,
+    )
 
-  fun staffRoles(
+  fun nomisStaffRoles(
     staffIds: List<Long>,
-    firstname: (Long) -> String = { "First Name $it" },
+    firstName: (Long) -> String = { "First Name $it" },
     lastName: (Long) -> String = { "Last Name $it" },
-  ): List<StaffLocationRoleDto> = staffIds.map { staffLocationRole(it, null, firstname, lastName) }
+  ): List<NomisStaffRole> = staffIds.map { nomisStaffRole(it, firstName = firstName, lastName = lastName) }
 
-  fun staffSummaries(staffIds: Set<Long>): List<StaffSummary> = staffIds.map { StaffSummary(it, "First$it", "Last$it") }
+  fun staffSummaries(staffIds: Set<Long>): List<StaffSummary> = staffIds.map { StaffSummary(it, "First Name $it", "Last Name $it") }
 }

@@ -4,13 +4,13 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.keyworker.services.ComplexOffender
+import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
 class ComplexityOfNeedMockServer : WireMockServer(10000) {
   fun stubComplexOffenders(
     personIdentifiers: Set<String>,
-    response: List<ComplexOffender>,
+    response: List<ComplexityOfNeed>,
   ) {
     stubFor(
       WireMock

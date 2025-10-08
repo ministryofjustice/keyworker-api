@@ -16,8 +16,8 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.dto.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocation
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecommendedAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
 import java.time.LocalDateTime
 import java.util.SortedSet
 import java.util.TreeSet
@@ -79,7 +79,7 @@ class AllocationRecommender(
     val staffIds = staff.map { it.staffId }.toSet()
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, staffIds).associateBy { it.staffId }
     val autoAllocations = allocationRepository.findLatestAutoAllocationsFor(staffIds).associateBy { it.staffId }
-    val activeStatus = lazy { requireNotNull(referenceDataRepository.findByKey(STAFF_STATUS of ACTIVE.name)) }
+    val activeStatus = lazy { requireNotNull(referenceDataRepository.findByKey(STAFF_STATUS of StaffStatus.ACTIVE.name)) }
     return staff
       .map {
         val staffInfo = staffInfo[it.staffId]
@@ -91,7 +91,7 @@ class AllocationRecommender(
           autoAllocations[it.staffId]?.allocatedAt,
           staffInfo?.staffConfig?.status ?: activeStatus.value,
         )
-      }.filter { it.status.code == ACTIVE.name }
+      }.filter { it.status.code == StaffStatus.ACTIVE.name }
       .sortedForAllocation()
   }
 }

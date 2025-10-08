@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.dto.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.time.LocalDate
 
 class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
@@ -41,7 +41,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `can retrieve all job classification policies for a staff member`() {
     val prisonCode = "AJC"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId))
 
@@ -60,7 +60,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `can retrieve all job classification policies for a keyworker`() {
     val prisonCode = "KJC"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
 
     val res =
       getStaffJobClassifications(prisonCode, staffId)
@@ -96,7 +96,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `only retrieve active job classification policies for a staff member`() {
     val prisonCode = "AJC"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(listOf(staffId)))
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId, toDate = LocalDate.now()))
 

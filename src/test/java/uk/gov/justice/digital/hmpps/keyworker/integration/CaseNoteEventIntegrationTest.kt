@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseN
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType.CaseNoteUpdated
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer.Companion.caseNote
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit

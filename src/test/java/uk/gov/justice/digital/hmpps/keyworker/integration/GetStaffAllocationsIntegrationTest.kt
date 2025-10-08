@@ -9,10 +9,10 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffAllocationHistory
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
@@ -45,7 +45,15 @@ class GetStaffAllocationsIntegrationTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "AHP"
     val prisonNumber = personIdentifier()
-    val staffConfig = (0..4).map { givenStaffConfig(staffConfig(StaffStatus.entries.random(), capacity = 10)) }
+    val staffConfig =
+      (0..4).map {
+        givenStaffConfig(
+          staffConfig(
+            StaffStatus.entries.filter { it != StaffStatus.ALL }.random(),
+            capacity = 10,
+          ),
+        )
+      }
 
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Indicated Prison")))
 

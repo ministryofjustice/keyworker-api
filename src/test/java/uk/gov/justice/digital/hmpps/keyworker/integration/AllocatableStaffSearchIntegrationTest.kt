@@ -17,15 +17,15 @@ import uk.gov.justice.digital.hmpps.keyworker.dto.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.dto.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.dto.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.dto.ReportingPeriod
-import uk.gov.justice.digital.hmpps.keyworker.dto.StaffLocationRoleDto
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus.ACTIVE
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.dto.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.ACTIVE
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffRoles
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -61,7 +61,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     val request = searchRequest(query = "First")
     prisonMockServer.stubStaffSummaries(staffIds.map { StaffSummary(it, "First $it", "Last $it") })
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds))
     } else {
       staffIds.forEach {
         givenStaffRole(staffRole(prisonCode, it))
@@ -218,7 +218,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     val request = searchRequest(status = StaffStatus.ALL)
     prisonMockServer.stubStaffSummaries(staffIds.map { StaffSummary(it, "First $it", "Last $it") })
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds))
     } else {
       staffIds.forEach {
         givenStaffRole(staffRole(prisonCode, it))
@@ -279,16 +279,15 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       prisonMockServer.stubKeyworkerSearch(
         prisonCode,
         listOf(
-          StaffLocationRoleDto
-            .builder()
-            .staffId(staffId)
-            .firstName("No")
-            .lastName("Config")
-            .position("PRO")
-            .scheduleType("FT")
-            .hoursPerWeek(BigDecimal(34.5))
-            .fromDate(LocalDate.now().minusDays(7))
-            .build(),
+          nomisStaffRole(
+            staffId,
+            position = "PRO",
+            scheduleType = "FT",
+            firstName = { "No" },
+            lastName = { "Config" },
+            hoursPerWeek = BigDecimal.valueOf(34.5),
+            fromDate = LocalDate.now().minusDays(7),
+          ),
         ),
       )
     } else {
@@ -361,7 +360,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     val forename = { id: Long -> if (si[id]!! % 2 == 0) "John" else "Jane" }
     val surname = { id: Long -> if (si[id]!! % 4 == 0) "Smith" else "Doe" }
     if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staffRoles(staffIds, forename, surname))
+      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds, forename, surname))
     } else {
       prisonMockServer.stubStaffSummaries(staffIds.map { StaffSummary(it, forename(it), surname(it)) })
       staffIds.forEach {
@@ -411,7 +410,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
 
   private fun searchRequest(
     query: String? = null,
-    status: StaffStatus = StaffStatus.ACTIVE,
+    status: StaffStatus = ACTIVE,
   ) = AllocatableSearchRequest(query, status)
 
   private fun searchStaffSpec(

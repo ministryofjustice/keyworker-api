@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.CaseNoteMigrati
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.PersonReference
+import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer.Companion.caseNote
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime.now
 import java.time.temporal.ChronoUnit
@@ -51,7 +52,7 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
         )
       }
 
-    caseNotesMockServer.stubGetAllocationCaseNotes(personIdentifier, CaseNotes(kwNotes + poNotes))
+    caseNotesMockServer.stubSearchCaseNotes(personIdentifier, CaseNotes(kwNotes + poNotes))
 
     publishEventToTopic(migrateEvent(personIdentifier))
 
@@ -87,7 +88,7 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
       val rdMap = caseNoteRecordedEventRepository.findAll().associateBy { it.key }
       val getType: (String, String) -> CaseNoteRecordedEvent =
         { type, subtype -> requireNotNull(rdMap[CaseNoteTypeKey(type, subtype)]) }
-      caseNotesMockServer.stubGetAllocationCaseNotes(personIdentifier, CaseNotes(caseNotes))
+      caseNotesMockServer.stubSearchCaseNotes(personIdentifier, CaseNotes(caseNotes))
       givenRecordedEvent(caseNotes[3].copy(occurredAt = now().minusWeeks(52)).asRecordedEvent(getType))
       givenRecordedEvent(caseNotes[5].copy(occurredAt = now().minusWeeks(54)).asRecordedEvent(getType))
       givenRecordedEvent(caseNotes[8].copy(occurredAt = now().minusWeeks(56)).asRecordedEvent(getType))

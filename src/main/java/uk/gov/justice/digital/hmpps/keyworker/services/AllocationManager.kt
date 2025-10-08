@@ -17,12 +17,12 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.dto.AllocationReason
+import uk.gov.justice.digital.hmpps.keyworker.dto.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.dto.PersonStaffAllocations
+import uk.gov.justice.digital.hmpps.keyworker.dto.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason.AUTO
-import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason.OVERRIDE
-import uk.gov.justice.digital.hmpps.keyworker.model.StaffStatus
 import java.time.LocalDateTime
 
 @Transactional
@@ -65,7 +65,7 @@ class AllocationManager(
         if (existing?.staffId == it.staffId) {
           null
         } else {
-          existing?.deallocate(rdSupplier(DEALLOCATION_REASON, OVERRIDE.reasonCode))
+          existing?.deallocate(rdSupplier(DEALLOCATION_REASON, DeallocationReason.OVERRIDE.name))
           newAllocation(
             prisonCode,
             it.staffId,
@@ -152,9 +152,10 @@ class AllocationManager(
 
   private fun PersonStaffAllocations.referenceDataKeys(): Set<ReferenceDataKey> {
     val allocationReasons =
-      (allocations.map { ALLOCATION_REASON of it.allocationReason } + (ALLOCATION_REASON of AUTO.reasonCode)).toSet()
+      (allocations.map { ALLOCATION_REASON of it.allocationReason } + (ALLOCATION_REASON of AllocationReason.AUTO.name)).toSet()
     val deallocationReasons =
-      (deallocations.map { DEALLOCATION_REASON of it.deallocationReason } + (DEALLOCATION_REASON of OVERRIDE.reasonCode)).toSet()
+      (deallocations.map { DEALLOCATION_REASON of it.deallocationReason } + (DEALLOCATION_REASON of DeallocationReason.OVERRIDE.name))
+        .toSet()
     return allocationReasons + deallocationReasons
   }
 

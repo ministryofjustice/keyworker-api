@@ -7,47 +7,19 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.NoteUsageResponse
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.SearchCaseNotes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdRequest
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByAuthorIdResponse
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierRequest
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.UsageByPersonIdentifierResponse
+import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import java.time.LocalDateTime
+import java.util.UUID
 
 class CaseNotesMockServer : WireMockServer(9997) {
-  fun stubUsageByPersonIdentifier(
-    request: UsageByPersonIdentifierRequest,
-    response: NoteUsageResponse<UsageByPersonIdentifierResponse>,
-  ): StubMapping =
-    stubFor(
-      post("/case-notes/usage")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(request), true, true))
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(response))
-            .withStatus(200),
-        ),
-    )
-
-  fun stubUsageByStaffIds(
-    request: UsageByAuthorIdRequest,
-    response: NoteUsageResponse<UsageByAuthorIdResponse>,
-  ): StubMapping =
-    stubFor(
-      post("/case-notes/staff-usage")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(request), true, true))
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(response))
-            .withStatus(200),
-        ),
-    )
-
   fun stubGetCaseNote(caseNote: CaseNote): StubMapping =
     stubFor(
       get("/case-notes/${caseNote.personIdentifier}/${caseNote.id}")
@@ -59,7 +31,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
         ),
     )
 
-  fun stubGetAllocationCaseNotes(
+  fun stubSearchCaseNotes(
     personIdentifier: String,
     response: CaseNotes,
   ): StubMapping =
@@ -90,4 +62,33 @@ class CaseNotesMockServer : WireMockServer(9997) {
             .withStatus(200),
         ),
     )
+
+  companion object {
+    fun caseNote(
+      subType: String,
+      type: String = KW_TYPE,
+      personIdentifier: String = personIdentifier(),
+      occurredAt: LocalDateTime = LocalDateTime.now().minusDays(1),
+      staffId: Long = newId(),
+      staffUsername: String = NomisIdGenerator.username(),
+      prisonCode: String = "LEI",
+      createdAt: LocalDateTime = LocalDateTime.now(),
+      text: String = "Some notes about the Recorded Event",
+      amendments: List<CaseNoteAmendment> = listOf(),
+      id: UUID = IdGenerator.newUuid(),
+    ): CaseNote =
+      CaseNote(
+        id,
+        type,
+        subType,
+        occurredAt,
+        personIdentifier,
+        staffId,
+        staffUsername,
+        prisonCode,
+        createdAt,
+        text,
+        amendments,
+      )
+  }
 }
