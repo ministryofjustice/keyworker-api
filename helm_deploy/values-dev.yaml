@@ -5,7 +5,7 @@ generic-service:
 
  env:
   SENTRY_ENVIRONMENT: dev
-  PRISON_URI_ROOT: "https://prison-api-dev.prison.service.justice.gov.uk"
+  PRISON_API_URI_ROOT: "https://prison-api-dev.prison.service.justice.gov.uk"
   MANAGE_USERS_API_URI_ROOT: "https://manage-users-api-dev.hmpps.service.justice.gov.uk"
   CASE_NOTES_API_URI_ROOT: "https://dev.offender-case-notes.service.justice.gov.uk"
   PRISONER_SEARCH_API_URI_ROOT: "https://prisoner-search-dev.prison.service.justice.gov.uk"
