@@ -77,12 +77,9 @@ interface ReferenceDataRepository : JpaRepository<ReferenceData, Long> {
 }
 
 fun ReferenceDataRepository.getReferenceData(key: ReferenceDataKey) =
-  findByKey(key)
-    ?: throw EntityNotFoundException("Reference data not found")
+  findByKey(key) ?: throw EntityNotFoundException("Reference data not found")
 
 fun ReferenceData?.toKeyworkerStatusCodedDescription(): CodedDescription =
-  this?.let {
-    CodedDescription(code, description())
-  } ?: CodedDescription("ACTIVE", "Active")
+  this?.let { CodedDescription(code, description()) } ?: CodedDescription("ACTIVE", "Active")
 
 fun ReferenceData.asCodedDescription(): CodedDescription = CodedDescription(code, description())

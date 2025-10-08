@@ -12,13 +12,10 @@ class SecurityConfig {
       unauthorizedRequestPaths {
         addPaths =
           setOf(
-            "/webjars/**",
             "/favicon.ico",
-            "/csrf",
             "/health/**",
             "/*/info",
             "/info",
-            "/ping",
             "/v3/api-docs/**",
             "/swagger-ui.html",
             "/swagger-ui/**",
