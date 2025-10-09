@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import org.springframework.http.ResponseEntity
@@ -14,7 +15,8 @@ import uk.gov.justice.digital.hmpps.keyworker.services.GetCurrentAllocations
 class DeprecatedEndpointController(
   private val allocations: GetCurrentAllocations,
 ) {
-  @GetMapping("/offender/{offenderNo}")
+  @Operation(deprecated = true)
+  @GetMapping("/key-worker/offender/{offenderNo}")
   fun deprecatedGetOffendersKeyworker(
     @PathVariable("offenderNo") personIdentifier: String,
   ): ResponseEntity<BasicKeyworkerInfo> =
