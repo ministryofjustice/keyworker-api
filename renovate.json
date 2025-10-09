@@ -10,51 +10,6 @@
       "groupSlug": "all-gradle-minor-patch",
       "autoApprove": true,
       "automerge": true
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.apache.camel.springboot:camel-spring-boot"],
-      "allowedVersions": "3.20.4"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.apache.camel:camel-quartz"],
-      "allowedVersions": "3.20.4"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.apache.camel:camel-direct"],
-      "allowedVersions": "3.20.4"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.apache.camel:camel-bean"],
-      "allowedVersions": "3.20.4"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.apache.camel:camel-test-spring"],
-      "allowedVersions": "3.20.4"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.spockframework:spock-spring"],
-      "allowedVersions": "2.0-groovy-3.0"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.spockframework:spock-core"],
-      "allowedVersions": "2.0-groovy-3.0"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.gebish:geb-core"],
-      "allowedVersions": "6.0"
-    },
-    {
-      "matchDatasources": ["maven"],
-      "matchPackageNames": ["org.gebish:geb-spock"],
-      "allowedVersions": "6.0"
     }
   ]
 }

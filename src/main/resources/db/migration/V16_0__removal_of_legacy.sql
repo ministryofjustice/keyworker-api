@@ -1,0 +1,1 @@
+create index if not exists recorded_event_audit_pkey on recorded_event_audit (rev_id, id);
