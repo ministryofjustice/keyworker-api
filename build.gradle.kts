@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
-  id("io.gatling.gradle") version "3.14.5"
+  id("io.gatling.gradle") version "3.14.5.1"
   jacoco
 }
 
@@ -17,13 +17,13 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework:spring-webflux")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.11")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.5.0")
   implementation("io.swagger:swagger-annotations:1.6.16")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
   implementation("io.opentelemetry:opentelemetry-api:1.54.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.1")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.22.0")
-  implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.23.0")
+  implementation("com.fasterxml.uuid:java-uuid-generator:5.1.1")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.11.0")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
