@@ -334,6 +334,10 @@
             <parent catalog="keyworker-api-db" column="code" foreignKey="recorded_event_audit_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="type_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5"/>
+         <index name="recorded_event_audit_pkey" unique="false">
+            <column ascending="true" name="rev_id"/>
+            <column ascending="true" name="id"/>
+         </index>
       </table>
       <table catalog="keyworker-api-db" name="reference_data" numRows="60" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
