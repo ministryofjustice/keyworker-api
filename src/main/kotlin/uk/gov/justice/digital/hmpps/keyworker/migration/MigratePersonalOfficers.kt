@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
@@ -144,7 +143,6 @@ class MigratePersonalOfficers(
     assigned,
     deallocatedAt == null,
     allocationReason(AllocationReason.MANUAL.name),
-    AllocationType.MANUAL,
     userId,
     deallocatedAt,
     deallocationReasonCode?.let { deallocationReason(it) },

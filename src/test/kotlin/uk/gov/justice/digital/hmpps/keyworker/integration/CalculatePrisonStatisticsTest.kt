@@ -9,8 +9,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.AUTO
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.MANUAL
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
@@ -69,7 +67,6 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
             prisonCode,
             (staff + additionalStaff).filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) AUTO else MANUAL,
           ),
         )
       }
@@ -179,7 +176,6 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
             prisonCode,
             keyworkers.filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) AUTO else MANUAL,
           ),
         )
       }

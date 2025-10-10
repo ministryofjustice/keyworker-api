@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonAlert
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
@@ -76,7 +75,6 @@ class PersonSearchIntegrationTest : IntegrationTest() {
               p.prisonerNumber,
               prisonCode,
               staffId,
-              allocationType = AllocationType.AUTO,
               active = activeAllocation,
               deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
               deallocatedBy = if (activeAllocation) null else "DA$index",
@@ -154,7 +152,6 @@ class PersonSearchIntegrationTest : IntegrationTest() {
               p.prisonerNumber,
               prisonCode,
               staffIds.random(),
-              allocationType = AllocationType.AUTO,
               active = activeAllocation,
               deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
               deallocatedBy = if (activeAllocation) null else "DA$index",
@@ -225,7 +222,6 @@ class PersonSearchIntegrationTest : IntegrationTest() {
             p.prisonerNumber,
             prisonCode,
             staffIds.random(),
-            allocationType = AllocationType.AUTO,
             active = activeAllocation,
             deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
             deallocatedBy = if (activeAllocation) null else "DA$index",
