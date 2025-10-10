@@ -30,8 +30,6 @@ class PrisonConfiguration(
   var allowAutoAllocation: Boolean,
   @Column(name = "capacity")
   var capacity: Int,
-  @Column(name = "maximum_capacity")
-  var maximumCapacity: Int,
   @Column(name = "frequency_in_weeks")
   var frequencyInWeeks: Int,
   @Column(name = "has_prisoners_with_high_complexity_needs")
@@ -50,7 +48,7 @@ class PrisonConfiguration(
   fun update(request: PrisonConfigRequest) =
     apply {
       enabled = request.isEnabled
-      maximumCapacity = request.capacity
+      capacity = request.capacity
       allowAutoAllocation = request.allowAutoAllocation
       frequencyInWeeks = request.frequencyInWeeks
       request.hasPrisonersWithHighComplexityNeeds?.also { hasPrisonersWithHighComplexityNeeds = it }
@@ -65,8 +63,7 @@ class PrisonConfiguration(
       code,
       enabled = true,
       allowAutoAllocation = true,
-      capacity = 6,
-      maximumCapacity = 9,
+      capacity = 9,
       frequencyInWeeks = 1,
       hasPrisonersWithHighComplexityNeeds = false,
       allocationOrder = AllocationOrder.BY_ALLOCATIONS,

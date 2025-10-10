@@ -24,7 +24,6 @@ data class AllocationStaff(
   val firstName: String,
   val lastName: String,
   val status: CodedDescription,
-  val allowAutoAllocation: Boolean,
   val capacity: Int,
   val allocated: Int,
 )

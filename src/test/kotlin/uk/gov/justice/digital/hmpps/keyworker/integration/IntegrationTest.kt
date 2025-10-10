@@ -342,11 +342,6 @@ abstract class IntegrationTest {
     )
   }
 
-  protected fun getWiremockResponse(
-    prisonId: String,
-    fileName: String,
-  ) = "/wiremock-stub-responses/$prisonId/$fileName.json".readFile()
-
   protected fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
 
   protected fun prisonConfig(
@@ -362,7 +357,6 @@ abstract class IntegrationTest {
     code,
     enabled,
     allowAutoAllocation,
-    6,
     capacity,
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds,
@@ -376,7 +370,6 @@ abstract class IntegrationTest {
         enabled = prisonConfig.enabled
         allowAutoAllocation = prisonConfig.allowAutoAllocation
         capacity = prisonConfig.capacity
-        maximumCapacity = prisonConfig.maximumCapacity
         frequencyInWeeks = prisonConfig.frequencyInWeeks
         hasPrisonersWithHighComplexityNeeds = prisonConfig.hasPrisonersWithHighComplexityNeeds
         allocationOrder = prisonConfig.allocationOrder
@@ -414,12 +407,10 @@ abstract class IntegrationTest {
     status: StaffStatus,
     staffId: Long = newId(),
     capacity: Int = 6,
-    allowAutoAllocation: Boolean = true,
     reactivateOn: LocalDate? = null,
   ) = StaffConfiguration(
     withReferenceData(STAFF_STATUS, status.name),
     capacity,
-    allowAutoAllocation,
     reactivateOn,
     staffId,
   )

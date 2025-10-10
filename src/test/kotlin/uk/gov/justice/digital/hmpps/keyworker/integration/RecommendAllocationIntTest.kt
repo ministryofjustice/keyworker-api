@@ -56,7 +56,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     } else {
       givenStaffRole(staffRole(prisonCode, staff.staffId))
     }
-    givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staff.staffId, 10, allowAutoAllocation = true))
+    givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staff.staffId, 10))
 
     val res =
       getAllocationRecommendations(prisonCode, policy)
@@ -352,7 +352,6 @@ class RecommendAllocationIntTest : IntegrationTest() {
         staff[0].firstName,
         staff[0].lastName,
         CodedDescription("ACTIVE", "Active"),
-        true,
         6,
         0,
       ),
@@ -361,7 +360,6 @@ class RecommendAllocationIntTest : IntegrationTest() {
         staff[1].firstName,
         staff[1].lastName,
         CodedDescription("ACTIVE", "Active"),
-        true,
         12,
         0,
       ),

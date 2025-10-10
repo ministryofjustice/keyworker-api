@@ -28,7 +28,6 @@ data class StaffSearchResult(
   val status: CodedDescription,
   val capacity: Int,
   val allocated: Int,
-  val allowAutoAllocation: Boolean,
   val numberOfSessions: Int,
   val numberOfEntries: Int,
   val staffRole: StaffRoleInfo?,

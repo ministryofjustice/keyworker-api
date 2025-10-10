@@ -78,7 +78,6 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
     assertThat(staffConfig.capacity).isEqualTo(100)
     assertThat(staffConfig.status.code).isEqualTo("ACTIVE")
-    assertThat(staffConfig.allowAutoAllocation).isEqualTo(true)
     assertThat(staffConfig.reactivateOn).isNull()
 
     verifyAudit(

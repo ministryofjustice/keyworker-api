@@ -74,7 +74,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
         if (index % 5 == 0) {
           null
         } else {
-          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6))
         }
       }
 
@@ -134,7 +134,6 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content.map { it.status.code }.toSet()).containsOnly(ACTIVE.name)
 
     assertThat(response.content[0].staffId).isEqualTo(staffIds[0])
-    assertThat(response.content[0].allowAutoAllocation).isEqualTo(false)
     assertThat(response.content[0].allocated).isEqualTo(0)
     assertThat(response.content[0].numberOfSessions).isEqualTo(0)
     assertThat(response.content[0].numberOfEntries).isEqualTo(0)
@@ -142,19 +141,16 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content.find { it.staffId == staffIds[3] }).isNull()
 
     assertThat(response.content[4].staffId).isEqualTo(staffIds[5])
-    assertThat(response.content[4].allowAutoAllocation).isEqualTo(false)
     assertThat(response.content[4].allocated).isEqualTo(0)
     assertThat(response.content[4].numberOfSessions).isEqualTo(0)
     assertThat(response.content[4].numberOfEntries).isEqualTo(0)
 
     assertThat(response.content[5].staffId).isEqualTo(staffIds[7])
-    assertThat(response.content[5].allowAutoAllocation).isEqualTo(true)
     assertThat(response.content[5].allocated).isEqualTo(6)
     assertThat(response.content[5].numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 6 else 0)
     assertThat(response.content[5].numberOfEntries).isEqualTo(3)
 
     assertThat(response.content[6].staffId).isEqualTo(staffIds[8])
-    assertThat(response.content[6].allowAutoAllocation).isEqualTo(true)
     assertThat(response.content[6].allocated).isEqualTo(7)
     assertThat(response.content[6].numberOfSessions).isEqualTo(if (policy == AllocationPolicy.KEY_WORKER) 7 else 0)
     assertThat(response.content[6].numberOfEntries).isEqualTo(4)
@@ -184,7 +180,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
         if (index % 5 == 0) {
           null
         } else {
-          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6))
         }
       }
 
@@ -338,7 +334,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
         if (index % 5 == 0) {
           null
         } else {
-          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6))
         }
       }
 
