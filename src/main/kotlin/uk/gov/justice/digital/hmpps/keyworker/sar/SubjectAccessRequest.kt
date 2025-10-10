@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PolicyRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
@@ -28,7 +28,7 @@ class SubjectAccessRequest(
     val allocations =
       AllocationPolicy.entries
         .map {
-          ach.setContext(AllocationContext.get().copy(policy = it))
+          AllocationContext.get().copy(policy = it).set()
           allocationRepository.findAllocationsForSar(prn, fromDate?.atStartOfDay(), toDate?.atStartOfDay()?.plusDays(1))
         }.flatten()
     val policyMap = policyRepository.findAll().associateBy(Policy::code)
@@ -52,13 +52,8 @@ class SubjectAccessRequest(
     allocatedAt,
     deallocatedAt,
     prisonCode,
-    when (allocationType) {
-      AllocationType.AUTO -> "Automatic"
-      AllocationType.MANUAL -> "Manual"
-    },
     allocationReason.description(),
     deallocationReason?.description(),
-    getStaff(staffId),
     getStaff(staffId),
     getPolicy(policy).asCodedDescription(),
   )

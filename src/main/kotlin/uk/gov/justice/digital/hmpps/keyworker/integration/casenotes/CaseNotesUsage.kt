@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType.ENTRY
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType.SESSION
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 enum class DateType {
@@ -27,57 +25,7 @@ data class UsageByPersonIdentifierRequest(
   val authorIds: Set<String> = setOf(),
   val prisonCode: String? = null,
   val dateType: DateType = DateType.OCCURRED_AT,
-) {
-  companion object {
-    fun keyworkerTypes(
-      prisonCode: String?,
-      personIdentifiers: Set<String>,
-      from: LocalDateTime,
-      to: LocalDateTime = from.plusDays(1),
-      authorIds: Set<String> = setOf(),
-    ): UsageByPersonIdentifierRequest =
-      UsageByPersonIdentifierRequest(
-        personIdentifiers,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_ENTRY_SUBTYPE, KW_SESSION_SUBTYPE))),
-        from = from,
-        to = to,
-        authorIds = authorIds,
-        prisonCode = prisonCode,
-      )
-
-    fun personalOfficerTypes(
-      prisonCode: String?,
-      personIdentifiers: Set<String>,
-      from: LocalDateTime,
-      to: LocalDateTime = from.plusDays(1),
-      authorIds: Set<String> = setOf(),
-    ): UsageByPersonIdentifierRequest =
-      UsageByPersonIdentifierRequest(
-        personIdentifiers,
-        setOf(TypeSubTypeRequest(PO_ENTRY_TYPE, setOf(PO_ENTRY_SUBTYPE))),
-        from = from,
-        to = to,
-        authorIds = authorIds,
-        prisonCode = prisonCode,
-      )
-
-    fun sessionTypes(
-      prisonCode: String?,
-      personIdentifiers: Set<String>,
-      from: LocalDate,
-      to: LocalDate = from.plusDays(1),
-      staffIds: Set<String> = setOf(),
-    ): UsageByPersonIdentifierRequest =
-      UsageByPersonIdentifierRequest(
-        personIdentifiers,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_SESSION_SUBTYPE))),
-        from = from.atStartOfDay(),
-        to = to.atStartOfDay(),
-        prisonCode = prisonCode,
-        authorIds = staffIds,
-      )
-  }
-}
+)
 
 data class UsageByPersonIdentifierResponse(
   val personIdentifier: String,
@@ -94,27 +42,7 @@ data class UsageByAuthorIdRequest(
   val to: LocalDateTime? = null,
   val prisonCode: String? = null,
   val dateType: DateType = DateType.CREATED_AT,
-) {
-  companion object {
-    fun lastMonthSessions(authorIds: Set<String>): UsageByAuthorIdRequest =
-      UsageByAuthorIdRequest(
-        authorIds,
-        setOf(TypeSubTypeRequest(KW_TYPE, setOf(KW_SESSION_SUBTYPE))),
-        LocalDate.now().atStartOfDay().minusMonths(1),
-        LocalDate.now().atStartOfDay(),
-      )
-
-    fun lastMonthEntries(authorIds: Set<String>): UsageByAuthorIdRequest {
-      val entryConfig = AllocationContext.get().policy.entryConfig
-      return UsageByAuthorIdRequest(
-        authorIds,
-        setOf(TypeSubTypeRequest(entryConfig.type, setOf(entryConfig.subType))),
-        LocalDate.now().atStartOfDay().minusMonths(1),
-        LocalDate.now().atStartOfDay(),
-      )
-    }
-  }
-}
+)
 
 data class UsageByAuthorIdResponse(
   val authorId: String,

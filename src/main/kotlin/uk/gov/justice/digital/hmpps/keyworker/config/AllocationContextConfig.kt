@@ -35,17 +35,17 @@ class KeyworkerContextConfiguration(
 }
 
 @Configuration
-class KeyworkerContextInterceptor(
-  private val ach: AllocationContextHolder,
-) : HandlerInterceptor {
+class KeyworkerContextInterceptor : HandlerInterceptor {
   override fun preHandle(
     request: HttpServletRequest,
     response: HttpServletResponse,
     handler: Any,
   ): Boolean {
-    ach.setContext(
-      AllocationContext(username = getUsername(), activeCaseloadId = request.caseloadId(), policy = request.policy()),
-    )
+    AllocationContext(
+      username = getUsername(),
+      activeCaseloadId = request.caseloadId(),
+      policy = request.policy(),
+    ).set()
 
     return true
   }
@@ -56,7 +56,7 @@ class KeyworkerContextInterceptor(
     handler: Any,
     modelAndView: ModelAndView?,
   ) {
-    ach.clearContext()
+    AllocationContext.clear()
     super.postHandle(request, response, handler, modelAndView)
   }
 

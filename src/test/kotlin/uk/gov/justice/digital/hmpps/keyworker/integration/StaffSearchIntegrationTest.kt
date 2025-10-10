@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
@@ -191,7 +190,6 @@ class StaffSearchIntegrationTest : IntegrationTest() {
             personIdentifier(),
             prisonCode,
             kw.staffId,
-            allocationType = if (index == 7 && it == 7) AllocationType.MANUAL else AllocationType.AUTO,
           ),
         )
       }
@@ -346,7 +344,6 @@ class StaffSearchIntegrationTest : IntegrationTest() {
               personIdentifier(),
               prisonCode,
               kw.staffId,
-              allocationType = if (index == 7 && it == 7) AllocationType.MANUAL else AllocationType.AUTO,
             ),
           )
         }

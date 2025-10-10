@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
 @Transactional
 @Service
 class PrisonService(
-  private val ach: AllocationContextHolder,
   private val prisonConfig: PrisonConfigurationRepository,
   private val prisonRegister: PrisonRegisterClient,
 ) {
@@ -59,7 +58,7 @@ class PrisonService(
         .associateBy { it.policy }
     return prison.policies
       .map { pe ->
-        ach.setContext(AllocationContext.get().copy(policy = pe.policy))
+        AllocationContext.get().copy(policy = pe.policy).set()
         prisonConfig.save(
           configs[pe.policy.name]?.apply {
             enabled = pe.enabled
