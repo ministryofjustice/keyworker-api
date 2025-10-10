@@ -5,6 +5,7 @@ import org.springframework.transaction.support.TransactionTemplate
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
@@ -15,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDom
 
 @Service
 class MigrateRecordedEvents(
-  private val ach: AllocationContextHolder,
   private val caseNoteRecordedEventMapping: CaseNoteRecordedEventRepository,
   private val caseNoteApi: CaseNotesApiClient,
   private val recordedEventRepository: RecordedEventRepository,
@@ -25,7 +25,7 @@ class MigrateRecordedEvents(
     val rd =
       AllocationPolicy.entries
         .flatMap { policy ->
-          ach.setContext(AllocationContext.get().copy(policy = policy))
+          AllocationContext.get().copy(policy = policy).set()
           caseNoteRecordedEventMapping.findAll()
         }.associateBy { it.key }
     event.personReference.nomsNumber()?.also { pi ->
@@ -38,7 +38,7 @@ class MigrateRecordedEvents(
           }.groupBy({ AllocationPolicy.valueOf(it.first) }, { it.second })
       recordedEventRepository.deleteAllByPersonIdentifier(pi)
       AllocationPolicy.entries.forEach { policy ->
-        ach.setContext(AllocationContext.get().copy(policy = policy))
+       AllocationContext.get().copy(policy = policy).set()
         transactionTemplate.execute {
           val trd = caseNoteRecordedEventMapping.findAll().associateBy { it.key }
           notesByPolicy[policy]?.takeIf { it.isNotEmpty() }?.let { notes ->

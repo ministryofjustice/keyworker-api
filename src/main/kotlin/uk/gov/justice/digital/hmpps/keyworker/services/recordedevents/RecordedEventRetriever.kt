@@ -2,8 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.services.recordedevents
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent as RecordedEventEntity
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
@@ -16,11 +17,9 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.services.asCodedDescription
 import java.time.LocalDate
-import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent as RecordedEventEntity
 
 @Service
 class RecordedEventRetriever(
-  private val ach: AllocationContextHolder,
   private val rer: RecordedEventRepository,
 ) {
   fun findCaseNoteTotals(
@@ -98,7 +97,7 @@ class RecordedEventRetriever(
     policies: Set<String>,
   ): List<RecordedEventEntity> =
     policies.flatMap {
-      ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.valueOf(it)))
+      AllocationContext.get().copy(policy = AllocationPolicy.valueOf(it)).set()
       rer.findLatestRecordedEvents(personIdentifier)
     }
 }

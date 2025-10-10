@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
@@ -24,7 +24,6 @@ import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class PrisonStatisticCalculator(
-  private val contextHolder: AllocationContextHolder,
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeedApi: ComplexityOfNeedApiClient,
@@ -37,7 +36,7 @@ class PrisonStatisticCalculator(
 ) {
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
     with(info.additionalInformation) {
-      contextHolder.setContext(AllocationContext.get().copy(policy = policy))
+      AllocationContext.get().copy(policy = policy).set()
       val stats = statisticRepository.findByPrisonCodeAndDate(prisonCode, date)
 
       if (stats != null) return

@@ -128,7 +128,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .isNoContent
 
     if (policy.nomisUseRoleCode != null) {
-      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
+      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, policy.nomisUseRoleCode, nomisRequest!!)
     } else {
       val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
       assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
