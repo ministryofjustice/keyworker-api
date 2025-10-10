@@ -7,6 +7,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType.CalculatePrisonStats
@@ -37,7 +38,7 @@ class DomainEventListener(
 ) {
   @SqsListener("domaineventsqueue", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-complexity-event-queue", kind = SpanKind.SERVER)
-  fun eventListener(notification: Notification<String>) {
+  fun eventListener(notification: Notification<String>) = try {
     when (val eventType = EventType.from(notification.eventType)) {
       ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
       PrisonMerged -> {
@@ -55,7 +56,7 @@ class DomainEventListener(
       CaseNoteUpdated -> recordedEvent.update(information(notification))
       CaseNoteDeleted -> recordedEvent.delete(information(notification))
 
-      CaseNoteCreated, CaseNoteMoved -> return
+      CaseNoteCreated, CaseNoteMoved -> { /* no-op as not of interest */ }
 
       MigrateCaseNotes ->
         migrateRecordedEvents.handle(
@@ -64,6 +65,8 @@ class DomainEventListener(
 
       is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
     }
+  } finally {
+      AllocationContext.clear()
   }
 
   private fun information(notification: Notification<String>): PersonInformation {

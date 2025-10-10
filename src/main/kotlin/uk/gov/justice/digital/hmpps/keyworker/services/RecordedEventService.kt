@@ -4,20 +4,18 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.CaseNoteInformation
 
 @Service
 class RecordedEventService(
-  private val ach: AllocationContextHolder,
   private val cnTypeReTypeRepository: CaseNoteRecordedEventRepository,
   private val caseNoteApi: CaseNotesApiClient,
   private val caseNoteRepository: RecordedEventRepository,
@@ -26,7 +24,7 @@ class RecordedEventService(
   fun new(personInfo: PersonInformation) {
     getCaseNote(personInfo)?.let { caseNote ->
       cnTypeReTypeRepository.findPolicyFor(caseNote.type, caseNote.subType)?.let { policy ->
-        ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)))
+        AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)).set()
         transactionTemplate.execute {
           caseNote
             .asRecordedEvent { type, subType ->
@@ -40,7 +38,7 @@ class RecordedEventService(
 
   fun update(personInfo: PersonInformation) {
     caseNoteRepository.findPolicyForId(personInfo.info.id)?.let { policy ->
-      ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)))
+      AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)).set()
       transactionTemplate.execute {
         caseNoteRepository.findByIdOrNull(personInfo.info.id)?.also(caseNoteRepository::delete)
         new(personInfo)
@@ -50,7 +48,7 @@ class RecordedEventService(
 
   fun delete(personInfo: PersonInformation) {
     caseNoteRepository.findPolicyForId(personInfo.info.id)?.let { policy ->
-      ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)))
+      AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)).set()
       caseNoteRepository.findByIdOrNull(personInfo.info.id)?.also(caseNoteRepository::delete)
     }
   }
@@ -63,8 +61,3 @@ data class PersonInformation(
   val personIdentifier: String,
   val info: CaseNoteInformation,
 )
-
-private fun CaseNote.isOfInterest(): Boolean {
-  val typeSubType = CaseNotesOfInterest[type]
-  return typeSubType != null && typeSubType.contains(subType)
-}

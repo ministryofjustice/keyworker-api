@@ -6,6 +6,8 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
@@ -30,6 +32,7 @@ class RecordedEvent(
   @Audited(targetAuditMode = NOT_AUDITED)
   @ManyToOne
   @JoinColumn(name = "type_id")
+  @Fetch(FetchMode.JOIN)
   val type: ReferenceData,
   @TenantId
   val policyCode: String,
@@ -107,18 +110,33 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
   @Query(
     """
       with latest as (
-        select acn.id as id, row_number() over (partition by acn.type.key.code order by acn.occurredAt desc) as row
-        from RecordedEvent acn
-        where acn.personIdentifier = :personIdentifier
+        select lre.id as id, row_number() over (partition by lre.type_id, lre.policy_code order by lre.occurred_at desc) as row
+        from recorded_event lre
+        where lre.person_identifier = :personIdentifier and lre.policy_code in :policies
     )
-    select re 
-    from RecordedEvent re
-    join fetch re.type t
+    select 
+        re.prison_code as prisonCode, 
+        re.staff_id as staffId, 
+        re.username as username, 
+        re.occurred_at as occurredAt, 
+        type.code as typeCode,
+        re.policy_code as policyCode
+    from recorded_event re
+    join reference_data type on re.type_id = type.id
     join latest l on l.id = re.id and l.row = 1
-  """,
+  """, nativeQuery = true
   )
-  fun findLatestRecordedEvents(personIdentifier: String): List<RecordedEvent>
+  fun findLatestRecordedEvents(personIdentifier: String, policies: Set<String>): List<LatestRecordedEvent>
 
   @Query("select re.policy_code from recorded_event re where re.id = :id", nativeQuery = true)
   fun findPolicyForId(id: UUID): String?
+}
+
+interface LatestRecordedEvent {
+  val prisonCode: String
+  val staffId: Long
+  val username: String
+  val occurredAt: LocalDateTime
+  val typeCode: String
+  val policyCode: String
 }

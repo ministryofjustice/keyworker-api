@@ -2,25 +2,18 @@ package uk.gov.justice.digital.hmpps.keyworker.services.recordedevents
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent as RecordedEventEntity
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
-import uk.gov.justice.digital.hmpps.keyworker.model.person.Author
-import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentStaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.model.person.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
-import uk.gov.justice.digital.hmpps.keyworker.services.asCodedDescription
 import java.time.LocalDate
-import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent as RecordedEventEntity
 
 @Service
 class RecordedEventRetriever(
-  private val ach: AllocationContextHolder,
   private val rer: RecordedEventRepository,
 ) {
   fun findCaseNoteTotals(
@@ -92,15 +85,6 @@ class RecordedEventRetriever(
         ReferenceDataDomain.RECORDED_EVENT_TYPE of type.name,
         date.atStartOfDay(),
       ).associate { it.personIdentifier to LatestNote(it.occurredAt) }
-
-  fun findMostRecentRecordedEvents(
-    personIdentifier: String,
-    policies: Set<String>,
-  ): List<RecordedEventEntity> =
-    policies.flatMap {
-      ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.valueOf(it)))
-      rer.findLatestRecordedEvents(personIdentifier)
-    }
 }
 
 class RecordedEventTotals(
@@ -152,7 +136,8 @@ class RecordedEventSummaries(
   fun personIdentifiers(): Set<String> = data.keys
 
   companion object {
-    fun empty() = RecordedEventSummaries(listOf(RecordedEventSummary.relatingTo(AllocationContext.get().policy)("" to emptyList())))
+    fun empty() =
+      RecordedEventSummaries(listOf(RecordedEventSummary.relatingTo(AllocationContext.get().policy)("" to emptyList())))
   }
 }
 
@@ -206,19 +191,3 @@ class PersonOfficerRecordedEventSummary(
       RecordedEventCount(RecordedEventType.ENTRY, entryCount),
     )
 }
-
-fun List<RecordedEventEntity>.asRecordedEvents(
-  prisons: (String) -> Prison,
-  staff: (Long) -> CurrentStaffSummary,
-): List<RecordedEvent> =
-  map { acn ->
-    RecordedEvent(
-      prisons(acn.prisonCode).asCodedDescription(),
-      RecordedEventType.valueOf(acn.type.code),
-      acn.occurredAt,
-      requireNotNull(AllocationPolicy.of(acn.type.policyCode)),
-      staff(acn.staffId).asAuthor(acn.username),
-    )
-  }
-
-private fun CurrentStaffSummary.asAuthor(username: String) = Author(staffId, firstName, lastName, username)

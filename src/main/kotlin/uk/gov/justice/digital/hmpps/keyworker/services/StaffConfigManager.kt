@@ -85,13 +85,13 @@ class StaffConfigManager(
               toDate = null,
             )
           }
-        policy.nomisUseRoleCode?.let {
+        policy.nomisUserRoleCode?.let {
           nurApi.setStaffRole(prisonCode, staffId, it, jobRoleRequest)
         } ?: setStaffRole(prisonCode, staffId, jobRoleRequest)
       }
 
       Action.UPDATE -> {
-        policy.nomisUseRoleCode?.let { roleCode ->
+        policy.nomisUserRoleCode?.let { roleCode ->
           staffRole!!.apply {
             nurApi.setStaffRole(
               prisonCode,
@@ -127,7 +127,7 @@ class StaffConfigManager(
 
       Action.REMOVE -> {
         staffConfigRepository.deleteByStaffId(staffId)
-        policy.nomisUseRoleCode?.also { code ->
+        policy.nomisUserRoleCode?.also { code ->
           staffRole?.also {
             nurApi.setStaffRole(
               prisonCode,
@@ -224,7 +224,7 @@ class StaffConfigManager(
   ): StaffRoleInfo? {
     val policy = AllocationContext.get().policy
     return request.staffRole.map {
-      when (policy.nomisUseRoleCode) {
+      when (policy.nomisUserRoleCode) {
         null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
         else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
       }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.services.DeallocationService
@@ -22,7 +22,6 @@ class ComplexityOfNeedEventProcessor(
   private val objectMapper: ObjectMapper,
   private val complexityOfNeed: ComplexityOfNeedApiClient,
   private val deallocationService: DeallocationService,
-  private val allocationContextHolder: AllocationContextHolder,
 ) {
   fun onComplexityChange(message: String) {
     val event = objectMapper.readValue<ComplexityOfNeedChange>(message)
@@ -37,11 +36,10 @@ class ComplexityOfNeedEventProcessor(
         it.personIdentifier == event.offenderNo && it.level == ComplexityOfNeedLevel.HIGH
       }?.also {
         it.sourceUser?.also { username ->
-          allocationContextHolder.setContext(
-            AllocationContext
-              .get()
-              .copy(username = username, requestAt = it.updatedTimeStamp ?: it.createdTimeStamp ?: now()),
-          )
+          AllocationContext
+            .get()
+            .copy(username = username, requestAt = it.updatedTimeStamp ?: it.createdTimeStamp ?: now())
+            .set()
         }
       }
     deallocationService.deallocateExpiredAllocations(

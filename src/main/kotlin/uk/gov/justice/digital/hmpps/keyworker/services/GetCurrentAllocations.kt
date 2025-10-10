@@ -3,28 +3,31 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.LatestRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.domain.Policy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PolicyRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
+import uk.gov.justice.digital.hmpps.keyworker.model.person.Author
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentStaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.model.person.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.orDefault
-import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
-import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.asRecordedEvents
 
 @Service
 class GetCurrentAllocations(
   private val prisonerSearch: PrisonerSearchClient,
   private val prisonConfig: PrisonConfigurationRepository,
   private val allocationRepository: AllocationRepository,
-  private val recordedEventRetriever: RecordedEventRetriever,
+  private val recordedEventRepository: RecordedEventRepository,
   private val prisonApi: PrisonApiClient,
   private val prisonService: PrisonService,
   private val policyRepository: PolicyRepository,
@@ -47,7 +50,7 @@ class GetCurrentAllocations(
 
       else -> {
         val allocations = allocationRepository.findCurrentAllocations(personIdentifier, prisonPolicies)
-        val recordedEvents = recordedEventRetriever.findMostRecentRecordedEvents(personIdentifier, prisonPolicies)
+        val recordedEvents = recordedEventRepository.findLatestRecordedEvents(personIdentifier, prisonPolicies)
         val prisons =
           prisonService
             .findPrisons((allocations.map { it.prisonCode } + recordedEvents.map { it.prisonCode }).toSet())
@@ -81,7 +84,7 @@ class GetCurrentAllocations(
             false,
             allocations.map {
               CurrentAllocation(
-                policies[it.policy]!!.asCodedDescription(),
+                checkNotNull(policies[it.policy]).asCodedDescription(),
                 prisons[it.prisonCode].orDefault(it.prisonCode).asCodedDescription(),
                 requireNotNull(staff[it.staffId]),
               )
@@ -106,7 +109,23 @@ class GetCurrentAllocations(
   private fun Policy.asCodedDescription(): CodedDescription = CodedDescription(code, description)
 }
 
-fun Set<String>.enabled() =
+private fun Set<String>.enabled() =
   AllocationPolicy.entries.map {
     PolicyEnabled(it, it.name in this)
   }
+
+private fun List<LatestRecordedEvent>.asRecordedEvents(
+  prisons: (String) -> Prison,
+  staff: (Long) -> CurrentStaffSummary,
+): List<RecordedEvent> =
+  map { lre ->
+    RecordedEvent(
+      prisons(lre.prisonCode).asCodedDescription(),
+      RecordedEventType.valueOf(lre.typeCode),
+      lre.occurredAt,
+      requireNotNull(AllocationPolicy.of(lre.policyCode)),
+      staff(lre.staffId).asAuthor(lre.username),
+    )
+  }
+
+private fun CurrentStaffSummary.asAuthor(username: String) = Author(staffId, firstName, lastName, username)
