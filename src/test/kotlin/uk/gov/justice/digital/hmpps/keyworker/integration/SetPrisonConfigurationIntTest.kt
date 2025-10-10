@@ -174,7 +174,7 @@ private fun PrisonConfigResponse.verifyAgainst(request: PrisonConfigRequest) {
 
 private fun PrisonConfiguration.verifyAgainst(request: PrisonConfigRequest) {
   assertThat(enabled).isEqualTo(request.isEnabled)
-  assertThat(maximumCapacity).isEqualTo(request.capacity)
+  assertThat(capacity).isEqualTo(request.capacity)
   assertThat(frequencyInWeeks).isEqualTo(request.frequencyInWeeks)
   assertThat(allowAutoAllocation).isEqualTo(request.allowAutoAllocation)
   assertThat(hasPrisonersWithHighComplexityNeeds).isEqualTo(request.hasPrisonersWithHighComplexityNeeds)

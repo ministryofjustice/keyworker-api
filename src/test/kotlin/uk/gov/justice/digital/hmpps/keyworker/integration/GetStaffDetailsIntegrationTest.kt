@@ -67,11 +67,11 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           },
       ),
     )
-    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 5, allowAutoAllocation = true))
+    givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 5))
 
     setContext(AllocationContext.get().copy(policy = policy))
     val staffConfig =
-      givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10, allowAutoAllocation = false))
+      givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerDetails(
         prisonCode,
@@ -226,7 +226,6 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         .first()
         .stats.projectedComplianceEvents,
     ).isEqualTo(4)
-    assertThat(response.allowAutoAllocation).isFalse
     assertThat(response.allocations.all { it.prisoner.cellLocation == "$prisonCode-A-1" }).isTrue
     assertThat(response.stats?.current).isNotNull()
     with(response.stats!!.current) {
@@ -355,7 +354,6 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     assertThat(response.capacity).isEqualTo(9)
     assertThat(response.allocated).isEqualTo(0)
     assertThat(response.allocations.size).isEqualTo(0)
-    assertThat(response.allowAutoAllocation).isTrue
   }
 
   @ParameterizedTest
@@ -373,7 +371,6 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           StaffStatus.UNAVAILABLE_ANNUAL_LEAVE,
           staff.staffId,
           capacity = 10,
-          allowAutoAllocation = false,
           reactivateOn = now().plusDays(7),
         ),
       )

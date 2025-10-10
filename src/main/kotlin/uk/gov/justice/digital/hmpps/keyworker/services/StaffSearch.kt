@@ -250,16 +250,15 @@ class StaffSearch(
     entries: (Long) -> Int?,
     activeStatusProvider: Lazy<ReferenceData>,
   ): StaffSearchResult {
-    val kwa = staffConfig(staffId)
-    val status = kwa?.staffConfig?.status ?: activeStatusProvider.value
+    val staffConfig = staffConfig(staffId)
+    val status = staffConfig?.staffConfig?.status ?: activeStatusProvider.value
     return StaffSearchResult(
       staffId,
       firstName,
       lastName,
       status.asCodedDescription(),
-      kwa?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
-      kwa?.allocationCount ?: 0,
-      kwa?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
+      staffConfig?.staffConfig?.capacity ?: prisonConfig.capacity,
+      staffConfig?.allocationCount ?: 0,
       sessions(staffId) ?: 0,
       entries(staffId) ?: 0,
       staffRole,
@@ -284,9 +283,8 @@ class StaffSearch(
       staffMember.firstName,
       staffMember.lastName,
       status.asCodedDescription(),
-      config?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
+      config?.staffConfig?.capacity ?: prisonConfig.capacity,
       config?.allocationCount ?: 0,
-      config?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       staffRole,
       if (includeStats) {
         applicableAllocations(staffMember.staffId).staffCountStatsFromApplicableAllocations(

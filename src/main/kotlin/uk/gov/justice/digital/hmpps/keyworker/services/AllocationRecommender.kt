@@ -85,8 +85,8 @@ class AllocationRecommender(
         val staffInfo = staffInfo[it.staffId]
         StaffCapacity(
           StaffSummary(it.staffId, it.firstName, it.lastName),
-          staffInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
-          staffInfo?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
+          prisonConfig.allowAutoAllocation,
+          staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
           staffInfo?.allocationCount ?: 0,
           autoAllocations[it.staffId]?.allocatedAt,
           staffInfo?.staffConfig?.status ?: activeStatus.value,
@@ -116,7 +116,6 @@ private fun StaffCapacity.asAllocationStaff() =
     firstName = staff.firstName,
     lastName = staff.lastName,
     status = status.asCodedDescription(),
-    allowAutoAllocation = allowAutoAllocation,
     capacity = autoAllocationCapacity,
     allocated = initialAllocationCount,
   )

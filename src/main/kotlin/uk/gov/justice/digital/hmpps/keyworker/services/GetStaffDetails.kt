@@ -150,11 +150,10 @@ class GetStaffDetails(
       staff.lastName,
       staffInfo?.staffConfig?.status.toKeyworkerStatusCodedDescription(),
       CodedDescription(prisonCode, prisonName),
-      staffInfo?.staffConfig?.capacity ?: prisonConfig.maximumCapacity,
+      staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
       staffInfo?.allocationCount ?: 0,
       allocations ?: emptyList(),
       stats,
-      staffInfo?.staffConfig?.allowAutoAllocation ?: prisonConfig.allowAutoAllocation,
       staffInfo?.staffConfig?.reactivateOn,
       staffWithRole.second,
     )

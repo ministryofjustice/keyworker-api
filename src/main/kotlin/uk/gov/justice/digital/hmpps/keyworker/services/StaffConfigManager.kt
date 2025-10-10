@@ -214,7 +214,6 @@ class StaffConfigManager(
         status = referenceDataRepository.getReferenceData(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it))
       }
       request.capacity.ifPresent { capacity = it }
-      request.allowAutoAllocation.ifPresent { allowAutoAllocation = it }
       request.reactivateOn.ifPresent { reactivateOn = it }
     }
 
@@ -241,8 +240,7 @@ class StaffConfigManager(
         referenceDataRepository.getReferenceData(
           ReferenceDataDomain.STAFF_STATUS of if (status.isPresent) status.get() else StaffStatus.ACTIVE.name,
         ),
-        capacity.orElse(prisonConfig.maximumCapacity),
-        allowAutoAllocation.orElse(true),
+        capacity.orElse(prisonConfig.capacity),
         reactivateOn.orElse(null),
         staffId,
       ),

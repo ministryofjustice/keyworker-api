@@ -85,7 +85,7 @@ private fun PrisonConfiguration.response(): PrisonConfigResponse =
     enabled,
     hasPrisonersWithHighComplexityNeeds,
     allowAutoAllocation,
-    maximumCapacity,
+    capacity,
     frequencyInWeeks,
     allocationOrder,
   )
@@ -95,7 +95,6 @@ private fun PrisonConfigRequest.asPrisonConfig(prisonCode: String) =
     prisonCode,
     isEnabled,
     allowAutoAllocation,
-    6,
     capacity,
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds ?: false,

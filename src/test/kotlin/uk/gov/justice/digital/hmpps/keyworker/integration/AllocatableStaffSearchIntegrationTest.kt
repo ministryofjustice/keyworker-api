@@ -73,7 +73,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         if (index % 5 == 0) {
           null
         } else {
-          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6))
         }
       }
 
@@ -112,7 +112,6 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content.map { it.status.code }.toSet()).containsOnly(ACTIVE.name)
 
     assertThat(response.content[0].staffId).isEqualTo(staffIds[0])
-    assertThat(response.content[0].allowAutoAllocation).isEqualTo(false)
     assertThat(response.content[0].allocated).isEqualTo(0)
     assertThat(
       response.content[0]
@@ -140,7 +139,6 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     assertThat(response.content.find { it.staffId == staffIds[3] }).isNull()
 
     assertThat(response.content[5].staffId).isEqualTo(staffIds[7])
-    assertThat(response.content[5].allowAutoAllocation).isEqualTo(true)
     assertThat(response.content[5].allocated).isEqualTo(6)
     assertThat(
       response.content[5]
@@ -166,7 +164,6 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     ).isEqualTo(2)
 
     assertThat(response.content[6].staffId).isEqualTo(staffIds[8])
-    assertThat(response.content[6].allowAutoAllocation).isEqualTo(true)
     assertThat(response.content[6].allocated).isEqualTo(7)
     assertThat(
       response.content[6]
@@ -228,7 +225,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         if (index % 5 == 0) {
           null
         } else {
-          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6))
         }
       }
 
@@ -371,7 +368,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         if (index % 5 == 0) {
           null
         } else {
-          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6, true))
+          givenStaffConfig(staffConfig(if (index % 3 == 0) INACTIVE else ACTIVE, staffId, 6))
         }
       }
 

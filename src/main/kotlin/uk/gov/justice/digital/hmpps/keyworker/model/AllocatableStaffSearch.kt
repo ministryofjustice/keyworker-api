@@ -20,7 +20,6 @@ data class AllocatableSummary(
   val status: CodedDescription,
   val capacity: Int,
   val allocated: Int,
-  val allowAutoAllocation: Boolean,
   val staffRole: StaffRoleInfo,
   val stats: StaffCountStats?,
 )

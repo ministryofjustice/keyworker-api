@@ -14,8 +14,6 @@ data class StaffDetailsRequest(
   val status: JsonNullable<String> = JsonNullable.undefined(),
   @param:Schema(nullable = false, type = "integer", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   val capacity: JsonNullable<Int> = JsonNullable.undefined(),
-  @param:Schema(nullable = false, type = "boolean", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  val allowAutoAllocation: JsonNullable<Boolean> = JsonNullable.undefined(),
   @param:Schema(nullable = true, type = "string", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "1980-01-01")
   val reactivateOn: JsonNullable<LocalDate?> = JsonNullable.undefined(),
   @param:Schema(
