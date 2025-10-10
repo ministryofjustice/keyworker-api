@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.model.AllocatableSearchRequest
@@ -87,7 +86,6 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
                 prisonCode,
                 sc.staffId,
                 allocatedAt = LocalDateTime.now().minusMonths(1),
-                allocationType = if (index == 7 && it == 7) AllocationType.MANUAL else AllocationType.AUTO,
               ),
             )
           }.apply {
@@ -240,7 +238,6 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
                 prisonCode,
                 kw.staffId,
                 allocatedAt = LocalDateTime.now().minusMonths(1),
-                allocationType = AllocationType.AUTO,
               ),
             )
             personIdentifier
@@ -383,7 +380,6 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
                 prisonCode,
                 s.staffId,
                 allocatedAt = LocalDateTime.now().minusMonths(1),
-                allocationType = AllocationType.MANUAL,
               ),
             )
             personIdentifier

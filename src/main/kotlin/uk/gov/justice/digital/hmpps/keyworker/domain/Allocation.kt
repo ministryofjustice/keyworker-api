@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.domain
 
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
@@ -40,9 +39,6 @@ class Allocation(
   @ManyToOne
   @JoinColumn(name = "allocation_reason_id")
   val allocationReason: ReferenceData,
-  @Column(name = "allocation_type")
-  @Convert(converter = AllocationTypeConvertor::class)
-  val allocationType: AllocationType,
   @Column(name = "allocated_by")
   val allocatedBy: String,
   @Audited(withModifiedFlag = true)
@@ -189,8 +185,12 @@ interface AllocationRepository :
   @Query(
     """
     with auto_alloc as ( 
-        select a.*, row_number() over(partition by a.staff_id order by a.allocated_at desc) as row_number from allocation a 
-        where a.staff_id in :staffIds and a.allocation_type = 'A' and a.is_active = true
+        select a.*, row_number() over(partition by a.staff_id order by a.allocated_at desc) as row_number 
+        from allocation a 
+        join reference_data r on a.allocation_reason_id = r.id
+        where a.staff_id in :staffIds 
+        and a.is_active = true
+        and r.code = 'AUTO'
     )
     select aa.* from auto_alloc aa
     where aa.row_number = 1

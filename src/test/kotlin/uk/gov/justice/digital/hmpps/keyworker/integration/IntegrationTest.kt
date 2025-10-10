@@ -35,7 +35,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
@@ -436,7 +435,6 @@ abstract class IntegrationTest {
     allocatedAt: LocalDateTime = LocalDateTime.now().minusDays(1),
     active: Boolean = true,
     allocationReason: AllocationReason = AllocationReason.AUTO,
-    allocationType: AllocationType = AllocationType.AUTO,
     allocatedBy: String = "T357",
     deallocatedAt: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
@@ -448,7 +446,6 @@ abstract class IntegrationTest {
     allocatedAt,
     active,
     allocationReason.asReferenceData(),
-    allocationType,
     allocatedBy,
     deallocatedAt,
     deallocationReason?.asReferenceData(),

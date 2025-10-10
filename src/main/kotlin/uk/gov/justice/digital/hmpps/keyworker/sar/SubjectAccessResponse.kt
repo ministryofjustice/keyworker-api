@@ -12,11 +12,8 @@ data class SarAllocation(
   val allocatedAt: LocalDateTime,
   val allocationExpiredAt: LocalDateTime?,
   val prisonCode: String,
-  val allocationType: String,
   val allocationReason: String,
   val deallocationReason: String?,
-  @Deprecated("This field will be removed in a future release.")
-  val keyworker: StaffMember,
   val staffMember: StaffMember,
   val policy: CodedDescription,
 ) {

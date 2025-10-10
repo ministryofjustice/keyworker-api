@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
@@ -170,7 +169,6 @@ class AllocationManager(
     allocatedAt = LocalDateTime.now(),
     isActive = true,
     allocationReason = allocationReason,
-    allocationType = AllocationType.valueOf(allocationReason.code),
     allocatedBy = AllocationContext.get().username,
     null,
     null,
