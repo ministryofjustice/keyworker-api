@@ -87,7 +87,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
                 prisonCode,
                 sc.staffId,
                 allocatedAt = LocalDateTime.now().minusMonths(1),
-                allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
+                allocationType = if (index == 7 && it == 7) AllocationType.MANUAL else AllocationType.AUTO,
               ),
             )
           }.apply {
@@ -95,9 +95,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
               policy,
               prisonCode,
               ReportingPeriod.currentMonth(),
-              filter {
-                it.allocationType != AllocationType.PROVISIONAL
-              }.map { it.personIdentifier }.toSet(),
+              map { it.personIdentifier }.toSet(),
               index,
             )
           }

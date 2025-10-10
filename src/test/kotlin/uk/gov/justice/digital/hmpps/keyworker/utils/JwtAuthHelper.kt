@@ -40,10 +40,10 @@ class JwtAuthHelper {
     scope?.let { claims["scope"] = scope }
     return Jwts
       .builder()
-      .setId(jwtId)
-      .setSubject(subject)
-      .addClaims(claims)
-      .setExpiration(Date(System.currentTimeMillis() + expiryTime.toMillis()))
+      .id(jwtId)
+      .subject(subject)
+      .claims(claims)
+      .expiration(Date(System.currentTimeMillis() + expiryTime.toMillis()))
       .signWith(RS256, keyPair.private)
       .compact()
   }

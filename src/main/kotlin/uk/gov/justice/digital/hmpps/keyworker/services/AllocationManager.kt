@@ -75,7 +75,6 @@ class AllocationManager(
         }
       }
     if (newAllocations.isNotEmpty()) {
-      allocationRepository.deleteProvisionalFor(newAllocations.map { it.personIdentifier })
       allocationRepository.flush()
       allocationRepository.saveAll(newAllocations)
     }

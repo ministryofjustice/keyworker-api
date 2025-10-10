@@ -55,7 +55,6 @@ class SubjectAccessRequest(
     when (allocationType) {
       AllocationType.AUTO -> "Automatic"
       AllocationType.MANUAL -> "Manual"
-      AllocationType.PROVISIONAL -> "Provisional"
     },
     allocationReason.description(),
     deallocationReason?.description(),

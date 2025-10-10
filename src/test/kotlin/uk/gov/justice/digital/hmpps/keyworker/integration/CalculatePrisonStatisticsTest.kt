@@ -9,8 +9,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.AUTO
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.MANUAL
-import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationType.PROVISIONAL
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
@@ -69,7 +69,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
             prisonCode,
             (staff + additionalStaff).filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
+            allocationType = if (index % 25 == 0) AUTO else MANUAL,
           ),
         )
       }
@@ -133,18 +133,18 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.prisonerCount).isEqualTo(prisoners.size)
     assertThat(stats.eligiblePrisonerCount).isEqualTo(prisoners.size)
 
-    assertThat(stats.prisonersAssignedCount).isEqualTo(32)
+    assertThat(stats.prisonersAssignedCount).isEqualTo(34)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
     if (policy == AllocationPolicy.KEY_WORKER) {
       assertThat(stats.recordedSessionCount).isEqualTo(12)
       assertThat(stats.recordedEntryCount).isEqualTo(4)
-      assertThat(stats.receptionToAllocationDays).isEqualTo(30)
+      assertThat(stats.receptionToAllocationDays).isEqualTo(22)
       assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
     } else {
       assertThat(stats.recordedSessionCount).isEqualTo(0)
       assertThat(stats.recordedEntryCount).isEqualTo(12)
-      assertThat(stats.receptionToAllocationDays).isEqualTo(30)
+      assertThat(stats.receptionToAllocationDays).isEqualTo(22)
       assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
     }
   }
@@ -179,7 +179,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
             prisonCode,
             keyworkers.filter { it.status.code == ACTIVE.name }.random().staffId,
             yesterday.minusDays(index % 10L).atTime(LocalTime.now()),
-            allocationType = if (index % 25 == 0) PROVISIONAL else MANUAL,
+            allocationType = if (index % 25 == 0) AUTO else MANUAL,
           ),
         )
       }
@@ -243,7 +243,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.prisonerCount).isEqualTo(prisoners.size)
     assertThat(stats.eligiblePrisonerCount).isEqualTo(eligiblePrisoners.size)
 
-    assertThat(stats.prisonersAssignedCount).isEqualTo(25)
+    assertThat(stats.prisonersAssignedCount).isEqualTo(27)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
     assertThat(stats.recordedSessionCount).isEqualTo(9)
