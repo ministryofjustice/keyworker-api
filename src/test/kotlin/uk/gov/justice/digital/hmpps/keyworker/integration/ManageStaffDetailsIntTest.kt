@@ -98,7 +98,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
 
     val nomisRequest =
-      policy.nomisUseRoleCode?.let {
+      policy.nomisUserRoleCode?.let {
         prisonMockServer.stubKeyworkerDetails(prisonCode, staffId, null)
         val roleRequest =
           StaffJobClassificationRequest(
@@ -127,8 +127,8 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     ).expectStatus()
       .isNoContent
 
-    if (policy.nomisUseRoleCode != null) {
-      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, policy.nomisUseRoleCode, nomisRequest!!)
+    if (policy.nomisUserRoleCode != null) {
+      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, policy.nomisUserRoleCode, nomisRequest!!)
     } else {
       val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
       assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
@@ -186,7 +186,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val nomisRequest =
-      if (policy.nomisUseRoleCode != null) {
+      if (policy.nomisUserRoleCode != null) {
         val staffRole = nomisStaffRole(staffId, scheduleType = "PT", position = "PRO", hoursPerWeek = BigDecimal(20))
         val roleRequest =
           StaffJobClassificationRequest(
@@ -221,7 +221,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    if (policy.nomisUseRoleCode != null) {
+    if (policy.nomisUserRoleCode != null) {
       verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
     } else {
       val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
@@ -333,7 +333,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val nomisRequest =
-      if (policy.nomisUseRoleCode != null) {
+      if (policy.nomisUserRoleCode != null) {
         val staffRole = nomisStaffRole(staffId, scheduleType = "PT", position = "PRO", hoursPerWeek = BigDecimal(20))
         val roleRequest =
           StaffJobClassificationRequest(
@@ -372,7 +372,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .expectStatus()
       .isNoContent
 
-    if (policy.nomisUseRoleCode != null) {
+    if (policy.nomisUserRoleCode != null) {
       verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
     } else {
       val staffRole =

@@ -47,7 +47,7 @@ class AllocationContextHolder {
 }
 
 enum class AllocationPolicy(
-  val nomisUseRoleCode: String?,
+  val nomisUserRoleCode: String?,
 ) {
   KEY_WORKER("KW"),
   PERSONAL_OFFICER(null),
