@@ -9,7 +9,6 @@ enum class AllocationType(
 ) {
   AUTO("A"),
   MANUAL("M"),
-  PROVISIONAL("P"),
   ;
 
   companion object {

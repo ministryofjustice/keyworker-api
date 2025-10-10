@@ -68,8 +68,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
         } else {
           val activeAllocation = index % 3 != 0
           val staffId = staffIds.random()
-          val type = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO
-          if (activeAllocation && type == AllocationType.AUTO) {
+          if (activeAllocation) {
             staffCountMap[staffId] = staffCountMap[staffId]!! + 1
           }
           givenAllocation(
@@ -77,7 +76,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
               p.prisonerNumber,
               prisonCode,
               staffId,
-              allocationType = type,
+              allocationType = AllocationType.AUTO,
               active = activeAllocation,
               deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
               deallocatedBy = if (activeAllocation) null else "DA$index",
@@ -89,7 +88,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
     val summaries =
       allocations
-        .filter { it.isActive && it.allocationType != AllocationType.PROVISIONAL }
+        .filter { it.isActive }
         .map { it.staffId }
         .distinct()
         .map { StaffSummary(it, "Allocation$it", "Staff$it") }
@@ -155,7 +154,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
               p.prisonerNumber,
               prisonCode,
               staffIds.random(),
-              allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
+              allocationType = AllocationType.AUTO,
               active = activeAllocation,
               deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
               deallocatedBy = if (activeAllocation) null else "DA$index",
@@ -167,7 +166,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
 
     val summaries =
       allocations
-        .filter { it.isActive && it.allocationType != AllocationType.PROVISIONAL }
+        .filter { it.isActive }
         .map { it.staffId }
         .distinct()
         .map { StaffSummary(it, "Allocation$it", "Staff$it") }
@@ -226,7 +225,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
             p.prisonerNumber,
             prisonCode,
             staffIds.random(),
-            allocationType = if (index % 5 == 0) AllocationType.PROVISIONAL else AllocationType.AUTO,
+            allocationType = AllocationType.AUTO,
             active = activeAllocation,
             deallocatedAt = if (activeAllocation) null else LocalDateTime.now().minusDays(index.toLong()),
             deallocatedBy = if (activeAllocation) null else "DA$index",

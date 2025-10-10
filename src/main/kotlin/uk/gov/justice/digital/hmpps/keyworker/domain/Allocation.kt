@@ -7,13 +7,11 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import org.hibernate.annotations.SQLRestriction
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.model.ReportingPeriod
@@ -25,7 +23,6 @@ import java.util.UUID
 @Audited
 @Entity
 @Table(name = "allocation")
-@SQLRestriction("allocation_type <> 'P'")
 class Allocation(
   @Audited(withModifiedFlag = true)
   @Column(name = "person_identifier")
@@ -88,7 +85,6 @@ interface AllocationRepository :
     with allocations as (select a.id as id, a.person_identifier as personIdentifier, a.allocated_at as assignedAt
                      from allocation a
                      where a.prison_code = :prisonCode
-                       and a.allocation_type <> 'P' 
                        and a.allocated_at between :from and :to
                        and a.policy_code = :policyCode
     )
@@ -99,7 +95,6 @@ interface AllocationRepository :
                      where a.prison_code = :prisonCode
                        and a.person_identifier = na.personIdentifier 
                        and a.allocated_at < :from
-                       and a.allocation_type <> 'P'
                        and a.policy_code = :policyCode)  
     """,
     nativeQuery = true,
@@ -182,7 +177,7 @@ interface AllocationRepository :
   @Query(
     """
       select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies and a.allocation_type <> 'P'
+      where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies
     """,
     nativeQuery = true,
   )
@@ -217,15 +212,6 @@ interface AllocationRepository :
     personIdentifier: String,
     staffIds: Set<Long>,
   ): List<Long>
-
-  @Modifying
-  @Query(
-    """
-    delete from allocation where person_identifier in :personIdentifiers and allocation_type = 'P'
-    """,
-    nativeQuery = true,
-  )
-  fun deleteProvisionalFor(personIdentifiers: List<String>)
 
   @Query(
     """

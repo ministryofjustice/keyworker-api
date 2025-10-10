@@ -195,7 +195,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
             personIdentifier(),
             prisonCode,
             kw.staffId,
-            allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
+            allocationType = if (index == 7 && it == 7) AllocationType.MANUAL else AllocationType.AUTO,
           ),
         )
       }
@@ -350,7 +350,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
               personIdentifier(),
               prisonCode,
               kw.staffId,
-              allocationType = if (index == 7 && it == 7) AllocationType.PROVISIONAL else AllocationType.AUTO,
+              allocationType = if (index == 7 && it == 7) AllocationType.MANUAL else AllocationType.AUTO,
             ),
           )
         }
@@ -379,7 +379,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
   private fun searchRequest(
     query: String? = null,
-    status: StaffStatus = StaffStatus.ACTIVE,
+    status: StaffStatus = ACTIVE,
     hasPolicyStaffRole: Boolean? = null,
   ) = StaffSearchRequest(query, status, hasPolicyStaffRole)
 
