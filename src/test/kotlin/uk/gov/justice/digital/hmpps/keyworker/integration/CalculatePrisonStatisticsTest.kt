@@ -134,13 +134,9 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
     if (policy == AllocationPolicy.KEY_WORKER) {
-      assertThat(stats.recordedSessionCount).isEqualTo(12)
-      assertThat(stats.recordedEntryCount).isEqualTo(4)
       assertThat(stats.receptionToAllocationDays).isEqualTo(22)
       assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
     } else {
-      assertThat(stats.recordedSessionCount).isEqualTo(0)
-      assertThat(stats.recordedEntryCount).isEqualTo(12)
       assertThat(stats.receptionToAllocationDays).isEqualTo(22)
       assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
     }
@@ -148,6 +144,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
 
   @Test
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     val prisonCode = "CALWIC"
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
@@ -241,9 +238,6 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
 
     assertThat(stats.prisonersAssignedCount).isEqualTo(27)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
-
-    assertThat(stats.recordedSessionCount).isEqualTo(9)
-    assertThat(stats.recordedEntryCount).isEqualTo(4)
 
     assertThat(stats.receptionToAllocationDays).isEqualTo(55)
     assertThat(stats.receptionToRecordedEventDays).isEqualTo(34)

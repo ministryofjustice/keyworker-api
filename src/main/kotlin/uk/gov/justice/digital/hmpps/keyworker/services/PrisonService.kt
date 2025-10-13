@@ -77,7 +77,11 @@ data class PrisonsByIdsRequest(
 data class Prison(
   val prisonId: String,
   val prisonName: String,
-)
+) {
+  companion object {
+    const val CODE_PATTERN = "[A-Z]{3}"
+  }
+}
 
 private fun PrisonConfiguration.response(): PrisonConfigResponse =
   PrisonConfigResponse(
@@ -98,7 +102,7 @@ private fun PrisonConfigRequest.asPrisonConfig(prisonCode: String) =
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds ?: false,
     allocationOrder,
-    AllocationContext.get().policy.name,
+    AllocationContext.get().requiredPolicy().name,
   )
 
 fun Prison?.orDefault(code: String) = this ?: Prison(code, code)

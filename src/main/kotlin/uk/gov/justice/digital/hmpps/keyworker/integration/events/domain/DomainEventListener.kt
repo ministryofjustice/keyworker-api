@@ -38,36 +38,37 @@ class DomainEventListener(
 ) {
   @SqsListener("domaineventsqueue", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-complexity-event-queue", kind = SpanKind.SERVER)
-  fun eventListener(notification: Notification<String>) = try {
-    when (val eventType = EventType.from(notification.eventType)) {
-      ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
-      PrisonMerged -> {
-        val domainEvent = objectMapper.readValue<HmppsDomainEvent<MergeInformation>>(notification.message)
-        mergePrisonNumbers.merge(domainEvent.additionalInformation)
+  fun eventListener(notification: Notification<String>) =
+    try {
+      when (val eventType = EventType.from(notification.eventType)) {
+        ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
+        PrisonMerged -> {
+          val domainEvent = objectMapper.readValue<HmppsDomainEvent<MergeInformation>>(notification.message)
+          mergePrisonNumbers.merge(domainEvent.additionalInformation)
+        }
+
+        CalculatePrisonStats -> {
+          val prisonStatsInfo = objectMapper.readValue<HmppsDomainEvent<PrisonStatisticsInfo>>(notification.message)
+          prisonStats.calculate(prisonStatsInfo)
+        }
+
+        CaseNoteCreated if (notification.isOfInterest()) -> recordedEvent.new(information(notification))
+        CaseNoteMoved if (notification.isOfInterest()) -> recordedEvent.update(information(notification))
+        CaseNoteUpdated -> recordedEvent.update(information(notification))
+        CaseNoteDeleted -> recordedEvent.delete(information(notification))
+
+        CaseNoteCreated, CaseNoteMoved -> { /* no-op as not of interest */ }
+
+        MigrateCaseNotes ->
+          migrateRecordedEvents.handle(
+            objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
+          )
+
+        is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
       }
-
-      CalculatePrisonStats -> {
-        val prisonStatsInfo = objectMapper.readValue<HmppsDomainEvent<PrisonStatisticsInfo>>(notification.message)
-        prisonStats.calculate(prisonStatsInfo)
-      }
-
-      CaseNoteCreated if (notification.isOfInterest()) -> recordedEvent.new(information(notification))
-      CaseNoteMoved if (notification.isOfInterest()) -> recordedEvent.update(information(notification))
-      CaseNoteUpdated -> recordedEvent.update(information(notification))
-      CaseNoteDeleted -> recordedEvent.delete(information(notification))
-
-      CaseNoteCreated, CaseNoteMoved -> { /* no-op as not of interest */ }
-
-      MigrateCaseNotes ->
-        migrateRecordedEvents.handle(
-          objectMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
-        )
-
-      is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
-    }
-  } finally {
+    } finally {
       AllocationContext.clear()
-  }
+    }
 
   private fun information(notification: Notification<String>): PersonInformation {
     val message = objectMapper.readValue<HmppsDomainEvent<CaseNoteInformation>>(notification.message)

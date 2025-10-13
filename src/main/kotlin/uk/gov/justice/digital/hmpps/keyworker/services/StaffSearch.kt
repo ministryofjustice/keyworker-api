@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffWithAllocationCount
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.filterApplicable
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
@@ -42,7 +41,6 @@ import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEv
 class StaffSearch(
   private val nomisUsersApi: NomisUserRolesApiClient,
   private val prisonApi: PrisonApiClient,
-  private val caseNoteApi: CaseNotesApiClient,
   private val recordedEventRetriever: RecordedEventRetriever,
   private val staffRoleRepository: StaffRoleRepository,
   private val allocationRepository: AllocationRepository,

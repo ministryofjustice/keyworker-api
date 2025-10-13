@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
@@ -38,14 +39,17 @@ class ComplexityOfNeedEventProcessor(
         it.sourceUser?.also { username ->
           AllocationContext
             .get()
-            .copy(username = username, requestAt = it.updatedTimeStamp ?: it.createdTimeStamp ?: now())
+            .copy(username = username, requestAt = it.updatedTimeStamp ?: it.createdTimeStamp ?: now(), policy = null)
             .set()
         }
       }
-    deallocationService.deallocateExpiredAllocations(
-      "",
-      event.offenderNo,
-      DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED,
-    )
+    AllocationPolicy.entries.forEach { policy ->
+      deallocationService.deallocateExpiredAllocations(
+        "",
+        event.offenderNo,
+        DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED,
+        policy,
+      )
+    }
   }
 }

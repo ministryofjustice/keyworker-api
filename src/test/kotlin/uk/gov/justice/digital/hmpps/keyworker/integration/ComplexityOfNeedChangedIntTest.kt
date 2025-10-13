@@ -49,6 +49,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
 
   @Test
   fun `changing to high complexity of need deallocates keyworker allocations`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     val prisonCode = "CHD"
     val username = "H1ghC0"
     val requestedAt = LocalDateTime.now().minusMinutes(30)

@@ -351,7 +351,7 @@ abstract class IntegrationTest {
     frequencyInWeeks: Int = 1,
     hasPrisonersWithHighComplexityNeeds: Boolean = false,
     allocationOrder: AllocationOrder = AllocationOrder.BY_ALLOCATIONS,
-    policy: AllocationPolicy = AllocationContext.get().policy,
+    policy: AllocationPolicy = AllocationContext.get().requiredPolicy(),
   ) = PrisonConfiguration(
     code,
     enabled,
@@ -384,8 +384,6 @@ abstract class IntegrationTest {
     eligiblePrisoners: Int,
     assignedKeyworker: Int,
     activeKeyworkers: Int,
-    keyworkerSessions: Int,
-    keyworkerEntries: Int,
     averageReceptionToAllocationDays: Int?,
     averageReceptionToSessionDays: Int?,
   ) = PrisonStatistic(
@@ -396,8 +394,6 @@ abstract class IntegrationTest {
     eligiblePrisoners,
     assignedKeyworker,
     activeKeyworkers,
-    keyworkerSessions,
-    keyworkerEntries,
     averageReceptionToAllocationDays,
     averageReceptionToSessionDays,
   )

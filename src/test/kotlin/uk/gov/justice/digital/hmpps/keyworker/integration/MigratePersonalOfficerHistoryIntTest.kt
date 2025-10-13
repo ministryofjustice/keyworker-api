@@ -32,7 +32,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    initMigration("NE1", null).expectStatus().isForbidden
+    initMigration("NEP", null).expectStatus().isForbidden
   }
 
   @Test
@@ -138,7 +138,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
   @Test
   fun `migration creates deallocated personal officer records for prisoners no longer resident`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
-    val prisonCode = "PM2"
+    val prisonCode = "PMT"
     val transferredPrisoner =
       generateHistoricAllocations(prisonCode, personIdentifier(), 3)
         .groupBy { it.offenderNo }

@@ -48,7 +48,7 @@ class StaffConfigManager(
     staffId: Long,
     request: StaffDetailsRequest,
   ) {
-    val policy = AllocationContext.get().policy
+    val policy = AllocationContext.get().requiredPolicy()
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
 
     if (request.setsConfig()) {
@@ -222,7 +222,7 @@ class StaffConfigManager(
     staffId: Long,
     request: StaffDetailsRequest,
   ): StaffRoleInfo? {
-    val policy = AllocationContext.get().policy
+    val policy = AllocationContext.get().requiredPolicy()
     return request.staffRole.map {
       when (policy.nomisUserRoleCode) {
         null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()

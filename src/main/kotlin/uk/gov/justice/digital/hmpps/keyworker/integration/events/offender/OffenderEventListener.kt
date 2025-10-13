@@ -7,6 +7,7 @@ import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
@@ -22,27 +23,34 @@ class OffenderEventListener(
 ) {
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "keyworker-api-offender-event-queue", kind = SpanKind.SERVER)
-  fun eventListener(requestJson: String) {
-    val notification = objectMapper.readValue<Notification<String>>(requestJson)
-    val eventType = notification.eventType
-    val event =
-      objectMapper
-        .readValue<OffenderEvent>(notification.message)
-        .takeIf { it.toAgencyLocationId != null && it.offenderIdDisplay != null }
-    when (eventType) {
-      EXTERNAL_MOVEMENT ->
-        event
-          ?.deallocationReason()
-          ?.also {
-            event.movementDateTime?.also { dt -> AllocationContext.get().copy(requestAt = dt).set() }
-            deallocationService.deallocateExpiredAllocations(
-              event.toAgencyLocationId!!,
-              event.offenderIdDisplay!!,
-              it,
-            )
-          }
+  fun eventListener(requestJson: String) =
+    try {
+      val notification = objectMapper.readValue<Notification<String>>(requestJson)
+      val eventType = notification.eventType
+      val event =
+        objectMapper
+          .readValue<OffenderEvent>(notification.message)
+          .takeIf { it.toAgencyLocationId != null && it.offenderIdDisplay != null }
+      when (eventType) {
+        EXTERNAL_MOVEMENT ->
+          event
+            ?.deallocationReason()
+            ?.also {
+              event.movementDateTime?.also { dt -> AllocationContext.get().copy(requestAt = dt, policy = null).set() }
+              AllocationPolicy.entries.forEach { policy ->
+                deallocationService.deallocateExpiredAllocations(
+                  event.toAgencyLocationId!!,
+                  event.offenderIdDisplay!!,
+                  it,
+                  policy,
+                )
+              }
+            }
+        else -> { /*no-op*/ }
+      }
+    } finally {
+      AllocationContext.clear()
     }
-  }
 
   private fun OffenderEvent.deallocationReason(): DeallocationReason? =
     when (directionCode to movementType) {

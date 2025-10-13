@@ -115,8 +115,6 @@ class PrisonStatisticCalculator(
           eligiblePrisonerCount = eligiblePrisoners.size,
           prisonersAssignedCount = activeAllocations,
           eligibleStaffCount = activeStaffCount,
-          recordedSessionCount = cnSummaries.sessionCount,
-          recordedEntryCount = cnSummaries.entryCount,
           receptionToAllocationDays = summaries.averageDaysToAllocation,
           receptionToRecordedEventDays = summaries.averageDaysToRecordedEntry,
         ),

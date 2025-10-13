@@ -58,7 +58,7 @@ class PrisonConfiguration(
   companion object {
     fun default(
       code: String,
-      policy: AllocationPolicy = AllocationContext.get().policy,
+      policy: AllocationPolicy = AllocationContext.get().requiredPolicy(),
     ) = PrisonConfiguration(
       code,
       enabled = true,

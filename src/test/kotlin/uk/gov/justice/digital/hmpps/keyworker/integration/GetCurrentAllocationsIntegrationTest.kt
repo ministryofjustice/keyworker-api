@@ -64,6 +64,8 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `200 ok and current keyworker allocation returned`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+
     val prisonCode = "CAL"
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, true))

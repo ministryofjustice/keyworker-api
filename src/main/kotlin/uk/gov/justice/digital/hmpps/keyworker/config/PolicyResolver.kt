@@ -13,7 +13,9 @@ class PolicyResolver :
     hibernateProperties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, this)
   }
 
-  override fun resolveCurrentTenantIdentifier(): String = AllocationContext.get().policy.name
+  override fun resolveCurrentTenantIdentifier(): String = AllocationContext.get().policy?.name ?: ""
 
   override fun validateExistingCurrentSessions(): Boolean = true
+
+  override fun isRoot(tenantId: String): Boolean = tenantId.isBlank()
 }

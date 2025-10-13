@@ -78,7 +78,7 @@ class GetCurrentAllocations(
             policies = prisonPolicies.enabled(),
           )
         } else {
-          val policies = policyRepository.findAll().associateBy { it.code }
+          val policies = policyRepository.findAll().associateBy { AllocationPolicy.valueOf(it.code) }
           return CurrentPersonStaffAllocation(
             personIdentifier,
             false,

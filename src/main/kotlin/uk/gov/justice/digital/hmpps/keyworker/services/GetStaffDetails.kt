@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
@@ -64,15 +65,7 @@ class GetStaffDetails(
             AllocationPolicy.KEY_WORKER,
           )
         }
-        addAll(
-          staffRoleRepository
-            .findByPrisonCodeAndStaffIdAllPolicies(
-              prisonCode,
-              staffId,
-            ).mapNotNull {
-              AllocationPolicy.of(it.policy)
-            },
-        )
+        addAll(staffRoleRepository.findActiveStaffPoliciesForPrison(prisonCode, staffId))
       }
     return JobClassificationResponse(policies)
   }

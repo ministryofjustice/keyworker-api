@@ -19,14 +19,14 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
   fun `401 not authorised without token`() {
     webTestClient
       .get()
-      .uri(PRISON_POLICIES_URL, "NE1")
+      .uri(PRISON_POLICIES_URL, "NEA")
       .exchange()
       .expectStatus()
       .isUnauthorized
 
     webTestClient
       .put()
-      .uri(PRISON_POLICIES_URL, "NE1")
+      .uri(PRISON_POLICIES_URL, "NEA")
       .bodyValue(PrisonPolicies(emptySet()))
       .exchange()
       .expectStatus()
@@ -35,8 +35,8 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    getPrisonPolicies("NE1", role = "ROLE_NE__OTHER__RW").expectStatus().isForbidden
-    setPrisonPolicies("NE1", role = "ROLE_NE__OTHER__RW").expectStatus().isForbidden
+    getPrisonPolicies("NEA", role = "ROLE_NE__OTHER__RW").expectStatus().isForbidden
+    setPrisonPolicies("NEA", role = "ROLE_NE__OTHER__RW").expectStatus().isForbidden
   }
 
   @Test

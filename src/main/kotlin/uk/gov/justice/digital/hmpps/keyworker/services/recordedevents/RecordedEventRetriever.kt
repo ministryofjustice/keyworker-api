@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services.recordedevents
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent as RecordedEventEntity
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
@@ -11,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.LatestNote
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventCount
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent as RecordedEventEntity
 
 @Service
 class RecordedEventRetriever(
@@ -27,7 +27,7 @@ class RecordedEventRetriever(
         from.atStartOfDay(),
         to.plusDays(1).atStartOfDay(),
       ).let {
-        RecordedEventTotals.relatingTo(AllocationContext.get().policy)(it)
+        RecordedEventTotals.relatingTo(AllocationContext.get().requiredPolicy())(it)
       }
 
   fun findRecordedEventSummaries(
@@ -48,7 +48,7 @@ class RecordedEventRetriever(
         e.key to
           RecordedEventSummaries(
             e.value.groupBy { it.personIdentifier }.map {
-              RecordedEventSummary.relatingTo(AllocationContext.get().policy)(it.toPair())
+              RecordedEventSummary.relatingTo(AllocationContext.get().requiredPolicy())(it.toPair())
             },
           )
       }?.toMap() ?: emptyMap()
@@ -67,7 +67,7 @@ class RecordedEventRetriever(
       ?.let { list ->
         RecordedEventSummaries(
           list.groupBy { it.personIdentifier }.map {
-            RecordedEventSummary.relatingTo(AllocationContext.get().policy)(it.toPair())
+            RecordedEventSummary.relatingTo(AllocationContext.get().requiredPolicy())(it.toPair())
           },
         )
       } ?: RecordedEventSummaries.empty()
@@ -137,7 +137,7 @@ class RecordedEventSummaries(
 
   companion object {
     fun empty() =
-      RecordedEventSummaries(listOf(RecordedEventSummary.relatingTo(AllocationContext.get().policy)("" to emptyList())))
+      RecordedEventSummaries(listOf(RecordedEventSummary.relatingTo(AllocationContext.get().requiredPolicy())("" to emptyList())))
   }
 }
 

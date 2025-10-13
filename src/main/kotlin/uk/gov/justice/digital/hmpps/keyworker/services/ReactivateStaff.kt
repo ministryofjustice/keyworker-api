@@ -19,21 +19,22 @@ class ReactivateStaff(
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
-  fun returningFromLeave(date: LocalDate) {
-    AllocationPolicy.entries.forEach { allocationPolicy ->
-      AllocationContext.get().copy(policy = allocationPolicy).set()
-      staffConfigRepository
-        .findAllStaffReturningFromLeave(date)
-        .takeIf { it.isNotEmpty() }
-        ?.run {
-          val activeStatus = referenceDataRepository.getReferenceData(STAFF_STATUS of StaffStatus.ACTIVE.name)
-          map {
-            it.apply {
-              status = activeStatus
-              reactivateOn = null
-            }
+  fun returningFromLeave(
+    policy: AllocationPolicy,
+    date: LocalDate,
+  ) {
+    AllocationContext.get().copy(policy = policy).set()
+    staffConfigRepository
+      .findAllStaffReturningFromLeave(date)
+      .takeIf { it.isNotEmpty() }
+      ?.run {
+        val activeStatus = referenceDataRepository.getReferenceData(STAFF_STATUS of StaffStatus.ACTIVE.name)
+        map {
+          it.apply {
+            status = activeStatus
+            reactivateOn = null
           }
         }
-    }
+      }
   }
 }

@@ -1,15 +1,10 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType.ENTRY
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType.SESSION
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import java.time.LocalDateTime
 
 enum class DateType {
@@ -80,34 +75,4 @@ data class CaseNoteFromApiSummary(
     keyworkerEntries = grouped[KW_TYPE to KW_ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
     poEntries = grouped[PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE]?.sumOf { it.count } ?: 0
   }
-
-  fun getRecordedFor(
-    policy: AllocationPolicy,
-    personIdentifier: String,
-    prison: Prison,
-  ): RecordedFor? {
-    val (reType, cnType) =
-      when (policy) {
-        AllocationPolicy.KEY_WORKER -> SESSION to (KW_TYPE to KW_SESSION_SUBTYPE)
-        AllocationPolicy.PERSONAL_OFFICER -> ENTRY to (PO_ENTRY_TYPE to PO_ENTRY_SUBTYPE)
-      }
-    return findLatestFor(personIdentifier, cnType.first, cnType.second)?.let { RecordedFor(prison, reType, it, policy) }
-  }
-
-  private fun findLatestFor(
-    personIdentifier: String,
-    type: String,
-    subType: String,
-  ): LocalDateTime? =
-    data[personIdentifier]
-      ?.find { it.type == type && it.subType == subType }
-      ?.latestNote
-      ?.occurredAt
 }
-
-data class RecordedFor(
-  val prison: Prison,
-  val type: RecordedEventType,
-  val lastOccurredAt: LocalDateTime,
-  val policy: AllocationPolicy,
-)

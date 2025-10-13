@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.services.ReactivateStaff
 import java.time.LocalDate
 
@@ -21,6 +22,8 @@ class StaffStatusController(
   fun makeActiveReturningFromLeave(
     @RequestParam(required = false) date: LocalDate?,
   ) {
-    reactivateStaff.returningFromLeave(date ?: LocalDate.now())
+    AllocationPolicy.entries.forEach { policy ->
+      reactivateStaff.returningFromLeave(policy, date ?: LocalDate.now())
+    }
   }
 }

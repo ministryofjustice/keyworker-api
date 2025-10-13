@@ -8,8 +8,10 @@ data class AllocationContext(
   val username: String,
   val requestAt: LocalDateTime = LocalDateTime.now(),
   val activeCaseloadId: String? = null,
-  val policy: AllocationPolicy = AllocationPolicy.KEY_WORKER,
+  val policy: AllocationPolicy? = null,
 ) {
+  fun requiredPolicy(): AllocationPolicy = policy ?: AllocationPolicy.KEY_WORKER
+
   companion object {
     const val SYSTEM_USERNAME = "SYS"
     const val OMIC_ADMIN_USERNAME = "omicadmin"
@@ -59,3 +61,5 @@ enum class AllocationPolicy(
     fun of(name: String?): AllocationPolicy? = entries.firstOrNull { it.name.asKeyword() == name?.asKeyword() }
   }
 }
+
+class NoPolicyProvidedException : RuntimeException("Policy required but not provided")

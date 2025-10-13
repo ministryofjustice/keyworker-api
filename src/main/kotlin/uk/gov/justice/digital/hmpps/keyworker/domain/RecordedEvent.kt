@@ -124,9 +124,13 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
     from recorded_event re
     join reference_data type on re.type_id = type.id
     join latest l on l.id = re.id and l.row = 1
-  """, nativeQuery = true
+  """,
+    nativeQuery = true,
   )
-  fun findLatestRecordedEvents(personIdentifier: String, policies: Set<String>): List<LatestRecordedEvent>
+  fun findLatestRecordedEvents(
+    personIdentifier: String,
+    policies: Set<String>,
+  ): List<LatestRecordedEvent>
 
   @Query("select re.policy_code from recorded_event re where re.id = :id", nativeQuery = true)
   fun findPolicyForId(id: UUID): String?
