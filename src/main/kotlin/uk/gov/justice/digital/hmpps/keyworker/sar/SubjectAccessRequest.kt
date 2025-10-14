@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.sar
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
@@ -15,7 +14,6 @@ import java.time.LocalDate
 
 @Service
 class SubjectAccessRequest(
-  private val ach: AllocationContextHolder,
   private val allocationRepository: AllocationRepository,
   private val policyRepository: PolicyRepository,
   private val prisonApi: PrisonApiClient,

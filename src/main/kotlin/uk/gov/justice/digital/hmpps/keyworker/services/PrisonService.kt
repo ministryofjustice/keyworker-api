@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigResponse

@@ -10,9 +10,9 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.services.DeallocationService
-import uk.gov.justice.digital.hmpps.keyworker.services.PrisonRegisterClient
 import java.time.LocalDateTime
 
 @Service

@@ -11,17 +11,17 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocatableSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.RecordedEventRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.RecordedEventResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonSearchResponse
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.AllocatableSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonSearch
-import uk.gov.justice.digital.hmpps.keyworker.services.StaffSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventsSearch
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffSearch
 
 @RestController
 @RequestMapping(value = ["/search"])

@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedLevel
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.person.Author
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentAllocation

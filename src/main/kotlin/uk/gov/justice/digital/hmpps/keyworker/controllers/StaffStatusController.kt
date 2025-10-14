@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
-import uk.gov.justice.digital.hmpps.keyworker.services.ReactivateStaff
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.ReactivateStaff
 import java.time.LocalDate
 
 @RestController

@@ -1,8 +1,6 @@
-package uk.gov.justice.digital.hmpps.keyworker.model
+package uk.gov.justice.digital.hmpps.keyworker.model.staff
 
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffCountStats
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 
 data class AllocatableSearchRequest(
   val query: String?,

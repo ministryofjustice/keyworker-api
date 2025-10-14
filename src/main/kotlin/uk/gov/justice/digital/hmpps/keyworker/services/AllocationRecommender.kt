@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PrisonerSummary
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffSearch
 import java.time.LocalDateTime
 import java.util.SortedSet
 import java.util.TreeSet
@@ -75,7 +76,7 @@ class AllocationRecommender(
 
   private fun getStaffCapacities(prisonCode: String): SortedSet<StaffCapacity> {
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
-    val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staffMember }
+    val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staff }
     val staffIds = staff.map { it.staffId }.toSet()
     val staffInfo = staffConfigRepository.findAllWithAllocationCount(prisonCode, staffIds).associateBy { it.staffId }
     val autoAllocations = allocationRepository.findLatestAutoAllocationsFor(staffIds).associateBy { it.staffId }
@@ -85,7 +86,6 @@ class AllocationRecommender(
         val staffInfo = staffInfo[it.staffId]
         StaffCapacity(
           StaffSummary(it.staffId, it.firstName, it.lastName),
-          prisonConfig.allowAutoAllocation,
           staffInfo?.staffConfig?.capacity ?: prisonConfig.capacity,
           staffInfo?.allocationCount ?: 0,
           autoAllocations[it.staffId]?.allocatedAt,
@@ -98,7 +98,6 @@ class AllocationRecommender(
 
 private class StaffCapacity(
   val staff: StaffSummary,
-  val allowAutoAllocation: Boolean,
   val autoAllocationCapacity: Int,
   val initialAllocationCount: Int,
   val lastAutoAllocationAt: LocalDateTime?,

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services
+package uk.gov.justice.digital.hmpps.keyworker.services.staff
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

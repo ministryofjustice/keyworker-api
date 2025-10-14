@@ -103,5 +103,3 @@ class RecordedEventTotals(
 data class LatestNote(
   val occurredAt: LocalDateTime,
 )
-
-private fun List<RecordedEventSummary>.grouped() = RecordedEventSummaries(this)

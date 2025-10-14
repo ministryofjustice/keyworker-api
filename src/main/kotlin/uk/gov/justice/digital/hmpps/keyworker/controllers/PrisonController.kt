@@ -24,10 +24,10 @@ import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetailsRequest
-import uk.gov.justice.digital.hmpps.keyworker.services.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonService
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonStatsService
-import uk.gov.justice.digital.hmpps.keyworker.services.StaffConfigManager
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.GetStaffDetails
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffConfigManager
 import java.time.LocalDate
 
 @RestController

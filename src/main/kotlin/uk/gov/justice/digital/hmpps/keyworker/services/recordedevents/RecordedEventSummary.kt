@@ -86,3 +86,5 @@ class RecordedEventSummaries(
       )
   }
 }
+
+fun List<RecordedEventSummary>.grouped() = RecordedEventSummaries(this)

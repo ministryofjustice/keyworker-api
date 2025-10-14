@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services
+package uk.gov.justice.digital.hmpps.keyworker.services.staff
 
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Service
