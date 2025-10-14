@@ -6,6 +6,8 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -26,24 +28,28 @@ class PrisonerMovementIntTest : IntegrationTest() {
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
   }
 
-  @Test
-  fun `release deallocates allocation`() {
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `release deallocates allocation`(policy: AllocationPolicy) {
     val prisonCode = "DAA"
+    setContext(AllocationContext.get().copy(policy = policy))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent(prisonCode, "OUT", "OUT", "REL", alloc.personIdentifier))
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = policy))
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.RELEASED.name)
     val affected = setOf(Allocation::class.simpleName!!)
     verifyAudit(deallocated, deallocated.id, RevisionType.MOD, affected, AllocationContext.get())
   }
 
-  @Test
-  fun `transfer deallocates allocation`() {
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `transfer deallocates allocation`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "SMO"
     val toPrisonCode = "TOP"
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(toPrisonCode, toPrisonCode)))
@@ -53,14 +59,17 @@ class PrisonerMovementIntTest : IntegrationTest() {
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = policy))
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.TRANSFER.name)
     val affected = setOf(Allocation::class.simpleName!!)
     verifyAudit(deallocated, deallocated.id, RevisionType.MOD, affected, AllocationContext.get())
   }
 
-  @Test
-  fun `does not deallocate if already at new prison`() {
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `does not deallocate if already at new prison`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "ARD"
     prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
@@ -69,6 +78,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = policy))
     val allocation = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(allocation.deallocationReason).isNull()
     val affected = setOf(Allocation::class.simpleName!!)

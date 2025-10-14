@@ -44,11 +44,11 @@ class ComplexityOfNeedEventProcessor(
         }
       }
     AllocationPolicy.entries.forEach { policy ->
+      AllocationContext.get().copy(policy = policy).set()
       deallocationService.deallocateExpiredAllocations(
         "",
         event.offenderNo,
         DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED,
-        policy,
       )
     }
   }

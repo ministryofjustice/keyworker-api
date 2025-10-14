@@ -51,8 +51,10 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     initMigration(prisonCode)
 
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
+
     Thread.sleep(1000) // TODO look into alternative
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     personIdentifiers
       .map {
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
@@ -87,6 +89,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
     Thread.sleep(1000) // TODO look into alternative
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     personIdentifiers
       .map {
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }

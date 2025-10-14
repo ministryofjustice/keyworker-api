@@ -8,6 +8,8 @@ import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType.CalculatePrisonStats
@@ -44,7 +46,10 @@ class DomainEventListener(
         ComplexityOfNeedChanged -> complexityOfNeedEventProcessor.onComplexityChange(notification.message)
         PrisonMerged -> {
           val domainEvent = objectMapper.readValue<HmppsDomainEvent<MergeInformation>>(notification.message)
-          mergePrisonNumbers.merge(domainEvent.additionalInformation)
+          AllocationPolicy.entries.forEach { policy ->
+            AllocationContext.get().copy(policy = policy).set()
+            mergePrisonNumbers.merge(domainEvent.additionalInformation)
+          }
         }
 
         CalculatePrisonStats -> {

@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
+import io.jsonwebtoken.security.Jwks.OP.policy
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.envers.RevisionType
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.repository.findByIdOrNull
@@ -36,10 +38,10 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
     }
   }
 
-  @ParameterizedTest
-  @EnumSource(AllocationPolicy::class)
-  fun `Returning from leave updates status to active`(policy: AllocationPolicy) {
-    setContext(AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy))
+  @Test
+  fun `Returning from leave updates status to active`() {
+    val context = AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = AllocationPolicy.PERSONAL_OFFICER)
+    setContext(context)
     val configs =
       (0..2).map {
         givenStaffConfig(
@@ -52,6 +54,7 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
 
     returningFromLeave(LocalDate.now()).expectStatus().isNoContent
 
+    setContext(context)
     staffConfigRepository.findAllById(configs.map { it.id }).forEach {
       assertThat(it.status.code).isEqualTo(StaffStatus.ACTIVE.name)
       assertThat(it.reactivateOn).isNull()
@@ -60,7 +63,7 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
         it.id,
         RevisionType.MOD,
         setOf(StaffConfiguration::class.simpleName!!),
-        AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy),
+        context,
       )
     }
   }

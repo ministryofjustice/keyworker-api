@@ -38,11 +38,11 @@ class OffenderEventListener(
             ?.also {
               event.movementDateTime?.also { dt -> AllocationContext.get().copy(requestAt = dt, policy = null).set() }
               AllocationPolicy.entries.forEach { policy ->
+                AllocationContext.get().copy(policy = policy).set()
                 deallocationService.deallocateExpiredAllocations(
                   event.toAgencyLocationId!!,
                   event.offenderIdDisplay!!,
                   it,
-                  policy,
                 )
               }
             }

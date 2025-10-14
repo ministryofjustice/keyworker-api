@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -115,16 +112,16 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       }
     }
 
-    publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, now().minusDays(1), policy)))
+    publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, yesterday, policy)))
 
-    val stats: PrisonStatistic? =
-      await untilCallTo {
-        setContext(AllocationContext.get().copy(policy = policy))
-        prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
-      } matches { it != null }
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    var stats: PrisonStatistic?
+    do {
+      stats = prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
+    } while (stats == null)
 
     assertThat(stats).isNotNull
-    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    assertThat(stats.prisonCode).isEqualTo(prisonCode)
     assertThat(stats.date).isEqualTo(yesterday)
 
     assertThat(stats.prisonerCount).isEqualTo(prisoners.size)
@@ -216,21 +213,18 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
 
     publishEventToTopic(
       calculateStatsEvent(
-        PrisonStatisticsInfo(
-          prisonCode,
-          now().minusDays(1),
-          AllocationPolicy.KEY_WORKER,
-        ),
+        PrisonStatisticsInfo(prisonCode, yesterday, AllocationPolicy.KEY_WORKER),
       ),
     )
 
-    val stats: PrisonStatistic? =
-      await untilCallTo {
-        prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
-      } matches { it != null }
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    var stats: PrisonStatistic?
+    do {
+      stats = prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
+    } while (stats == null)
 
     assertThat(stats).isNotNull
-    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    assertThat(stats.prisonCode).isEqualTo(prisonCode)
     assertThat(stats.date).isEqualTo(yesterday)
 
     assertThat(stats.prisonerCount).isEqualTo(prisoners.size)

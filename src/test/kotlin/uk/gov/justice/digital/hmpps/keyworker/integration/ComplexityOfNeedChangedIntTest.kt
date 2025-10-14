@@ -71,6 +71,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.name)
     assertThat(deallocated.deallocatedAt?.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(requestedAt?.truncatedTo(ChronoUnit.SECONDS))
@@ -109,6 +110,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val deallocated = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(deallocated.deallocationReason?.code).isEqualTo(DeallocationReason.CHANGE_IN_COMPLEXITY_OF_NEED.name)
     assertThat(deallocated.deallocatedAt?.truncatedTo(ChronoUnit.SECONDS)).isEqualTo(requestedAt?.truncatedTo(ChronoUnit.SECONDS))

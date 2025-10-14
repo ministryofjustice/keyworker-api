@@ -32,3 +32,8 @@ object CaseNotesOfInterest {
 
   operator fun get(t: String) = entries[t]
 }
+
+data class TypeSubTypeRequest(
+  val type: String,
+  val subTypes: Set<String> = setOf(),
+)

@@ -233,15 +233,6 @@ interface AllocationRepository :
     """
       select a from Allocation a
       join fetch a.allocationReason ar
-      where a.personIdentifier = :personIdentifier and a.isActive = true and a.policy = ar.policyCode
-    """,
-  )
-  fun findActiveForAllPolicies(personIdentifier: String): List<Allocation>
-
-  @Query(
-    """
-      select a from Allocation a
-      join fetch a.allocationReason ar
       left join fetch a.deallocationReason dr
       where a.personIdentifier = :personIdentifier
       and (cast(:from as timestamp) is null or :from <= a.allocatedAt)

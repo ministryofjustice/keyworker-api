@@ -89,14 +89,13 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
   @Query(
     """
       with latest as (
-        select acn.id as id, row_number() over (partition by acn.personIdentifier order by acn.occurredAt desc) as row
-        from RecordedEvent acn
-        where acn.prisonCode = :prisonCode and acn.personIdentifier in :personIdentifiers and acn.type.key = :rdKey
-        and acn.occurredAt < :before
+        select lre.id as id, row_number() over (partition by lre.personIdentifier order by lre.occurredAt desc) as row
+        from RecordedEvent lre
+        where lre.prisonCode = :prisonCode and lre.personIdentifier in :personIdentifiers and lre.type.key = :rdKey
+        and lre.occurredAt < :before
     )
-    select re 
+    select re.personIdentifier as personIdentifier, re.occurredAt as date
     from RecordedEvent re
-    join fetch re.type t
     join latest l on l.id = re.id and l.row = 1
   """,
   )
@@ -105,7 +104,7 @@ interface RecordedEventRepository : JpaRepository<RecordedEvent, UUID> {
     personIdentifiers: Set<String>,
     rdKey: ReferenceDataKey,
     before: LocalDateTime,
-  ): List<RecordedEvent>
+  ): List<LatestRecordedEventDate>
 
   @Query(
     """
@@ -143,4 +142,9 @@ interface LatestRecordedEvent {
   val occurredAt: LocalDateTime
   val typeCode: String
   val policyCode: String
+}
+
+interface LatestRecordedEventDate {
+  val personIdentifier: String
+  val date: LocalDateTime
 }

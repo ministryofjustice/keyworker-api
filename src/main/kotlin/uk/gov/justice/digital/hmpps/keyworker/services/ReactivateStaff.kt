@@ -2,9 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.services
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.STAFF_STATUS
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
@@ -19,11 +16,7 @@ class ReactivateStaff(
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
-  fun returningFromLeave(
-    policy: AllocationPolicy,
-    date: LocalDate,
-  ) {
-    AllocationContext.get().copy(policy = policy).set()
+  fun returningFromLeave(date: LocalDate) {
     staffConfigRepository
       .findAllStaffReturningFromLeave(date)
       .takeIf { it.isNotEmpty() }

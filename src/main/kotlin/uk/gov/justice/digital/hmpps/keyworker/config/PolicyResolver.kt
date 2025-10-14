@@ -16,6 +16,4 @@ class PolicyResolver :
   override fun resolveCurrentTenantIdentifier(): String = AllocationContext.get().policy?.name ?: ""
 
   override fun validateExistingCurrentSessions(): Boolean = true
-
-  override fun isRoot(tenantId: String): Boolean = tenantId.isBlank()
 }
