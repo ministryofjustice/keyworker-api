@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.envers.RevisionType
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.repository.findByIdOrNull
@@ -37,9 +36,10 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
     }
   }
 
-  @Test
-  fun `Returning from leave updates status to active`() {
-    val context = AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = AllocationPolicy.PERSONAL_OFFICER)
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `Returning from leave updates status to active`(policy: AllocationPolicy) {
+    val context = AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy)
     setContext(context)
     val configs =
       (0..2).map {
