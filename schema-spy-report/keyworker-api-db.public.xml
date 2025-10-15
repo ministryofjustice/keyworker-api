@@ -3,7 +3,6 @@
       <sequence increment="1" name="audit_revision_id_seq" startValue="1"/>
       <sequence increment="1" name="case_note_type_recorded_event_type_id_seq" startValue="1"/>
       <sequence increment="1" name="keyworker_stats_keyworker_stats_id_seq" startValue="1"/>
-      <sequence increment="1" name="offender_key_worker_offender_keyworker_id_seq" startValue="1"/>
       <sequence increment="1" name="reference_data_id_seq" startValue="1"/>
    </sequences>
    <tables>
@@ -244,14 +243,12 @@
          <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="statistic_date" nullable="false" remarks="Timestamp of date for which stats apply" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prisoners_assigned_count" nullable="false" remarks="Number of prisoner who have been assigned a Key worker" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="prisoner_count" nullable="false" remarks="Total number of prisoners in the prison on this date" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="recorded_session_count" nullable="true" remarks="Number of Key worker case note sessions" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="recorded_entry_count" nullable="true" remarks="Number of Key worker case note entries" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="eligible_staff_count" nullable="true" remarks="Number of active keyworkers" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="reception_to_allocation_days" nullable="true" remarks="Number of days (avg) between reception and allocation of a keyworker" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="reception_to_recorded_event_days" nullable="true" remarks="Number of days (avg) between reception and first Key worker session" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="eligible_prisoner_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="high_complexity_of_need_prisoner_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="eligible_staff_count" nullable="true" remarks="Number of active keyworkers" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="reception_to_allocation_days" nullable="true" remarks="Number of days (avg) between reception and allocation of a keyworker" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="reception_to_recorded_event_days" nullable="true" remarks="Number of days (avg) between reception and first Key worker session" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="eligible_prisoner_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="high_complexity_of_need_prisoner_count" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
             <parent catalog="keyworker-api-db" column="code" foreignKey="prison_statistic_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
          <primaryKey column="id" sequenceNumberInPK="1"/>
@@ -333,15 +330,13 @@
             <column ascending="true" name="id"/>
          </index>
       </table>
-      <table catalog="keyworker-api-db" name="reference_data" numRows="60" remarks="" schema="public" type="TABLE">
+      <table catalog="keyworker-api-db" name="reference_data" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child catalog="keyworker-api-db" column="allocation_reason_id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child catalog="keyworker-api-db" column="deallocation_reason_id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child catalog="keyworker-api-db" column="type_id" foreignKey="recorded_event_type_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="recorded_event"/>
             <child catalog="keyworker-api-db" column="id" foreignKey="reference_data_policy_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data_policy"/>
             <child catalog="keyworker-api-db" column="status_id" foreignKey="key_worker_status_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="staff_configuration"/>
-            <child catalog="keyworker-api-db" column="allocation_reason_id" foreignKey="offender_key_worker_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="zz_archived_legacy_keyworker_allocation"/>
-            <child catalog="keyworker-api-db" column="deallocation_reason_id" foreignKey="offender_key_worker_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="zz_archived_legacy_keyworker_allocation"/>
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="domain" nullable="false" remarks="" size="32" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="code" nullable="false" remarks="" size="32" type="varchar" typeCode="12"/>
@@ -360,7 +355,7 @@
             <column ascending="true" name="sequence_number"/>
          </index>
       </table>
-      <table catalog="keyworker-api-db" name="reference_data_policy" numRows="84" remarks="" schema="public" type="TABLE">
+      <table catalog="keyworker-api-db" name="reference_data_policy" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
             <parent catalog="keyworker-api-db" column="id" foreignKey="reference_data_policy_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
          </column>
@@ -469,46 +464,6 @@
             <column ascending="true" name="rev_id"/>
             <column ascending="true" name="id"/>
          </index>
-      </table>
-      <table catalog="keyworker-api-db" name="zz_archived_legacy_keyworker_allocation" remarks="Records the Key Worker assignment history of offenders on remand or serving custodial sentences held within an establishment." schema="public" type="TABLE">
-         <column autoUpdated="true" defaultValue="nextval('offender_key_worker_offender_keyworker_id_seq'::regclass)" digits="0" id="0" name="offender_keyworker_id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="offender_no" nullable="false" remarks="The Related Offender No" size="10" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="staff_id" nullable="false" remarks="The Related Key Worker Staff Id" size="19" type="int8" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="3" name="assigned_date_time" nullable="false" remarks="Assigned Date and Time" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="active_flag" nullable="false" remarks="Assignment Active Flag" size="1" type="bpchar" typeCode="1"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="alloc_type" nullable="false" remarks="Type of allocation, M for manual, A for auto, P for provisional" size="1" type="bpchar" typeCode="1"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="user_id" nullable="false" remarks="Assigned by User Id" size="32" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="prison_id" nullable="false" remarks="Prison Id" size="6" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="8" name="expiry_date_time" nullable="true" remarks="Expiry Date and Time of Assignment" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="9" name="create_datetime" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="create_user_id" nullable="false" remarks="" size="32" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="11" name="modify_datetime" nullable="true" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="modify_user_id" nullable="true" remarks="" size="32" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="13" name="allocation_reason_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
-            <parent catalog="keyworker-api-db" column="id" foreignKey="offender_key_worker_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
-         </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="14" name="deallocation_reason_id" nullable="true" remarks="" size="19" type="int8" typeCode="-5">
-            <parent catalog="keyworker-api-db" column="id" foreignKey="offender_key_worker_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
-         </column>
-         <primaryKey column="offender_keyworker_id" sequenceNumberInPK="1"/>
-         <index name="offender_key_worker_pk" unique="true">
-            <column ascending="true" name="offender_keyworker_id"/>
-         </index>
-         <index name="offender_key_worker_ai_idx" unique="false">
-            <column ascending="true" name="prison_id"/>
-         </index>
-         <index name="offender_key_worker_on_idx" unique="false">
-            <column ascending="true" name="offender_no"/>
-         </index>
-         <index name="offender_key_worker_si_idx" unique="false">
-            <column ascending="true" name="staff_id"/>
-         </index>
-         <index name="offender_keyworker_unique" unique="true">
-            <column ascending="true" name="offender_no"/>
-            <column ascending="true" name="staff_id"/>
-            <column ascending="true" name="assigned_date_time"/>
-         </index>
-         <checkConstraint constraint="((alloc_type = ANY (ARRAY['A'::bpchar, 'M'::bpchar, 'P'::bpchar])))" name="offender_key_worker_c1"/>
       </table>
    </tables>
 </database>

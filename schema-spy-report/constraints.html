@@ -80,7 +80,7 @@
                     <div class="box box-primary">
                         <div class="box-header with-border">
                             <i class="ion ion-key"></i>
-                            <h3 class="box-title">19 Foreign Key Constraints</h3>
+                            <h3 class="box-title">17 Foreign Key Constraints</h3>
                             <div class="box-tools pull-right">
                                 <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
                                 <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
@@ -392,42 +392,6 @@
                                         <td><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>Restrict delete</span></td>
                                     </tr>
                                     <tr>
-                                        <td>offender_key_worker_allocation_reason_id_fkey</td>
-                                        <td>
-                                            <table border='0' cellspacing='0' cellpadding='0'>
-                                                <tr>
-                                                    <td><a href='tables/zz_archived_legacy_keyworker_allocation.html'>zz_archived_legacy_keyworker_allocation</a><span>.allocation_reason_id</span></td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                        <td>
-                                            <table border='0' cellspacing='0' cellpadding='0'>
-                                                <tr>
-                                                    <td><a href='tables/reference_data.html'>reference_data</a><span>.id</span></td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                        <td><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>Restrict delete</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>offender_key_worker_deallocation_reason_id_fkey</td>
-                                        <td>
-                                            <table border='0' cellspacing='0' cellpadding='0'>
-                                                <tr>
-                                                    <td><a href='tables/zz_archived_legacy_keyworker_allocation.html'>zz_archived_legacy_keyworker_allocation</a><span>.deallocation_reason_id</span></td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                        <td>
-                                            <table border='0' cellspacing='0' cellpadding='0'>
-                                                <tr>
-                                                    <td><a href='tables/reference_data.html'>reference_data</a><span>.id</span></td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                        <td><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>Restrict delete</span></td>
-                                    </tr>
-                                    <tr>
                                         <td>prison_statistic_policy_code_fkey</td>
                                         <td>
                                             <table border='0' cellspacing='0' cellpadding='0'>
@@ -488,11 +452,6 @@
                                         <td><a href='tables/prison_configuration.html'>prison_configuration</a></td>
                                         <td>prison_config_allocation_order_valid</td>
                                         <td>(((allocation_order)::text &#61; ANY ((ARRAY[&#39;BY_ALLOCATIONS&#39;::character varying, &#39;BY_NAME&#39;::character varying])::text[])))</td>
-                                    </tr>
-                                    <tr>
-                                        <td><a href='tables/zz_archived_legacy_keyworker_allocation.html'>zz_archived_legacy_keyworker_allocation</a></td>
-                                        <td>offender_key_worker_c1</td>
-                                        <td>((alloc_type &#61; ANY (ARRAY[&#39;A&#39;::bpchar, &#39;M&#39;::bpchar, &#39;P&#39;::bpchar])))</td>
                                     </tr>
                                 </tbody>
                             </table>
