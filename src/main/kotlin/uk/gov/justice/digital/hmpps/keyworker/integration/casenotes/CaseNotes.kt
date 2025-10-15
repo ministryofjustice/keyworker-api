@@ -1,10 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.casenotes
 
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_SUBTYPE
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.PO_ENTRY_TYPE
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import java.time.LocalDateTime
 
 data class CaseNotes(
@@ -12,7 +8,7 @@ data class CaseNotes(
 )
 
 data class SearchCaseNotes(
-  val typeSubTypes: Set<TypeSubTypeRequest> = CaseNotesOfInterest.asRequest(),
+  val typeSubTypes: Set<TypeSubTypeRequest>,
   val occurredFrom: LocalDateTime? = null,
   val occurredTo: LocalDateTime? = null,
   val includeSensitive: Boolean = true,
@@ -21,12 +17,14 @@ data class SearchCaseNotes(
   val sort: String = "occurredAt,asc",
 )
 
-object CaseNotesOfInterest {
-  val entries =
-    mapOf(
-      KW_TYPE to setOf(KW_SESSION_SUBTYPE, KW_ENTRY_SUBTYPE),
-      PO_ENTRY_TYPE to setOf(PO_ENTRY_SUBTYPE),
-    )
+class CaseNotesOfInterest(
+  keys: Set<CaseNoteTypeKey>,
+) {
+  private val entries =
+    keys
+      .groupBy { it.cnType }
+      .map { e -> e.key to e.value.map { it.cnSubType }.toSet() }
+      .toMap()
 
   fun asRequest() = entries.map { (t, s) -> TypeSubTypeRequest(t, s) }.toSet()
 

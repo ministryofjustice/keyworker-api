@@ -105,7 +105,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
             position = "PRO",
             scheduleType = "FT",
             hoursPerWeek = BigDecimal(40),
-            fromDate = LocalDate.now(),
+            fromDate = now(),
             toDate = null,
           )
         nomisUserRolesMockServer.stubSetStaffRole(
@@ -134,7 +134,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
       assertThat(staffRole.scheduleType.code).isEqualTo("FT")
       assertThat(staffRole.position.code).isEqualTo("PRO")
-      assertThat(staffRole.fromDate).isEqualTo(LocalDate.now())
+      assertThat(staffRole.fromDate).isEqualTo(now())
       assertThat(staffRole.toDate).isNull()
       verifyAudit(
         staffRole,
@@ -318,7 +318,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
     allocationRepository.findAllById(allocations.map { it.id }).forEach {
       assertThat(it.isActive).isFalse
-      assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(LocalDate.now())
+      assertThat(it.deallocatedAt?.toLocalDate()).isEqualTo(now())
       assertThat(it.deallocationReason?.code).isEqualTo(DeallocationReason.STAFF_STATUS_CHANGE.name)
     }
   }
@@ -341,7 +341,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
             scheduleType = staffRole.scheduleType,
             hoursPerWeek = staffRole.hoursPerWeek,
             fromDate = staffRole.fromDate,
-            toDate = LocalDate.now(),
+            toDate = now(),
           )
         prisonMockServer.stubKeyworkerDetails(prisonCode, staffId, staffRole)
         nomisUserRolesMockServer.stubSetStaffRole(

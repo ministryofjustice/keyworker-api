@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
-import io.jsonwebtoken.security.Jwks.OP.policy
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test

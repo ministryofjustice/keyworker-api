@@ -11,8 +11,10 @@ interface RecordedEventSummary {
   val recordedEvents: List<RecordedEvent>
   val sessionCount: Int?
   val entryCount: Int?
+  val complianceType: RecordedEventType
   val complianceCount: Int
   val latestOccurrence: RecordedEvent?
+    get() = recordedEvents.filter { it.type.code == complianceType.name }.maxByOrNull { it.occurredAt }
   val recordedEventCount: List<RecordedEventCount>
 
   companion object {
@@ -32,9 +34,8 @@ class KeyworkerRecordedEventSummary(
 ) : RecordedEventSummary {
   override val sessionCount: Int = recordedEvents.count { it.type.code == RecordedEventType.SESSION.name }
   override val entryCount: Int = recordedEvents.count { it.type.code == RecordedEventType.ENTRY.name }
+  override val complianceType: RecordedEventType = RecordedEventType.SESSION
   override val complianceCount: Int = sessionCount
-  override val latestOccurrence: RecordedEvent? =
-    recordedEvents.filter { it.type.code == RecordedEventType.SESSION.name }.maxByOrNull { it.occurredAt }
   override val recordedEventCount: List<RecordedEventCount> =
     listOf(
       RecordedEventCount(RecordedEventType.SESSION, sessionCount),
@@ -48,9 +49,8 @@ class PersonOfficerRecordedEventSummary(
 ) : RecordedEventSummary {
   override val sessionCount: Int? = null
   override val entryCount: Int = recordedEvents.count { it.type.code == RecordedEventType.ENTRY.name }
+  override val complianceType: RecordedEventType = RecordedEventType.ENTRY
   override val complianceCount: Int = entryCount
-  override val latestOccurrence: RecordedEvent? =
-    recordedEvents.filter { it.type.code == RecordedEventType.ENTRY.name }.maxByOrNull { it.occurredAt }
   override val recordedEventCount: List<RecordedEventCount> =
     listOf(RecordedEventCount(RecordedEventType.ENTRY, entryCount))
 }
@@ -63,6 +63,11 @@ class RecordedEventSummaries(
   val sessionCount = data.values.sumOf { it.sessionCount ?: 0 }
   val entryCount = data.values.sumOf { it.entryCount ?: 0 }
   val complianceCount = data.values.sumOf { it.complianceCount }
+  val complianceType: RecordedEventType? =
+    data.values
+      .map { it.complianceType }
+      .toSet()
+      .singleOrNull()
 
   fun recordedEventCount(): List<RecordedEventCount> =
     data.values

@@ -60,7 +60,8 @@ class MergePrisonerIntTest : IntegrationTest() {
     val staffId = newId()
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
     val new = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
-    caseNotesMockServer.stubSearchCaseNotes(new.personIdentifier, CaseNotes(listOf()))
+
+    caseNotesMockServer.stubSearchCaseNotes(new.personIdentifier, caseNotesOfInterest(), CaseNotes(listOf()))
 
     publishEventToTopic(mergeEvent(new.personIdentifier, alloc.personIdentifier))
 

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.Notification
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType.CalculatePrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType.CaseNoteCreated
@@ -23,9 +22,9 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventTyp
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType.PrisonMerged
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedEventProcessor
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
-import uk.gov.justice.digital.hmpps.keyworker.services.MigrateRecordedEvents
-import uk.gov.justice.digital.hmpps.keyworker.services.PersonInformation
-import uk.gov.justice.digital.hmpps.keyworker.services.RecordedEventService
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.MigrateRecordedEvents
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.PersonInformation
+import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventService
 import uk.gov.justice.digital.hmpps.keyworker.statistics.PrisonStatisticCalculator
 
 @Service
@@ -81,10 +80,7 @@ class DomainEventListener(
     return PersonInformation(personIdentifier, message.additionalInformation)
   }
 
-  private fun Notification<*>.isOfInterest(): Boolean {
-    val typeSubType = CaseNotesOfInterest[caseNoteType]
-    return typeSubType != null && typeSubType.contains(caseNoteSubType)
-  }
+  private fun Notification<*>.isOfInterest(): Boolean = recordedEvent.isOfInterest(caseNoteType, caseNoteSubType)
 
   private val Notification<*>.caseNoteType get(): String = attributes["type"]?.value ?: ""
   private val Notification<*>.caseNoteSubType get(): String = attributes["subType"]?.value ?: ""

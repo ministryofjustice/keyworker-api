@@ -21,12 +21,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.expression.spel.support.StandardEvaluationContext
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.method.HandlerMethod
-import kotlin.collections.filterIsInstance
-import kotlin.collections.isNotEmpty
-import kotlin.collections.joinToString
-import kotlin.collections.toList
-import kotlin.jvm.java
-import kotlin.text.trimMargin
 
 const val PRISON = "Prison"
 const val MANAGE_STAFF = "Manage Staff"

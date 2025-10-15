@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services
+package uk.gov.justice.digital.hmpps.keyworker.services.recordedevents
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventReposi
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.CaseNoteMigrationInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
@@ -30,11 +31,11 @@ class MigrateRecordedEvents(
     event.personReference.nomsNumber()?.also { pi ->
       val notesByPolicy =
         caseNoteApi
-          .getCaseNotesOfInterest(pi)
+          .getCaseNotesOfInterest(pi, CaseNotesOfInterest(rd.keys))
           .content
           .mapNotNull { cn ->
             rd[CaseNoteTypeKey(cn.type, cn.subType)]?.policyCode?.let { it to cn }
-          }.groupBy({ AllocationPolicy.valueOf(it.first) }, { it.second })
+          }.groupBy({ AllocationPolicy.Companion.of(it.first) }, { it.second })
       recordedEventRepository.deleteAllByPersonIdentifier(pi)
       AllocationPolicy.entries.forEach { policy ->
         AllocationContext.get().copy(policy = policy).set()

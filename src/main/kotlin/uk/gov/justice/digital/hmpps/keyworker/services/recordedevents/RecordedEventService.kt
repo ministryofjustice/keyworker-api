@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services
+package uk.gov.justice.digital.hmpps.keyworker.services.recordedevents
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -18,38 +18,47 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.CaseNote
 class RecordedEventService(
   private val cnTypeReTypeRepository: CaseNoteRecordedEventRepository,
   private val caseNoteApi: CaseNotesApiClient,
-  private val caseNoteRepository: RecordedEventRepository,
+  private val recordedEventRepository: RecordedEventRepository,
   private val transactionTemplate: TransactionTemplate,
 ) {
+  fun isOfInterest(
+    type: String,
+    subtype: String,
+  ): Boolean =
+    AllocationPolicy.entries.any { policy ->
+      AllocationContext.get().copy(policy = policy).set()
+      cnTypeReTypeRepository.findByKey(CaseNoteTypeKey(type, subtype)) != null
+    }
+
   fun new(personInfo: PersonInformation) {
     getCaseNote(personInfo)?.let { caseNote ->
       cnTypeReTypeRepository.findPolicyFor(caseNote.type, caseNote.subType)?.let { policy ->
-        AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)).set()
+        AllocationContext.get().copy(policy = AllocationPolicy.of(policy)).set()
         transactionTemplate.execute {
           caseNote
             .asRecordedEvent { type, subType ->
               requireNotNull(cnTypeReTypeRepository.findByKey(CaseNoteTypeKey(type, subType)))
             }()
-            .also(caseNoteRepository::save)
+            .also(recordedEventRepository::save)
         }
       }
     }
   }
 
   fun update(personInfo: PersonInformation) {
-    caseNoteRepository.findPolicyForId(personInfo.info.id)?.let { policy ->
-      AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)).set()
+    recordedEventRepository.findPolicyForId(personInfo.info.id)?.let { policy ->
+      AllocationContext.get().copy(policy = AllocationPolicy.of(policy)).set()
       transactionTemplate.execute {
-        caseNoteRepository.findByIdOrNull(personInfo.info.id)?.also(caseNoteRepository::delete)
+        recordedEventRepository.findByIdOrNull(personInfo.info.id)?.also(recordedEventRepository::delete)
         new(personInfo)
       }
     }
   }
 
   fun delete(personInfo: PersonInformation) {
-    caseNoteRepository.findPolicyForId(personInfo.info.id)?.let { policy ->
-      AllocationContext.get().copy(policy = AllocationPolicy.valueOf(policy)).set()
-      caseNoteRepository.findByIdOrNull(personInfo.info.id)?.also(caseNoteRepository::delete)
+    recordedEventRepository.findPolicyForId(personInfo.info.id)?.let { policy ->
+      AllocationContext.get().copy(policy = AllocationPolicy.of(policy)).set()
+      recordedEventRepository.findByIdOrNull(personInfo.info.id)?.also(recordedEventRepository::delete)
     }
   }
 

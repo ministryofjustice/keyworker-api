@@ -30,11 +30,14 @@ class CaseNotesApiClient(
       }.retryRequestOnTransientException()
       .block()
 
-  fun getCaseNotesOfInterest(personIdentifier: String): CaseNotes =
+  fun getCaseNotesOfInterest(
+    personIdentifier: String,
+    ofInterest: CaseNotesOfInterest,
+  ): CaseNotes =
     webClient
       .post()
       .uri("/search/case-notes/$personIdentifier")
-      .bodyValue(SearchCaseNotes())
+      .bodyValue(SearchCaseNotes(ofInterest.asRequest()))
       .exchangeToMono { res ->
         when (res.statusCode()) {
           HttpStatus.OK -> res.bodyToMono<CaseNotes>()

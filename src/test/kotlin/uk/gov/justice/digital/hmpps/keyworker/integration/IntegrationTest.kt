@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
@@ -52,6 +53,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedChange
@@ -477,6 +479,21 @@ abstract class IntegrationTest {
       add(next)
       next = next.plusDays(1)
     }
+  }
+
+  protected fun caseNotesOfInterest(): CaseNotesOfInterest {
+    val originalContext = AllocationContext.get()
+    val ofInterest =
+      CaseNotesOfInterest(
+        AllocationPolicy.entries
+          .flatMap { policy ->
+            originalContext.copy(policy = policy).set()
+            caseNoteRecordedEventRepository.findAll()
+          }.map { it.key }
+          .toSet(),
+      )
+    originalContext.set()
+    return ofInterest
   }
 
   protected fun recordedEvent(

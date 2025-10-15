@@ -10,7 +10,7 @@ class PolicyResolver :
   CurrentTenantIdentifierResolver<String>,
   HibernatePropertiesCustomizer {
   override fun customize(hibernateProperties: MutableMap<String, Any>) {
-    hibernateProperties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, this)
+    hibernateProperties[AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER] = this
   }
 
   override fun resolveCurrentTenantIdentifier(): String = AllocationContext.get().policy?.name ?: ""

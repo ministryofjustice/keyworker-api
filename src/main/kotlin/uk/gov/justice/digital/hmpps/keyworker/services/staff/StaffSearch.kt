@@ -38,7 +38,7 @@ class StaffSearch(
   private val staffConfigRepository: StaffConfigRepository,
   private val referenceDataRepository: ReferenceDataRepository,
 ) {
-  val staffRoleRetriever = staffRoleRetrievers.flatMap { it.policies.map { policy -> policy to it } }.toMap()
+  private val staffRoleRetriever = staffRoleRetrievers.flatMap { it.policies.map { policy -> policy to it } }.toMap()
 
   fun searchForStaff(
     prisonCode: String,

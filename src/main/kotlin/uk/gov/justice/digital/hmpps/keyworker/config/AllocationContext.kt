@@ -10,7 +10,7 @@ data class AllocationContext(
   val activeCaseloadId: String? = null,
   val policy: AllocationPolicy? = null,
 ) {
-  fun requiredPolicy(): AllocationPolicy = policy ?: AllocationPolicy.KEY_WORKER
+  fun requiredPolicy(): AllocationPolicy = policy ?: throw NoPolicyProvidedException()
 
   companion object {
     const val SYSTEM_USERNAME = "SYS"

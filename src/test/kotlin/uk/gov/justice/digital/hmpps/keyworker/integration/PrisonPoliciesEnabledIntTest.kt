@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
-import kotlin.jvm.java
 
 class PrisonPoliciesEnabledIntTest : IntegrationTest() {
   @Test
