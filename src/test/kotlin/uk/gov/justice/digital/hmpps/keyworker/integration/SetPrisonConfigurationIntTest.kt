@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigResponse
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
-import kotlin.jvm.java
 
 class SetPrisonConfigurationIntTest : IntegrationTest() {
   @Test
@@ -55,7 +54,7 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
   fun `can create a new prison configurations`() {
     val prisonCode = "ALC"
     val kwContext =
-      AllocationContext.get().copy("keyworker-ui", activeCaseloadId = prisonCode, policy = AllocationPolicy.KEY_WORKER)
+      AllocationContext.get().copy(username = "keyworker-ui", activeCaseloadId = prisonCode, policy = AllocationPolicy.KEY_WORKER)
     val poContext = kwContext.copy(policy = AllocationPolicy.PERSONAL_OFFICER)
     val kRequest = prisonConfigRequest(capacity = 10, frequencyInWeeks = 4)
     val kConfig = setPrisonConfig(prisonCode, kRequest, policy = AllocationPolicy.KEY_WORKER).asPrisonConfig()

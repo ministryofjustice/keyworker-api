@@ -1,7 +1,6 @@
-package uk.gov.justice.digital.hmpps.keyworker.services
+package uk.gov.justice.digital.hmpps.keyworker.sar
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.keyworker.sar.SubjectAccessRequest
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonSubjectAccessRequestService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
 import java.time.LocalDate

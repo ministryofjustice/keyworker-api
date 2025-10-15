@@ -58,6 +58,8 @@ data class Prisoner(
         Prisoner::lastAdmissionDate.name,
         Prisoner::alerts.name,
       )
+
+    const val PATTERN: String = "\\w\\d{4}\\w{2}"
   }
 }
 

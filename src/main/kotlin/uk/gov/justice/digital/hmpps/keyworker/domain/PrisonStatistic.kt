@@ -29,17 +29,13 @@ class PrisonStatistic(
   val prisonersAssignedCount: Int,
   @Column(name = "eligible_staff_count")
   val eligibleStaffCount: Int,
-  @Column(name = "recorded_session_count")
-  val recordedSessionCount: Int,
-  @Column(name = "recorded_entry_count")
-  val recordedEntryCount: Int,
   @Column(name = "reception_to_allocation_days")
   val receptionToAllocationDays: Int?,
   @Column(name = "reception_to_recorded_event_days")
   val receptionToRecordedEventDays: Int?,
   @TenantId
   @Column(name = "policy_code", updatable = false)
-  val policy: String = AllocationContext.get().policy.name,
+  val policy: String = AllocationContext.get().requiredPolicy().name,
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id")

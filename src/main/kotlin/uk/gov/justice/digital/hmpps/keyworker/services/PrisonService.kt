@@ -4,10 +4,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigResponse
@@ -16,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
 @Transactional
 @Service
 class PrisonService(
-  private val ach: AllocationContextHolder,
   private val prisonConfig: PrisonConfigurationRepository,
   private val prisonRegister: PrisonRegisterClient,
 ) {
@@ -59,7 +59,7 @@ class PrisonService(
         .associateBy { it.policy }
     return prison.policies
       .map { pe ->
-        ach.setContext(AllocationContext.get().copy(policy = pe.policy))
+        AllocationContext.get().copy(policy = pe.policy).set()
         prisonConfig.save(
           configs[pe.policy.name]?.apply {
             enabled = pe.enabled
@@ -78,7 +78,11 @@ data class PrisonsByIdsRequest(
 data class Prison(
   val prisonId: String,
   val prisonName: String,
-)
+) {
+  companion object {
+    const val CODE_PATTERN = "[A-Z]{3}"
+  }
+}
 
 private fun PrisonConfiguration.response(): PrisonConfigResponse =
   PrisonConfigResponse(
@@ -99,7 +103,7 @@ private fun PrisonConfigRequest.asPrisonConfig(prisonCode: String) =
     frequencyInWeeks,
     hasPrisonersWithHighComplexityNeeds ?: false,
     allocationOrder,
-    AllocationContext.get().policy.name,
+    AllocationContext.get().requiredPolicy().name,
   )
 
 fun Prison?.orDefault(code: String) = this ?: Prison(code, code)

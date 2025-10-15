@@ -75,7 +75,7 @@ class PrisonStatsService(
   private fun List<PrisonStatistic>.averageEligiblePrisoners() =
     map { it.eligiblePrisonerCount }.takeIf { it.isNotEmpty() }?.average()?.toInt()
 
-  private fun List<PrisonStatistic>.projectedSessions(
+  private fun projectedSessions(
     eligible: Int,
     from: LocalDate,
     to: LocalDate,

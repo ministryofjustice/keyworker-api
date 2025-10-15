@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisSta
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffSummaries
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
-import kotlin.jvm.java
 
 class ManageAllocationsIntegrationTest : IntegrationTest() {
   @Test

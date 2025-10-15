@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.keyworker.services
+package uk.gov.justice.digital.hmpps.keyworker.services.staff
 
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisone
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRelevantAlertCodes
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRemainingAlertCount
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationResponse
@@ -32,6 +33,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStats
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
+import uk.gov.justice.digital.hmpps.keyworker.services.Statistic
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
 import java.time.LocalDate
@@ -64,15 +66,7 @@ class GetStaffDetails(
             AllocationPolicy.KEY_WORKER,
           )
         }
-        addAll(
-          staffRoleRepository
-            .findByPrisonCodeAndStaffIdAllPolicies(
-              prisonCode,
-              staffId,
-            ).mapNotNull {
-              AllocationPolicy.of(it.policy)
-            },
-        )
+        addAll(staffRoleRepository.findActiveStaffPoliciesForPrison(prisonCode, staffId))
       }
     return JobClassificationResponse(policies)
   }

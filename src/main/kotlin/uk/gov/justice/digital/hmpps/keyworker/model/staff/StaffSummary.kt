@@ -6,11 +6,6 @@ data class StaffSummary(
   val lastName: String,
 )
 
-data class AllocatableStaff(
-  val staffMember: StaffSummary,
-  val staffRole: StaffRoleInfo,
-)
-
 data class StaffAllocationCount(
   val staffId: Long,
   val firstName: String,
