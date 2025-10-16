@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.services.GetCurrentAllocations
@@ -19,10 +20,12 @@ class DeprecatedEndpointController(
   @GetMapping("/key-worker/offender/{offenderNo}")
   fun deprecatedGetOffendersKeyworker(
     @PathVariable("offenderNo") personIdentifier: String,
-  ): ResponseEntity<BasicKeyworkerInfo> =
-    allocations.currentFor(personIdentifier, true).asBasicKeyworkerInfo()?.let {
+  ): ResponseEntity<BasicKeyworkerInfo> {
+    AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER)
+    return allocations.currentFor(personIdentifier, true).asBasicKeyworkerInfo()?.let {
       ResponseEntity.ok(it)
     } ?: ResponseEntity.notFound().build()
+  }
 }
 
 class BasicKeyworkerInfo(
