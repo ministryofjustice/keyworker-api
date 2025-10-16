@@ -46,7 +46,6 @@ dependencies {
 dependencyCheck {
   suppressionFiles.addAll(listOf("suppressions.xml", ".dependency-check-ignore.xml"))
   nvd.datafeedUrl = "file:///opt/vulnz/cache"
-  analyzers.ossIndex.enabled = false
 }
 
 tasks {
