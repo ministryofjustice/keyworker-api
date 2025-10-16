@@ -74,9 +74,7 @@ class DeprecatedKeyworkerIntegrationTest : IntegrationTest() {
     assertThat(response.email).isEqualTo("current-staff@justice.gov.uk")
   }
 
-  private fun getDeprecatedKeyworkerSpec(
-    personIdentifier: String,
-  ): WebTestClient.ResponseSpec =
+  private fun getDeprecatedKeyworkerSpec(personIdentifier: String): WebTestClient.ResponseSpec =
     webTestClient
       .get()
       .uri {
