@@ -80,7 +80,7 @@ data class Prison(
   val prisonName: String,
 ) {
   companion object {
-    const val CODE_PATTERN = "[A-Z]{3}"
+    const val CODE_PATTERN = "([A-Z]{3}|CADM_I|ZZGHI)"
   }
 }
 

@@ -94,7 +94,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `only retrieve active job classification policies for a staff member`() {
-    val prisonCode = "AJC"
+    val prisonCode = "CADM_I"
     val staffId = newId()
     prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
