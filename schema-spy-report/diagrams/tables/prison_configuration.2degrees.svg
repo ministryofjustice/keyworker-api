@@ -77,7 +77,6 @@
 <text text-anchor="start" x="527.0437" y="-675.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
 <polygon fill="#ffffff" stroke="transparent" points="156,-645.7 156,-667.7 468,-667.7 468,-645.7 156,-645.7"/>
 <polygon fill="none" stroke="#000000" points="156,-645.7 156,-667.7 468,-667.7 468,-645.7 156,-645.7"/>
-<image xlink:href="../../images/foreignKeys.png" width="11px" height="12px" preserveAspectRatio="xMinYMin meet" x="161" y="-662.7"/>
 <text text-anchor="start" x="176" y="-652.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">prison_code</text>
 <polygon fill="none" stroke="#000000" points="468,-645.7 468,-667.7 562,-667.7 562,-645.7 468,-645.7"/>
 <text text-anchor="start" x="471" y="-653.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">varchar[6]</text>
@@ -237,14 +236,14 @@
 <text text-anchor="start" x="417.5219" y="-165.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
 <polygon fill="none" stroke="#000000" points="266,-138.7 266,-157.7 452,-157.7 452,-138.7 266,-138.7"/>
 <text text-anchor="start" x="269" y="-144.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="266,-119.7 266,-138.7 341,-138.7 341,-119.7 266,-119.7"/>
-<polygon fill="none" stroke="#000000" points="266,-119.7 266,-138.7 341,-138.7 341,-119.7 266,-119.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="266,-119.7 266,-138.7 357,-138.7 357,-119.7 266,-119.7"/>
+<polygon fill="none" stroke="#000000" points="266,-119.7 266,-138.7 357,-138.7 357,-119.7 266,-119.7"/>
 <text text-anchor="start" x="269" y="-125.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
-<polygon fill="#ffffff" stroke="transparent" points="341,-119.7 341,-138.7 412,-138.7 412,-119.7 341,-119.7"/>
-<polygon fill="none" stroke="#000000" points="341,-119.7 341,-138.7 412,-138.7 412,-119.7 341,-119.7"/>
-<text text-anchor="start" x="370.4956" y="-125.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">84 rows</text>
-<polygon fill="#ffffff" stroke="transparent" points="412,-119.7 412,-138.7 452,-138.7 452,-119.7 412,-119.7"/>
-<polygon fill="none" stroke="#000000" points="412,-119.7 412,-138.7 452,-138.7 452,-119.7 412,-119.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="357,-119.7 357,-138.7 404,-138.7 404,-119.7 357,-119.7"/>
+<polygon fill="none" stroke="#000000" points="357,-119.7 357,-138.7 404,-138.7 404,-119.7 357,-119.7"/>
+<text text-anchor="start" x="394.8862" y="-125.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="404,-119.7 404,-138.7 452,-138.7 452,-119.7 404,-119.7"/>
+<polygon fill="none" stroke="#000000" points="404,-119.7 404,-138.7 452,-138.7 452,-119.7 404,-119.7"/>
 <text text-anchor="start" x="442.8862" y="-125.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>

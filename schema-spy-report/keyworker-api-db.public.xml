@@ -8,9 +8,7 @@
    <tables>
       <table catalog="keyworker-api-db" name="allocation" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="person_identifier" nullable="false" remarks="" size="10" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="4" name="allocated_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
@@ -76,9 +74,7 @@
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="rev_type" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="person_identifier" nullable="false" remarks="" size="10" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="6" name="allocated_at" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
@@ -163,9 +159,7 @@
          </index>
       </table>
       <table catalog="keyworker-api-db" name="prison_configuration" numRows="12" remarks="Records the prisons have can be supported by this service and which have been migrated" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_code" nullable="false" remarks="Prison ID (NOMIS column is Agency ID)" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_code" nullable="false" remarks="Prison ID (NOMIS column is Agency ID)" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="false" digits="0" id="1" name="allow_auto_allocation" nullable="false" remarks="Indicates that the prisons supports auto allocation" size="1" type="bool" typeCode="-7"/>
          <column autoUpdated="false" defaultValue="false" digits="0" id="2" name="is_enabled" nullable="false" remarks="Indicates if the prison keyworker data has been migrated" size="1" type="bool" typeCode="-7"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="capacity" nullable="false" remarks="Default extended capacity for keyworkers at this prison" size="10" type="int4" typeCode="4"/>
@@ -192,9 +186,7 @@
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="rev_type" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="is_enabled" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="capacity" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="allow_auto_allocation" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
@@ -217,29 +209,9 @@
             <column ascending="true" name="id"/>
          </index>
       </table>
-      <table catalog="keyworker-api-db" name="prison_migration_date_history" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="allocation_audit"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_statistic"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="recorded_event"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="recorded_event_audit"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="staff_role"/>
-            <child catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="staff_role_audit"/>
-         </column>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="migration_date" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
-         <primaryKey column="prison_code" sequenceNumberInPK="1"/>
-         <index name="prison_migration_date_history_pkey" unique="true">
-            <column ascending="true" name="prison_code"/>
-         </index>
-      </table>
       <table catalog="keyworker-api-db" name="prison_statistic" remarks="Records the results of each statistic snapshot" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('keyworker_stats_keyworker_stats_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key ID" size="19" type="bigserial" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="Prison ID" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="Prison ID" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="statistic_date" nullable="false" remarks="Timestamp of date for which stats apply" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prisoners_assigned_count" nullable="false" remarks="Number of prisoner who have been assigned a Key worker" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="prisoner_count" nullable="false" remarks="Total number of prisoners in the prison on this date" size="10" type="int4" typeCode="4"/>
@@ -262,9 +234,7 @@
       </table>
       <table catalog="keyworker-api-db" name="recorded_event" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="false" remarks="" size="7" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
@@ -313,9 +283,7 @@
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="rev_type" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="person_identifier" nullable="false" remarks="" size="7" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="username" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
@@ -330,7 +298,7 @@
             <column ascending="true" name="id"/>
          </index>
       </table>
-      <table catalog="keyworker-api-db" name="reference_data" numRows="60" remarks="" schema="public" type="TABLE">
+      <table catalog="keyworker-api-db" name="reference_data" remarks="" schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('reference_data_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5">
             <child catalog="keyworker-api-db" column="allocation_reason_id" foreignKey="allocation_allocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
             <child catalog="keyworker-api-db" column="deallocation_reason_id" foreignKey="allocation_deallocation_reason_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="allocation"/>
@@ -355,7 +323,7 @@
             <column ascending="true" name="sequence_number"/>
          </index>
       </table>
-      <table catalog="keyworker-api-db" name="reference_data_policy" numRows="84" remarks="" schema="public" type="TABLE">
+      <table catalog="keyworker-api-db" name="reference_data_policy" remarks="" schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
             <parent catalog="keyworker-api-db" column="id" foreignKey="reference_data_policy_id_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data"/>
          </column>
@@ -416,9 +384,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
             <parent catalog="keyworker-api-db" column="code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="position_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="schedule_type_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
@@ -444,9 +410,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
             <parent catalog="keyworker-api-db" column="code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
-            <parent catalog="keyworker-api-db" column="prison_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_migration_date_history"/>
-         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="prison_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="position_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="schedule_type_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
