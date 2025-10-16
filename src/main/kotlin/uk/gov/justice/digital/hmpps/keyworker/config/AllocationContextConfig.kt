@@ -95,6 +95,7 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
         "/prisons/${Prison.CODE_PATTERN}/staff/\\d*/job-classifications" to setOf(GET),
         "/staff/returning-from-leave" to setOf(PUT),
         "/subject-access-request" to setOf(GET),
+        "/key-worker/offender/${Prisoner.PATTERN}" to setOf(GET),
       ).map { PolicyNotRequired(it.first.toRegex(), it.second) }
   }
 }
