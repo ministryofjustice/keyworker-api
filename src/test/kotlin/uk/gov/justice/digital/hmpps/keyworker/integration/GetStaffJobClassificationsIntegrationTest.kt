@@ -111,6 +111,23 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
     assertThat(res.policies).containsOnly(AllocationPolicy.KEY_WORKER)
   }
 
+  @Test
+  fun `undefined prison code receives a 200 response`() {
+    val prisonCode = "undefined"
+    val staffId = newId()
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf()))
+
+    val res =
+      getStaffJobClassifications(prisonCode, staffId)
+        .expectStatus()
+        .isOk
+        .expectBody<JobClassificationResponse>()
+        .returnResult()
+        .responseBody!!
+
+    assertThat(res.policies).isEmpty()
+  }
+
   private fun getStaffJobClassifications(
     prisonCode: String,
     staffId: Long,

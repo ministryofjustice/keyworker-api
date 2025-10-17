@@ -19,6 +19,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import uk.gov.justice.digital.hmpps.keyworker.config.NoPolicyProvidedException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
@@ -79,7 +80,7 @@ class ExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException::class)
   fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> = e.allErrors.mapErrors()
 
-  @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class)
+  @ExceptionHandler(IllegalArgumentException::class, IllegalStateException::class, NoPolicyProvidedException::class)
   fun handleIllegalArgumentOrStateException(e: RuntimeException): ResponseEntity<ErrorResponse> =
     ResponseEntity
       .status(BAD_REQUEST)
