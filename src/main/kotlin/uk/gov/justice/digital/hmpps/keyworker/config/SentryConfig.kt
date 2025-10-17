@@ -46,8 +46,7 @@ class SentryConfig {
     (this is EntityNotFoundException) or ((this as? WebClientResponseException)?.statusCode?.is4xxClientError ?: false)
 
   private fun String.isHighUsage(): Boolean =
-    matches("/key-worker/offender/[A-Z][0-9]{4}[A-Z]{2}", this) or
-      matches("/prisons/[A-Z]{3}/prisoners/[A-Z][0-9]{4}[A-Z]{2}/keyworkers/current", this) or
+    matches("/prisons/[A-Z]{3}/prisoners/[A-Z][0-9]{4}[A-Z]{2}/keyworkers/current", this) or
       matches("/prisons/[A-Z]{3}/staff/\\d+/job-classifications", this) or
       matches("/prisoners/[A-Z][0-9]{4}[A-Z]{2}/allocations/current", this)
 }
