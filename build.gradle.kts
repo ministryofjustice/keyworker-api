@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.3"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
-  id("io.gatling.gradle") version "3.14.5.1"
+  id("io.gatling.gradle") version "3.14.6"
   jacoco
 }
 
@@ -20,7 +20,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.5.0")
   implementation("io.swagger:swagger-annotations:1.6.16")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
-  implementation("io.opentelemetry:opentelemetry-api:1.54.1")
+  implementation("io.opentelemetry:opentelemetry-api:1.55.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.1")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.23.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.1.1")
