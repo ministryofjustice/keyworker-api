@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.integration.ManageUsersClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.person.Actioned
 import uk.gov.justice.digital.hmpps.keyworker.model.person.StaffAllocation

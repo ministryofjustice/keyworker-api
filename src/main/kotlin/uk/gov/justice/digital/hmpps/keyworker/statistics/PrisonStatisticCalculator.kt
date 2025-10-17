@@ -2,42 +2,39 @@ package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedLevel.HIGH
-import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffRoleRetriever
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class PrisonStatisticCalculator(
-  private val contextHolder: AllocationContextHolder,
+  staffRoleRetrievers: List<StaffRoleRetriever>,
   private val statisticRepository: PrisonStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeedApi: ComplexityOfNeedApiClient,
   private val allocationRepository: AllocationRepository,
   private val recordedEventRetriever: RecordedEventRetriever,
-  private val prisonApi: PrisonApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
-  private val staffRoleRepository: StaffRoleRepository,
 ) {
+  private val staffRoleRetriever = staffRoleRetrievers.flatMap { it.policies.map { policy -> policy to it } }.toMap()
+
   fun calculate(info: HmppsDomainEvent<PrisonStatisticsInfo>) {
     with(info.additionalInformation) {
-      contextHolder.setContext(AllocationContext.get().copy(policy = policy))
+      AllocationContext.get().copy(policy = policy).set()
       val stats = statisticRepository.findByPrisonCodeAndDate(prisonCode, date)
 
       if (stats != null) return
@@ -73,15 +70,14 @@ class PrisonStatisticCalculator(
 
       val cnSummaries = recordedEventRetriever.findRecordedEventSummaries(prisonCode, date, date)
       val previousRecordedEvent =
-        recordedEventRetriever.findMostRecentEventBefore(
-          prisonCode,
-          cnSummaries.personIdentifiers(),
-          date,
-          when (policy) {
-            AllocationPolicy.KEY_WORKER -> RecordedEventType.SESSION
-            AllocationPolicy.PERSONAL_OFFICER -> RecordedEventType.ENTRY
-          },
-        )
+        cnSummaries.complianceType?.let {
+          recordedEventRetriever.findMostRecentEventBefore(
+            prisonCode,
+            cnSummaries.personIdentifiers(),
+            date,
+            it,
+          )
+        } ?: emptyMap()
 
       val activeStaffCount = getActiveStaffCount()
 
@@ -116,8 +112,6 @@ class PrisonStatisticCalculator(
           eligiblePrisonerCount = eligiblePrisoners.size,
           prisonersAssignedCount = activeAllocations,
           eligibleStaffCount = activeStaffCount,
-          recordedSessionCount = cnSummaries.sessionCount,
-          recordedEntryCount = cnSummaries.entryCount,
           receptionToAllocationDays = summaries.averageDaysToAllocation,
           receptionToRecordedEventDays = summaries.averageDaysToRecordedEntry,
         ),
@@ -126,19 +120,15 @@ class PrisonStatisticCalculator(
   }
 
   private fun PrisonStatisticsInfo.getActiveStaffCount(): Int {
-    val potentiallyActiveStaffIds =
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        prisonApi.getKeyworkersForPrison(prisonCode).map { it.staffId }.toSet()
-      } else {
-        staffRoleRepository.findAllByPrisonCode(prisonCode).map { it.staffId }.toSet()
-      }
-    val inactiveIds =
-      staffConfigRepository
-        .getNonActiveStaff(potentiallyActiveStaffIds)
-        .map { it.staffId }
-        .toSet()
-
-    return (potentiallyActiveStaffIds - inactiveIds).size
+    val policy = AllocationContext.get().requiredPolicy()
+    return staffRoleRetriever[policy]?.getStaffRoles(prisonCode)?.let {
+      val inactive =
+        staffConfigRepository
+          .getNonActiveStaff(it.keys)
+          .map { sc -> sc.staffId }
+          .toSet()
+      (it - inactive).size
+    } ?: 0
   }
 }
 

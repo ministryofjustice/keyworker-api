@@ -94,7 +94,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
 
   @Test
   fun `only retrieve active job classification policies for a staff member`() {
-    val prisonCode = "AJC"
+    val prisonCode = "CADM_I"
     val staffId = newId()
     prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
@@ -109,6 +109,23 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
         .responseBody!!
 
     assertThat(res.policies).containsOnly(AllocationPolicy.KEY_WORKER)
+  }
+
+  @Test
+  fun `undefined prison code receives a 200 response`() {
+    val prisonCode = "undefined"
+    val staffId = newId()
+    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf()))
+
+    val res =
+      getStaffJobClassifications(prisonCode, staffId)
+        .expectStatus()
+        .isOk
+        .expectBody<JobClassificationResponse>()
+        .returnResult()
+        .responseBody!!
+
+    assertThat(res.policies).isEmpty()
   }
 
   private fun getStaffJobClassifications(

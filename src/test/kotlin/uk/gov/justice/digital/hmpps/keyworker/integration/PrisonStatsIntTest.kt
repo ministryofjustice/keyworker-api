@@ -15,7 +15,7 @@ import java.time.LocalDate.now
 
 class PrisonStatsIntTest : IntegrationTest() {
   @Test
-  fun `401 unathorised without a valid token`() {
+  fun `401 unauthorised without a valid token`() {
     webTestClient
       .get()
       .uri(GET_STATS, "NEP")
@@ -126,20 +126,6 @@ class PrisonStatsIntTest : IntegrationTest() {
           if (date.isBefore(start)) 72 else 80,
           if (date.isBefore(start)) 65 else 75,
           if (date.isBefore(start)) 9 else 10,
-          if (index % 2 == 0) {
-            5
-          } else if (index % 5 == 0) {
-            0
-          } else {
-            6
-          },
-          if (index % 2 == 0) {
-            2
-          } else if (index % 5 == 0) {
-            3
-          } else {
-            1
-          },
           if (index % 9 == 0) null else index % 10,
           if (index % 7 == 0) null else index % 20,
         )

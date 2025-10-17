@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.model.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator.newUuid
 import java.time.LocalDate
@@ -53,7 +54,7 @@ class Allocation(
   var deallocatedBy: String?,
   @TenantId
   @Column(name = "policy_code", updatable = false)
-  val policy: String = AllocationContext.get().policy.name,
+  val policy: String = AllocationContext.get().requiredPolicy().name,
   @Id
   @Column(name = "id")
   val id: UUID = newUuid(),
@@ -151,6 +152,9 @@ interface AllocationRepository :
   @EntityGraph(attributePaths = ["allocationReason", "deallocationReason"])
   fun findAllByPersonIdentifier(personIdentifier: String): List<Allocation>
 
+  @EntityGraph(attributePaths = ["allocationReason"])
+  fun findByPersonIdentifierAndIsActiveTrue(personIdentifier: String): Allocation?
+
   @Query(
     """
     with summary as (
@@ -172,7 +176,7 @@ interface AllocationRepository :
 
   @Query(
     """
-      select a.* from allocation a
+      select a.prison_code as prisonCode, a.staff_id as staffId, a.policy_code as policy from allocation a
       where a.person_identifier = :personIdentifier and a.is_active = true and policy_code in :policies
     """,
     nativeQuery = true,
@@ -180,7 +184,7 @@ interface AllocationRepository :
   fun findCurrentAllocations(
     personIdentifier: String,
     policies: Set<String>,
-  ): List<Allocation>
+  ): List<CurrentAllocation>
 
   @Query(
     """
@@ -227,15 +231,6 @@ interface AllocationRepository :
 
   @Query(
     """
-      select a.* from allocation a
-      where a.person_identifier = :personIdentifier and a.is_active = true
-    """,
-    nativeQuery = true,
-  )
-  fun findActiveForAllPolicies(personIdentifier: String): List<Allocation>
-
-  @Query(
-    """
       select a from Allocation a
       join fetch a.allocationReason ar
       left join fetch a.deallocationReason dr
@@ -276,4 +271,10 @@ interface AllocationSummary {
 interface StaffIdAllocationCount {
   val staffId: Long
   val count: Int
+}
+
+interface CurrentAllocation {
+  val prisonCode: String
+  val staffId: Long
+  val policy: AllocationPolicy
 }

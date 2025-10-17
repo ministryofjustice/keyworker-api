@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.AllocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffSearch
 import java.time.LocalDateTime
 
 @Transactional
@@ -123,7 +124,7 @@ class AllocationManager(
     val staffIds = allocations.map { it.staffId }.toSet()
     if (staffIds.isEmpty()) return
 
-    val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staffMember.staffId }
+    val staff = staffSearch.findAllocatableStaff(prisonCode).map { it.staff.staffId }
     require(staff.containsAll(staffIds)) {
       "A provided staff id is not allocatable for the provided prison"
     }

@@ -6,18 +6,17 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.repository.findByIdOrNull
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_SESSION_SUBTYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
-import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.asRecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.MergeInformation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.PersonReference
-import uk.gov.justice.digital.hmpps.keyworker.integration.wiremock.CaseNotesMockServer.Companion.caseNote
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
@@ -33,28 +32,19 @@ class MergePrisonerIntTest : IntegrationTest() {
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
   }
 
-  @Test
-  fun `merge updates prison number for allocation`() {
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `merge updates prison number for allocation`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "MNA"
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
     val newNoms = personIdentifier()
-    val caseNote = caseNote(KW_SESSION_SUBTYPE, personIdentifier = alloc.personIdentifier)
-    givenRecordedEvent(
-      caseNote.asRecordedEvent { type, subtype ->
-        requireNotNull(
-          caseNoteRecordedEventRepository.findByKey(CaseNoteTypeKey(type, subtype)),
-        )
-      },
-    )
-    caseNotesMockServer.stubSearchCaseNotes(
-      newNoms,
-      CaseNotes(listOf(caseNote.copy(personIdentifier = newNoms))),
-    )
 
     publishEventToTopic(mergeEvent(newNoms, alloc.personIdentifier))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = policy))
     val merged = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(merged.personIdentifier).isEqualTo(newNoms)
 
@@ -62,18 +52,22 @@ class MergePrisonerIntTest : IntegrationTest() {
     verifyAudit(merged, merged.id, RevisionType.MOD, affected, AllocationContext.get())
   }
 
-  @Test
-  fun `merge deactivates old allocation if new one exists`() {
+  @ParameterizedTest
+  @EnumSource(AllocationPolicy::class)
+  fun `merge deactivates old allocation if new one exists`(policy: AllocationPolicy) {
+    setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "MDO"
     val staffId = newId()
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
     val new = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
-    caseNotesMockServer.stubSearchCaseNotes(new.personIdentifier, CaseNotes(listOf()))
+
+    caseNotesMockServer.stubSearchCaseNotes(new.personIdentifier, caseNotesOfInterest(), CaseNotes(listOf()))
 
     publishEventToTopic(mergeEvent(new.personIdentifier, alloc.personIdentifier))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
 
+    setContext(AllocationContext.get().copy(policy = policy))
     val merged = requireNotNull(allocationRepository.findByIdOrNull(alloc.id))
     assertThat(merged.personIdentifier).isEqualTo(new.personIdentifier)
     assertThat(merged.isActive).isFalse()
