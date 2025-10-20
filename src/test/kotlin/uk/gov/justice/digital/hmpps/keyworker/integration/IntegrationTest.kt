@@ -42,6 +42,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonerStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
@@ -104,6 +105,9 @@ abstract class IntegrationTest {
 
   @Autowired
   protected lateinit var prisonStatisticRepository: PrisonStatisticRepository
+
+  @Autowired
+  protected lateinit var prisonerStatisticRepository: PrisonerStatisticRepository
 
   @Autowired
   lateinit var webTestClient: WebTestClient
