@@ -114,7 +114,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
 
     publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, yesterday, policy)))
 
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    setContext(AllocationContext.get().copy(policy = policy))
     var stats: PrisonStatistic?
     do {
       stats = prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
@@ -130,12 +130,13 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.prisonersAssignedCount).isEqualTo(34)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      assertThat(stats.receptionToAllocationDays).isEqualTo(22)
-      assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
-    } else {
-      assertThat(stats.receptionToAllocationDays).isEqualTo(22)
-      assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
+    assertThat(stats.receptionToAllocationDays).isEqualTo(22)
+    assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
+
+    val prisonerStats = prisonerStatisticRepository.findAll().filter { it.prisonStatistic.id == stats.id }
+    assertThat(prisonerStats).hasSize(prisoners.size)
+    prisonerStats.forEach {
+      assertThat(it.allocationEligibilityDate).isEqualTo(prisoners[it.personIdentifier]?.lastAdmissionDate)
     }
   }
 
@@ -175,17 +176,17 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       }
     }
 
-    complexityOfNeedMockServer.stubComplexOffenders(
-      prisoners.personIdentifiers(),
-      prisoners.content.mapIndexed { index, prisoner ->
-        ComplexityOfNeed(
-          prisoner.prisonerNumber,
-          prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
-          createdTimeStamp = LocalDateTime.now().minusDays(index.toLong() + 7),
-          updatedTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
-        )
-      },
-    )
+    val complexityOfNeed =
+      prisoners.content
+        .mapIndexed { index, prisoner ->
+          ComplexityOfNeed(
+            prisoner.prisonerNumber,
+            prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
+            createdTimeStamp = LocalDateTime.now().minusDays(index.toLong() + 7),
+            updatedTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
+          )
+        }.associateBy { it.personIdentifier }
+    complexityOfNeedMockServer.stubComplexOffenders(prisoners.personIdentifiers(), complexityOfNeed.values)
     eligiblePrisoners.mapIndexedNotNull { idx, pi ->
       if (idx % 9 == 0) {
         givenRecordedEvent(
@@ -235,6 +236,23 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
 
     assertThat(stats.receptionToAllocationDays).isEqualTo(55)
     assertThat(stats.receptionToRecordedEventDays).isEqualTo(34)
+
+    val prisonerStats = prisonerStatisticRepository.findAll().filter { it.prisonStatistic.id == stats.id }
+    assertThat(prisonerStats).hasSize(prisoners.size)
+    prisonerStats.forEach {
+      val prisoner = prisoners[it.personIdentifier]
+      val con = complexityOfNeed[it.personIdentifier]
+      if (prisoner?.complexityOfNeedLevel == ComplexityOfNeedLevel.HIGH) {
+        assertThat(it.allocationEligibilityDate).isNull()
+      } else {
+        assertThat(it.allocationEligibilityDate).isEqualTo(
+          listOfNotNull(
+            prisoner?.lastAdmissionDate,
+            con?.updatedTimeStamp?.toLocalDate(),
+          ).maxOrNull(),
+        )
+      }
+    }
   }
 
   private fun prisoners(

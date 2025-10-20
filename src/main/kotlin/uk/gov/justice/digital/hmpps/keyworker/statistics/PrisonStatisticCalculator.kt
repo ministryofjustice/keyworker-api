@@ -1,18 +1,23 @@
 package uk.gov.justice.digital.hmpps.keyworker.statistics
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionTemplate
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonerStatistic
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonerStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.getNonActiveStaff
+import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeedApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.PrisonStatisticsInfo
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedLevel.HIGH
+import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffRoleRetriever
@@ -23,12 +28,14 @@ import java.time.temporal.ChronoUnit.DAYS
 class PrisonStatisticCalculator(
   staffRoleRetrievers: List<StaffRoleRetriever>,
   private val statisticRepository: PrisonStatisticRepository,
+  private val prisonerStatisticRepository: PrisonerStatisticRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val complexityOfNeedApi: ComplexityOfNeedApiClient,
   private val allocationRepository: AllocationRepository,
   private val recordedEventRetriever: RecordedEventRetriever,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
+  private val transactionTemplate: TransactionTemplate,
 ) {
   private val staffRoleRetriever = staffRoleRetrievers.flatMap { it.policies.map { policy -> policy to it } }.toMap()
 
@@ -103,19 +110,29 @@ class PrisonStatisticCalculator(
           },
         )
 
-      statisticRepository.save(
-        PrisonStatistic(
-          prisonCode = prisonCode,
-          date = date,
-          prisonerCount = prisoners.size,
-          highComplexityOfNeedPrisonerCount = prisonersWithComplexNeeds.size,
-          eligiblePrisonerCount = eligiblePrisoners.size,
-          prisonersAssignedCount = activeAllocations,
-          eligibleStaffCount = activeStaffCount,
-          receptionToAllocationDays = summaries.averageDaysToAllocation,
-          receptionToRecordedEventDays = summaries.averageDaysToRecordedEntry,
-        ),
-      )
+      transactionTemplate.executeWithoutResult {
+        val prisonStatistic =
+          statisticRepository.save(
+            PrisonStatistic(
+              prisonCode = prisonCode,
+              date = date,
+              prisonerCount = prisoners.size,
+              highComplexityOfNeedPrisonerCount = prisonersWithComplexNeeds.size,
+              eligiblePrisonerCount = eligiblePrisoners.size,
+              prisonersAssignedCount = activeAllocations,
+              eligibleStaffCount = activeStaffCount,
+              receptionToAllocationDays = summaries.averageDaysToAllocation,
+              receptionToRecordedEventDays = summaries.averageDaysToRecordedEntry,
+            ),
+          )
+
+        prisoners.content
+          .map {
+            it.asStatistic(prisonStatistic, complexityOfNeed[it.prisonerNumber])
+          }.also {
+            prisonerStatisticRepository.saveAll(it)
+          }
+      }
     }
   }
 
@@ -129,6 +146,19 @@ class PrisonStatisticCalculator(
           .toSet()
       (it - inactive).size
     } ?: 0
+  }
+
+  private fun Prisoner.asStatistic(
+    prisonStats: PrisonStatistic,
+    complexityOfNeed: ComplexityOfNeed?,
+  ): PrisonerStatistic {
+    val aed =
+      if (complexityOfNeed?.level == HIGH) {
+        null
+      } else {
+        listOfNotNull(complexityOfNeed?.updatedTimeStamp?.toLocalDate(), lastAdmissionDate).maxOrNull()
+      }
+    return PrisonerStatistic(prisonStats, prisonerNumber, cellLocation, aed)
   }
 }
 

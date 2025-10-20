@@ -3,22 +3,13 @@ package uk.gov.justice.digital.hmpps.keyworker.services.staff
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
-import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.filterApplicable
-import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toKeyworkerStatusCodedDescription
-import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
-import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRelevantAlertCodes
@@ -30,9 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationRespo
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.LatestSession
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffCountStats
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStats
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
@@ -45,31 +34,25 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.Prisoner as Person
 
 @Service
 class GetStaffDetails(
-  private val prisonApi: PrisonApiClient,
-  private val staffRoleRepository: StaffRoleRepository,
+  staffRoleRetrievers: List<StaffRoleRetriever>,
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val staffConfigRepository: StaffConfigRepository,
   private val allocationRepository: AllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
   private val prisonRegisterApi: PrisonRegisterClient,
   private val caseNotesRetriever: RecordedEventRetriever,
-  private val referenceDataRepository: ReferenceDataRepository,
 ) {
+  private val staffRoleRetriever = staffRoleRetrievers.flatMap { it.policies.map { policy -> policy to it } }.toMap()
+
   fun getJobClassificationsFor(
     prisonCode: String,
     staffId: Long,
-  ): JobClassificationResponse {
-    val policies: Set<AllocationPolicy> =
-      buildSet {
-        if (prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.takeIf { !it.isExpired() } != null) {
-          add(
-            AllocationPolicy.KEY_WORKER,
-          )
-        }
-        addAll(staffRoleRepository.findActiveStaffPoliciesForPrison(prisonCode, staffId))
-      }
-    return JobClassificationResponse(policies)
-  }
+  ): JobClassificationResponse =
+    JobClassificationResponse(
+      staffRoleRetriever.values
+        .flatMap { it.getActivePoliciesForPrison(prisonCode, staffId) }
+        .toSet(),
+    )
 
   fun getDetailsFor(
     prisonCode: String,
@@ -83,18 +66,10 @@ class GetStaffDetails(
     val reportingPeriod =
       ReportingPeriod.of(from, to, ReportingPeriod.of(comparisonFrom, comparisonTo)) ?: ReportingPeriod.currentMonth()
 
-    val context = AllocationContext.get()
+    val policy = AllocationContext.get().requiredPolicy()
     val staffWithRole =
-      if (context.policy == AllocationPolicy.KEY_WORKER) {
-        prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffWithRole()
-      } else {
-        prisonApi.getStaffSummariesFromIds(setOf(staffId)).firstOrNull()?.let {
-          it to staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.toModel()
-        }
-      }
-    if (staffWithRole?.first == null) {
-      throw EntityNotFoundException("Staff member not found")
-    }
+      staffRoleRetriever[policy]?.getStaffWithRole(prisonCode, staffId)
+        ?: throw EntityNotFoundException("Staff member not found")
 
     val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
 
@@ -137,7 +112,7 @@ class GetStaffDetails(
         null to null
       }
 
-    val staff = staffWithRole.first
+    val staff = staffWithRole.staff
     return StaffDetails(
       staff.staffId,
       staff.firstName,
@@ -149,29 +124,7 @@ class GetStaffDetails(
       allocations ?: emptyList(),
       stats,
       staffInfo?.staffConfig?.reactivateOn,
-      staffWithRole.second,
-    )
-  }
-
-  private fun NomisStaffRole.staffWithRole(): Pair<StaffSummary, StaffRoleInfo> =
-    StaffSummary(staffId, firstName, lastName) to staffRoleInfo()
-
-  private fun NomisStaffRole.staffRoleInfo(): StaffRoleInfo {
-    val rd =
-      referenceDataRepository
-        .findAllByKeyIn(
-          setOf(
-            ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType,
-            ReferenceDataDomain.STAFF_POSITION of position,
-          ),
-        ).associate { it.key.domain to it.asCodedDescription() }
-
-    return StaffRoleInfo(
-      rd[ReferenceDataDomain.STAFF_POSITION]!!,
-      rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE]!!,
-      hoursPerWeek,
-      fromDate,
-      toDate,
+      staffWithRole.role,
     )
   }
 

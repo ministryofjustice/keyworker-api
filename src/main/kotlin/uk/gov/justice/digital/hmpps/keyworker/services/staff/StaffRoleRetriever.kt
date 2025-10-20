@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.asCodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
+import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
@@ -18,14 +19,24 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
 interface StaffRoleRetriever {
   val policies: Set<AllocationPolicy>
 
+  fun getActivePoliciesForPrison(
+    prisonCode: String,
+    staffId: Long,
+  ): Set<AllocationPolicy>
+
   fun getStaffRoles(prisonCode: String): Map<Long, StaffRoleInfo>
 
   fun getStaffWithRoles(prisonCode: String): List<StaffSummaryWithRole>
+
+  fun getStaffWithRole(
+    prisonCode: String,
+    staffId: Long,
+  ): StaffSummaryWithRole?
 }
 
 data class StaffSummaryWithRole(
   val staff: StaffSummary,
-  val role: StaffRoleInfo,
+  val role: StaffRoleInfo?,
 )
 
 @Component
@@ -34,6 +45,16 @@ class NomisRoleRetriever(
   private val referenceDataRepository: ReferenceDataRepository,
 ) : StaffRoleRetriever {
   override val policies = setOf(AllocationPolicy.KEY_WORKER)
+
+  override fun getActivePoliciesForPrison(
+    prisonCode: String,
+    staffId: Long,
+  ): Set<AllocationPolicy> =
+    if (prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.takeIf { !it.isExpired() } != null) {
+      setOf(AllocationPolicy.KEY_WORKER)
+    } else {
+      emptySet()
+    }
 
   override fun getStaffRoles(prisonCode: String): Map<Long, StaffRoleInfo> {
     val keyworkers = prisonApi.getKeyworkersForPrison(prisonCode)
@@ -51,6 +72,17 @@ class NomisRoleRetriever(
       )
     }
   }
+
+  override fun getStaffWithRole(
+    prisonCode: String,
+    staffId: Long,
+  ): StaffSummaryWithRole? =
+    prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.let {
+      StaffSummaryWithRole(
+        StaffSummary(it.staffId, it.firstName, it.lastName),
+        it.staffRole(listOf(it).referenceData()),
+      )
+    }
 
   private fun NomisStaffRole.rdKeys() =
     setOf(ReferenceDataDomain.STAFF_POSITION of position, ReferenceDataDomain.STAFF_SCHEDULE_TYPE of scheduleType)
@@ -77,6 +109,11 @@ class LocalRoleRetriever(
 ) : StaffRoleRetriever {
   override val policies = setOf(AllocationPolicy.PERSONAL_OFFICER)
 
+  override fun getActivePoliciesForPrison(
+    prisonCode: String,
+    staffId: Long,
+  ): Set<AllocationPolicy> = staffRoleRepository.findActiveStaffPoliciesForPrison(prisonCode, staffId)
+
   override fun getStaffRoles(prisonCode: String): Map<Long, StaffRoleInfo> =
     staffRoleRepository.findAllByPrisonCode(prisonCode).associate { it.staffId to it.roleInfo() }
 
@@ -85,6 +122,17 @@ class LocalRoleRetriever(
     val staff = prisonApi.getStaffSummariesFromIds(roles.keys)
     return staff.map { StaffSummaryWithRole(it, checkNotNull(roles[it.staffId])) }
   }
+
+  override fun getStaffWithRole(
+    prisonCode: String,
+    staffId: Long,
+  ): StaffSummaryWithRole? =
+    prisonApi.getStaffSummariesFromIds(setOf(staffId)).firstOrNull()?.let {
+      StaffSummaryWithRole(
+        it,
+        staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.toModel(),
+      )
+    }
 
   private fun StaffRole.roleInfo() =
     StaffRoleInfo(position.asCodedDescription(), scheduleType.asCodedDescription(), hoursPerWeek, fromDate, toDate)

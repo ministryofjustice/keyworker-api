@@ -175,7 +175,7 @@ class StaffSearch(
 
   fun findAllocatableStaff(prisonCode: String): List<StaffSummaryWithRole> {
     val policy = AllocationContext.get().requiredPolicy()
-    return requireNotNull(staffRoleRetriever[policy]).getStaffWithRoles(prisonCode)
+    return requireNotNull(staffRoleRetriever[policy]).getStaffWithRoles(prisonCode).filter { it.role != null }
   }
 
   private fun StaffSummary.matches(query: String?): Boolean {
@@ -228,7 +228,7 @@ class StaffSearch(
       status.asCodedDescription(),
       config?.staffConfig?.capacity ?: prisonConfig.capacity,
       config?.allocationCount ?: 0,
-      role,
+      role!!,
       if (includeStats) {
         applicableAllocations(staff.staffId).staffCountStatsFromApplicableAllocations(
           reportingPeriod,
