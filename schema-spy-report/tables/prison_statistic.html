@@ -127,9 +127,14 @@
                                     <td>19</td>
                                     <td title=''></td>
                                     <td title='Automatically updated by the database'>√</td>
-                                    <td>nextval(&#39;keyworker_stats_keyworker_stats_id_seq&#39;::regclass)</td>
+                                    <td>nextval(&#39;prison_statistic_id_seq&#39;::regclass)</td>
                                     <td>
                                         <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="prisoner_statistic.prison_statistic_id references prison_statistic.id via fk_prisoner_statistic_id"><a href='prisoner_statistic.html'>prisoner_statistic</a><span class='relatedKey'>.prison_statistic_id</span></td>
+                                                <td class="constraint detail">fk_prisoner_statistic_id</td>
+                                                <td class="constraint detail"><span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
                                         </table>
                                     </td>
                                     <td>

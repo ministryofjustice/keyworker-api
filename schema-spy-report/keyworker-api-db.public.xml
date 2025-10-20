@@ -2,7 +2,8 @@
    <sequences>
       <sequence increment="1" name="audit_revision_id_seq" startValue="1"/>
       <sequence increment="1" name="case_note_type_recorded_event_type_id_seq" startValue="1"/>
-      <sequence increment="1" name="keyworker_stats_keyworker_stats_id_seq" startValue="1"/>
+      <sequence increment="1" name="prison_statistic_id_seq" startValue="1"/>
+      <sequence increment="1" name="prisoner_statistic_id_seq" startValue="1"/>
       <sequence increment="1" name="reference_data_id_seq" startValue="1"/>
    </sequences>
    <tables>
@@ -144,6 +145,7 @@
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="prison_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_configuration"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prison_configuration_audit"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="prison_statistic_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_statistic"/>
+            <child catalog="keyworker-api-db" column="policy_code" foreignKey="fk_prisoner_statistic_policy_code" implied="false" onDeleteCascade="false" schema="public" table="prisoner_statistic"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="recorded_event_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="recorded_event"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="recorded_event_audit_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="recorded_event_audit"/>
             <child catalog="keyworker-api-db" column="policy_code" foreignKey="reference_data_policy_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="reference_data_policy"/>
@@ -210,7 +212,9 @@
          </index>
       </table>
       <table catalog="keyworker-api-db" name="prison_statistic" remarks="Records the results of each statistic snapshot" schema="public" type="TABLE">
-         <column autoUpdated="true" defaultValue="nextval('keyworker_stats_keyworker_stats_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key ID" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="true" defaultValue="nextval('prison_statistic_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key ID" size="19" type="bigserial" typeCode="-5">
+            <child catalog="keyworker-api-db" column="prison_statistic_id" foreignKey="fk_prisoner_statistic_id" implied="false" onDeleteCascade="false" schema="public" table="prisoner_statistic"/>
+         </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="Prison ID" size="6" type="varchar" typeCode="12"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="statistic_date" nullable="false" remarks="Timestamp of date for which stats apply" size="29" type="timestamp" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prisoners_assigned_count" nullable="false" remarks="Number of prisoner who have been assigned a Key worker" size="10" type="int4" typeCode="4"/>
@@ -230,6 +234,26 @@
          <index name="idx_prison_statistic_date_prison" unique="false">
             <column ascending="true" name="statistic_date"/>
             <column ascending="true" name="prison_code"/>
+         </index>
+      </table>
+      <table catalog="keyworker-api-db" name="prisoner_statistic" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('prisoner_statistic_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="19" type="bigserial" typeCode="-5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_statistic_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5">
+            <parent catalog="keyworker-api-db" column="id" foreignKey="fk_prisoner_statistic_id" implied="false" onDeleteCascade="false" schema="public" table="prison_statistic"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="person_identifier" nullable="false" remarks="" size="7" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="cell_location" nullable="true" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="allocation_eligibility_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
+            <parent catalog="keyworker-api-db" column="code" foreignKey="fk_prisoner_statistic_policy_code" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
+         </column>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="pk_prisoner_statistic" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="uq_prisoner_statistic_person_identifier" unique="true">
+            <column ascending="true" name="prison_statistic_id"/>
+            <column ascending="true" name="person_identifier"/>
          </index>
       </table>
       <table catalog="keyworker-api-db" name="recorded_event" remarks="" schema="public" type="TABLE">

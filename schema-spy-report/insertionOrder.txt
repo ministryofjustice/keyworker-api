@@ -1,12 +1,13 @@
 policy
 audit_revision
 reference_data
+prison_statistic
 case_note_type_recorded_event_type
 prison_configuration
-prison_statistic
 staff_role
 allocation_audit
 prison_configuration_audit
+prisoner_statistic
 recorded_event
 recorded_event_audit
 reference_data_policy
