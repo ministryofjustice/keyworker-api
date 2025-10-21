@@ -26,6 +26,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="policy_code" nullable="false" remarks="" size="16" type="varchar" typeCode="12">
             <parent catalog="keyworker-api-db" column="code" foreignKey="allocation_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="12" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="pk_allocation" unique="true">
             <column ascending="true" name="id"/>
@@ -172,6 +173,7 @@
          </column>
          <column autoUpdated="false" defaultValue="gen_random_uuid()" digits="0" id="7" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="allocation_order" nullable="false" remarks="" size="15" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="prison_configuration_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -371,6 +373,7 @@
             <parent catalog="keyworker-api-db" column="code" foreignKey="staff_configuration_policy_code_fkey" implied="false" onDeleteCascade="false" schema="public" table="policy"/>
          </column>
          <column autoUpdated="false" defaultValue="gen_random_uuid()" digits="0" id="5" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="6" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="staff_configuration_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -415,6 +418,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="hours_per_week" nullable="false" remarks="" size="0" type="numeric" typeCode="2"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="from_date" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="to_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="0" digits="0" id="9" name="version" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="staff_role_pkey" unique="true">
             <column ascending="true" name="id"/>
