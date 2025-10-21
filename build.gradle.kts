@@ -60,7 +60,6 @@ tasks {
     }
   }
   test {
-    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
     if (project.hasProperty("init-db")) {
       include("**/InitialiseDatabase.class")
     } else {
