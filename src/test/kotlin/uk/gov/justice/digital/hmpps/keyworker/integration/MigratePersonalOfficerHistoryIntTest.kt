@@ -54,9 +54,9 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
 
     Thread.sleep(1000) // TODO look into alternative
 
-    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     personIdentifiers
       .map {
+        setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
       }.forEach { allocations ->
         assertThat(allocations).hasSize(3)
@@ -224,6 +224,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     initMigration(prisonCode)
     Thread.sleep(1000) // TODO look into alternative
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val transferred =
       allocationRepository.findAllByPersonIdentifier(transferredPi).sortedByDescending { a -> a.allocatedAt }
     assertThat(transferred.size).isEqualTo(3)

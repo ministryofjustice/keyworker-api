@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonAlert
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
@@ -90,10 +89,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         staffRole(
           prisonCode,
           staffConfig.staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-          withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
-          BigDecimal(36.5),
-          now().minusWeeks(6),
+          hoursPerWeek = BigDecimal(36.5),
+          fromDate = now().minusWeeks(6),
         ),
       )
     }
@@ -297,7 +294,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
 
     val prison = Prison("NOAL", "No Allocations")
     val (prisonCode, prisonDescription) = prison
-    val staff = nomisStaffRole(newId(), { "Noah" }, { "Locations" }, "CHAP", "PT", BigDecimal(36.5), now().minusWeeks(6))
+    val staff =
+      nomisStaffRole(newId(), { "Noah" }, { "Locations" }, "CHAP", "PT", BigDecimal(36.5), now().minusWeeks(6))
     prisonRegisterMockServer.stubGetPrisons(setOf(prison))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerDetails(prisonCode, staff.staffId, staff)
@@ -307,10 +305,9 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         staffRole(
           prisonCode,
           staff.staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-          withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "PT"),
-          BigDecimal(36.5),
-          now().minusWeeks(6),
+          scheduleType = "PT",
+          hoursPerWeek = BigDecimal(36.5),
+          fromDate = now().minusWeeks(6),
         ),
       )
     }
@@ -382,10 +379,8 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
         staffRole(
           prisonCode,
           staffConfig.staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-          withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
-          BigDecimal(36.5),
-          now().minusWeeks(6),
+          hoursPerWeek = BigDecimal(36.5),
+          fromDate = now().minusWeeks(6),
         ),
       )
     }

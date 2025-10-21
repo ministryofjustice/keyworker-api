@@ -6,6 +6,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import org.hibernate.annotations.SQLRestriction
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
@@ -49,7 +50,10 @@ class StaffRole(
   @Id
   @Audited(withModifiedFlag = false)
   val id: UUID = IdGenerator.newUuid(),
-)
+) {
+  @Version
+  val version: Int? = null
+}
 
 interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
   fun findByPrisonCodeAndStaffId(
