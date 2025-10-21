@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.springframework.data.jpa.repository.JpaRepository
@@ -45,6 +46,9 @@ class PrisonConfiguration(
   @Audited(withModifiedFlag = false)
   val id: UUID = IdGenerator.newUuid(),
 ) {
+  @Version
+  val version: Int? = null
+
   fun update(request: PrisonConfigRequest) =
     apply {
       enabled = request.isEnabled

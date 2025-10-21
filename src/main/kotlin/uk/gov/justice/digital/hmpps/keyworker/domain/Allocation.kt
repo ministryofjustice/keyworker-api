@@ -6,6 +6,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
@@ -59,6 +60,9 @@ class Allocation(
   @Column(name = "id")
   val id: UUID = newUuid(),
 ) {
+  @Version
+  val version: Int? = null
+
   fun deallocate(deallocationReason: ReferenceData) {
     val context = AllocationContext.get()
     this.isActive = false
