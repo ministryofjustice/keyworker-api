@@ -7,8 +7,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
-import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
@@ -27,7 +27,6 @@ import java.time.LocalDateTime
 
 @Service
 class MigratePersonalOfficers(
-  private val ach: AllocationContextHolder,
   private val transactionTemplate: TransactionTemplate,
   private val prisonApi: PrisonApiClient,
   private val prisonerSearch: PrisonerSearchClient,
@@ -46,7 +45,7 @@ class MigratePersonalOfficers(
       val currentResidentIds = prisonerSearch.findAllPrisoners(prisonCode).personIdentifiers()
       val nonResidentIds = historicAllocations.keys - currentResidentIds
 
-      ach.setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+      AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER).set()
       val results =
         transactionTemplate.execute {
           val rd =
@@ -92,17 +91,20 @@ class MigratePersonalOfficers(
 
           val staffAllocations = allocations.filter { it.isActive }.groupBy { it.staffId }
           val staffRoles =
-            staffAllocations.keys.map {
-              StaffRole(
-                rd[ReferenceDataDomain.STAFF_POSITION to "PRO"]!!,
-                rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE to "FT"]!!,
-                BigDecimal(35),
-                requireNotNull(staffAllocations[it]).minOf { a -> a.allocatedAt }.toLocalDate(),
-                null,
-                prisonCode,
-                it,
-              )
-            }
+            staffRoleRepository
+              .saveAll(
+                staffAllocations.keys.map {
+                  StaffRole(
+                    rd[ReferenceDataDomain.STAFF_POSITION to "PRO"]!!,
+                    rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE to "FT"]!!,
+                    BigDecimal(35),
+                    requireNotNull(staffAllocations[it]).minOf { a -> a.allocatedAt }.toLocalDate(),
+                    null,
+                    prisonCode,
+                    it,
+                  )
+                },
+              ).toList()
 
           allocations
             .chunked(1000)
@@ -112,7 +114,7 @@ class MigratePersonalOfficers(
               allocationRepository.clear()
               it
             }.flatten()
-            .toList() to staffRoleRepository.saveAll(staffRoles)
+            .toList() to staffRoles
         }!!
 
       telemetryClient.trackEvent(
@@ -130,7 +132,7 @@ class MigratePersonalOfficers(
         null,
       )
     } finally {
-      ach.clearContext()
+      AllocationContext.clear()
     }
 
   private fun PoHistoricAllocation.asAllocation(

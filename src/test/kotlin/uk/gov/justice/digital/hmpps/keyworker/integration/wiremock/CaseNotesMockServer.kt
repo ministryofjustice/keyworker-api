@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNote.Companion.KW_TYPE
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNoteAmendment
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.SearchCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
@@ -33,11 +34,12 @@ class CaseNotesMockServer : WireMockServer(9997) {
 
   fun stubSearchCaseNotes(
     personIdentifier: String,
+    ofInterest: CaseNotesOfInterest,
     response: CaseNotes,
   ): StubMapping =
     stubFor(
       post("/search/case-notes/$personIdentifier")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(SearchCaseNotes()), true, true))
+        .withRequestBody(equalToJson(objectMapper.writeValueAsString(SearchCaseNotes(ofInterest.asRequest())), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

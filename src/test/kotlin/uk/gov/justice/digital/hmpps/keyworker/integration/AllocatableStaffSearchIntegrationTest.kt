@@ -9,12 +9,11 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocatableSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.model.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.ReportingPeriod
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.AllocatableSearchRequest
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.AllocatableSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
@@ -283,15 +282,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         ),
       )
     } else {
-      givenStaffRole(
-        staffRole(
-          prisonCode,
-          staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-          withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
-          BigDecimal(34.5),
-        ),
-      )
+      givenStaffRole(staffRole(prisonCode, staffId, hoursPerWeek = BigDecimal(34.5)))
     }
 
     val personIdentifier = personIdentifier()

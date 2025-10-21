@@ -39,7 +39,8 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
   @ParameterizedTest
   @EnumSource(AllocationPolicy::class)
   fun `Returning from leave updates status to active`(policy: AllocationPolicy) {
-    setContext(AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy))
+    val context = AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy)
+    setContext(context)
     val configs =
       (0..2).map {
         givenStaffConfig(
@@ -52,6 +53,7 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
 
     returningFromLeave(LocalDate.now()).expectStatus().isNoContent
 
+    setContext(context)
     staffConfigRepository.findAllById(configs.map { it.id }).forEach {
       assertThat(it.status.code).isEqualTo(StaffStatus.ACTIVE.name)
       assertThat(it.reactivateOn).isNull()
@@ -60,7 +62,7 @@ class ReturningFromLeaveIntTest : IntegrationTest() {
         it.id,
         RevisionType.MOD,
         setOf(StaffConfiguration::class.simpleName!!),
-        AllocationContext.get().copy(username = SYSTEM_USERNAME, policy = policy),
+        context,
       )
     }
   }

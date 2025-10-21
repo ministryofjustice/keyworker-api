@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
+import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
@@ -41,6 +42,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonerStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEvent
 import uk.gov.justice.digital.hmpps.keyworker.domain.RecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceData
@@ -52,6 +54,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfigRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRoleRepository
+import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedChange
@@ -102,6 +105,9 @@ abstract class IntegrationTest {
 
   @Autowired
   protected lateinit var prisonStatisticRepository: PrisonStatisticRepository
+
+  @Autowired
+  protected lateinit var prisonerStatisticRepository: PrisonerStatisticRepository
 
   @Autowired
   lateinit var webTestClient: WebTestClient
@@ -341,8 +347,6 @@ abstract class IntegrationTest {
     )
   }
 
-  protected fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
-
   protected fun prisonConfig(
     code: String,
     enabled: Boolean = false,
@@ -351,7 +355,7 @@ abstract class IntegrationTest {
     frequencyInWeeks: Int = 1,
     hasPrisonersWithHighComplexityNeeds: Boolean = false,
     allocationOrder: AllocationOrder = AllocationOrder.BY_ALLOCATIONS,
-    policy: AllocationPolicy = AllocationContext.get().policy,
+    policy: AllocationPolicy = AllocationContext.get().requiredPolicy(),
   ) = PrisonConfiguration(
     code,
     enabled,
@@ -384,8 +388,6 @@ abstract class IntegrationTest {
     eligiblePrisoners: Int,
     assignedKeyworker: Int,
     activeKeyworkers: Int,
-    keyworkerSessions: Int,
-    keyworkerEntries: Int,
     averageReceptionToAllocationDays: Int?,
     averageReceptionToSessionDays: Int?,
   ) = PrisonStatistic(
@@ -396,8 +398,6 @@ abstract class IntegrationTest {
     eligiblePrisoners,
     assignedKeyworker,
     activeKeyworkers,
-    keyworkerSessions,
-    keyworkerEntries,
     averageReceptionToAllocationDays,
     averageReceptionToSessionDays,
   )
@@ -407,26 +407,44 @@ abstract class IntegrationTest {
     staffId: Long = newId(),
     capacity: Int = 6,
     reactivateOn: LocalDate? = null,
-  ) = StaffConfiguration(
-    withReferenceData(STAFF_STATUS, status.name),
-    capacity,
-    reactivateOn,
-    staffId,
-  )
+  ) = {
+    StaffConfiguration(
+      withReferenceData(STAFF_STATUS, status.name),
+      capacity,
+      reactivateOn,
+      staffId,
+    )
+  }
 
-  protected fun givenStaffConfig(staffConfig: StaffConfiguration): StaffConfiguration = staffConfigRepository.save(staffConfig)
+  protected fun givenStaffConfig(staffConfig: () -> StaffConfiguration): StaffConfiguration =
+    transactionTemplate.execute {
+      staffConfigRepository.save(staffConfig())
+    }!!
 
   protected fun staffRole(
     prisonCode: String,
     staffId: Long,
-    position: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-    scheduleType: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
+    position: String = "PRO",
+    scheduleType: String = "FT",
     hoursPerWeek: BigDecimal = BigDecimal(37.5),
     fromDate: LocalDate = LocalDate.now().minusDays(7),
     toDate: LocalDate? = null,
-  ) = StaffRole(position, scheduleType, hoursPerWeek, fromDate, toDate, prisonCode, staffId)
+  ) = {
+    StaffRole(
+      withReferenceData(ReferenceDataDomain.STAFF_POSITION, position),
+      withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, scheduleType),
+      hoursPerWeek,
+      fromDate,
+      toDate,
+      prisonCode,
+      staffId,
+    )
+  }
 
-  protected fun givenStaffRole(staffRole: StaffRole): StaffRole = staffRoleRepository.save(staffRole)
+  protected fun givenStaffRole(staffRole: () -> StaffRole): StaffRole =
+    transactionTemplate.execute {
+      staffRoleRepository.save(staffRole())
+    }!!
 
   protected fun staffAllocation(
     personIdentifier: String,
@@ -439,20 +457,23 @@ abstract class IntegrationTest {
     deallocatedAt: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
     deallocatedBy: String? = null,
-  ) = Allocation(
-    personIdentifier,
-    prisonCode,
-    staffId,
-    allocatedAt,
-    active,
-    allocationReason.asReferenceData(),
-    allocatedBy,
-    deallocatedAt,
-    deallocationReason?.asReferenceData(),
-    deallocatedBy,
-  )
+  ) = {
+    Allocation(
+      personIdentifier,
+      prisonCode,
+      staffId,
+      allocatedAt,
+      active,
+      allocationReason.asReferenceData(),
+      allocatedBy,
+      deallocatedAt,
+      deallocationReason?.asReferenceData(),
+      deallocatedBy,
+    )
+  }
 
-  protected fun givenAllocation(allocation: Allocation): Allocation = allocationRepository.save(allocation)
+  protected fun givenAllocation(allocation: () -> Allocation): Allocation =
+    transactionTemplate.execute { allocationRepository.save(allocation()) }!!
 
   protected fun givenRecordedEvent(re: () -> RecordedEvent): RecordedEvent =
     transactionTemplate.execute {
@@ -481,6 +502,21 @@ abstract class IntegrationTest {
       add(next)
       next = next.plusDays(1)
     }
+  }
+
+  protected fun caseNotesOfInterest(): CaseNotesOfInterest {
+    val originalContext = AllocationContext.get()
+    val ofInterest =
+      CaseNotesOfInterest(
+        AllocationPolicy.entries
+          .flatMap { policy ->
+            originalContext.copy(policy = policy).set()
+            caseNoteRecordedEventRepository.findAll()
+          }.map { it.key }
+          .toSet(),
+      )
+    originalContext.set()
+    return ofInterest
   }
 
   protected fun recordedEvent(

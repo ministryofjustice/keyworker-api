@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 class ComplexityOfNeedMockServer : WireMockServer(10000) {
   fun stubComplexOffenders(
     personIdentifiers: Set<String>,
-    response: List<ComplexityOfNeed>,
+    response: Collection<ComplexityOfNeed>,
   ) {
     stubFor(
       WireMock

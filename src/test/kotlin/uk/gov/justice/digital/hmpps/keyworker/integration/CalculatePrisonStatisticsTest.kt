@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -115,16 +112,16 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       }
     }
 
-    publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, now().minusDays(1), policy)))
+    publishEventToTopic(calculateStatsEvent(PrisonStatisticsInfo(prisonCode, yesterday, policy)))
 
-    val stats: PrisonStatistic? =
-      await untilCallTo {
-        setContext(AllocationContext.get().copy(policy = policy))
-        prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
-      } matches { it != null }
+    setContext(AllocationContext.get().copy(policy = policy))
+    var stats: PrisonStatistic?
+    do {
+      stats = prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
+    } while (stats == null)
 
     assertThat(stats).isNotNull
-    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    assertThat(stats.prisonCode).isEqualTo(prisonCode)
     assertThat(stats.date).isEqualTo(yesterday)
 
     assertThat(stats.prisonerCount).isEqualTo(prisoners.size)
@@ -133,21 +130,19 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.prisonersAssignedCount).isEqualTo(34)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      assertThat(stats.recordedSessionCount).isEqualTo(12)
-      assertThat(stats.recordedEntryCount).isEqualTo(4)
-      assertThat(stats.receptionToAllocationDays).isEqualTo(22)
-      assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
-    } else {
-      assertThat(stats.recordedSessionCount).isEqualTo(0)
-      assertThat(stats.recordedEntryCount).isEqualTo(12)
-      assertThat(stats.receptionToAllocationDays).isEqualTo(22)
-      assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
+    assertThat(stats.receptionToAllocationDays).isEqualTo(22)
+    assertThat(stats.receptionToRecordedEventDays).isEqualTo(4)
+
+    val prisonerStats = prisonerStatisticRepository.findAll().filter { it.prisonStatistic.id == stats.id }
+    assertThat(prisonerStats).hasSize(prisoners.size)
+    prisonerStats.forEach {
+      assertThat(it.allocationEligibilityDate).isEqualTo(prisoners[it.personIdentifier]?.lastAdmissionDate)
     }
   }
 
   @Test
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     val prisonCode = "CALWIC"
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
@@ -181,17 +176,17 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       }
     }
 
-    complexityOfNeedMockServer.stubComplexOffenders(
-      prisoners.personIdentifiers(),
-      prisoners.content.mapIndexed { index, prisoner ->
-        ComplexityOfNeed(
-          prisoner.prisonerNumber,
-          prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
-          createdTimeStamp = LocalDateTime.now().minusDays(index.toLong() + 7),
-          updatedTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
-        )
-      },
-    )
+    val complexityOfNeed =
+      prisoners.content
+        .mapIndexed { index, prisoner ->
+          ComplexityOfNeed(
+            prisoner.prisonerNumber,
+            prisoner.complexityOfNeedLevel ?: ComplexityOfNeedLevel.LOW,
+            createdTimeStamp = LocalDateTime.now().minusDays(index.toLong() + 7),
+            updatedTimeStamp = LocalDateTime.now().minusDays(index.toLong()),
+          )
+        }.associateBy { it.personIdentifier }
+    complexityOfNeedMockServer.stubComplexOffenders(prisoners.personIdentifiers(), complexityOfNeed.values)
     eligiblePrisoners.mapIndexedNotNull { idx, pi ->
       if (idx % 9 == 0) {
         givenRecordedEvent(
@@ -219,21 +214,18 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
 
     publishEventToTopic(
       calculateStatsEvent(
-        PrisonStatisticsInfo(
-          prisonCode,
-          now().minusDays(1),
-          AllocationPolicy.KEY_WORKER,
-        ),
+        PrisonStatisticsInfo(prisonCode, yesterday, AllocationPolicy.KEY_WORKER),
       ),
     )
 
-    val stats: PrisonStatistic? =
-      await untilCallTo {
-        prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
-      } matches { it != null }
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    var stats: PrisonStatistic?
+    do {
+      stats = prisonStatisticRepository.findByPrisonCodeAndDate(prisonCode, yesterday)
+    } while (stats == null)
 
     assertThat(stats).isNotNull
-    assertThat(stats!!.prisonCode).isEqualTo(prisonCode)
+    assertThat(stats.prisonCode).isEqualTo(prisonCode)
     assertThat(stats.date).isEqualTo(yesterday)
 
     assertThat(stats.prisonerCount).isEqualTo(prisoners.size)
@@ -242,11 +234,25 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     assertThat(stats.prisonersAssignedCount).isEqualTo(27)
     assertThat(stats.eligibleStaffCount).isEqualTo(6)
 
-    assertThat(stats.recordedSessionCount).isEqualTo(9)
-    assertThat(stats.recordedEntryCount).isEqualTo(4)
-
     assertThat(stats.receptionToAllocationDays).isEqualTo(55)
     assertThat(stats.receptionToRecordedEventDays).isEqualTo(34)
+
+    val prisonerStats = prisonerStatisticRepository.findAll().filter { it.prisonStatistic.id == stats.id }
+    assertThat(prisonerStats).hasSize(prisoners.size)
+    prisonerStats.forEach {
+      val prisoner = prisoners[it.personIdentifier]
+      val con = complexityOfNeed[it.personIdentifier]
+      if (prisoner?.complexityOfNeedLevel == ComplexityOfNeedLevel.HIGH) {
+        assertThat(it.allocationEligibilityDate).isNull()
+      } else {
+        assertThat(it.allocationEligibilityDate).isEqualTo(
+          listOfNotNull(
+            prisoner?.lastAdmissionDate,
+            con?.updatedTimeStamp?.toLocalDate(),
+          ).maxOrNull(),
+        )
+      }
+    }
   }
 
   private fun prisoners(

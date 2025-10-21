@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.SequenceGenerator
 import jakarta.persistence.Table
 import org.hibernate.annotations.TenantId
 import org.springframework.data.jpa.repository.JpaRepository
@@ -12,8 +13,9 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import java.time.LocalDate
 import java.util.UUID
 
-@Table(name = "prison_statistic")
 @Entity
+@Table(name = "prison_statistic")
+@SequenceGenerator(name = "prison_statistic_id_generator", sequenceName = "prison_statistic_id_seq", allocationSize = 1)
 class PrisonStatistic(
   @Column(name = "prison_code")
   val prisonCode: String,
@@ -29,19 +31,15 @@ class PrisonStatistic(
   val prisonersAssignedCount: Int,
   @Column(name = "eligible_staff_count")
   val eligibleStaffCount: Int,
-  @Column(name = "recorded_session_count")
-  val recordedSessionCount: Int,
-  @Column(name = "recorded_entry_count")
-  val recordedEntryCount: Int,
   @Column(name = "reception_to_allocation_days")
   val receptionToAllocationDays: Int?,
   @Column(name = "reception_to_recorded_event_days")
   val receptionToRecordedEventDays: Int?,
   @TenantId
   @Column(name = "policy_code", updatable = false)
-  val policy: String = AllocationContext.get().policy.name,
+  val policy: String = AllocationContext.get().requiredPolicy().name,
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "prison_statistic_id_generator")
   @Column(name = "id")
   val id: Long? = null,
 )

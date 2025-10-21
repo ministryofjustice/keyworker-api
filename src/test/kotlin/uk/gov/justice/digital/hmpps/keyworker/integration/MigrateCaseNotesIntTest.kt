@@ -52,7 +52,7 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
         )
       }
 
-    caseNotesMockServer.stubSearchCaseNotes(personIdentifier, CaseNotes(kwNotes + poNotes))
+    caseNotesMockServer.stubSearchCaseNotes(personIdentifier, caseNotesOfInterest(), CaseNotes(kwNotes + poNotes))
 
     publishEventToTopic(migrateEvent(personIdentifier))
 
@@ -84,11 +84,12 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
           now().minusWeeks(it.toLong()),
         )
       }
+
+    caseNotesMockServer.stubSearchCaseNotes(personIdentifier, caseNotesOfInterest(), CaseNotes(caseNotes))
     transactionTemplate.execute {
       val rdMap = caseNoteRecordedEventRepository.findAll().associateBy { it.key }
       val getType: (String, String) -> CaseNoteRecordedEvent =
         { type, subtype -> requireNotNull(rdMap[CaseNoteTypeKey(type, subtype)]) }
-      caseNotesMockServer.stubSearchCaseNotes(personIdentifier, CaseNotes(caseNotes))
       givenRecordedEvent(caseNotes[3].copy(occurredAt = now().minusWeeks(52)).asRecordedEvent(getType))
       givenRecordedEvent(caseNotes[5].copy(occurredAt = now().minusWeeks(54)).asRecordedEvent(getType))
       givenRecordedEvent(caseNotes[8].copy(occurredAt = now().minusWeeks(56)).asRecordedEvent(getType))

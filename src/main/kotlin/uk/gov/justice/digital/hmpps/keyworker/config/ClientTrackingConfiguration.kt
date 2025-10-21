@@ -16,7 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import java.text.ParseException
 
 @Configuration
-@ConditionalOnExpression("T(org.apache.commons.lang3.StringUtils).isNotBlank('\${applicationinsights.connection.string:}')")
+@ConditionalOnExpression($$"T(org.springframework.util.StringUtils).hasText('${applicationinsights.connection.string:}')")
 class ClientTrackingConfiguration(
   private val clientTrackingInterceptor: ClientTrackingInterceptor,
 ) : WebMvcConfigurer {

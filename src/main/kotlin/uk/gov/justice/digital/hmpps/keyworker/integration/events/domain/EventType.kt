@@ -52,6 +52,6 @@ sealed interface EventType {
         MigrateCaseNotes,
       )
 
-    fun from(value: String): EventType = entries().firstOrNull { it.name.lowercase() == value.lowercase() } ?: Other(value)
+    fun from(value: String): EventType = entries().firstOrNull { it.name.equals(value, ignoreCase = true) } ?: Other(value)
   }
 }

@@ -20,11 +20,9 @@ class DeallocationService(
     personIdentifier: String,
     deallocationReason: DeallocationReason,
   ) {
-    val reason = referenceDataRepository.getReferenceData(DEALLOCATION_REASON of deallocationReason.name)
-    val allocations =
-      allocationRepository.findActiveForAllPolicies(personIdentifier).mapNotNull {
-        it.takeIf { it.prisonCode != prisonCode }?.apply { deallocate(reason) }
-      }
-    allocationRepository.saveAll(allocations)
+    allocationRepository
+      .findByPersonIdentifierAndIsActiveTrue(personIdentifier)
+      ?.takeIf { it.prisonCode != prisonCode }
+      ?.apply { deallocate(referenceDataRepository.getReferenceData(DEALLOCATION_REASON of deallocationReason.name)) }
   }
 }

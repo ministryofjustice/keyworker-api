@@ -6,6 +6,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
 import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
@@ -34,11 +35,14 @@ class StaffConfiguration(
   @TenantId
   @Audited(withModifiedFlag = false)
   @Column(name = "policy_code", updatable = false)
-  val policy: String = AllocationContext.get().policy.name,
+  val policy: String = AllocationContext.get().requiredPolicy().name,
   @Id
   @Audited(withModifiedFlag = false)
   val id: UUID = IdGenerator.newUuid(),
-)
+) {
+  @Version
+  val version: Int? = null
+}
 
 interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
   @Query(
@@ -74,11 +78,10 @@ interface StaffConfigRepository : JpaRepository<StaffConfiguration, UUID> {
 
   @Query(
     """
-    select sc.* from staff_configuration sc
-    join reference_data status on status.id = sc.status_id
-    where status.code ='UNAVAILABLE_ANNUAL_LEAVE' and sc.reactivate_on <= :date
+    select sc from StaffConfiguration sc
+    join fetch sc.status status
+    where status.key.code ='UNAVAILABLE_ANNUAL_LEAVE' and sc.reactivateOn <= :date
     """,
-    nativeQuery = true,
   )
   fun findAllStaffReturningFromLeave(date: LocalDate): List<StaffConfiguration>
 }

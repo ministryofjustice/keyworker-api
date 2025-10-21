@@ -32,7 +32,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
 
   @Test
   fun `403 forbidden without correct role`() {
-    initMigration("NE1", null).expectStatus().isForbidden
+    initMigration("NEP", null).expectStatus().isForbidden
   }
 
   @Test
@@ -51,10 +51,12 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     initMigration(prisonCode)
 
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
+
     Thread.sleep(1000) // TODO look into alternative
 
     personIdentifiers
       .map {
+        setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
       }.forEach { allocations ->
         assertThat(allocations).hasSize(3)
@@ -87,6 +89,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     val personIdentifiers = historicAllocations.map { it.offenderNo }.toSet()
     Thread.sleep(1000) // TODO look into alternative
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     personIdentifiers
       .map {
         allocationRepository.findAllByPersonIdentifier(it).sortedByDescending { a -> a.allocatedAt }
@@ -138,7 +141,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
   @Test
   fun `migration creates deallocated personal officer records for prisoners no longer resident`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
-    val prisonCode = "PM2"
+    val prisonCode = "PMT"
     val transferredPrisoner =
       generateHistoricAllocations(prisonCode, personIdentifier(), 3)
         .groupBy { it.offenderNo }
@@ -221,6 +224,7 @@ class MigratePersonalOfficerHistoryIntTest : IntegrationTest() {
     initMigration(prisonCode)
     Thread.sleep(1000) // TODO look into alternative
 
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     val transferred =
       allocationRepository.findAllByPersonIdentifier(transferredPi).sortedByDescending { a -> a.allocatedAt }
     assertThat(transferred.size).isEqualTo(3)

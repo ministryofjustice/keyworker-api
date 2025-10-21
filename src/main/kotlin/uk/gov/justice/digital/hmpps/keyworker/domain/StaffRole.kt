@@ -6,6 +6,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import org.hibernate.annotations.SQLRestriction
 import org.hibernate.annotations.TenantId
 import org.hibernate.envers.Audited
@@ -13,6 +14,7 @@ import org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import java.math.BigDecimal
@@ -44,11 +46,14 @@ class StaffRole(
   @TenantId
   @Audited(withModifiedFlag = false)
   @Column(name = "policy_code", updatable = false)
-  val policy: String = AllocationContext.get().policy.name,
+  val policy: String = AllocationContext.get().requiredPolicy().name,
   @Id
   @Audited(withModifiedFlag = false)
   val id: UUID = IdGenerator.newUuid(),
-)
+) {
+  @Version
+  val version: Int? = null
+}
 
 interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
   fun findByPrisonCodeAndStaffId(
@@ -65,17 +70,6 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
 
   @Query(
     """
-        select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and to_date is null
-    """,
-    nativeQuery = true,
-  )
-  fun findByPrisonCodeAndStaffIdAllPolicies(
-    prisonCode: String,
-    staffId: Long,
-  ): List<StaffRole>
-
-  @Query(
-    """
         select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and policy_code = :policyCode
     """,
     nativeQuery = true,
@@ -85,6 +79,17 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     staffId: Long,
     policyCode: String,
   ): StaffRole?
+
+  @Query(
+    """
+        select policy_code from staff_role where prison_code = :prisonCode and staff_id = :staffId and to_date is null
+    """,
+    nativeQuery = true,
+  )
+  fun findActiveStaffPoliciesForPrison(
+    prisonCode: String,
+    staffId: Long,
+  ): Set<AllocationPolicy>
 }
 
 fun StaffRole.toModel() =
