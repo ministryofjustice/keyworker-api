@@ -14,7 +14,6 @@ import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 
 @Configuration
 class KeyworkerContextConfiguration(
@@ -90,9 +89,10 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
       listOf(
         "/prisoners/${Prisoner.PATTERN}/allocations/current" to setOf(GET),
         "(.*)?/info" to setOf(GET),
-        "/prisons/${Prison.CODE_PATTERN}/personal-officer/migrate" to setOf(POST),
-        "/prisons/${Prison.CODE_PATTERN}/policies" to setOf(GET, PUT),
-        "/prisons/${Prison.CODE_PATTERN}/staff/\\d*/job-classifications" to setOf(GET),
+        "/prisons/[^/]+/personal-officer/migrate" to setOf(POST),
+        "/prisons/[^/]+/policies" to setOf(GET, PUT),
+        // job-classifications endpoint is used by shared component and often provides values that are not prison codes
+        "/prisons/[^/]+/staff/\\d*/job-classifications" to setOf(GET),
         "/staff/returning-from-leave" to setOf(PUT),
         "/subject-access-request" to setOf(GET),
         "/key-worker/offender/${Prisoner.PATTERN}" to setOf(GET),
