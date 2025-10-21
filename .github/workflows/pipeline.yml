@@ -18,9 +18,6 @@ on:
 permissions:
   contents: write
   packages: write
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   helm_lint:
     strategy:
@@ -59,6 +56,8 @@ jobs:
     secrets: inherit
   deploy_dev:
     name: Deploy to the dev environment
+    concurrency:
+      group: deploy-dev
     if: github.ref == 'refs/heads/main'
     needs:
     - build
@@ -70,6 +69,8 @@ jobs:
       app_version: '${{ needs.build.outputs.app_version }}'
   deploy_preprod:
     name: Deploy to the preprod environment
+    concurrency:
+      group: deploy-preprod
     if: github.ref == 'refs/heads/main'
     needs:
     - build
@@ -81,6 +82,8 @@ jobs:
       app_version: '${{ needs.build.outputs.app_version }}'
   deploy_prod:
     name: Deploy to the prod environment
+    concurrency:
+      group: deploy-prod
     needs:
     - build
     - helm_lint
