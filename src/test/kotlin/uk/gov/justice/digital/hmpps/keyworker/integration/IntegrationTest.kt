@@ -347,8 +347,6 @@ abstract class IntegrationTest {
     )
   }
 
-  protected fun String.readFile(): String = this@IntegrationTest::class.java.getResource(this)!!.readText()
-
   protected fun prisonConfig(
     code: String,
     enabled: Boolean = false,
@@ -409,26 +407,44 @@ abstract class IntegrationTest {
     staffId: Long = newId(),
     capacity: Int = 6,
     reactivateOn: LocalDate? = null,
-  ) = StaffConfiguration(
-    withReferenceData(STAFF_STATUS, status.name),
-    capacity,
-    reactivateOn,
-    staffId,
-  )
+  ) = {
+    StaffConfiguration(
+      withReferenceData(STAFF_STATUS, status.name),
+      capacity,
+      reactivateOn,
+      staffId,
+    )
+  }
 
-  protected fun givenStaffConfig(staffConfig: StaffConfiguration): StaffConfiguration = staffConfigRepository.save(staffConfig)
+  protected fun givenStaffConfig(staffConfig: () -> StaffConfiguration): StaffConfiguration =
+    transactionTemplate.execute {
+      staffConfigRepository.save(staffConfig())
+    }!!
 
   protected fun staffRole(
     prisonCode: String,
     staffId: Long,
-    position: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-    scheduleType: ReferenceData = withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
+    position: String = "PRO",
+    scheduleType: String = "FT",
     hoursPerWeek: BigDecimal = BigDecimal(37.5),
     fromDate: LocalDate = LocalDate.now().minusDays(7),
     toDate: LocalDate? = null,
-  ) = StaffRole(position, scheduleType, hoursPerWeek, fromDate, toDate, prisonCode, staffId)
+  ) = {
+    StaffRole(
+      withReferenceData(ReferenceDataDomain.STAFF_POSITION, position),
+      withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, scheduleType),
+      hoursPerWeek,
+      fromDate,
+      toDate,
+      prisonCode,
+      staffId,
+    )
+  }
 
-  protected fun givenStaffRole(staffRole: StaffRole): StaffRole = staffRoleRepository.save(staffRole)
+  protected fun givenStaffRole(staffRole: () -> StaffRole): StaffRole =
+    transactionTemplate.execute {
+      staffRoleRepository.save(staffRole())
+    }!!
 
   protected fun staffAllocation(
     personIdentifier: String,
@@ -441,20 +457,23 @@ abstract class IntegrationTest {
     deallocatedAt: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
     deallocatedBy: String? = null,
-  ) = Allocation(
-    personIdentifier,
-    prisonCode,
-    staffId,
-    allocatedAt,
-    active,
-    allocationReason.asReferenceData(),
-    allocatedBy,
-    deallocatedAt,
-    deallocationReason?.asReferenceData(),
-    deallocatedBy,
-  )
+  ) = {
+    Allocation(
+      personIdentifier,
+      prisonCode,
+      staffId,
+      allocatedAt,
+      active,
+      allocationReason.asReferenceData(),
+      allocatedBy,
+      deallocatedAt,
+      deallocationReason?.asReferenceData(),
+      deallocatedBy,
+    )
+  }
 
-  protected fun givenAllocation(allocation: Allocation): Allocation = allocationRepository.save(allocation)
+  protected fun givenAllocation(allocation: () -> Allocation): Allocation =
+    transactionTemplate.execute { allocationRepository.save(allocation()) }!!
 
   protected fun givenRecordedEvent(re: () -> RecordedEvent): RecordedEvent =
     transactionTemplate.execute {

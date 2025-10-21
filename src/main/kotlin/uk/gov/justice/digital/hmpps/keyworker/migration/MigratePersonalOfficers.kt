@@ -91,17 +91,20 @@ class MigratePersonalOfficers(
 
           val staffAllocations = allocations.filter { it.isActive }.groupBy { it.staffId }
           val staffRoles =
-            staffAllocations.keys.map {
-              StaffRole(
-                rd[ReferenceDataDomain.STAFF_POSITION to "PRO"]!!,
-                rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE to "FT"]!!,
-                BigDecimal(35),
-                requireNotNull(staffAllocations[it]).minOf { a -> a.allocatedAt }.toLocalDate(),
-                null,
-                prisonCode,
-                it,
-              )
-            }
+            staffRoleRepository
+              .saveAll(
+                staffAllocations.keys.map {
+                  StaffRole(
+                    rd[ReferenceDataDomain.STAFF_POSITION to "PRO"]!!,
+                    rd[ReferenceDataDomain.STAFF_SCHEDULE_TYPE to "FT"]!!,
+                    BigDecimal(35),
+                    requireNotNull(staffAllocations[it]).minOf { a -> a.allocatedAt }.toLocalDate(),
+                    null,
+                    prisonCode,
+                    it,
+                  )
+                },
+              ).toList()
 
           allocations
             .chunked(1000)
@@ -111,7 +114,7 @@ class MigratePersonalOfficers(
               allocationRepository.clear()
               it
             }.flatten()
-            .toList() to staffRoleRepository.saveAll(staffRoles)
+            .toList() to staffRoles
         }!!
 
       telemetryClient.trackEvent(

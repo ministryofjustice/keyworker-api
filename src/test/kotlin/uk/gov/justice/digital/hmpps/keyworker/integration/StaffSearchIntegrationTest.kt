@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisStaffMembers
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
@@ -237,15 +236,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
         ),
       )
     } else {
-      givenStaffRole(
-        staffRole(
-          prisonCode,
-          staffId,
-          withReferenceData(ReferenceDataDomain.STAFF_POSITION, "PRO"),
-          withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "FT"),
-          BigDecimal(34.5),
-        ),
-      )
+      givenStaffRole(staffRole(prisonCode, staffId, hoursPerWeek = BigDecimal(34.5)))
     }
 
     val allocations =

@@ -114,7 +114,7 @@ class AllocationManager(
       return emptyMap()
     }
     val prisoners = prisonerSearch.findPrisonerDetails(personIdentifiers).associateBy { it.prisonerNumber }
-    require(prisoners.values.all { it.prisonId == prisonCode }) {
+    require(prisoners.values.all { it.lastPrisonId == prisonCode }) {
       "A provided person identifier is not currently at the provided prison"
     }
     return prisoners

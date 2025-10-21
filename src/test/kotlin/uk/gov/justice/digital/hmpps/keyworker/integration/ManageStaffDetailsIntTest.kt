@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
-import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
@@ -210,7 +209,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
           staffRole(
             prisonCode,
             staffId,
-            scheduleType = withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "PT"),
+            scheduleType = "PT",
             hoursPerWeek = BigDecimal(20),
           ),
         )
@@ -249,7 +248,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       staffRole(
         prisonCode,
         staffId,
-        scheduleType = withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "PT"),
+        scheduleType = "PT",
         hoursPerWeek = BigDecimal(20),
         toDate = now().minusDays(1),
       ),
@@ -353,14 +352,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
         )
         roleRequest
       } else {
-        givenStaffRole(
-          staffRole(
-            prisonCode,
-            staffId,
-            scheduleType = withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, "PT"),
-            hoursPerWeek = BigDecimal(20),
-          ),
-        )
+        givenStaffRole(staffRole(prisonCode, staffId, scheduleType = "PT", hoursPerWeek = BigDecimal(20)))
         null
       }
     val allocations =
