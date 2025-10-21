@@ -78,11 +78,7 @@ data class PrisonsByIdsRequest(
 data class Prison(
   val prisonId: String,
   val prisonName: String,
-) {
-  companion object {
-    const val CODE_PATTERN = "([A-Z]{3}|CADM_I|ZZGHI|undefined)"
-  }
-}
+)
 
 private fun PrisonConfiguration.response(): PrisonConfigResponse =
   PrisonConfigResponse(
