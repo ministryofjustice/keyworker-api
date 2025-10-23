@@ -40,6 +40,15 @@
             }
           ],
           "percentage": 0
+        },
+        {
+          "telemetryType": "dependency",
+          "attributes": [
+            {
+              "key": "db.operation"
+            }
+          ],
+          "percentage": 0
         }
       ]
     }
