@@ -395,14 +395,14 @@
 <text text-anchor="start" x="317" y="-658.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">policy_code</text>
 <polygon fill="none" stroke="#000000" points="288,-632.7 288,-651.7 474,-651.7 474,-632.7 288,-632.7"/>
 <text text-anchor="start" x="291" y="-638.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="288,-613.7 288,-632.7 379,-632.7 379,-613.7 288,-613.7"/>
-<polygon fill="none" stroke="#000000" points="288,-613.7 288,-632.7 379,-632.7 379,-613.7 288,-613.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="288,-613.7 288,-632.7 363,-632.7 363,-613.7 288,-613.7"/>
+<polygon fill="none" stroke="#000000" points="288,-613.7 288,-632.7 363,-632.7 363,-613.7 288,-613.7"/>
 <text text-anchor="start" x="291" y="-619.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 2</text>
-<polygon fill="#ffffff" stroke="transparent" points="379,-613.7 379,-632.7 426,-632.7 426,-613.7 379,-613.7"/>
-<polygon fill="none" stroke="#000000" points="379,-613.7 379,-632.7 426,-632.7 426,-613.7 379,-613.7"/>
-<text text-anchor="start" x="416.8862" y="-619.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
-<polygon fill="#ffffff" stroke="transparent" points="426,-613.7 426,-632.7 474,-632.7 474,-613.7 426,-613.7"/>
-<polygon fill="none" stroke="#000000" points="426,-613.7 426,-632.7 474,-632.7 474,-613.7 426,-613.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="363,-613.7 363,-632.7 434,-632.7 434,-613.7 363,-613.7"/>
+<polygon fill="none" stroke="#000000" points="363,-613.7 363,-632.7 434,-632.7 434,-613.7 363,-613.7"/>
+<text text-anchor="start" x="392.4956" y="-619.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">84 rows</text>
+<polygon fill="#ffffff" stroke="transparent" points="434,-613.7 434,-632.7 474,-632.7 474,-613.7 434,-613.7"/>
+<polygon fill="none" stroke="#000000" points="434,-613.7 434,-632.7 474,-632.7 474,-613.7 434,-613.7"/>
 <text text-anchor="start" x="464.8862" y="-619.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>
