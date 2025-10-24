@@ -34,7 +34,7 @@ class KeyworkerContextConfiguration(
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/swagger-resources/**",
-        "/favicon.ico"
+        "/favicon.ico",
       )
   }
 }
