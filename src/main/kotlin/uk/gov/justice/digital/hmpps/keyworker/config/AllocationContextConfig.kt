@@ -25,8 +25,8 @@ class KeyworkerContextConfiguration(
       .addPathPatterns("/**")
       .excludePathPatterns(
         "/staff/returning-from-leave",
-        "/queue-admin/retry-all-dlqs",
         "/prison-statistics/calculate",
+        "/queue-admin/retry-all-dlqs",
         "/health/**",
         "/info",
         "/ping",
@@ -34,6 +34,7 @@ class KeyworkerContextConfiguration(
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/swagger-resources/**",
+        "/favicon.ico"
       )
   }
 }
