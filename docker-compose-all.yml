@@ -96,7 +96,7 @@ services:
       - SPRING_PROFILES_ACTIVE=noqueue
 
   localstack:
-    image: localstack/localstack:2.3
+    image: localstack/localstack:4.10
     networks:
       - hmpps
     container_name: localstack-kw

@@ -50,7 +50,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=admin_password
 
   localstack:
-    image: localstack/localstack:3
+    image: localstack/localstack:4
     networks:
       - hmpps
     container_name: localstack-kw
