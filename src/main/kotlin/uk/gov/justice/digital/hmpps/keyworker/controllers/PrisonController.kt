@@ -23,14 +23,14 @@ import java.time.LocalDate
 
 @RestController
 @RequestMapping("/prisons/{prisonCode}")
+@Tag(name = PRISON)
+@PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
 class PrisonController(
   private val prisonService: PrisonService,
   private val statsService: PrisonStatsService,
 ) {
   @PolicyHeader
   @CaseloadIdHeader
-  @Tag(name = PRISON)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping(value = ["/configurations"])
   fun setPrisonConfiguration(
     @PathVariable("prisonCode") prisonCode: String,
@@ -38,23 +38,17 @@ class PrisonController(
   ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
 
   @PolicyHeader
-  @Tag(name = PRISON)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping(value = ["/configurations"])
   fun getPrisonConfiguration(
     @PathVariable("prisonCode") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
-  @Tag(name = PRISON)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
     @PathVariable("prisonCode") prisonCode: String,
   ) = prisonService.getPrisonPolicies(prisonCode)
 
-  @Tag(name = PRISON)
   @CaseloadIdHeader
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping(value = ["/policies"])
   fun setPrisonPolicies(
     @PathVariable("prisonCode") prisonCode: String,
@@ -62,8 +56,6 @@ class PrisonController(
   ) = prisonService.setPrisonPolicies(prisonCode, policies)
 
   @PolicyHeader
-  @Tag(name = PRISON)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/statistics")
   fun getPrisonStatistics(
     @PathVariable prisonCode: String,
