@@ -475,19 +475,24 @@
                                 </thead>
                                 <tbody>
                                     <tr>
+                                        <td><a href='tables/prison_configuration_audit.html'>prison_configuration_audit</a></td>
+                                        <td>prison_configuration_audit_has_prisoners_with_high_co_not_null1</td>
+                                        <td>has_prisoners_with_high_complexity_needs_modified IS NOT NULL</td>
+                                    </tr>
+                                    <tr>
                                         <td><a href='tables/allocation.html'>allocation</a></td>
                                         <td>ch_allocation_is_active</td>
-                                        <td>((NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL)))))</td>
+                                        <td>(NOT ((is_active &#61; true) AND ((deallocated_at IS NOT NULL) OR (deallocated_by IS NOT NULL) OR (deallocation_reason_id IS NOT NULL))))</td>
                                     </tr>
                                     <tr>
                                         <td><a href='tables/allocation.html'>allocation</a></td>
                                         <td>ch_allocation_is_not_active</td>
-                                        <td>((NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL)))))</td>
+                                        <td>(NOT ((is_active &#61; false) AND ((deallocated_at IS NULL) OR (deallocated_by IS NULL) OR (deallocation_reason_id IS NULL))))</td>
                                     </tr>
                                     <tr>
                                         <td><a href='tables/prison_configuration.html'>prison_configuration</a></td>
                                         <td>prison_config_allocation_order_valid</td>
-                                        <td>(((allocation_order)::text &#61; ANY ((ARRAY[&#39;BY_ALLOCATIONS&#39;::character varying, &#39;BY_NAME&#39;::character varying])::text[])))</td>
+                                        <td>((allocation_order)::text &#61; ANY ((ARRAY[&#39;BY_ALLOCATIONS&#39;::character varying, &#39;BY_NAME&#39;::character varying])::text[]))</td>
                                     </tr>
                                 </tbody>
                             </table>
