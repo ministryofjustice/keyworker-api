@@ -27,7 +27,7 @@ dependencies {
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.11.0")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
-  implementation("org.openapitools:jackson-databind-nullable:0.2.8")
+  implementation("org.openapitools:jackson-databind-nullable:0.2.7")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.1")
 
   implementation("org.flywaydb:flyway-core")
@@ -46,6 +46,10 @@ dependencies {
 dependencyCheck {
   suppressionFiles.addAll(listOf("suppressions.xml", ".dependency-check-ignore.xml"))
   nvd.datafeedUrl = "file:///opt/vulnz/cache"
+}
+
+kotlin {
+  jvmToolchain(21)
 }
 
 tasks {
