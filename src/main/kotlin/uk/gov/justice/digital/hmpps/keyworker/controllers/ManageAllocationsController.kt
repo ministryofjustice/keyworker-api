@@ -1,5 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -17,31 +23,86 @@ import uk.gov.justice.digital.hmpps.keyworker.model.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationManager
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationRecommender
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @RequestMapping("/prisons/{prisonCode}")
+@Tag(name = MANAGE_ALLOCATIONS)
+@PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
 class ManageAllocationsController(
   private val allocationManager: AllocationManager,
   private val recommend: AllocationRecommender,
 ) {
+  @Operation(
+    summary = "Update allocations for a given prison.",
+    description = "Update allocations for a given prison."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Allocations updated"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      )
+    ]
+  )
   @PolicyHeader
   @CaseloadIdHeader
-  @Tag(name = MANAGE_ALLOCATIONS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping("/prisoners/allocations")
   fun manageAllocations(
+    @Parameter(required = true, example = "MDI", description = "The prison's identifier.")
     @PathVariable prisonCode: String,
     @RequestBody psa: PersonStaffAllocations,
   ) {
     allocationManager.manage(prisonCode, psa)
   }
 
+  @Operation(
+    summary = "Retrieves a list of recommended allocations for a given prison.",
+    description = "Retrieves a list of recommended allocations for a given prison."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Recommended allocations returned"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      )
+    ]
+  )
   @PolicyHeader
-  @Tag(name = MANAGE_ALLOCATIONS)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/prisoners/allocation-recommendations")
   fun getAllocationRecommendations(
+    @Parameter(required = true, example = "MDI", description = "The prison's identifier.")
     @PathVariable prisonCode: String,
   ): RecommendedAllocations = recommend.allocations(prisonCode)
 }
