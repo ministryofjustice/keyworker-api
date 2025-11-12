@@ -1,5 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
@@ -22,48 +28,160 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSearchResponse
 import uk.gov.justice.digital.hmpps.keyworker.services.PersonSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventsSearch
 import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffSearch
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @RequestMapping(value = ["/search"])
+@PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
 class SearchController(
   private val staffSearch: StaffSearch,
   private val personSearch: PersonSearch,
   private val recordedEventSearch: RecordedEventsSearch,
 ) {
+  @Operation(
+    summary = "Retrieve staff details from within a given prison.",
+    description = "Retrieve details for allocatable staff members from within a given prison that match a query."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of allocatable staff members returned"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      )
+    ]
+  )
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PostMapping("/prisons/{prisonCode}/staff-allocations")
   fun searchAllocatableStaff(
+    @Parameter(required = true, example = "MDI", description = "The prison's identifier.")
     @PathVariable prisonCode: String,
     @RequestBody request: AllocatableSearchRequest,
+    @Parameter(required = false, description = "Whether to include the staff member's stats in the response.")
     @RequestParam(required = false, defaultValue = "false") includeStats: Boolean,
   ): AllocatableSearchResponse = staffSearch.searchForAllocatableStaff(prisonCode, request, includeStats)
 
+  @Operation(
+    summary = "Retrieve staff details from within a given prison.",
+    description = "Retrieve details for all staff members from within a given prison that match a query."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of staff members returned"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      )
+    ]
+  )
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PostMapping("/prisons/{prisonCode}/staff")
   fun searchStaff(
+    @Parameter(required = true, example = "MDI", description = "The prison's identifier.")
     @PathVariable prisonCode: String,
     @RequestBody request: StaffSearchRequest,
   ): StaffSearchResponse = staffSearch.searchForStaff(prisonCode, request)
 
+  @Operation(
+    summary = "Retrieve a list of recorded events for a staff member.",
+    description = "Retrieve a list of recorded events for a staff member."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of recorded events returned"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      )
+    ]
+  )
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PostMapping("/prisons/{prisonCode}/staff/{staffId}/recorded-events")
   fun searchStaffRecordedEvents(
+    @Parameter(required = true, example = "MDI", description = "The prison's identifier.")
     @PathVariable prisonCode: String,
+    @Parameter(required = true, example = "A12345", description = "The staff member's identifier.")
     @PathVariable staffId: Long,
     @RequestBody request: RecordedEventRequest,
   ): RecordedEventResponse = recordedEventSearch.searchForAuthor(prisonCode, staffId, request)
 
+  @Operation(
+     summary = "Retrieve a list of people for a prison.",
+     description = "Retrieve a list of people for a prison that match a query."
+   )
+   @ApiResponses(
+     value = [
+       ApiResponse(
+         responseCode = "200",
+         description = "List of people returned"
+       ),
+       ApiResponse(
+         responseCode = "400",
+         description = "Bad request.",
+         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+       ),
+       ApiResponse(
+         responseCode = "401",
+         description = "Unauthorised, requires a valid Oauth2 token",
+         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+       ),
+       ApiResponse(
+         responseCode = "403",
+         description = "Forbidden, requires an appropriate role",
+         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+       )
+     ]
+   )
   @PolicyHeader
   @Tag(name = MANAGE_ALLOCATIONS)
-  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PostMapping("/prisons/{prisonCode}/prisoners")
   fun searchPeople(
+    @Parameter(required = true, example = "MDI", description = "The prison's identifier.")
     @PathVariable prisonCode: String,
     @RequestBody request: PersonSearchRequest,
   ): PersonSearchResponse = personSearch.findPeople(prisonCode, request)
