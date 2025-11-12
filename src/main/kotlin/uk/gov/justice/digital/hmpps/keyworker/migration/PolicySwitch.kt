@@ -27,14 +27,7 @@ class PolicySwitch(
     AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER).set()
     transactionTemplate.executeWithoutResult {
       switchAllocationsAndAudit(prisonCode)
-      entityManager
-        .createNativeQuery(
-          """
-          update prison_statistic set policy_code = 'PERSONAL_OFFICER'
-          where prison_code = :prisonCode and policy_code = 'KEY_WORKER'
-          """.trimIndent(),
-        ).setParameter("prisonCode", prisonCode)
-        .executeUpdate()
+      switchStats(prisonCode)
       createStaffRoles(prisonCode)
     }
   }
@@ -53,6 +46,27 @@ class PolicySwitch(
         """
         update allocation_audit set policy_code = 'PERSONAL_OFFICER'
         where prison_code = :prisonCode and policy_code = 'KEY_WORKER'
+        """.trimIndent(),
+      ).setParameter("prisonCode", prisonCode)
+      .executeUpdate()
+  }
+
+  private fun switchStats(prisonCode: String) {
+    entityManager
+      .createNativeQuery(
+        """
+        update prison_statistic set policy_code = 'PERSONAL_OFFICER'
+        where prison_code = :prisonCode and policy_code = 'KEY_WORKER'
+        """.trimIndent(),
+      ).setParameter("prisonCode", prisonCode)
+      .executeUpdate()
+    entityManager
+      .createNativeQuery(
+        """
+        update prisoner_statistic set policy_code = prison_statistic.policy_code
+        from prison_statistic
+        where prison_statistic.prison_code = :prisonCode
+        and prisoner_statistic.prison_statistic_id = prison_statistic.id
         """.trimIndent(),
       ).setParameter("prisonCode", prisonCode)
       .executeUpdate()
