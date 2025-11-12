@@ -1,6 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.controllers
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -20,6 +25,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.services.staff.GetStaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.services.staff.StaffConfigManager
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
 
 @RestController
@@ -29,15 +35,53 @@ class ManageStaffController(
   private val staffDetails: GetStaffDetails,
   private val staffConfigManager: StaffConfigManager,
 ) {
+  @Operation(
+    summary = "Retrieve staff details for a specific staff member.",
+    description = "Retrieve staff details and statistics for a specific staff member."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Staff details and statistics returned"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The staff member associated with this identifier was not found.",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ]
+  )
   @PolicyHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/staff/{staffId}")
   fun getStaffDetails(
+    @Parameter(description = "The prison's identifier.", example = "MDI", required = true)
     @PathVariable prisonCode: String,
+    @Parameter(description = "The staff member's identifier.", example = "123456", required = true)
     @PathVariable staffId: Long,
+    @Parameter(description = "Start date of statistics period in format YYYY-MM-DD.")
     @RequestParam(required = false) from: LocalDate?,
+    @Parameter(description = "End date of statistics period in format YYYY-MM-DD.")
     @RequestParam(required = false) to: LocalDate?,
+    @Parameter(description = "Start date of statistics period to compare within format YYYY-MM-DD.")
     @RequestParam(required = false) comparisonFrom: LocalDate?,
+    @Parameter(description = "End date of statistics period to compare within format YYYY-MM-DD.")
     @RequestParam(required = false) comparisonTo: LocalDate?,
   ): StaffDetails = staffDetails.getDetailsFor(prisonCode, staffId, from, to, comparisonFrom, comparisonTo)
 
@@ -48,13 +92,47 @@ class ManageStaffController(
     @PathVariable staffId: Long,
   ): JobClassificationResponse = staffDetails.getJobClassificationsFor(prisonCode, staffId)
 
+  @Operation(
+    summary = "Update staff details for a specific staff member.",
+    description = "Update staff details for a specific staff member."
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Staff details updated"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Bad request.",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorised, requires a valid Oauth2 token",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Forbidden, requires an appropriate role",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "The staff member associated with this identifier was not found.",
+        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ]
+  )
   @PolicyHeader
   @CaseloadIdHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping("/staff/{staffId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun modifyStaffDetails(
+    @Parameter(description = "The prison's identifier.", example = "MDI", required = true)
     @PathVariable prisonCode: String,
+    @Parameter(description = "The staff member's identifier.", example = "123456", required = true)
     @PathVariable staffId: Long,
     @RequestBody request: StaffDetailsRequest,
   ) {
