@@ -63,9 +63,9 @@ class PolicySwitch(
     entityManager
       .createNativeQuery(
         """
-        update prisoner_statistic set policy_code = 'PERSONAL_OFFICER'
+        update prisoner_statistic set policy_code = prison_statistic.policy_code
         from prison_statistic
-        where prison_statistic.prison_code = :prisonCode and prisoner_statistic.policy_code = 'KEY_WORKER'
+        where prison_statistic.prison_code = :prisonCode
         and prisoner_statistic.prison_statistic_id = prison_statistic.id
         """.trimIndent(),
       ).setParameter("prisonCode", prisonCode)
