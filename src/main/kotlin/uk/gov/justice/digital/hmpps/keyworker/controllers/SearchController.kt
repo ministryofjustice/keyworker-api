@@ -38,15 +38,15 @@ class SearchController(
 ) {
   @Operation(
     summary = "Search staff details from within a given prison.",
-    description = "Search prison staff including filtering those that have and do not have the policy staff role."
+    description = "Search prison staff including filtering those that have and do not have the policy staff role.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "List of allocatable staff members returned"
-      )
-    ]
+        description = "List of allocatable staff members returned",
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -62,15 +62,15 @@ class SearchController(
 
   @Operation(
     summary = "Retrieve staff details from within a given prison.",
-    description = "Retrieve details for all staff members from within a given prison that match a query."
+    description = "Retrieve details for all staff members from within a given prison that match a query.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "List of staff members returned"
-      )
-    ]
+        description = "List of staff members returned",
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -84,15 +84,15 @@ class SearchController(
 
   @Operation(
     summary = "Retrieve a list of recorded events for a staff member.",
-    description = "Retrieve a list of recorded events for a staff member."
+    description = "Retrieve a list of recorded events for a staff member.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "List of recorded events returned"
-      )
-    ]
+        description = "List of recorded events returned",
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -107,17 +107,17 @@ class SearchController(
   ): RecordedEventResponse = recordedEventSearch.searchForAuthor(prisonCode, staffId, request)
 
   @Operation(
-     summary = "Retrieve a list of people for a prison.",
-     description = "Retrieve a list of people for a prison that match a query."
-   )
-   @ApiResponses(
-     value = [
-       ApiResponse(
-         responseCode = "200",
-         description = "List of people returned"
-       )
-     ]
-   )
+    summary = "Retrieve a list of people for a prison.",
+    description = "Retrieve a list of people for a prison that match a query.",
+  )
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "200",
+        description = "List of people returned",
+      ),
+    ],
+  )
   @StandardAoiErrorResponse
   @PolicyHeader
   @Tag(name = MANAGE_ALLOCATIONS)

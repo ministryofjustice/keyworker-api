@@ -38,20 +38,20 @@ class ManageStaffController(
 ) {
   @Operation(
     summary = "Retrieve staff details for a specific staff member.",
-    description = "Get details and stats for the specified member of prison staff along with their policy staff role and status."
+    description = "Get details and stats for the specified member of prison staff along with their policy staff role and status.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Staff details and statistics returned"
+        description = "Staff details and statistics returned",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The staff member associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -81,20 +81,20 @@ class ManageStaffController(
 
   @Operation(
     summary = "Update staff details for a specific staff member.",
-    description = "Update staff details for a specific staff member."
+    description = "Update staff details for a specific staff member.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Staff details updated"
+        description = "Staff details updated",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The staff member associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader

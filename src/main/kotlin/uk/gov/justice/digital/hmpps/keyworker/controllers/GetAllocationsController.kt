@@ -25,19 +25,20 @@ class GetAllocationsController(
   private val allocations: GetAllocations,
 ) {
   @Operation(
-    summary = "Retrieves current allocations for a given prisoner")
+    summary = "Retrieves current allocations for a given prisoner",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Allocation history returned."
+        description = "Allocation history returned.",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The allocation history associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader

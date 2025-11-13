@@ -44,14 +44,14 @@ class PrisonController(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison configuration updated"
+        description = "Prison configuration updated",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The prison configuration associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -64,20 +64,20 @@ class PrisonController(
   ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
 
   @Operation(
-    summary = "Retrieve prison configuration for the supplied policy."
+    summary = "Retrieve prison configuration for the supplied policy.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison configuration returned"
+        description = "Prison configuration returned",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The prison configuration associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -89,20 +89,20 @@ class PrisonController(
 
   @Operation(
     summary = "Retrieve policies for a specific prison.",
-    description = "Retrieve policies for a specific prison."
+    description = "Retrieve policies for a specific prison.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison policies returned"
+        description = "Prison policies returned",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The prison policies associated with this identifier were not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @GetMapping(value = ["/policies"])
@@ -113,20 +113,20 @@ class PrisonController(
 
   @Operation(
     summary = "Update policies for a specific prison.",
-    description = "Update policies for a specific prison."
+    description = "Update policies for a specific prison.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison policies updated"
+        description = "Prison policies updated",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The prison policies associated with this identifier were not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @CaseloadIdHeader
@@ -138,15 +138,15 @@ class PrisonController(
   ) = prisonService.setPrisonPolicies(prisonCode, policies)
 
   @Operation(
-    summary = "Retrieve prison statistics for the supplied policy."
+    summary = "Retrieve prison statistics for the supplied policy.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Statistics returned"
-      )
-    ]
+        description = "Statistics returned",
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader

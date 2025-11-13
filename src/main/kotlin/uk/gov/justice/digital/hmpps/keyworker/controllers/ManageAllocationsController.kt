@@ -36,15 +36,15 @@ class ManageAllocationsController(
 ) {
   @Operation(
     summary = "Update allocations for a given prison.",
-    description = "Update allocations for a given prison."
+    description = "Update allocations for a given prison.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Allocations updated"
-      )
-    ]
+        description = "Allocations updated",
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
@@ -61,18 +61,18 @@ class ManageAllocationsController(
 
   @Operation(
     summary = "Retrieves a list of recommended allocations for a given prison.",
-    description = "Retrieves a list of recommended allocations for a given prison."
+    description = "Retrieves a list of recommended allocations for a given prison.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Recommended allocations returned"
+        description = "Recommended allocations returned",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
@@ -83,8 +83,8 @@ class ManageAllocationsController(
         responseCode = "403",
         description = "Forbidden, requires an appropriate role",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      )
-    ]
+      ),
+    ],
   )
   @PolicyHeader
   @GetMapping("/prisoners/allocation-recommendations")

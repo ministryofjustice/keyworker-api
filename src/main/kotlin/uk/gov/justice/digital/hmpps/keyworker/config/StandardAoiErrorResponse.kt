@@ -13,7 +13,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
     ApiResponse(
       responseCode = "400",
       description = "Bad request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
     ),
     ApiResponse(
       responseCode = "401",
@@ -24,7 +24,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
       responseCode = "403",
       description = "Forbidden, requires an appropriate role",
       content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-    )
-  ]
+    ),
+  ],
 )
-internal annotation class StandardAoiErrorResponse()
+internal annotation class StandardAoiErrorResponse

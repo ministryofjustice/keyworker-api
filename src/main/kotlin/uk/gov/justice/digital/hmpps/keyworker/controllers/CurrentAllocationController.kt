@@ -24,19 +24,20 @@ class CurrentAllocationController(
 ) {
   @Operation(
     summary = "Retrieves current allocations for a given prisoner",
-    description = "Retrieves current allocations for a given prisoner")
+    description = "Retrieves current allocations for a given prisoner",
+  )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Current allocation returned."
+        description = "Current allocation returned.",
       ),
       ApiResponse(
         responseCode = "404",
         description = "The allocation data associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      )
-    ]
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @Tag(name = MANAGE_ALLOCATIONS)

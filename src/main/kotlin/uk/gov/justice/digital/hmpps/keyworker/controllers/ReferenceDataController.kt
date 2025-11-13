@@ -26,15 +26,15 @@ class ReferenceDataController(
 ) {
   @Operation(
     summary = "Retrieve reference data for a specific domain.",
-    description = "Get ordered available options for the supplied reference data domain"
+    description = "Get ordered available options for the supplied reference data domain",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Reference returned"
-      )
-    ]
+        description = "Reference returned",
+      ),
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
