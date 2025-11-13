@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationManager
@@ -42,24 +43,10 @@ class ManageAllocationsController(
       ApiResponse(
         responseCode = "200",
         description = "Allocations updated"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       )
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @CaseloadIdHeader
   @ResponseStatus(HttpStatus.NO_CONTENT)

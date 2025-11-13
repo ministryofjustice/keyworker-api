@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -14,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.REFERENCE_DATA
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.services.RetrieveReferenceData
-import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = REFERENCE_DATA)
 @RestController
@@ -27,31 +26,17 @@ class ReferenceDataController(
 ) {
   @Operation(
     summary = "Retrieve reference data for a specific domain.",
-    description = "Retrieve reference data for a specific domain."
+    description = "Get ordered available options for the supplied reference data domain"
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
         description = "Reference returned"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       )
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping

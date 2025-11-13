@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetailsRequest
@@ -37,7 +38,7 @@ class ManageStaffController(
 ) {
   @Operation(
     summary = "Retrieve staff details for a specific staff member.",
-    description = "Retrieve staff details and statistics for a specific staff member."
+    description = "Get details and stats for the specified member of prison staff along with their policy staff role and status."
   )
   @ApiResponses(
     value = [
@@ -46,27 +47,13 @@ class ManageStaffController(
         description = "Staff details and statistics returned"
       ),
       ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "404",
         description = "The staff member associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/staff/{staffId}")
@@ -103,27 +90,13 @@ class ManageStaffController(
         description = "Staff details updated"
       ),
       ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "404",
         description = "The staff member associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @CaseloadIdHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
@@ -37,37 +38,22 @@ class PrisonController(
   private val statsService: PrisonStatsService,
 ) {
   @Operation(
-    summary = "Update key worker configuration for a specific prison.",
-    description = "Update key worker configuration for a specific prison."
+    summary = "Update prison configuration for the supplied policy.",
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison key worker configuration updated"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+        description = "Prison configuration updated"
       ),
       ApiResponse(
         responseCode = "404",
-        description = "The key worker configuration associated with this identifier was not found.",
+        description = "The prison configuration associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @CaseloadIdHeader
   @PutMapping(value = ["/configurations"])
@@ -78,37 +64,22 @@ class PrisonController(
   ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
 
   @Operation(
-    summary = "Retrieve key worker configuration for a specific prison.",
-    description = "Retrieve key worker configuration for a specific prison."
+    summary = "Retrieve prison configuration for the supplied policy."
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
-        description = "Key worker configuration returned"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
+        description = "Prison configuration returned"
       ),
       ApiResponse(
         responseCode = "404",
-        description = "The key worker configuration associated with this identifier was not found.",
+        description = "The prison configuration associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @GetMapping(value = ["/configurations"])
   fun getPrisonConfiguration(
@@ -127,27 +98,13 @@ class PrisonController(
         description = "Prison policies returned"
       ),
       ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "404",
         description = "The prison policies associated with this identifier were not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
     ]
   )
+  @StandardAoiErrorResponse
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
     @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
@@ -165,27 +122,13 @@ class PrisonController(
         description = "Prison policies updated"
       ),
       ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "404",
         description = "The prison policies associated with this identifier were not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
       ),
     ]
   )
+  @StandardAoiErrorResponse
   @CaseloadIdHeader
   @PutMapping(value = ["/policies"])
   fun setPrisonPolicies(
@@ -195,37 +138,17 @@ class PrisonController(
   ) = prisonService.setPrisonPolicies(prisonCode, policies)
 
   @Operation(
-    summary = "Retrieve key worker statistics for a specific prison.",
-    description = "Retrieve key worker statistics for a specific prison."
+    summary = "Retrieve prison statistics for the supplied policy."
   )
   @ApiResponses(
     value = [
       ApiResponse(
         responseCode = "200",
         description = "Statistics returned"
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "404",
-        description = "The statistics associated with this identifier were not found.",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
+      )
     ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @GetMapping("/statistics")
   fun getPrisonStatistics(

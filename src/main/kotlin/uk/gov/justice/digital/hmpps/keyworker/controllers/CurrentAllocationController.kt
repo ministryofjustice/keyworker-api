@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.services.GetCurrentAllocations
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -31,27 +32,13 @@ class CurrentAllocationController(
         description = "Current allocation returned."
       ),
       ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
         responseCode = "404",
         description = "The allocation data associated with this identifier was not found.",
         content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
+      )
     ]
   )
+  @StandardAoiErrorResponse
   @Tag(name = MANAGE_ALLOCATIONS)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_RO}')")
   @GetMapping("/prisoners/{personIdentifier}/allocations/current")
