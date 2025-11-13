@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.keyworker.controllers
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -24,7 +22,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationManager
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationRecommender
-import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestController
 @RequestMapping("/prisons/{prisonCode}")
@@ -69,23 +66,9 @@ class ManageAllocationsController(
         responseCode = "200",
         description = "Recommended allocations returned",
       ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Bad request.",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorised, requires a valid Oauth2 token",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Forbidden, requires an appropriate role",
-        content = [Content(schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
+    ]
   )
+  @StandardAoiErrorResponse
   @PolicyHeader
   @GetMapping("/prisoners/allocation-recommendations")
   fun getAllocationRecommendations(
