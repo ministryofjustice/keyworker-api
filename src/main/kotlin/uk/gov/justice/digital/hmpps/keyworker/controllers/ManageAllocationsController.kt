@@ -66,7 +66,7 @@ class ManageAllocationsController(
         responseCode = "200",
         description = "Recommended allocations returned",
       ),
-    ]
+    ],
   )
   @StandardAoiErrorResponse
   @PolicyHeader
