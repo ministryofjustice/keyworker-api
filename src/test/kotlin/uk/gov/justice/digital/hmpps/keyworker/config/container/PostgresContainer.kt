@@ -18,7 +18,7 @@ object PostgresContainer {
 
     val logConsumer = Slf4jLogConsumer(log).withPrefix("postgresql")
 
-    return PostgreSQLContainer<Nothing>("postgres:17").apply {
+    return PostgreSQLContainer<Nothing>("postgres:18").apply {
       withEnv("HOSTNAME_EXTERNAL", "localhost")
       withDatabaseName("keyworker-api-db")
       withUsername("admin")
