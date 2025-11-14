@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><database name="keyworker-api-db" schema="public" type="PostgreSQL - 18.0 (Debian 18.0-1.pgdg13+3)">
+<?xml version="1.0" encoding="UTF-8"?><database name="keyworker-api-db" schema="public" type="PostgreSQL - 18.1 (Debian 18.1-1.pgdg13+2)">
    <sequences>
       <sequence increment="1" name="audit_revision_id_seq" startValue="1"/>
       <sequence increment="1" name="case_note_type_recorded_event_type_id_seq" startValue="1"/>
