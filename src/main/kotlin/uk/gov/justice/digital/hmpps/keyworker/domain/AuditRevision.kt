@@ -1,19 +1,17 @@
 package uk.gov.justice.digital.hmpps.keyworker.domain
 
-import io.hypersistence.utils.hibernate.type.array.EnumArrayType
-import io.hypersistence.utils.hibernate.type.array.ListArrayType
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import org.hibernate.annotations.Parameter
-import org.hibernate.annotations.Type
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.envers.EntityTrackingRevisionListener
 import org.hibernate.envers.RevisionEntity
 import org.hibernate.envers.RevisionNumber
 import org.hibernate.envers.RevisionTimestamp
 import org.hibernate.envers.RevisionType
+import org.hibernate.type.SqlTypes
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import java.time.LocalDateTime
 
@@ -33,7 +31,7 @@ class AuditRevision {
   var username: String? = null
   var caseloadId: String? = null
 
-  @Type(ListArrayType::class, parameters = [Parameter(name = EnumArrayType.SQL_ARRAY_TYPE, value = "varchar")])
+  @JdbcTypeCode(SqlTypes.ARRAY)
   var affectedEntities: MutableSet<String> = sortedSetOf(String.CASE_INSENSITIVE_ORDER)
 }
 
