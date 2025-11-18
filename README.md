@@ -1,4 +1,4 @@
-# keyworker-api
+# HMPPS Key Worker API
 
 [![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/keyworker-api/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/keyworker-api)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/ministryofjustice/keyworker-api/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/ministryofjustice/keyworker-api/tree/main)
@@ -18,17 +18,7 @@ A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Pri
 
 ### Running locally
 
-When running locally there will be no Auth server to supply the JWT public key, and you won't need localstack.
-
-Use spring profiles `local` to pick up the public key defined in src/main/resources.
-
-Use spring profile `noqueue` to ignore the localstack config.
-
-In order to get the `/info` endpoint to work you will need to add in
-```
--add-opens java.base/java.lang=ALL-UNNAMED
-```
-to your run configuration.  This is because the current version of ehcache needs to calculate the size of the objects in the cache, which the latest version of openjdk disallows.
+For instructions on how to run locally, follow [this guide](docs/RUNNING_LOCALLY.md).
 
 ### Health
 
