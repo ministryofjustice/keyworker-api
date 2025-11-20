@@ -10,17 +10,36 @@ Datebase Schema diagram: https://ministryofjustice.github.io/keyworker-api/schem
 
 A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Prison Services.  Backend services for https://github.com/ministryofjustice/manage-key-workers
 
-### To build:
+## To build:
 
 ```bash
 ./gradlew build
 ```
 
-### Running locally
+## Running locally
 
-For instructions on how to run locally, follow [this guide](docs/RUNNING_LOCALLY.md).
+This will run the service locally. It starts the database and localstack containers then start the service via a bash script.
 
-### Health
+### Environment variables
+
+The script expects the following environment variables to be set:
+
+```
+HMPPS_KEY_WORKER_CLIENT_ID
+HMPPS_KEY_WORKER_CLIENT_SECRET
+```
+
+These environment variables should be set to the dev secrets values. Remember to escape any `$` characters with `\$`.
+
+### Running the service locally
+
+Run the following commands from the root directory of the project:
+
+1. `docker compose up -d`
+2. You should check `run-local.sh` for any environment variables it's expecting - you should export or set these in the normal way for your environment (e.g. in your `.zprofile`). See the [README](../README.md) for a how to retrieve secrets example.
+3. ./run-local.sh
+
+## Health
 
 - `/health/ping`: will respond `{"status":"UP"}` to all requests.  This should be used by dependent systems to check connectivity to keyworker,
 rather than calling the `/health` endpoint.
@@ -28,7 +47,7 @@ rather than calling the `/health` endpoint.
 by keyworker health monitoring (e.g. pager duty) and not other systems who wish to find out the state of keyworker.
 - `/info`: provides information about the version of deployed application.
 
-### Pre Release Testing
+## Pre Release Testing
 
 Keyworker api is best tested by the DPS front end.  To manually smoke test / regression test keyworker api prior to release:
 
@@ -42,9 +61,9 @@ Keyworker api is best tested by the DPS front end.  To manually smoke test / reg
 1. [Manually allocate key workers](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/offender-search) and view key worker history for an offender
 1. Select [Prison statistics](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/key-worker-statistics) and ensure statistics are displayed
 
-### Deployment Notes
+## Deployment Notes
 
-#### Prerequisites
+### Prerequisites
 
 - Ensure you have helm v3 client installed.
 
