@@ -6,23 +6,49 @@
 [![Docker Repository on Quay](https://quay.io/repository/hmpps/keyworker-api/status)](https://quay.io/repository/hmpps/keyworker-api)
 [![API docs](https://img.shields.io/badge/API_docs-view-85EA2D.svg?logo=swagger)](https://keyworker-api-dev.prison.service.justice.gov.uk/swagger-ui/index.html)
 
-Datebase Schema diagram: https://ministryofjustice.github.io/keyworker-api/schema-spy-report/
+Database Schema diagram: https://ministryofjustice.github.io/keyworker-api/schema-spy-report/
 
-A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Prison Services.  Backend services for https://github.com/ministryofjustice/manage-key-workers
+A Spring Boot JSON API to manage the keyworkers and personal officers of prisoners for the Digital Prison Services. Backend services for https://github.com/ministryofjustice/hmpps-allocate-key-workers-ui
 
-## To build:
+## Development
+
+### Build
 
 ```bash
-./gradlew build
+./gradlew clean build
 ```
 
-## Running locally
+### Running Tests
+Ensure you have Docker Desktop installed and running. Utilise the `docker-compose.yml` file to set up the test database. Run the following commands:
 
-This will run the service locally. It starts the database and localstack containers then start the service via a bash script.
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Then run the tests:
+
+```bash
+./gradlew test
+```
+
+### Code Quality
+```bash
+# Run linting and check for code style errors
+./gradlew ktLintCheck
+
+# Attempt to fix any style errors automatically
+./gradlew ktlintFormat
+```
+While `ktlintFormat` will attempt to fix any style errors, it may not be able to do so in all cases. Some things to be mindful of include:
+1. Wildcard imports - these should be avoided in favour of explicit imports.
+2. Line length - this should be kept to 120 characters.
+
+## Running Locally
 
 ### Environment variables
 
-The script expects the following environment variables to be set:
+The `run-local.sh` script will run the service locally. The script expects the following environment variables to be set:
 
 ```
 HMPPS_KEY_WORKER_CLIENT_ID
@@ -34,10 +60,18 @@ These environment variables should be set to the dev secrets values. Remember to
 ### Running the service locally
 
 Run the following commands from the root directory of the project:
+```bash
+docker compose pull
+docker compose up -d
+```
 
-1. `docker compose up -d`
-2. You should check `run-local.sh` for any environment variables it's expecting - you should export or set these in the normal way for your environment (e.g. in your `.zprofile`). See the [README](../README.md) for a how to retrieve secrets example.
-3. ./run-local.sh
+You should check `run-local.sh` for any environment variables it's expecting - you should export or set these in the normal way for your environment (e.g. in your `.zprofile`). See the [README](../README.md) for a how to retrieve secrets example.
+
+Once the docker containers are running and secrets are in place, you can run the service locally by running:
+
+```bash
+./run-local.sh
+```
 
 ## Health
 
@@ -130,25 +164,3 @@ cloud-platform-environments/namespaces/live-1.cloud-platform.service.justice.gov
 Ensure the certificate is created and ready for use.
 
 The name of the kubernetes secret where the certificate is stored is used as a value to the helm chart - this is used to configured the ingress.
-
-
-### Running against localstack
-
-Localstack has been introduced for some integration tests and it is also possible to run the application against localstack.
-
-* In the root of the localstack project, run command
-```
-docker-compose -f docker-compose-localstack.yaml down && docker-compose -f docker-compose-localstack.yaml up
-```
-to clear down and then bring up localstack
-* Start the Spring Boot app with profile='localstack'
-* You can now use the aws CLI to send messages to the queue
-* The queue's health status should appear at the local healthcheck: http://localhost:8081/health
-* Note that you will also need local copies of Oauth server, Case notes API and Delius API running to do anything useful
-
-### Running the tests
-
-With localstack now up and running (see previous section), run
-```bash
-./gradlew test
-```
