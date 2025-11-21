@@ -1,4 +1,4 @@
-# keyworker-api
+# HMPPS Key Worker API
 
 [![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/keyworker-api/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/keyworker-api)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/ministryofjustice/keyworker-api/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/ministryofjustice/keyworker-api/tree/main)
@@ -6,31 +6,74 @@
 [![Docker Repository on Quay](https://quay.io/repository/hmpps/keyworker-api/status)](https://quay.io/repository/hmpps/keyworker-api)
 [![API docs](https://img.shields.io/badge/API_docs-view-85EA2D.svg?logo=swagger)](https://keyworker-api-dev.prison.service.justice.gov.uk/swagger-ui/index.html)
 
-Datebase Schema diagram: https://ministryofjustice.github.io/keyworker-api/schema-spy-report/
+Database Schema diagram: https://ministryofjustice.github.io/keyworker-api/schema-spy-report/
 
-A Spring Boot JSON API to manage the keyworkers of prisoners for the Digital Prison Services.  Backend services for https://github.com/ministryofjustice/manage-key-workers
+A Spring Boot JSON API to manage the keyworkers and personal officers of prisoners for the Digital Prison Services. Backend services for https://github.com/ministryofjustice/hmpps-allocate-key-workers-ui
 
-### To build:
+## Development
+
+### Build
 
 ```bash
-./gradlew build
+./gradlew clean build
 ```
 
-### Running locally
+### Running Tests
+Ensure you have Docker Desktop installed and running. Utilise the `docker-compose.yml` file to set up the test database. Run the following commands:
 
-When running locally there will be no Auth server to supply the JWT public key, and you won't need localstack.
-
-Use spring profiles `local` to pick up the public key defined in src/main/resources.
-
-Use spring profile `noqueue` to ignore the localstack config.
-
-In order to get the `/info` endpoint to work you will need to add in
+```bash
+docker compose pull
+docker compose up -d
 ```
--add-opens java.base/java.lang=ALL-UNNAMED
-```
-to your run configuration.  This is because the current version of ehcache needs to calculate the size of the objects in the cache, which the latest version of openjdk disallows.
 
-### Health
+Then run the tests:
+
+```bash
+./gradlew test
+```
+
+### Code Quality
+```bash
+# Run linting and check for code style errors
+./gradlew ktLintCheck
+
+# Attempt to fix any style errors automatically
+./gradlew ktlintFormat
+```
+While `ktlintFormat` will attempt to fix any style errors, it may not be able to do so in all cases. Some things to be mindful of include:
+1. Wildcard imports - these should be avoided in favour of explicit imports.
+2. Line length - this should be kept to 120 characters.
+
+## Running Locally
+
+### Environment variables
+
+The `run-local.sh` script will run the service locally. The script expects the following environment variables to be set:
+
+```
+HMPPS_KEY_WORKER_CLIENT_ID
+HMPPS_KEY_WORKER_CLIENT_SECRET
+```
+
+These environment variables should be set to the dev secrets values. Remember to escape any `$` characters with `\$`.
+
+### Running the service locally
+
+Run the following commands from the root directory of the project:
+```bash
+docker compose pull
+docker compose up -d
+```
+
+You should check `run-local.sh` for any environment variables it's expecting - you should export or set these in the normal way for your environment (e.g. in your `.zprofile`). See the [README](../README.md) for a how to retrieve secrets example.
+
+Once the docker containers are running and secrets are in place, you can run the service locally by running:
+
+```bash
+./run-local.sh
+```
+
+## Health
 
 - `/health/ping`: will respond `{"status":"UP"}` to all requests.  This should be used by dependent systems to check connectivity to keyworker,
 rather than calling the `/health` endpoint.
@@ -38,7 +81,7 @@ rather than calling the `/health` endpoint.
 by keyworker health monitoring (e.g. pager duty) and not other systems who wish to find out the state of keyworker.
 - `/info`: provides information about the version of deployed application.
 
-### Pre Release Testing
+## Pre Release Testing
 
 Keyworker api is best tested by the DPS front end.  To manually smoke test / regression test keyworker api prior to release:
 
@@ -52,9 +95,9 @@ Keyworker api is best tested by the DPS front end.  To manually smoke test / reg
 1. [Manually allocate key workers](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/offender-search) and view key worker history for an offender
 1. Select [Prison statistics](https://preprod.manage-key-workers.service.justice.gov.uk/manage-key-workers/key-worker-statistics) and ensure statistics are displayed
 
-### Deployment Notes
+## Deployment Notes
 
-#### Prerequisites
+### Prerequisites
 
 - Ensure you have helm v3 client installed.
 
@@ -121,25 +164,3 @@ cloud-platform-environments/namespaces/live-1.cloud-platform.service.justice.gov
 Ensure the certificate is created and ready for use.
 
 The name of the kubernetes secret where the certificate is stored is used as a value to the helm chart - this is used to configured the ingress.
-
-
-### Running against localstack
-
-Localstack has been introduced for some integration tests and it is also possible to run the application against localstack.
-
-* In the root of the localstack project, run command
-```
-docker-compose -f docker-compose-localstack.yaml down && docker-compose -f docker-compose-localstack.yaml up
-```
-to clear down and then bring up localstack
-* Start the Spring Boot app with profile='localstack'
-* You can now use the aws CLI to send messages to the queue
-* The queue's health status should appear at the local healthcheck: http://localhost:8081/health
-* Note that you will also need local copies of Oauth server, Case notes API and Delius API running to do anything useful
-
-### Running the tests
-
-With localstack now up and running (see previous section), run
-```bash
-./gradlew test
-```

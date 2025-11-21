@@ -4,10 +4,40 @@ spring:
       resourceserver:
         jwt:
           public-key-location: classpath:local-public-key.pub
+      client:
+        registration:
+          default:
+            provider: hmpps-auth
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            authorization-grant-type: client_credentials
+            scope: read
+        provider:
+          hmpps-auth:
+            token-uri: ${AUTH_URI_ROOT}/oauth/token
 
-prison:
-  uri:
-    root: http://localhost:8081
-auth:
-  uri:
-    root: http://localhost:9090/auth
+
+  datasource:
+    url: 'jdbc:postgresql://${DB_SERVER}/${DB_NAME}?sslmode=${DB_SSL_MODE}'
+    username: ${DB_USER}
+    password: ${DB_PASS}
+
+hmpps.sqs:
+  provider: localstack
+  localstackUrl: http://localhost:4566
+  queues:
+    offenderevents:
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+      subscribeTopicId: keyworkerevents
+    domaineventsqueue:
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+      subscribeTopicId: domaineventstopic
+  topics:
+    keyworkerevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+
+
+    domaineventstopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}

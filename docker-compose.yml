@@ -1,54 +1,5 @@
 version: '3.1'
 services:
-  oauth-server:
-    image: quay.io/hmpps/hmpps-auth:latest
-    networks:
-      - hmpps
-    container_name: oauth-server
-    ports:
-      - "9090:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
-    environment:
-      - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=dev
-
-  prison-api:
-    image: ghcr.io/ministryofjustice/prison-api:latest
-    networks:
-      - hmpps
-    container_name: prison-api
-    depends_on:
-      - oauth-server
-    ports:
-      - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-    environment:
-      - SERVER_PORT=8080
-      - SPRING_PROFILES_ACTIVE=nomis-hsqldb
-
-  keyworker-api:
-    image: quay.io/hmpps/keyworker-api:latest
-    networks:
-      - hmpps
-    depends_on:
-      - prison-api
-      - oauth-server
-    container_name: keyworker-api
-    ports:
-      - "8081:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-    environment:
-      - SERVER_PORT=8080
-      - PRISON_URI_ROOT=http://prison-api:8080
-      - AUTH_URI_ROOT=http://oauth-server:8080/auth
-      - SPRING_PROFILES_ACTIVE=localstack
-      - APP_DB_URL=jdbc:postgresql://localhost:5432/keyworker-api-db
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin_password
-
   localstack:
     image: localstack/localstack:4
     networks:
