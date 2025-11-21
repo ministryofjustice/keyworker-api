@@ -19,7 +19,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.6.1")
   implementation("io.swagger:swagger-annotations:1.6.16")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
   implementation("io.opentelemetry:opentelemetry-api:1.56.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.21.0")
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.26.0")
