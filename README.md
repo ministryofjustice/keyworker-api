@@ -59,18 +59,18 @@ These environment variables should be set to the dev secrets values. Remember to
 
 ### Running the service locally
 
-Run the following commands from the root directory of the project:
-```bash
-docker compose pull
-docker compose up -d
-```
-
-You should check `run-local.sh` for any environment variables it's expecting - you should export or set these in the normal way for your environment (e.g. in your `.zprofile`). See the [README](../README.md) for a how to retrieve secrets example.
-
-Once the docker containers are running and secrets are in place, you can run the service locally by running:
-
-```bash
-./run-local.sh
+  Run the following commands from the root directory of the project:
+ ```bash
+ docker compose pull
+ docker compose up -d
+ ```
+ 
+ You should check `run-local.sh` for any environment variables it's expecting - you should export or set these in the normal way for your environment (e.g. in your `.zprofile`). Alternatively, you can create a `.env` file in the root of the project containing `HMPPS_KEY_WORKER_CLIENT_ID` and `HMPPS_KEY_WORKER_CLIENT_SECRET` or any other environment variables that `run-local.sh` expects. The script will load `.env` if present. See the [README](../README.md) for a how to retrieve secrets example.
+ 
+ Once the docker containers are running and secrets are in place, you can run the service locally by running:
+ 
+ ```bash
+ ./run-local.sh
 ```
 
 ## Health
