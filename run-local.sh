@@ -8,6 +8,12 @@
 # The environment variables here will also override values supplied in spring profile properties, specifically
 # around removing the SSL connection to the database and setting the DB properties, SERVER_PORT and client credentials
 # to match those used in the docker-compose files.
+
+ if [ -f ./.env ]; then
+   set -a
+   . ./.env
+   set +a
+ fi
 #
 # Provide the DB connection details to local container-hosted Postgresql DB
 # Match with the credentials set in docker-compose.yml
