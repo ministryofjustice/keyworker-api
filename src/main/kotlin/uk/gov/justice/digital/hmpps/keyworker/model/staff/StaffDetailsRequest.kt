@@ -43,4 +43,4 @@ data class StaffRoleRequest(
   fun isValidToCreate(): Boolean = position.isPresent && scheduleType.isPresent && hoursPerWeek.isPresent
 }
 
-fun <T, S> JsonNullable<T>.map(code: (T) -> S): S? = if (isPresent) code(get()) else null
+fun <T, S> JsonNullable<T>.mapOrNull(code: (T) -> S): S? = if (isPresent) code(get()) else null
