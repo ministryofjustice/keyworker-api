@@ -29,7 +29,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
-import uk.gov.justice.digital.hmpps.keyworker.model.staff.map
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.mapOrNull
 import java.time.LocalDate
 
 @Transactional
@@ -57,7 +57,7 @@ class StaffConfigManager(
 
     val staffRole: StaffRoleInfo? = getStaffRoleIfExists(prisonCode, staffId, request)
     val roleAction =
-      request.staffRole.map {
+      request.staffRole.mapOrNull {
         when {
           request.staffRole.get() == null -> Action.REMOVE
           staffRole == null -> Action.CREATE
@@ -223,7 +223,7 @@ class StaffConfigManager(
     request: StaffDetailsRequest,
   ): StaffRoleInfo? {
     val policy = AllocationContext.get().requiredPolicy()
-    return request.staffRole.map {
+    return request.staffRole.mapOrNull {
       when (policy.nomisUserRoleCode) {
         null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
         else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
