@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
-  kotlin("plugin.spring") version "2.2.21"
-  kotlin("plugin.jpa") version "2.2.21"
-  id("io.gatling.gradle") version "3.14.9.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.3.0"
+  kotlin("plugin.spring") version "2.3.0"
+  kotlin("plugin.jpa") version "2.3.0"
+  id("io.gatling.gradle") version "3.14.9.5"
   jacoco
 }
 
@@ -19,10 +19,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.6.3")
   implementation("io.swagger:swagger-annotations:1.6.16")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15")
   implementation("io.opentelemetry:opentelemetry-api:1.57.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.23.0")
-  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.28.0")
+  implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.29.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
@@ -38,8 +38,8 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("io.jsonwebtoken:jjwt:0.13.0")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:postgresql:1.21.3")
-  testImplementation("org.testcontainers:localstack:1.21.3")
+  testImplementation("org.testcontainers:postgresql:1.21.4")
+  testImplementation("org.testcontainers:localstack:1.21.4")
 }
 
 dependencyCheck {
