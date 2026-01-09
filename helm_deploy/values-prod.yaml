@@ -34,7 +34,7 @@ generic-service:
 
 # determine which slack channel alerts are sent to, via the correct Alert Manager receiver
 generic-prometheus-alerts:
-  alertSeverity: hmpps-alerts-api-prod
+  alertSeverity: maintenance-alerts-prod-warning
   rdsAlertsDatabases:
     cloud-platform-fa888e83362e61b1: "Keyworker API"
   rdsAlertsConnectionThreshold: 100

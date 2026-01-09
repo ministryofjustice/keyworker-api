@@ -19,7 +19,7 @@ generic-service:
       - internal
 
 generic-prometheus-alerts:
-  alertSeverity: hmpps-alerts-api-non-prod
+  alertSeverity: maintenance-alerts-non-prod-warning
   rdsAlertsDatabases:
     cloud-platform-09feaed978653e19: 'Keyworker API'
   rdsAlertsConnectionThreshold: 100
