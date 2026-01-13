@@ -1,10 +1,9 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.3.0"
   kotlin("plugin.spring") version "2.3.0"
   kotlin("plugin.jpa") version "2.3.0"
-  id("io.gatling.gradle") version "3.14.9.5"
   jacoco
 }
 
@@ -48,14 +47,14 @@ dependencyCheck {
 }
 
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(25)
 }
 
 tasks {
 
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
-      jvmTarget = JVM_21
+      jvmTarget = JVM_25
       freeCompilerArgs.addAll(
         "-Xwhen-guards",
         "-Xannotation-default-target=param-property",
