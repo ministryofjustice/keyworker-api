@@ -35,7 +35,7 @@ class MigrateRecordedEvents(
           .content
           .mapNotNull { cn ->
             rd[CaseNoteTypeKey(cn.type, cn.subType)]?.policyCode?.let { it to cn }
-          }.groupBy({ AllocationPolicy.Companion.of(it.first) }, { it.second })
+          }.groupBy({ AllocationPolicy.of(it.first) }, { it.second })
       recordedEventRepository.deleteAllByPersonIdentifier(pi)
       AllocationPolicy.entries.forEach { policy ->
         AllocationContext.get().copy(policy = policy).set()

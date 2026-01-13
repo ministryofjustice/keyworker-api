@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
@@ -44,7 +45,7 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
       setPrisonConfig("PRV", prisonConfigRequest)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo(message)
@@ -126,7 +127,7 @@ class SetPrisonConfigurationIntTest : IntegrationTest() {
   private fun WebTestClient.ResponseSpec.asPrisonConfig() =
     expectStatus()
       .isOk
-      .expectBody(PrisonConfigResponse::class.java)
+      .expectBody<PrisonConfigResponse>()
       .returnResult()
       .responseBody!!
 

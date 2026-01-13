@@ -58,8 +58,7 @@ class PrisonController(
   @CaseloadIdHeader
   @PutMapping(value = ["/configurations"])
   fun setPrisonConfiguration(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
     @Valid @RequestBody request: PrisonConfigRequest,
   ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
 
@@ -83,8 +82,7 @@ class PrisonController(
   @PolicyHeader
   @GetMapping(value = ["/configurations"])
   fun getPrisonConfiguration(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
   @Operation(
@@ -107,8 +105,7 @@ class PrisonController(
   @StandardAoiErrorResponse
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
   ) = prisonService.getPrisonPolicies(prisonCode)
 
   @Operation(
@@ -132,8 +129,7 @@ class PrisonController(
   @CaseloadIdHeader
   @PutMapping(value = ["/policies"])
   fun setPrisonPolicies(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
     @RequestBody policies: PrisonPolicies,
   ) = prisonService.setPrisonPolicies(prisonCode, policies)
 

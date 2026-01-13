@@ -24,11 +24,10 @@ class SubjectAccessRequest(
     toDate: LocalDate?,
   ): SubjectAccessResponse? {
     val allocations =
-      AllocationPolicy.entries
-        .map {
-          AllocationContext.get().copy(policy = it).set()
-          allocationRepository.findAllocationsForSar(prn, fromDate?.atStartOfDay(), toDate?.atStartOfDay()?.plusDays(1))
-        }.flatten()
+      AllocationPolicy.entries.flatMap {
+        AllocationContext.get().copy(policy = it).set()
+        allocationRepository.findAllocationsForSar(prn, fromDate?.atStartOfDay(), toDate?.atStartOfDay()?.plusDays(1))
+      }
     val policyMap = policyRepository.findAll().associateBy(Policy::code)
     val staffMap: Map<Long, StaffMember> =
       prisonApi.getStaffSummariesFromIds(allocations.map { it.staffId }.toSet()).associate {

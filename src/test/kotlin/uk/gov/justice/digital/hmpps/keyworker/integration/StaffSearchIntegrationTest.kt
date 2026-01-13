@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -78,7 +79,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val allocations =
       staffConfigs
-        .mapIndexed { index, st ->
+        .flatMapIndexed { index, st ->
           (0..index).map {
             givenAllocation(
               staffAllocation(
@@ -88,8 +89,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
               ),
             )
           }
-        }.flatten()
-        .groupBy { it.staffId }
+        }.groupBy { it.staffId }
 
     if (policy == AllocationPolicy.KEY_WORKER) {
       staffConfigs.mapIndexed { idx, sc ->
@@ -125,7 +125,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request, policy)
         .expectStatus()
         .isOk
-        .expectBody(StaffSearchResponse::class.java)
+        .expectBody<StaffSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -198,7 +198,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request, policy)
         .expectStatus()
         .isOk
-        .expectBody(StaffSearchResponse::class.java)
+        .expectBody<StaffSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -279,7 +279,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request, policy)
         .expectStatus()
         .isOk
-        .expectBody(StaffSearchResponse::class.java)
+        .expectBody<StaffSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -327,24 +327,23 @@ class StaffSearchIntegrationTest : IntegrationTest() {
         }
       }
 
-    staffConfigs
-      .mapIndexed { index, kw ->
-        (0..index).map {
-          givenAllocation(
-            staffAllocation(
-              personIdentifier(),
-              prisonCode,
-              kw.staffId,
-            ),
-          )
-        }
-      }.flatten()
+    staffConfigs.flatMapIndexed { index, kw ->
+      (0..index).map {
+        givenAllocation(
+          staffAllocation(
+            personIdentifier(),
+            prisonCode,
+            kw.staffId,
+          ),
+        )
+      }
+    }
 
     val r1 =
       searchStaffSpec(prisonCode, request, policy)
         .expectStatus()
         .isOk
-        .expectBody(StaffSearchResponse::class.java)
+        .expectBody<StaffSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -354,7 +353,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request.copy(hasPolicyStaffRole = false), policy)
         .expectStatus()
         .isOk
-        .expectBody(StaffSearchResponse::class.java)
+        .expectBody<StaffSearchResponse>()
         .returnResult()
         .responseBody!!
 

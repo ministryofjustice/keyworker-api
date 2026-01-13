@@ -80,7 +80,7 @@ class GetCurrentAllocations(
           )
         } else {
           val policies = policyRepository.findAll().associateBy { AllocationPolicy.of(it.code) }
-          return CurrentPersonStaffAllocation(
+          CurrentPersonStaffAllocation(
             personIdentifier,
             false,
             allocations.map {
