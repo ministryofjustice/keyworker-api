@@ -33,7 +33,7 @@ class OffenderEventsHealthCheckTest : IntegrationTest() {
       .jsonPath("$.status")
       .isEqualTo("UP")
       .jsonPath("$.components.prisonApiHealth.details.HttpStatus")
-      .isEqualTo("OK")
+      .isEqualTo("200 OK")
   }
 
   @Test

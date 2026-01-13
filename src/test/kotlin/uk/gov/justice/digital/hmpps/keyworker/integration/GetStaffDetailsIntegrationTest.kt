@@ -439,13 +439,13 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     role: String? = Roles.ALLOCATIONS_UI,
   ) = webTestClient
     .get()
-    .uri {
-      it.path(GET_STAFF_DETAILS)
-      it.queryParam("from", from)
-      it.queryParam("to", to)
-      it.queryParam("comparisonFrom", comparisonFrom)
-      it.queryParam("comparisonTo", comparisonTo)
-      it.build(prisonCode, staffId)
+    .uri { builder ->
+      builder.path(GET_STAFF_DETAILS)
+      from?.also { builder.queryParam("from", it) }
+      to?.also { builder.queryParam("to", it) }
+      comparisonFrom?.also { builder.queryParam("comparisonFrom", it) }
+      comparisonTo?.also { builder.queryParam("comparisonTo", it) }
+      builder.build(prisonCode, staffId)
     }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)
     .header(CaseloadIdHeader.NAME, prisonCode)

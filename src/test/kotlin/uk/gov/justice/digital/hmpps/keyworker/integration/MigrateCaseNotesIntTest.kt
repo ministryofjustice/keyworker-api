@@ -64,7 +64,7 @@ class MigrateCaseNotesIntTest : IntegrationTest() {
           setContext(AllocationContext.get().copy(policy = it))
           transactionTemplate.execute {
             recordedEventRepository.findAll()
-          }!!
+          }
         }.filter { it.personIdentifier == personIdentifier }
     assertThat(acns).hasSize(27)
 

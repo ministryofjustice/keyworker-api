@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono
 import reactor.util.retry.Retry
 import java.time.Duration
 
-fun <T> Mono<T>.retryRequestOnTransientException(): Mono<T> =
+fun <T : Any> Mono<T>.retryRequestOnTransientException(): Mono<T> =
   retryWhen(
     Retry
       .backoff(3, Duration.ofMillis(250))
@@ -18,7 +18,7 @@ fun <T> Mono<T>.retryRequestOnTransientException(): Mono<T> =
       },
   )
 
-fun <T> Flux<T>.retryRequestOnTransientException(): Flux<T> =
+fun <T : Any> Flux<T>.retryRequestOnTransientException(): Flux<T> =
   retryWhen(
     Retry
       .backoff(3, Duration.ofMillis(250))

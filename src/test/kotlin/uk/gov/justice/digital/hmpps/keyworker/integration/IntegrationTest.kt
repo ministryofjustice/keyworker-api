@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
@@ -88,6 +89,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+@AutoConfigureWebTestClient
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTest {
@@ -184,7 +186,7 @@ abstract class IntegrationTest {
     offenderEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
   }
 
-  internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl).get()
+  internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl = queueUrl).get()
 
   internal fun verifyAudit(
     entity: Any,
@@ -419,7 +421,7 @@ abstract class IntegrationTest {
   protected fun givenStaffConfig(staffConfig: () -> StaffConfiguration): StaffConfiguration =
     transactionTemplate.execute {
       staffConfigRepository.save(staffConfig())
-    }!!
+    }
 
   protected fun staffRole(
     prisonCode: String,
@@ -444,7 +446,7 @@ abstract class IntegrationTest {
   protected fun givenStaffRole(staffRole: () -> StaffRole): StaffRole =
     transactionTemplate.execute {
       staffRoleRepository.save(staffRole())
-    }!!
+    }
 
   protected fun staffAllocation(
     personIdentifier: String,
@@ -473,12 +475,12 @@ abstract class IntegrationTest {
   }
 
   protected fun givenAllocation(allocation: () -> Allocation): Allocation =
-    transactionTemplate.execute { allocationRepository.save(allocation()) }!!
+    transactionTemplate.execute { allocationRepository.save(allocation()) }
 
   protected fun givenRecordedEvent(re: () -> RecordedEvent): RecordedEvent =
     transactionTemplate.execute {
       recordedEventRepository.save(re())
-    }!!
+    }
 
   protected fun withReferenceData(
     domain: ReferenceDataDomain,
