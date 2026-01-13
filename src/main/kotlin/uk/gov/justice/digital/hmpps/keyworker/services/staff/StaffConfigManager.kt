@@ -214,7 +214,7 @@ class StaffConfigManager(
         status = referenceDataRepository.getReferenceData(ReferenceDataKey(ReferenceDataDomain.STAFF_STATUS, it))
       }
       request.capacity.ifPresent { capacity = it }
-      request.reactivateOn.ifPresent { reactivateOn = it }
+      request.reactivateOn?.ifPresent { reactivateOn = it }
     }
 
   private fun getStaffRoleIfExists(
@@ -241,7 +241,7 @@ class StaffConfigManager(
           ReferenceDataDomain.STAFF_STATUS of if (status.isPresent) status.get() else StaffStatus.ACTIVE.name,
         ),
         capacity.orElse(prisonConfig.capacity),
-        reactivateOn.orElse(null),
+        reactivateOn?.orElse(null),
         staffId,
       ),
     )
