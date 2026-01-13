@@ -10,8 +10,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.keyworker.integration.retryRequestOnTransientException
-import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
-import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
 
 @Component
@@ -70,32 +68,6 @@ class PrisonApiClient(
       it.staffId == staffId
     }
 
-  fun getPersonalOfficerHistory(prisonCode: String): List<PoHistoricAllocation> =
-    webClient
-      .get()
-      .uri(PERSONAL_OFFICER_HISTORY_URL, prisonCode)
-      .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-      .retrieve()
-      .bodyToMono<List<PoHistoricAllocation>>()
-      .retryRequestOnTransientException()
-      .block() ?: emptyList()
-
-  fun getPersonMovements(personIdentifier: String): Mono<List<Movement>> =
-    webClient
-      .get()
-      .uri {
-        it.path(MOVEMENTS_URL)
-        it.queryParam("allBookings", true)
-        it.build(personIdentifier)
-      }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-      .exchangeToMono { res ->
-        when (res.statusCode()) {
-          HttpStatus.NOT_FOUND -> Mono.just(emptyList())
-          HttpStatus.OK -> res.bodyToMono<List<Movement>>()
-          else -> res.createError()
-        }
-      }.retryRequestOnTransientException()
-
   private fun getStaffEmail(staffId: Long): Mono<Pair<Long, Set<String>>> =
     webClient
       .get()
@@ -123,8 +95,6 @@ class PrisonApiClient(
   companion object {
     const val GET_KEYWORKER_INFO = "/staff/roles/{agencyId}/role/KW"
     const val STAFF_BY_IDS_URL = "/staff"
-    const val PERSONAL_OFFICER_HISTORY_URL = "/personal-officer/{agencyId}/allocation-history"
-    const val MOVEMENTS_URL = "/movements/offender/{offenderNo}"
     const val STAFF_EMAIL_URL = "/staff/{staffId}/emails"
   }
 }
