@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
@@ -52,7 +53,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       getCurrentAllocationSpec(personIdentifier)
         .expectStatus()
         .isOk
-        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .expectBody<CurrentPersonStaffAllocation>()
         .returnResult()
         .responseBody!!
 
@@ -117,7 +118,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           personIdentifier = personIdentifier,
         ),
       )
-    (2..5).map {
+    (2..5).forEach {
       givenRecordedEvent(
         recordedEvent(
           prisonCode,
@@ -139,7 +140,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
-        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .expectBody<CurrentPersonStaffAllocation>()
         .returnResult()
         .responseBody!!
 
@@ -208,7 +209,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           personIdentifier = personIdentifier,
         ),
       )
-    (2..5).map {
+    (2..5).forEach {
       givenRecordedEvent(
         recordedEvent(
           prisonCode,
@@ -226,7 +227,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
-        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .expectBody<CurrentPersonStaffAllocation>()
         .returnResult()
         .responseBody!!
 
@@ -299,7 +300,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           personIdentifier = personIdentifier,
         ),
       )
-    (2..5).map {
+    (2..5).forEach {
       givenRecordedEvent(
         recordedEvent(
           prisonCode,
@@ -318,7 +319,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       getCurrentAllocationSpec(personIdentifier, true)
         .expectStatus()
         .isOk
-        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .expectBody<CurrentPersonStaffAllocation>()
         .returnResult()
         .responseBody!!
 
@@ -397,7 +398,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
           personIdentifier = personIdentifier,
         ),
       )
-    (2..5).map {
+    (2..5).forEach {
       givenRecordedEvent(
         recordedEvent(
           prisonCode,
@@ -418,7 +419,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       getCurrentAllocationSpec(personIdentifier)
         .expectStatus()
         .isOk
-        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .expectBody<CurrentPersonStaffAllocation>()
         .returnResult()
         .responseBody!!
 
@@ -462,7 +463,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
       getCurrentAllocationSpec(prisonNumber)
         .expectStatus()
         .isOk
-        .expectBody(CurrentPersonStaffAllocation::class.java)
+        .expectBody<CurrentPersonStaffAllocation>()
         .returnResult()
         .responseBody!!
 

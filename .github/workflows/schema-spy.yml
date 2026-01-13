@@ -6,7 +6,7 @@ on:
       java_version:
         description: Java version
         type: string
-        default: '21'
+        default: '25'
       java_options:
         description: Java options
         type: string

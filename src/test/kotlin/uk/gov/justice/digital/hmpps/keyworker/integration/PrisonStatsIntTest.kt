@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -46,7 +47,7 @@ class PrisonStatsIntTest : IntegrationTest() {
       getPrisonStatsSpec(prisonCode, start, end, prevStart, prevEnd, policy)
         .expectStatus()
         .isOk
-        .expectBody(PrisonStats::class.java)
+        .expectBody<PrisonStats>()
         .returnResult()
         .responseBody
 
@@ -134,15 +135,15 @@ class PrisonStatsIntTest : IntegrationTest() {
 
     val currentDateRange = dateRange(start, end)
     val prevDateRange = dateRange(prevStart, prevEnd)
-    (1..16).map {
+    (1..16).forEach { _ ->
       givenRecordedEvent(recordedEvent(prisonCode, RecordedEventType.ENTRY, currentDateRange.random().atStartOfDay()))
     }
-    (1..15).map {
+    (1..15).forEach { _ ->
       givenRecordedEvent(recordedEvent(prisonCode, RecordedEventType.ENTRY, prevDateRange.random().atStartOfDay()))
     }
 
     if (policy == AllocationPolicy.KEY_WORKER) {
-      (1..43).map {
+      (1..43).forEach { _ ->
         givenRecordedEvent(
           recordedEvent(
             prisonCode,
@@ -151,7 +152,7 @@ class PrisonStatsIntTest : IntegrationTest() {
           ),
         )
       }
-      (1..44).map {
+      (1..44).forEach { _ ->
         givenRecordedEvent(
           recordedEvent(
             prisonCode,
@@ -166,7 +167,7 @@ class PrisonStatsIntTest : IntegrationTest() {
       getPrisonStatsSpec(prisonCode, start, end, prevStart, prevEnd, policy)
         .expectStatus()
         .isOk
-        .expectBody(PrisonStats::class.java)
+        .expectBody<PrisonStats>()
         .returnResult()
         .responseBody
 

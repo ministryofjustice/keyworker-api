@@ -61,11 +61,6 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
     staffId: Long,
   ): StaffRole?
 
-  fun findAllByPrisonCodeAndStaffIdIn(
-    prisonCode: String,
-    staffIds: Set<Long>,
-  ): List<StaffRole>
-
   fun findAllByPrisonCode(prisonCode: String): List<StaffRole>
 
   @Query(

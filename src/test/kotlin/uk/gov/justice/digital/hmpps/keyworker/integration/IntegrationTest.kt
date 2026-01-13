@@ -407,14 +407,15 @@ abstract class IntegrationTest {
     staffId: Long = newId(),
     capacity: Int = 6,
     reactivateOn: LocalDate? = null,
-  ) = {
-    StaffConfiguration(
-      withReferenceData(STAFF_STATUS, status.name),
-      capacity,
-      reactivateOn,
-      staffId,
-    )
-  }
+  ): () -> StaffConfiguration =
+    {
+      StaffConfiguration(
+        withReferenceData(STAFF_STATUS, status.name),
+        capacity,
+        reactivateOn,
+        staffId,
+      )
+    }
 
   protected fun givenStaffConfig(staffConfig: () -> StaffConfiguration): StaffConfiguration =
     transactionTemplate.execute {
@@ -429,17 +430,18 @@ abstract class IntegrationTest {
     hoursPerWeek: BigDecimal = BigDecimal(37.5),
     fromDate: LocalDate = LocalDate.now().minusDays(7),
     toDate: LocalDate? = null,
-  ) = {
-    StaffRole(
-      withReferenceData(ReferenceDataDomain.STAFF_POSITION, position),
-      withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, scheduleType),
-      hoursPerWeek,
-      fromDate,
-      toDate,
-      prisonCode,
-      staffId,
-    )
-  }
+  ): () -> StaffRole =
+    {
+      StaffRole(
+        withReferenceData(ReferenceDataDomain.STAFF_POSITION, position),
+        withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, scheduleType),
+        hoursPerWeek,
+        fromDate,
+        toDate,
+        prisonCode,
+        staffId,
+      )
+    }
 
   protected fun givenStaffRole(staffRole: () -> StaffRole): StaffRole =
     transactionTemplate.execute {
@@ -457,20 +459,21 @@ abstract class IntegrationTest {
     deallocatedAt: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
     deallocatedBy: String? = null,
-  ) = {
-    Allocation(
-      personIdentifier,
-      prisonCode,
-      staffId,
-      allocatedAt,
-      active,
-      allocationReason.asReferenceData(),
-      allocatedBy,
-      deallocatedAt,
-      deallocationReason?.asReferenceData(),
-      deallocatedBy,
-    )
-  }
+  ): () -> Allocation =
+    {
+      Allocation(
+        personIdentifier,
+        prisonCode,
+        staffId,
+        allocatedAt,
+        active,
+        allocationReason.asReferenceData(),
+        allocatedBy,
+        deallocatedAt,
+        deallocationReason?.asReferenceData(),
+        deallocatedBy,
+      )
+    }
 
   protected fun givenAllocation(allocation: () -> Allocation): Allocation =
     transactionTemplate.execute { allocationRepository.save(allocation()) }!!

@@ -257,8 +257,6 @@ interface AllocationRepository :
     """,
   )
   fun findAllocationCountForStaff(staffIds: Set<Long>): List<StaffIdAllocationCount>
-
-  fun findByPrisonCodeAndIsActiveTrue(prisonCode: String): List<Allocation>
 }
 
 interface NewAllocation {

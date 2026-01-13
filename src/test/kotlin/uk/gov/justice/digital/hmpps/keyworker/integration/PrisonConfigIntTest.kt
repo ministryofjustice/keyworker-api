@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -22,7 +23,7 @@ class PrisonConfigIntTest : IntegrationTest() {
       prisonConfig("ZEON", false, false, hasPrisonersWithHighComplexityNeeds = true),
       prisonConfig("ONZE", true, true, hasPrisonersWithHighComplexityNeeds = false),
       prisonConfig("ONON", true, true, hasPrisonersWithHighComplexityNeeds = true),
-    ).map { givenPrisonConfig(it) }
+    ).forEach { givenPrisonConfig(it) }
 
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     listOf(
@@ -54,7 +55,7 @@ class PrisonConfigIntTest : IntegrationTest() {
         hasPrisonersWithHighComplexityNeeds = false,
         policy = AllocationPolicy.PERSONAL_OFFICER,
       ),
-    ).map { givenPrisonConfig(it) }
+    ).forEach { givenPrisonConfig(it) }
   }
 
   @ParameterizedTest
@@ -112,7 +113,7 @@ class PrisonConfigIntTest : IntegrationTest() {
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(PrisonConfigResponse::class.java)
+      .expectBody<PrisonConfigResponse>()
       .returnResult()
       .responseBody!!
 
