@@ -41,11 +41,6 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.21.4")
 }
 
-dependencyCheck {
-  suppressionFiles.addAll(listOf("suppressions.xml", ".dependency-check-ignore.xml"))
-  nvd.datafeedUrl = "file:///opt/vulnz/cache"
-}
-
 kotlin {
   jvmToolchain(25)
 }
@@ -84,8 +79,4 @@ tasks.named<JacocoReport>("jacocoTestReport") {
     html.required.set(true)
     xml.required.set(true)
   }
-}
-
-dependencyCheck {
-  suppressionFile = ".dependency-check-ignore.xml"
 }
