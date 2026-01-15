@@ -203,7 +203,7 @@
 <polygon fill="none" stroke="#000000" points="193,-213.2 193,-235.2 387,-235.2 387,-213.2 193,-213.2"/>
 <text text-anchor="start" x="213" y="-220.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">hours_per_week</text>
 <polygon fill="none" stroke="#000000" points="387,-213.2 387,-235.2 481,-235.2 481,-213.2 387,-213.2"/>
-<text text-anchor="start" x="390" y="-220.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">int4[10]</text>
+<text text-anchor="start" x="390" y="-220.9" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">numeric[0]</text>
 <polygon fill="none" stroke="#000000" points="193,-191.2 193,-213.2 387,-213.2 387,-191.2 193,-191.2"/>
 <text text-anchor="start" x="213" y="-198.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">from_date</text>
 <polygon fill="none" stroke="#000000" points="387,-191.2 387,-213.2 481,-213.2 481,-191.2 387,-191.2"/>

@@ -219,7 +219,7 @@
             <child catalog="keyworker-api-db" column="prison_statistic_id" foreignKey="fk_prisoner_statistic_id" implied="false" onDeleteCascade="false" schema="public" table="prisoner_statistic"/>
          </column>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="prison_code" nullable="false" remarks="Prison ID" size="6" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="statistic_date" nullable="false" remarks="Timestamp of date for which stats apply" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="statistic_date" nullable="false" remarks="Timestamp of date for which stats apply" size="13" type="date" typeCode="91"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prisoners_assigned_count" nullable="false" remarks="Number of prisoner who have been assigned a Key worker" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="prisoner_count" nullable="false" remarks="Total number of prisoners in the prison on this date" size="10" type="int4" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="eligible_staff_count" nullable="true" remarks="Number of active keyworkers" size="10" type="int4" typeCode="4"/>
@@ -443,7 +443,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="staff_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="position_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="schedule_type_id" nullable="false" remarks="" size="19" type="int8" typeCode="-5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="hours_per_week" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="hours_per_week" nullable="false" remarks="" size="0" type="numeric" typeCode="2"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="from_date" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="to_date" nullable="true" remarks="" size="13" type="date" typeCode="91"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="position_modified" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
