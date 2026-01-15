@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -88,7 +89,7 @@ class StaffRecordedEventSearchIntegrationTest : IntegrationTest() {
       searchRecordedEventSpec(prisonCode, staffId, searchRequest(), policy)
         .expectStatus()
         .isOk
-        .expectBody(RecordedEventResponse::class.java)
+        .expectBody<RecordedEventResponse>()
         .returnResult()
         .responseBody!!
 
@@ -148,7 +149,7 @@ class StaffRecordedEventSearchIntegrationTest : IntegrationTest() {
       searchRecordedEventSpec(prisonCode, staffId, searchRequest(), policy)
         .expectStatus()
         .isOk
-        .expectBody(RecordedEventResponse::class.java)
+        .expectBody<RecordedEventResponse>()
         .returnResult()
         .responseBody!!
 
@@ -180,7 +181,7 @@ class StaffRecordedEventSearchIntegrationTest : IntegrationTest() {
       searchRecordedEventSpec(prisonCode, staffId, searchRequest(), policy)
         .expectStatus()
         .isOk
-        .expectBody(RecordedEventResponse::class.java)
+        .expectBody<RecordedEventResponse>()
         .returnResult()
         .responseBody!!
 
