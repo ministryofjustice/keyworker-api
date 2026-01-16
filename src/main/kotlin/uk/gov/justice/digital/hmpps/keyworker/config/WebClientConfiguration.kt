@@ -49,7 +49,7 @@ class WebClientConfiguration(
   fun prisonApiWebClient(
     authorizedClientManager: OAuth2AuthorizedClientManager,
     builder: Builder,
-  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, "$prisonApiRootUri/api", ofSeconds(60))
+  ): WebClient = getOAuthWebClient(authorizedClientManager, builder, "$prisonApiRootUri/api")
 
   @Bean
   fun prisonApiHealthWebClient(builder: Builder): WebClient = builder.healthWebClient(prisonApiRootUri, healthTimeout)
