@@ -34,6 +34,9 @@ class WebClientConfiguration(
   val healthTimeout: Duration = Duration.ofMillis(healthTimeoutMs)
 
   @Bean
+  fun webClientBuilder(): Builder = WebClient.builder()
+
+  @Bean
   fun authorizedClientManager(
     clientRegistrationRepository: ClientRegistrationRepository,
     oAuth2AuthorizedClientService: CachingClientService,
