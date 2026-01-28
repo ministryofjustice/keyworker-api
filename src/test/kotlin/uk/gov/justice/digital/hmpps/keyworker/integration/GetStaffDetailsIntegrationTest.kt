@@ -442,10 +442,10 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     .get()
     .uri {
       it.path(GET_STAFF_DETAILS)
-      it.queryParam("from", from)
-      it.queryParam("to", to)
-      it.queryParam("comparisonFrom", comparisonFrom)
-      it.queryParam("comparisonTo", comparisonTo)
+      from?.also { v -> it.queryParam("from", v.toString()) }
+      to?.also { v -> it.queryParam("to", v.toString()) }
+      comparisonFrom?.also { v -> it.queryParam("comparisonFrom", v.toString()) }
+      comparisonTo?.also { v -> it.queryParam("comparisonTo", v.toString()) }
       it.build(prisonCode, staffId)
     }.headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
     .header(PolicyHeader.NAME, policy.name)

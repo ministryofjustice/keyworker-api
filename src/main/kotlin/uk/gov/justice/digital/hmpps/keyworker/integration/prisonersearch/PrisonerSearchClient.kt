@@ -21,7 +21,7 @@ class PrisonerSearchClient(
       .uri {
         it.path("/prisoner-search/prison/{prisonCode}")
         it.queryParam("size", PRISONER_SEARCH_LIMIT)
-        it.queryParam("responseFields", Prisoner.fields())
+        it.queryParam("responseFields", *Prisoner.fields().toTypedArray())
         it.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -42,7 +42,7 @@ class PrisonerSearchClient(
             .post()
             .uri {
               it.path("/prisoner-search/prisoner-numbers")
-              it.queryParam("responseFields", Prisoner.fields())
+              it.queryParam("responseFields", *Prisoner.fields().toTypedArray())
               it.build()
             }.bodyValue(PrisonerNumbers(prisonNumbers))
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -62,13 +62,11 @@ class PrisonerSearchClient(
       .get()
       .uri { ub ->
         ub.path("/prison/{prisonCode}/prisoners")
-        with(request) {
-          query?.also { ub.queryParam("term", it) }
-          cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
-          ub.queryParam("page", 0)
-          ub.queryParam("size", PRISONER_SEARCH_LIMIT)
-          ub.queryParam("responseFields", Prisoner.fields())
-        }
+        request.query?.also { ub.queryParam("term", it) }
+        request.cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
+        ub.queryParam("page", 0)
+        ub.queryParam("size", PRISONER_SEARCH_LIMIT)
+        ub.queryParam("responseFields", *Prisoner.fields().toTypedArray())
         ub.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)

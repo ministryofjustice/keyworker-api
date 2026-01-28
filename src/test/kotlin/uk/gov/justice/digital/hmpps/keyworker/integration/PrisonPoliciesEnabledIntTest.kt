@@ -175,7 +175,7 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
     .uri(PRISON_POLICIES_URL, prisonCode)
     .bodyValue(request)
     .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
-    .header(CaseloadIdHeader.NAME, caseloadId)
+    .headers { if (caseloadId != null) it.add(CaseloadIdHeader.NAME, caseloadId) }
     .exchange()
 
   private fun getPrisonPolicies(

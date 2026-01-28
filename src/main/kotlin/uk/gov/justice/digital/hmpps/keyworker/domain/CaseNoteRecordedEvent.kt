@@ -9,7 +9,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
 import org.hibernate.annotations.TenantId
-import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
@@ -40,7 +39,7 @@ data class CaseNoteTypeKey(
 ) : CaseNoteType
 
 interface CaseNoteRecordedEventRepository : JpaRepository<CaseNoteRecordedEvent, Long> {
-  @EntityGraph("type")
+  @Query("select c from CaseNoteRecordedEvent c join fetch c.type where c.key = :key")
   fun findByKey(key: CaseNoteTypeKey): CaseNoteRecordedEvent?
 
   @Query(
@@ -52,6 +51,13 @@ interface CaseNoteRecordedEventRepository : JpaRepository<CaseNoteRecordedEvent,
     subType: String,
   ): String?
 
-  @EntityGraph(attributePaths = ["type"])
+  @Query("select c from CaseNoteRecordedEvent c join fetch c.type")
   override fun findAll(): List<CaseNoteRecordedEvent>
+
+  // Native query to get all entries without tenant filtering - for building CaseNotesOfInterest
+  @Query(
+    "select c.id, c.cn_type, c.cn_sub_type, c.policy_code from case_note_type_recorded_event_type c",
+    nativeQuery = true,
+  )
+  fun findAllNative(): List<Array<Any>>
 }

@@ -53,7 +53,7 @@ spring:
     show-sql: true
     generate-ddl: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
 
 api.health-timeout-ms: 400
 

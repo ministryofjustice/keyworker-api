@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteTypeKey
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
@@ -89,6 +91,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
 @ActiveProfiles("test")
 abstract class IntegrationTest {
   @Autowired
@@ -305,6 +308,40 @@ abstract class IntegrationTest {
     prisonerSearchMockServer.resetAll()
     nomisUserRolesMockServer.resetAll()
 
+    // Delete records for ALL policies/tenants to ensure proper test isolation
+    // Use native queries for tables with @SQLRestriction to bypass Hibernate filtering
+    transactionTemplate.execute {
+      // staff_role has @SQLRestriction("to_date is null") - deleteAll() misses inactive roles
+      entityManager.createNativeQuery("delete from staff_role").executeUpdate()
+    }
+    // (deleteAll() is tenant-filtered via @TenantId, so we must iterate over all policies)
+    AllocationPolicy.entries.forEach { policy ->
+      setContext(AllocationContext.get().copy(policy = policy))
+      transactionTemplate.execute {
+        staffConfigRepository.deleteAll()
+        allocationRepository.deleteAll()
+        recordedEventRepository.deleteAll()
+        // Do NOT delete caseNoteRecordedEventRepository - it contains Flyway-managed reference data
+        prisonerStatisticRepository.deleteAll()
+        prisonStatisticRepository.deleteAll()
+      }
+    }
+
+    // Ensure case note type mappings exist (Flyway V15_0 data - workaround for migration timing issue)
+    transactionTemplate.execute {
+      entityManager
+        .createNativeQuery(
+          """
+        insert into case_note_type_recorded_event_type(cn_type, cn_sub_type, policy_code, recorded_event_type_id)
+        values 
+          ('KA', 'KS', 'KEY_WORKER', (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'SESSION')),
+          ('KA', 'KE', 'KEY_WORKER', (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'ENTRY')),
+          ('REPORT', 'POE', 'PERSONAL_OFFICER', (select id from reference_data where domain = 'RECORDED_EVENT_TYPE' and code = 'ENTRY'))
+        on conflict do nothing
+        """,
+        ).executeUpdate()
+    }
+
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
   }
 
@@ -508,18 +545,13 @@ abstract class IntegrationTest {
   }
 
   protected fun caseNotesOfInterest(): CaseNotesOfInterest {
-    val originalContext = AllocationContext.get()
-    val ofInterest =
-      CaseNotesOfInterest(
-        AllocationPolicy.entries
-          .flatMap { policy ->
-            originalContext.copy(policy = policy).set()
-            caseNoteRecordedEventRepository.findAll()
-          }.map { it.key }
-          .toSet(),
-      )
-    originalContext.set()
-    return ofInterest
+    // Use native query to bypass tenant filtering issues with @EntityGraph + @TenantId in Hibernate 7
+    val keys =
+      caseNoteRecordedEventRepository
+        .findAllNative()
+        .map { row -> CaseNoteTypeKey(row[1] as String, row[2] as String) }
+        .toSet()
+    return CaseNotesOfInterest(keys)
   }
 
   protected fun recordedEvent(
