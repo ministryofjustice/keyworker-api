@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.person.CurrentPersonStaffAllocation
 import uk.gov.justice.digital.hmpps.keyworker.services.GetCurrentAllocations
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -39,7 +39,7 @@ class CurrentAllocationController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @Tag(name = MANAGE_ALLOCATIONS)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_RO}')")
   @GetMapping("/prisoners/{personIdentifier}/allocations/current")
