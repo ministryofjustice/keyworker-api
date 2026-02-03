@@ -22,19 +22,21 @@ class MigrateRecordedEvents(
   private val transactionTemplate: TransactionTemplate,
 ) {
   fun handle(event: HmppsDomainEvent<CaseNoteMigrationInformation>) {
+    // Use native query to build rd map - bypasses Hibernate tenant filtering on joined entity
+    // Native query columns: [0]=id, [1]=cn_type, [2]=cn_sub_type, [3]=policy_code
     val rd =
-      AllocationPolicy.entries
-        .flatMap { policy ->
-          AllocationContext.get().copy(policy = policy).set()
-          caseNoteRecordedEventMapping.findAll()
-        }.associateBy { it.key }
+      caseNoteRecordedEventMapping
+        .findAllNative()
+        .associate { row ->
+          CaseNoteTypeKey(row[1] as String, row[2] as String) to (row[3] as String)
+        }
     event.personReference.nomsNumber()?.also { pi ->
       val notesByPolicy =
         caseNoteApi
           .getCaseNotesOfInterest(pi, CaseNotesOfInterest(rd.keys))
           .content
           .mapNotNull { cn ->
-            rd[CaseNoteTypeKey(cn.type, cn.subType)]?.policyCode?.let { it to cn }
+            rd[CaseNoteTypeKey(cn.type, cn.subType)]?.let { it to cn }
           }.groupBy({ AllocationPolicy.of(it.first) }, { it.second })
       recordedEventRepository.deleteAllByPersonIdentifier(pi)
       AllocationPolicy.entries.forEach { policy ->

@@ -50,10 +50,10 @@ class ExceptionHandler {
   fun handleMethodArgumentTypeMismatchException(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse> {
     val type = e.requiredType
     val message =
-      if (type.isEnum) {
+      if (type?.isEnum == true) {
         "Parameter ${e.name} must be one of the following ${StringUtils.join(type.enumConstants, ", ")}"
       } else {
-        "Parameter ${e.name} must be of type ${type.typeName}"
+        "Parameter ${e.name} must be of type ${type?.typeName ?: "Unknown"}"
       }
 
     return ResponseEntity.status(BAD_REQUEST).body(

@@ -26,22 +26,22 @@ import java.util.UUID
 @Table(name = "allocation")
 class Allocation(
   @Audited(withModifiedFlag = true)
-  @Column(name = "person_identifier")
+  @Column(name = "person_identifier", nullable = false)
   var personIdentifier: String,
-  @Column(name = "prison_code")
+  @Column(name = "prison_code", nullable = false)
   val prisonCode: String,
-  @Column(name = "staff_id")
+  @Column(name = "staff_id", nullable = false)
   val staffId: Long,
-  @Column(name = "allocated_at")
+  @Column(name = "allocated_at", nullable = false)
   val allocatedAt: LocalDateTime,
   @Audited(withModifiedFlag = true, modifiedColumnName = "is_active_modified")
-  @Column(name = "is_active")
+  @Column(name = "is_active", nullable = false)
   var isActive: Boolean,
   @Audited(targetAuditMode = NOT_AUDITED)
   @ManyToOne
-  @JoinColumn(name = "allocation_reason_id")
+  @JoinColumn(name = "allocation_reason_id", nullable = false)
   val allocationReason: ReferenceData,
-  @Column(name = "allocated_by")
+  @Column(name = "allocated_by", nullable = false)
   val allocatedBy: String,
   @Audited(withModifiedFlag = true)
   @Column(name = "deallocated_at")
@@ -54,14 +54,15 @@ class Allocation(
   @Column(name = "deallocated_by")
   var deallocatedBy: String?,
   @TenantId
-  @Column(name = "policy_code", updatable = false)
+  @Column(name = "policy_code", updatable = false, nullable = false)
   val policy: String = AllocationContext.get().requiredPolicy().name,
   @Id
-  @Column(name = "id")
+  @Column(name = "id", nullable = false)
   val id: UUID = newUuid(),
 ) {
   @Version
-  val version: Int? = null
+  @Column(nullable = false)
+  val version: Int = 0
 
   fun deallocate(deallocationReason: ReferenceData) {
     val context = AllocationContext.get()

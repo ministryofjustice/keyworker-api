@@ -5,7 +5,9 @@ spring:
     show-sql: false
     generate-ddl: false
     hibernate:
-      ddl-auto: validate
+      # Changed from 'validate' to 'none' - Hibernate 7 Envers maps all audit columns as nullable
+      # which conflicts with NOT NULL constraints in existing audit tables. Flyway manages schema.
+      ddl-auto: none
 
     properties:
       hibernate.jdbc.lob.non_contextual_creation: true
@@ -27,19 +29,19 @@ spring:
 
     hikari:
       pool-name: Keyworker-CP
-      connectionTimeout: 1000
-      validationTimeout:  500
-      maximumPoolSize: 25
+      connection-timeout: 1000
+      validation-timeout:  500
+      maximum-pool-size: 25
       auto-commit: false
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
-    serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false
 
   security:
     oauth2:
-      resourceserver.jwt.jwk-set-uri: ${auth.uri.root}/.well-known/jwks.json
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${auth.uri.root}/.well-known/jwks.json
       client:
         registration:
           default:
@@ -102,7 +104,7 @@ management:
     web:
       base-path: /
       exposure:
-        include: 'info, health, ping'
+        include: 'info, health, ping, liveness, readiness'
   endpoint:
     health:
       cache:
@@ -111,6 +113,11 @@ management:
       show-details: always
       probes:
         enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
     info:
       cache:
         time-to-live: 2000ms

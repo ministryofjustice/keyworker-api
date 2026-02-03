@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.tags.Tag
-import org.openapitools.jackson.nullable.JsonNullableModule
 import org.springdoc.core.customizers.OperationCustomizer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.info.BuildProperties
@@ -31,7 +30,7 @@ const val REFERENCE_DATA = "Reference Data"
 class OpenApiConfiguration(
   buildProperties: BuildProperties,
 ) {
-  private val version: String = buildProperties.version
+  private val version: String = buildProperties.version ?: ""
 
   @Autowired
   private lateinit var context: ApplicationContext
@@ -112,9 +111,6 @@ class OpenApiConfiguration(
 
       operation
     }
-
-  @Bean
-  fun jsonNullableModule() = JsonNullableModule()
 
   private fun HandlerMethod.preAuthorizeForMethodOrClass() =
     getMethodAnnotation(PreAuthorize::class.java)?.value
