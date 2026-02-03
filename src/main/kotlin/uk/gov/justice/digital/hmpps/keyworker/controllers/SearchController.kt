@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.RecordedEventRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.RecordedEventResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonSearchRequest
@@ -48,7 +48,7 @@ class SearchController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
   @PostMapping("/prisons/{prisonCode}/staff-allocations")
@@ -72,7 +72,7 @@ class SearchController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
   @PostMapping("/prisons/{prisonCode}/staff")
@@ -94,7 +94,7 @@ class SearchController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @Tag(name = MANAGE_STAFF)
   @PostMapping("/prisons/{prisonCode}/staff/{staffId}/recorded-events")
@@ -118,7 +118,7 @@ class SearchController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @Tag(name = MANAGE_ALLOCATIONS)
   @PostMapping("/prisons/{prisonCode}/prisoners")

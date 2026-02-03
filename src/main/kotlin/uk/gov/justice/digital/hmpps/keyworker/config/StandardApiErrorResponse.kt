@@ -27,4 +27,4 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
     ),
   ],
 )
-internal annotation class StandardAoiErrorResponse
+internal annotation class StandardApiErrorResponse

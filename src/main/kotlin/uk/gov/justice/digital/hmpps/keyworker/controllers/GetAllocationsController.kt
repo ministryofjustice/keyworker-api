@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.person.StaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.services.GetAllocations
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -40,7 +40,7 @@ class GetAllocationsController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @Tag(name = MANAGE_ALLOCATIONS)
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")

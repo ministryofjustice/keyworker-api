@@ -55,7 +55,7 @@ class StaffConfigManager(
       staffConfigRepository.findByStaffId(staffId)?.patch(request) ?: request.createConfig(prisonConfig, staffId)
     }
 
-    val staffRole: StaffRoleInfo? = getStaffRoleIfExists(prisonCode, staffId, request)
+    val staffRole: StaffRoleInfo? = request.staffRoleIfExists(prisonCode, staffId)
     val roleAction =
       request.staffRole.mapOrNull {
         when {
@@ -151,6 +151,36 @@ class StaffConfigManager(
     }
   }
 
+  fun removeStaffRole(
+    prisonCode: String,
+    staffId: Long,
+  ) {
+    val policy = AllocationContext.get().requiredPolicy()
+    deallocateAllocationsFor(prisonCode, staffId)
+    staffConfigRepository.deleteByStaffId(staffId)
+    val staffRole: StaffRoleInfo? = findStaffRole(prisonCode, staffId)
+    policy.nomisUserRoleCode?.also { code ->
+      staffRole?.also {
+        nurApi.setStaffRole(
+          prisonCode,
+          staffId,
+          code,
+          StaffJobClassificationRequest(
+            position = it.position.code,
+            scheduleType = it.scheduleType.code,
+            hoursPerWeek = it.hoursPerWeek,
+            fromDate = it.fromDate,
+            toDate = LocalDate.now(),
+          ),
+        )
+      }
+    } ?: run {
+      staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
+        toDate = LocalDate.now()
+      }
+    }
+  }
+
   private fun NomisStaffRole.staffRoleInfo(): StaffRoleInfo {
     val rd =
       referenceDataRepository
@@ -217,17 +247,27 @@ class StaffConfigManager(
       request.reactivateOn.ifPresent { reactivateOn = it }
     }
 
-  private fun getStaffRoleIfExists(
+  private fun StaffDetailsRequest.staffRoleIfExists(
     prisonCode: String,
     staffId: Long,
-    request: StaffDetailsRequest,
   ): StaffRoleInfo? {
     val policy = AllocationContext.get().requiredPolicy()
-    return request.staffRole.mapOrNull {
+    return staffRole.mapOrNull {
       when (policy.nomisUserRoleCode) {
         null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
         else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
       }
+    }
+  }
+
+  private fun findStaffRole(
+    prisonCode: String,
+    staffId: Long,
+  ): StaffRoleInfo? {
+    val policy = AllocationContext.get().requiredPolicy()
+    return when (policy.nomisUserRoleCode) {
+      null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
+      else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
     }
   }
 

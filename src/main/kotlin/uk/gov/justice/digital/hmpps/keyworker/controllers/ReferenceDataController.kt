@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.REFERENCE_DATA
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.services.RetrieveReferenceData
@@ -36,7 +36,7 @@ class ReferenceDataController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_STAFF
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetailsRequest
@@ -53,7 +54,7 @@ class ManageStaffController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @GetMapping("/staff/{staffId}")
@@ -96,7 +97,7 @@ class ManageStaffController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @CaseloadIdHeader
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
@@ -110,5 +111,28 @@ class ManageStaffController(
     @RequestBody request: StaffDetailsRequest,
   ) {
     staffConfigManager.setStaffDetails(prisonCode, staffId, request)
+  }
+
+  @Operation(summary = "Delete staff details for a specific staff member.")
+  @ApiResponses(
+    value = [
+      ApiResponse(
+        responseCode = "204",
+        description = "Staff details deleted",
+      ),
+    ],
+  )
+  @PolicyHeader
+  @CaseloadIdHeader
+  @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
+  @DeleteMapping("/staff/{staffId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  fun removeStaffRole(
+    @Parameter(description = "The prison's identifier.", example = "MDI", required = true)
+    @PathVariable prisonCode: String,
+    @Parameter(description = "The staff member's identifier.", example = "123456", required = true)
+    @PathVariable staffId: Long,
+  ) {
+    staffConfigManager.removeStaffRole(prisonCode, staffId)
   }
 }

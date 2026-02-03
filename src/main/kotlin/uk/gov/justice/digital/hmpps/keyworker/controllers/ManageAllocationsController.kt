@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.MANAGE_ALLOCATIONS
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.RecommendedAllocations
 import uk.gov.justice.digital.hmpps.keyworker.model.person.PersonStaffAllocations
 import uk.gov.justice.digital.hmpps.keyworker.services.AllocationManager
@@ -43,7 +43,7 @@ class ManageAllocationsController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @CaseloadIdHeader
   @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -68,7 +68,7 @@ class ManageAllocationsController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @GetMapping("/prisoners/allocation-recommendations")
   fun getAllocationRecommendations(
