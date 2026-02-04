@@ -25,7 +25,6 @@ dependencies {
   implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
   implementation("org.hibernate.orm:hibernate-envers")
   implementation("org.springframework.data:spring-data-envers")
-  implementation("org.openapitools:jackson-databind-nullable:0.2.8")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.8.2")
 
   implementation("org.flywaydb:flyway-core")
