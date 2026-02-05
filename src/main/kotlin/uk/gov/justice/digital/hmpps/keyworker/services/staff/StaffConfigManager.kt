@@ -5,6 +5,8 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataDomain.DEALLOCATION_REASON
 import uk.gov.justice.digital.hmpps.keyworker.domain.ReferenceDataKey
@@ -26,6 +28,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetailsRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleInfo
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffRoleRequest
+import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import java.time.LocalDate
 
 @Transactional
@@ -37,13 +40,15 @@ class StaffConfigManager(
   private val nurApi: NomisUserRolesApiClient,
   private val staffRoleRepository: StaffRoleRepository,
   private val prisonApi: PrisonApiClient,
+  private val prisonConfigRepository: PrisonConfigurationRepository,
 ) {
   fun mergeStaffDetails(
     prisonCode: String,
     staffId: Long,
     request: StaffDetailsRequest,
   ) {
-    staffConfigRepository.findByStaffId(staffId)?.update(request) ?: request.createConfig(staffId)
+    val prisonConfig = prisonConfigRepository.findByCode(prisonCode) ?: PrisonConfiguration.default(prisonCode)
+    staffConfigRepository.findByStaffId(staffId)?.update(request) ?: request.createConfig(staffId, prisonConfig)
     request.staffRole.setFor(prisonCode, staffId)
 
     if (request.deactivateActiveAllocations) {
@@ -91,15 +96,24 @@ class StaffConfigManager(
     }
   }
 
-  private fun StaffDetailsRequest.createConfig(staffId: Long): StaffConfiguration =
-    staffConfigRepository.save(
-      StaffConfiguration(
-        referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_STATUS of status),
-        capacity,
-        reactivateOn,
-        staffId,
-      ),
-    )
+  private fun StaffDetailsRequest.createConfig(
+    staffId: Long,
+    defaults: PrisonConfiguration,
+  ) {
+    if (this changes defaults) {
+      staffConfigRepository.save(
+        StaffConfiguration(
+          referenceDataRepository.getReferenceData(ReferenceDataDomain.STAFF_STATUS of status),
+          capacity,
+          reactivateOn,
+          staffId,
+        ),
+      )
+    }
+  }
+
+  private infix fun StaffDetailsRequest.changes(pc: PrisonConfiguration): Boolean =
+    status != StaffStatus.ACTIVE.name || capacity != pc.capacity || reactivateOn != null
 
   private fun StaffConfiguration.update(request: StaffDetailsRequest) =
     apply {

@@ -55,6 +55,39 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
 
   @ParameterizedTest
   @MethodSource("policyProvider")
+  fun `does not create staff config for defaults`(policy: AllocationPolicy) {
+    val prisonCode = "NDS"
+    val staffId = newId()
+    val username = username()
+    val pc = givenPrisonConfig(prisonConfig(prisonCode, true))
+
+    if (policy == AllocationPolicy.KEY_WORKER) {
+      nomisUserRolesMockServer.stubSetStaffRole(
+        StaffJobClassification(
+          prisonCode,
+          staffId,
+          StaffJobClassificationRequest(
+            "PRO",
+            "FT",
+            BigDecimal(37.5),
+            now().minusDays(7),
+            null,
+          ),
+        ),
+      )
+    }
+
+    val request = staffDetailsRequest(capacity = pc.capacity)
+    setStaffDetails(prisonCode, staffId, request, policy, username = username)
+      .expectStatus()
+      .isNoContent
+
+    setContext(AllocationContext.get().copy(policy = policy))
+    assertThat(staffConfigRepository.findByStaffId(staffId)).isNull()
+  }
+
+  @ParameterizedTest
+  @MethodSource("policyProvider")
   fun `create staff config with submitted and fallback values if not already exists`(policy: AllocationPolicy) {
     val prisonCode = "UBP"
     val staffId = newId()
