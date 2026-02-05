@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.tags.Tag
-import org.openapitools.jackson.nullable.JsonNullableModule
 import org.springdoc.core.customizers.OperationCustomizer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.info.BuildProperties
@@ -112,9 +111,6 @@ class OpenApiConfiguration(
 
       operation
     }
-
-  @Bean
-  fun jsonNullableModule() = JsonNullableModule()
 
   private fun HandlerMethod.preAuthorizeForMethodOrClass() =
     getMethodAnnotation(PreAuthorize::class.java)?.value

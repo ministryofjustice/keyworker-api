@@ -103,14 +103,14 @@ class ManageStaffController(
   @PreAuthorize("hasRole('${Roles.ALLOCATIONS_UI}')")
   @PutMapping("/staff/{staffId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  fun modifyStaffDetails(
+  fun mergeStaffDetails(
     @Parameter(description = "The prison's identifier.", example = "MDI", required = true)
     @PathVariable prisonCode: String,
     @Parameter(description = "The staff member's identifier.", example = "123456", required = true)
     @PathVariable staffId: Long,
     @RequestBody request: StaffDetailsRequest,
   ) {
-    staffConfigManager.setStaffDetails(prisonCode, staffId, request)
+    staffConfigManager.mergeStaffDetails(prisonCode, staffId, request)
   }
 
   @Operation(summary = "Delete staff details for a specific staff member.")
