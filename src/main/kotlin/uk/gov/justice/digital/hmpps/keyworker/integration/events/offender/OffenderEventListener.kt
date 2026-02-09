@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.keyworker.integration.events.offender
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -22,7 +20,6 @@ class OffenderEventListener(
   private val prisonRegisterApi: PrisonRegisterClient,
 ) {
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "keyworker-api-offender-event-queue", kind = SpanKind.SERVER)
   fun eventListener(requestJson: String) =
     try {
       val notification = objectMapper.readValue<Notification<String>>(requestJson)

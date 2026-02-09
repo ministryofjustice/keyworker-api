@@ -47,7 +47,7 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
       setPrisonPolicies(prisonCode)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.developerMessage).isEqualTo("Provided prison code was invalid")

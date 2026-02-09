@@ -6,7 +6,7 @@ on:
       java_version:
         description: Java version
         type: string
-        default: '21'
+        default: '25'
       java_options:
         description: Java options
         type: string
@@ -87,7 +87,7 @@ jobs:
           java -jar /tmp/schemaspy.jar -t pgsql -dp /tmp/postgres-driver.jar -db ${{ inputs.database_name }} -host localhost -port 5432 -s ${{ inputs.database_schema }} -vizjs -u ${{ inputs.database_user }} -p ${{ inputs.database_password }} -I ${{ inputs.exclude }} -o /tmp/schema-spy-report
 
       - name: Publish HTML report
-        uses: JamesIves/github-pages-deploy-action@9d877eea73427180ae43cf98e8914934fe157a1a # v4.7.6
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
           folder: /tmp/schema-spy-report/
           target-folder: schema-spy-report

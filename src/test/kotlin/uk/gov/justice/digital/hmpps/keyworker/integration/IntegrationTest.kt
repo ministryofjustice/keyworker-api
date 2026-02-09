@@ -75,7 +75,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
-import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -84,6 +83,7 @@ import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.publish
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -115,7 +115,7 @@ abstract class IntegrationTest {
   lateinit var webTestClient: WebTestClient
 
   @Autowired
-  internal lateinit var jwtAuthHelper: JwtAuthHelper
+  internal lateinit var jwtAuthHelper: JwtAuthorisationHelper
 
   @Autowired
   internal lateinit var recordedEventRepository: RecordedEventRepository
@@ -314,7 +314,7 @@ abstract class IntegrationTest {
     username: String? = "ITAG_USER",
     roles: List<String>? = emptyList(),
   ): (HttpHeaders) -> Unit {
-    val token = jwtAuthHelper.createJwt(subject = username, roles = roles)
+    val token = jwtAuthHelper.createJwtAccessToken(username = username, roles = roles)
     return {
       it.setBearerAuth(token)
       it.contentType = MediaType.APPLICATION_JSON
@@ -409,14 +409,15 @@ abstract class IntegrationTest {
     staffId: Long = newId(),
     capacity: Int = 6,
     reactivateOn: LocalDate? = null,
-  ) = {
-    StaffConfiguration(
-      withReferenceData(STAFF_STATUS, status.name),
-      capacity,
-      reactivateOn,
-      staffId,
-    )
-  }
+  ): () -> StaffConfiguration =
+    {
+      StaffConfiguration(
+        withReferenceData(STAFF_STATUS, status.name),
+        capacity,
+        reactivateOn,
+        staffId,
+      )
+    }
 
   protected fun givenStaffConfig(staffConfig: () -> StaffConfiguration): StaffConfiguration =
     transactionTemplate.execute {
@@ -431,17 +432,18 @@ abstract class IntegrationTest {
     hoursPerWeek: BigDecimal = BigDecimal(37.5),
     fromDate: LocalDate = LocalDate.now().minusDays(7),
     toDate: LocalDate? = null,
-  ) = {
-    StaffRole(
-      withReferenceData(ReferenceDataDomain.STAFF_POSITION, position),
-      withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, scheduleType),
-      hoursPerWeek,
-      fromDate,
-      toDate,
-      prisonCode,
-      staffId,
-    )
-  }
+  ): () -> StaffRole =
+    {
+      StaffRole(
+        withReferenceData(ReferenceDataDomain.STAFF_POSITION, position),
+        withReferenceData(ReferenceDataDomain.STAFF_SCHEDULE_TYPE, scheduleType),
+        hoursPerWeek,
+        fromDate,
+        toDate,
+        prisonCode,
+        staffId,
+      )
+    }
 
   protected fun givenStaffRole(staffRole: () -> StaffRole): StaffRole =
     transactionTemplate.execute {
@@ -459,20 +461,21 @@ abstract class IntegrationTest {
     deallocatedAt: LocalDateTime? = null,
     deallocationReason: DeallocationReason? = null,
     deallocatedBy: String? = null,
-  ) = {
-    Allocation(
-      personIdentifier,
-      prisonCode,
-      staffId,
-      allocatedAt,
-      active,
-      allocationReason.asReferenceData(),
-      allocatedBy,
-      deallocatedAt,
-      deallocationReason?.asReferenceData(),
-      deallocatedBy,
-    )
-  }
+  ): () -> Allocation =
+    {
+      Allocation(
+        personIdentifier,
+        prisonCode,
+        staffId,
+        allocatedAt,
+        active,
+        allocationReason.asReferenceData(),
+        allocatedBy,
+        deallocatedAt,
+        deallocationReason?.asReferenceData(),
+        deallocatedBy,
+      )
+    }
 
   protected fun givenAllocation(allocation: () -> Allocation): Allocation =
     transactionTemplate.execute { allocationRepository.save(allocation()) }

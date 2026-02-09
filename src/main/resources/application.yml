@@ -53,8 +53,7 @@ spring:
           hmpps-auth:
             token-uri: ${auth.uri.root}/oauth/token
 
-  codec:
-    max-in-memory-size: 20MB
+  threads.virtual.enabled: true
 
   profiles:
     group:
@@ -66,6 +65,9 @@ spring:
         - "postgres"
         - "local"
         - "localstack"
+  http:
+    codecs:
+      max-in-memory-size: 20MB
 
 springdoc:
   paths-to-exclude: "/queue-admin/**"

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -62,7 +63,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
-        .expectBody(RecommendedAllocations::class.java)
+        .expectBody<RecommendedAllocations>()
         .returnResult()
         .responseBody!!
 
@@ -88,7 +89,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     }
 
-    staff.map {
+    staff.forEach {
       givenAllocation(staffAllocation(personIdentifier(), prisonCode, it.staffId))
     }
 
@@ -96,7 +97,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
-        .expectBody(RecommendedAllocations::class.java)
+        .expectBody<RecommendedAllocations>()
         .returnResult()
         .responseBody!!
 
@@ -140,7 +141,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
             ),
           )
         }.associateBy { it.staffId }
-    staffAtCapacity.map { s ->
+    staffAtCapacity.forEach { s ->
       givenAllocation(
         staffAllocation(personIdentifier(), prisonCode, s.staffId),
       )
@@ -150,7 +151,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
-        .expectBody(RecommendedAllocations::class.java)
+        .expectBody<RecommendedAllocations>()
         .returnResult()
         .responseBody!!
 
@@ -217,7 +218,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
-        .expectBody(RecommendedAllocations::class.java)
+        .expectBody<RecommendedAllocations>()
         .returnResult()
         .responseBody!!
 
@@ -239,7 +240,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
 
     val staff = (0..4).map { nomisStaffRole() }
-    staff.map { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 6)) }
+    staff.forEach { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 6)) }
     prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
     if (policy == AllocationPolicy.KEY_WORKER) {
       prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
@@ -258,7 +259,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
-        .expectBody(RecommendedAllocations::class.java)
+        .expectBody<RecommendedAllocations>()
         .returnResult()
         .responseBody!!
 
@@ -315,7 +316,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
       getAllocationRecommendations(prisonCode, policy)
         .expectStatus()
         .isOk
-        .expectBody(RecommendedAllocations::class.java)
+        .expectBody<RecommendedAllocations>()
         .returnResult()
         .responseBody!!
 

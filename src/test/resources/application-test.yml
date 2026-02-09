@@ -49,11 +49,7 @@ spring:
         jwt:
           public-key-location: classpath:local-public-key.pub
   jpa:
-    open-in-view: false
     show-sql: true
-    generate-ddl: false
-    hibernate:
-      ddl-auto: none
 
 api.health-timeout-ms: 400
 

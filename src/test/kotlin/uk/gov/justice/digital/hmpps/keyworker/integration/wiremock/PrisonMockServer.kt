@@ -6,8 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.migration.Movement
-import uk.gov.justice.digital.hmpps.keyworker.migration.PoHistoricAllocation
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
 import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
 
@@ -101,41 +99,6 @@ class PrisonMockServer : WireMockServer(9999) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.NOT_FOUND.value()),
-        ),
-    )
-  }
-
-  fun stubPoAllocationHistory(
-    prisonCode: String,
-    response: List<PoHistoricAllocation>,
-  ) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/personal-officer/$prisonCode/allocation-history"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(response)),
-        ),
-    )
-  }
-
-  fun stubGetMovements(
-    personIdentifier: String,
-    response: List<Movement>,
-  ) {
-    stubFor(
-      WireMock
-        .get(WireMock.urlPathEqualTo("/api/movements/offender/$personIdentifier"))
-        .withQueryParam("allBookings", equalTo("true"))
-        .willReturn(
-          WireMock
-            .aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(response)),
         ),
     )
   }

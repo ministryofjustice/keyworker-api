@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
@@ -75,34 +76,33 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         }
       }
 
-    staffConfigs
-      .mapIndexed { index, sc ->
-        (0..index)
-          .map {
-            givenAllocation(
-              staffAllocation(
-                personIdentifier(),
-                prisonCode,
-                sc.staffId,
-                allocatedAt = LocalDateTime.now().minusMonths(1),
-              ),
-            )
-          }.apply {
-            sc.generateRecordedEvent(
-              policy,
+    staffConfigs.flatMapIndexed { index, sc ->
+      (0..index)
+        .map {
+          givenAllocation(
+            staffAllocation(
+              personIdentifier(),
               prisonCode,
-              ReportingPeriod.currentMonth(),
-              map { it.personIdentifier }.toSet(),
-              index,
-            )
-          }
-      }.flatten()
+              sc.staffId,
+              allocatedAt = LocalDateTime.now().minusMonths(1),
+            ),
+          )
+        }.apply {
+          sc.generateRecordedEvent(
+            policy,
+            prisonCode,
+            ReportingPeriod.currentMonth(),
+            map { it.personIdentifier }.toSet(),
+            index,
+          )
+        }
+    }
 
     val response =
       searchStaffSpec(prisonCode, request, policy, true)
         .expectStatus()
         .isOk
-        .expectBody(AllocatableSearchResponse::class.java)
+        .expectBody<AllocatableSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -189,7 +189,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request, policy, false)
         .expectStatus()
         .isOk
-        .expectBody(AllocatableSearchResponse::class.java)
+        .expectBody<AllocatableSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -226,28 +226,27 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         }
       }
 
-    staffConfigs
-      .mapIndexed { index, kw ->
-        (0..index)
-          .map {
-            val personIdentifier = personIdentifier()
-            givenAllocation(
-              staffAllocation(
-                personIdentifier,
-                prisonCode,
-                kw.staffId,
-                allocatedAt = LocalDateTime.now().minusMonths(1),
-              ),
-            )
-            personIdentifier
-          }.apply { kw.generateRecordedEvent(policy, prisonCode, currentMonth, toSet(), index) }
-      }.flatten()
+    staffConfigs.flatMapIndexed { index, kw ->
+      (0..index)
+        .map {
+          val personIdentifier = personIdentifier()
+          givenAllocation(
+            staffAllocation(
+              personIdentifier,
+              prisonCode,
+              kw.staffId,
+              allocatedAt = LocalDateTime.now().minusMonths(1),
+            ),
+          )
+          personIdentifier
+        }.apply { kw.generateRecordedEvent(policy, prisonCode, currentMonth, toSet(), index) }
+    }
 
     val response =
       searchStaffSpec(prisonCode, request, policy)
         .expectStatus()
         .isOk
-        .expectBody(AllocatableSearchResponse::class.java)
+        .expectBody<AllocatableSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -295,7 +294,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request, policy, true)
         .expectStatus()
         .isOk
-        .expectBody(AllocatableSearchResponse::class.java)
+        .expectBody<AllocatableSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -360,22 +359,21 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
         }
       }
 
-    staffConfigs
-      .mapIndexed { index, s ->
-        (0..index)
-          .map {
-            val personIdentifier = personIdentifier()
-            givenAllocation(
-              staffAllocation(
-                personIdentifier,
-                prisonCode,
-                s.staffId,
-                allocatedAt = LocalDateTime.now().minusMonths(1),
-              ),
-            )
-            personIdentifier
-          }.apply { s.generateRecordedEvent(policy, prisonCode, ReportingPeriod.currentMonth(), toSet(), index) }
-      }.flatten()
+    staffConfigs.flatMapIndexed { index, s ->
+      (0..index)
+        .map {
+          val personIdentifier = personIdentifier()
+          givenAllocation(
+            staffAllocation(
+              personIdentifier,
+              prisonCode,
+              s.staffId,
+              allocatedAt = LocalDateTime.now().minusMonths(1),
+            ),
+          )
+          personIdentifier
+        }.apply { s.generateRecordedEvent(policy, prisonCode, ReportingPeriod.currentMonth(), toSet(), index) }
+    }
 
     val request = searchRequest("John Smith")
 
@@ -383,7 +381,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
       searchStaffSpec(prisonCode, request, policy)
         .expectStatus()
         .isOk
-        .expectBody(AllocatableSearchResponse::class.java)
+        .expectBody<AllocatableSearchResponse>()
         .returnResult()
         .responseBody!!
 
@@ -420,7 +418,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     index: Int,
   ) {
     val currentDateRange = dateRange(reportingPeriod.from.toLocalDate(), reportingPeriod.to.toLocalDate())
-    (1..index / 2).map {
+    (1..index / 2).forEach { _ ->
       givenRecordedEvent(
         recordedEvent(
           prisonCode,
@@ -433,7 +431,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     }
 
     if (policy == AllocationPolicy.KEY_WORKER) {
-      (1..index).map {
+      (1..index).forEach { _ ->
         givenRecordedEvent(
           recordedEvent(
             prisonCode,

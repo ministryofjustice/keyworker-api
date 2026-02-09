@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.microsoft.applicationinsights.TelemetryClient
 import io.awspring.cloud.sqs.annotation.SqsListener
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -38,7 +36,6 @@ class DomainEventListener(
   private val telemetryClient: TelemetryClient,
 ) {
   @SqsListener("domaineventsqueue", factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "keyworker-api-complexity-event-queue", kind = SpanKind.SERVER)
   fun eventListener(notification: Notification<String>) =
     try {
       when (val eventType = EventType.from(notification.eventType)) {

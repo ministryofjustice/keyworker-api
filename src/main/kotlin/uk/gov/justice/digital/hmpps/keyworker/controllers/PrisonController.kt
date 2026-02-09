@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.config.PRISON
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
-import uk.gov.justice.digital.hmpps.keyworker.config.StandardAoiErrorResponse
+import uk.gov.justice.digital.hmpps.keyworker.config.StandardApiErrorResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigResponse
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
@@ -53,13 +53,12 @@ class PrisonController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @CaseloadIdHeader
   @PutMapping(value = ["/configurations"])
   fun setPrisonConfiguration(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
     @Valid @RequestBody request: PrisonConfigRequest,
   ): PrisonConfigResponse = prisonService.setPrisonConfig(prisonCode, request)
 
@@ -79,12 +78,11 @@ class PrisonController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @GetMapping(value = ["/configurations"])
   fun getPrisonConfiguration(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
   ): PrisonConfigResponse = prisonService.getPrisonConfig(prisonCode)
 
   @Operation(
@@ -104,11 +102,10 @@ class PrisonController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @GetMapping(value = ["/policies"])
   fun getPrisonPolicies(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
   ) = prisonService.getPrisonPolicies(prisonCode)
 
   @Operation(
@@ -128,12 +125,11 @@ class PrisonController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @CaseloadIdHeader
   @PutMapping(value = ["/policies"])
   fun setPrisonPolicies(
-    @Parameter(required = true, example = "MDI", description = "The identifier of the prison.")
-    @PathVariable("prisonCode") prisonCode: String,
+    @PathVariable @Parameter(required = true, example = "MDI", description = "The identifier of the prison.") prisonCode: String,
     @RequestBody policies: PrisonPolicies,
   ) = prisonService.setPrisonPolicies(prisonCode, policies)
 
@@ -148,7 +144,7 @@ class PrisonController(
       ),
     ],
   )
-  @StandardAoiErrorResponse
+  @StandardApiErrorResponse
   @PolicyHeader
   @GetMapping("/statistics")
   fun getPrisonStatistics(

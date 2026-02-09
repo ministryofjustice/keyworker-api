@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
@@ -58,7 +59,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       allocateAndDeallocate("NEN", personStaffAllocations(), policy)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: At least one allocation or deallocation must be provided")
@@ -72,7 +73,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       allocateAndDeallocate("NEN", personStaffAllocations(listOf(personStaffAllocation())), policy)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: Prison not enabled")
@@ -91,7 +92,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
         policy,
       ).expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: Prison does not allow auto-allocation")
@@ -114,7 +115,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: A provided person identifier is not currently at the provided prison")
@@ -138,7 +139,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not allocatable for the provided prison")
@@ -168,7 +169,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
       allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
         .expectStatus()
         .isBadRequest
-        .expectBody(ErrorResponse::class.java)
+        .expectBody<ErrorResponse>()
         .returnResult()
         .responseBody!!
     assertThat(res.userMessage).isEqualTo("Validation failure: A provided staff id is not configured correctly for the allocation reason")
