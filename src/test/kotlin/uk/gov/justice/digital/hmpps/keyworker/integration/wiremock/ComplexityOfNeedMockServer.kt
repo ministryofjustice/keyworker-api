@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.complexityofneed.ComplexityOfNeed
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 
 class ComplexityOfNeedMockServer : WireMockServer(10000) {
   fun stubComplexOffenders(
@@ -15,13 +15,13 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
     stubFor(
       WireMock
         .post(WireMock.urlPathEqualTo("/v1/complexity-of-need/multiple/offender-no"))
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(personIdentifiers), true, true))
+        .withRequestBody(equalToJson(jsonMapper.writeValueAsString(personIdentifiers), true, true))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(response)),
+            .withBody(jsonMapper.writeValueAsString(response)),
         ),
     )
   }

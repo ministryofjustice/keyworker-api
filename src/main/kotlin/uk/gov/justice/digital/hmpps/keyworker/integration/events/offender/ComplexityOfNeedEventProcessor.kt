@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.events.offender
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.stereotype.Service
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
@@ -20,12 +20,12 @@ data class ComplexityOfNeedChange(
 
 @Service
 class ComplexityOfNeedEventProcessor(
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
   private val complexityOfNeed: ComplexityOfNeedApiClient,
   private val deallocationService: DeallocationService,
 ) {
   fun onComplexityChange(message: String) {
-    val event = objectMapper.readValue<ComplexityOfNeedChange>(message)
+    val event = jsonMapper.readValue<ComplexityOfNeedChange>(message)
     val complexityLevel = ComplexityOfNeedLevel.valueOf(event.level.uppercase())
     if (event.active != true || complexityLevel != ComplexityOfNeedLevel.HIGH) {
       return

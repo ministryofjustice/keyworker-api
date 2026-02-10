@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.wiremock
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import com.github.tomakehurst.wiremock.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper
 
 class OAuthMockServer : WireMockServer(8090) {
   fun stubGrantToken() {
@@ -16,7 +16,7 @@ class OAuthMockServer : WireMockServer(8090) {
           WireMock
             .aResponse()
             .withHeaders(HttpHeaders(HttpHeader("Content-Type", "application/json")))
-            .withBody(jacksonObjectMapper().writeValueAsString(mapOf("access_token" to "ABCDE", "token_type" to "bearer"))),
+            .withBody(JsonHelper.jsonMapper.writeValueAsString(mapOf("access_token" to "ABCDE", "token_type" to "bearer"))),
         ),
     )
   }

@@ -11,7 +11,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerNumbers
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoners
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 import java.time.LocalDate
 
 class PrisonerSearchMockServer : WireMockServer(9996) {
@@ -24,7 +24,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(prisoners))
+            .withBody(jsonMapper.writeValueAsString(prisoners))
             .withStatus(200),
         ),
     )
@@ -42,7 +42,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
       request.willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
-          .withBody(objectMapper.writeValueAsString(prisoners))
+          .withBody(jsonMapper.writeValueAsString(prisoners))
           .withStatus(200),
       ),
     )
@@ -72,11 +72,11 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
   ): StubMapping =
     stubFor(
       post(urlPathEqualTo("/prisoner-search/prisoner-numbers"))
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(PrisonerNumbers(prisonNumbers)), true, true))
+        .withRequestBody(equalToJson(jsonMapper.writeValueAsString(PrisonerNumbers(prisonNumbers)), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(prisoners))
+            .withBody(jsonMapper.writeValueAsString(prisoners))
             .withStatus(200),
         ),
     )

@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 
 class PrisonMockServer : WireMockServer(9999) {
   fun stubHealthOKResponse() {
@@ -43,13 +43,13 @@ class PrisonMockServer : WireMockServer(9999) {
     stubFor(
       WireMock
         .post(WireMock.urlEqualTo("/api/staff"))
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(staffSummaries.map { it.staffId }), true, true))
+        .withRequestBody(equalToJson(jsonMapper.writeValueAsString(staffSummaries.map { it.staffId }), true, true))
         .willReturn(
           WireMock
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(staffSummaries)),
+            .withBody(jsonMapper.writeValueAsString(staffSummaries)),
         ),
     )
   }
@@ -68,7 +68,7 @@ class PrisonMockServer : WireMockServer(9999) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(listOfNotNull(staffDetail))),
+            .withBody(jsonMapper.writeValueAsString(listOfNotNull(staffDetail))),
         ),
     )
   }
@@ -85,7 +85,7 @@ class PrisonMockServer : WireMockServer(9999) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(response)),
+            .withBody(jsonMapper.writeValueAsString(response)),
         ),
     )
   }
@@ -115,7 +115,7 @@ class PrisonMockServer : WireMockServer(9999) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(if (staffEmail == null) HttpStatus.NO_CONTENT.value() else HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(setOfNotNull(staffEmail))),
+            .withBody(jsonMapper.writeValueAsString(setOfNotNull(staffEmail))),
         ),
     )
   }

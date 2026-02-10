@@ -74,7 +74,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -176,14 +176,14 @@ abstract class IntegrationTest {
         is HmppsDomainEvent<*> -> event.eventType
         else -> throw IllegalArgumentException("Unknown event $event")
       }
-    domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event), attributes = snsAttributes)
+    domainEventsTopic.publish(eventType, jsonMapper.writeValueAsString(event), attributes = snsAttributes)
   }
 
   internal fun publishOffenderEvent(
     eventType: String,
     event: OffenderEvent,
   ) {
-    offenderEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
+    offenderEventsTopic.publish(eventType, jsonMapper.writeValueAsString(event))
   }
 
   internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl = queueUrl).get()

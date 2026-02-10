@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.events.offender
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Service
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.readValue
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
@@ -15,17 +15,17 @@ import java.time.LocalDateTime
 
 @Service
 class OffenderEventListener(
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
   private val deallocationService: DeallocationService,
   private val prisonRegisterApi: PrisonRegisterClient,
 ) {
   @SqsListener("offenderevents", factory = "hmppsQueueContainerFactoryProxy")
   fun eventListener(requestJson: String) =
     try {
-      val notification = objectMapper.readValue<Notification<String>>(requestJson)
+      val notification = jsonMapper.readValue<Notification<String>>(requestJson)
       val eventType = notification.eventType
       val event =
-        objectMapper
+        jsonMapper
           .readValue<OffenderEvent>(notification.message)
           .takeIf { it.toAgencyLocationId != null && it.offenderIdDisplay != null }
       when (eventType) {
