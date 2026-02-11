@@ -43,7 +43,7 @@ data class Prisoner(
 ) {
   companion object {
     fun fields() =
-      setOf(
+      arrayOf(
         Prisoner::prisonerNumber.name,
         Prisoner::firstName.name,
         Prisoner::lastName.name,

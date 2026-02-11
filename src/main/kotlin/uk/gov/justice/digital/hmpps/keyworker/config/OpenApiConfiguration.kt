@@ -30,7 +30,7 @@ const val REFERENCE_DATA = "Reference Data"
 class OpenApiConfiguration(
   buildProperties: BuildProperties,
 ) {
-  private val version: String = buildProperties.version
+  private val version: String? = buildProperties.version
 
   @Autowired
   private lateinit var context: ApplicationContext

@@ -5,7 +5,7 @@ spring:
     show-sql: false
     generate-ddl: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
 
     properties:
       hibernate.jdbc.lob.non_contextual_creation: true
@@ -34,8 +34,9 @@ spring:
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
-    serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
 
   security:
     oauth2:

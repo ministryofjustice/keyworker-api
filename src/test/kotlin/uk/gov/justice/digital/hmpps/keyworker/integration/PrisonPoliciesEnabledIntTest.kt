@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -170,13 +171,20 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
     request: PrisonPolicies = PrisonPolicies(emptySet()),
     caseloadId: String? = null,
     role: String? = Roles.ALLOCATIONS_UI,
-  ) = webTestClient
-    .put()
-    .uri(PRISON_POLICIES_URL, prisonCode)
-    .bodyValue(request)
-    .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
-    .header(CaseloadIdHeader.NAME, caseloadId)
-    .exchange()
+  ): WebTestClient.ResponseSpec {
+    val client =
+      webTestClient
+        .put()
+        .uri(PRISON_POLICIES_URL, prisonCode)
+        .bodyValue(request)
+        .headers(setHeaders(username = "keyworker-ui", roles = listOfNotNull(role)))
+
+    if (caseloadId != null) {
+      client.header(CaseloadIdHeader.NAME, caseloadId)
+    }
+
+    return client.exchange()
+  }
 
   private fun getPrisonPolicies(
     prisonCode: String,

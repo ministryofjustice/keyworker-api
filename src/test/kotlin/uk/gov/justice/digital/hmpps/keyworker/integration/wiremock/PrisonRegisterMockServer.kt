@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.services.PrisonsByIdsRequest
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 
 class PrisonRegisterMockServer : WireMockServer(9995) {
   fun stubGetPrisons(prisons: Set<Prison>) {
@@ -15,7 +15,7 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
         .post(WireMock.urlPathEqualTo("/prisons/prisonsByIds"))
         .withRequestBody(
           equalToJson(
-            objectMapper.writeValueAsString(PrisonsByIdsRequest(prisons.map { it.prisonId }.toSet())),
+            jsonMapper.writeValueAsString(PrisonsByIdsRequest(prisons.map { it.prisonId }.toSet())),
             true,
             true,
           ),
@@ -24,7 +24,7 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(prisons)),
+            .withBody(jsonMapper.writeValueAsString(prisons)),
         ),
     )
   }
@@ -38,7 +38,7 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
         .post(WireMock.urlPathEqualTo("/prisons/prisonsByIds"))
         .withRequestBody(
           equalToJson(
-            objectMapper.writeValueAsString(PrisonsByIdsRequest(prisonCodes)),
+            jsonMapper.writeValueAsString(PrisonsByIdsRequest(prisonCodes)),
             true,
             true,
           ),
@@ -47,7 +47,7 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(prisons)),
+            .withBody(jsonMapper.writeValueAsString(prisons)),
         ),
     )
   }

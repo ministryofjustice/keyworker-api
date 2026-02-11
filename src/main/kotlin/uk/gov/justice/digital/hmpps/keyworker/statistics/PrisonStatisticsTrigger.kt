@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.keyworker.statistics
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.retry.RetryPolicy
 import org.springframework.retry.backoff.BackOffPolicy
 import org.springframework.retry.support.RetryTemplate
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse
+import tools.jackson.databind.json.JsonMapper
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
@@ -27,7 +27,7 @@ import java.util.UUID
 class PrisonStatisticsTrigger(
   private val prisonConfigRepository: PrisonConfigurationRepository,
   private val queueService: HmppsQueueService,
-  private val objectMapper: ObjectMapper,
+  private val jsonMapper: JsonMapper,
 ) {
   private val eventQueue: HmppsQueue by lazy {
     queueService.findByQueueId("domaineventsqueue") ?: throw IllegalStateException("Queue not available")
@@ -67,11 +67,11 @@ class PrisonStatisticsTrigger(
         .entries(
           events.map {
             val notification =
-              Notification(objectMapper.writeValueAsString(it), attributes = MessageAttributes(it.eventType))
+              Notification(jsonMapper.writeValueAsString(it), attributes = MessageAttributes(it.eventType))
             SendMessageBatchRequestEntry
               .builder()
               .id(UUID.randomUUID().toString())
-              .messageBody(objectMapper.writeValueAsString(notification))
+              .messageBody(jsonMapper.writeValueAsString(notification))
               .build()
           },
         ).build()

@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisSt
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassification
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSearchRequest
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 
 class NomisUserRolesMockServer : WireMockServer(9994) {
   fun stubSetStaffRole(sjc: StaffJobClassification) {
@@ -18,7 +18,7 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
         .put(WireMock.urlPathEqualTo("/agency/${sjc.prisonCode}/staff-members/${sjc.staffId}/staff-role/KW"))
         .withRequestBody(
           equalToJson(
-            objectMapper.writeValueAsString(sjc.asRequest()),
+            jsonMapper.writeValueAsString(sjc.asRequest()),
             true,
             true,
           ),
@@ -27,7 +27,7 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
             .aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(HttpStatus.OK.value())
-            .withBody(objectMapper.writeValueAsString(sjc)),
+            .withBody(jsonMapper.writeValueAsString(sjc)),
         ),
     )
   }
@@ -49,7 +49,7 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
           .aResponse()
           .withHeader("Content-Type", "application/json")
           .withStatus(HttpStatus.OK.value())
-          .withBody(objectMapper.writeValueAsString(response)),
+          .withBody(jsonMapper.writeValueAsString(response)),
       ),
     )
   }

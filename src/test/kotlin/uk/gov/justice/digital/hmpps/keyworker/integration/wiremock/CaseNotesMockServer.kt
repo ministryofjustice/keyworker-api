@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.CaseNotesOfInterest
 import uk.gov.justice.digital.hmpps.keyworker.integration.casenotes.SearchCaseNotes
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
@@ -27,7 +27,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(caseNote))
+            .withBody(jsonMapper.writeValueAsString(caseNote))
             .withStatus(200),
         ),
     )
@@ -39,11 +39,11 @@ class CaseNotesMockServer : WireMockServer(9997) {
   ): StubMapping =
     stubFor(
       post("/search/case-notes/$personIdentifier")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(SearchCaseNotes(ofInterest.asRequest())), true, true))
+        .withRequestBody(equalToJson(jsonMapper.writeValueAsString(SearchCaseNotes(ofInterest.asRequest())), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(response))
+            .withBody(jsonMapper.writeValueAsString(response))
             .withStatus(200),
         ),
     )
@@ -56,11 +56,11 @@ class CaseNotesMockServer : WireMockServer(9997) {
   ): StubMapping =
     stubFor(
       post("/search/case-notes/prisons/$prisonCode/authors/$staffId")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(request), true, true))
+        .withRequestBody(equalToJson(jsonMapper.writeValueAsString(request), true, true))
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(objectMapper.writeValueAsString(response))
+            .withBody(jsonMapper.writeValueAsString(response))
             .withStatus(200),
         ),
     )

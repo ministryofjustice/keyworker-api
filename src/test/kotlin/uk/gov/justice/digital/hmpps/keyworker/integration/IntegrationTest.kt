@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
@@ -73,8 +74,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.IdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
-import uk.gov.justice.digital.hmpps.keyworker.utils.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -83,11 +83,13 @@ import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.publish
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+@AutoConfigureWebTestClient
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTest {
@@ -113,7 +115,7 @@ abstract class IntegrationTest {
   lateinit var webTestClient: WebTestClient
 
   @Autowired
-  internal lateinit var jwtAuthHelper: JwtAuthHelper
+  internal lateinit var jwtAuthHelper: JwtAuthorisationHelper
 
   @Autowired
   internal lateinit var recordedEventRepository: RecordedEventRepository
@@ -174,17 +176,17 @@ abstract class IntegrationTest {
         is HmppsDomainEvent<*> -> event.eventType
         else -> throw IllegalArgumentException("Unknown event $event")
       }
-    domainEventsTopic.publish(eventType, objectMapper.writeValueAsString(event), attributes = snsAttributes)
+    domainEventsTopic.publish(eventType, jsonMapper.writeValueAsString(event), attributes = snsAttributes)
   }
 
   internal fun publishOffenderEvent(
     eventType: String,
     event: OffenderEvent,
   ) {
-    offenderEventsTopic.publish(eventType, objectMapper.writeValueAsString(event))
+    offenderEventsTopic.publish(eventType, jsonMapper.writeValueAsString(event))
   }
 
-  internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl).get()
+  internal fun HmppsQueue.countAllMessagesOnQueue() = sqsClient.countAllMessagesOnQueue(queueUrl = queueUrl).get()
 
   internal fun verifyAudit(
     entity: Any,
@@ -312,7 +314,7 @@ abstract class IntegrationTest {
     username: String? = "ITAG_USER",
     roles: List<String>? = emptyList(),
   ): (HttpHeaders) -> Unit {
-    val token = jwtAuthHelper.createJwt(subject = username, roles = roles)
+    val token = jwtAuthHelper.createJwtAccessToken(username = username, roles = roles)
     return {
       it.setBearerAuth(token)
       it.contentType = MediaType.APPLICATION_JSON
@@ -420,7 +422,7 @@ abstract class IntegrationTest {
   protected fun givenStaffConfig(staffConfig: () -> StaffConfiguration): StaffConfiguration =
     transactionTemplate.execute {
       staffConfigRepository.save(staffConfig())
-    }!!
+    }
 
   protected fun staffRole(
     prisonCode: String,
@@ -446,7 +448,7 @@ abstract class IntegrationTest {
   protected fun givenStaffRole(staffRole: () -> StaffRole): StaffRole =
     transactionTemplate.execute {
       staffRoleRepository.save(staffRole())
-    }!!
+    }
 
   protected fun staffAllocation(
     personIdentifier: String,
@@ -476,12 +478,12 @@ abstract class IntegrationTest {
     }
 
   protected fun givenAllocation(allocation: () -> Allocation): Allocation =
-    transactionTemplate.execute { allocationRepository.save(allocation()) }!!
+    transactionTemplate.execute { allocationRepository.save(allocation()) }
 
   protected fun givenRecordedEvent(re: () -> RecordedEvent): RecordedEvent =
     transactionTemplate.execute {
       recordedEventRepository.save(re())
-    }!!
+    }
 
   protected fun withReferenceData(
     domain: ReferenceDataDomain,

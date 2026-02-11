@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import uk.gov.justice.digital.hmpps.keyworker.integration.UserDetails
-import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.objectMapper
+import uk.gov.justice.digital.hmpps.keyworker.utils.JsonHelper.jsonMapper
 import java.util.UUID
 
 class ManageUsersMockServer : WireMockServer(9998) {
@@ -21,7 +21,7 @@ class ManageUsersMockServer : WireMockServer(9998) {
           aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
-              objectMapper.writeValueAsString(
+              jsonMapper.writeValueAsString(
                 UserDetails(
                   username = username,
                   active = true,
