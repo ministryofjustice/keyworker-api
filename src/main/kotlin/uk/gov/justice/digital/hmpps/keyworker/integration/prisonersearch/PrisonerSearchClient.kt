@@ -67,7 +67,7 @@ class PrisonerSearchClient(
           cellLocationPrefix?.also { ub.queryParam("cellLocationPrefix", it) }
           ub.queryParam("page", 0)
           ub.queryParam("size", PRISONER_SEARCH_LIMIT)
-          ub.queryParam("responseFields", Prisoner.fields())
+          ub.queryParam("responseFields", *Prisoner.fields())
         }
         ub.build(prisonCode)
       }.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
