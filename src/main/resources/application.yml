@@ -119,4 +119,10 @@ management:
     env:
       enabled: true
 
+hmpps:
+  sar:
+    template:
+      path: /resources/template_keyworker-api.mustache
+      enabled: true
+
 api.health-timeout-ms: 1000
