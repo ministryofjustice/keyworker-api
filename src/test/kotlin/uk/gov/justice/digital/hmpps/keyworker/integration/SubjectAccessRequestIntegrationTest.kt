@@ -28,7 +28,6 @@ class SubjectAccessRequestIntegrationTest :
   SarApiDataTest,
   SarFlywaySchemaTest,
   SarJpaEntitiesTest {
-
   @Autowired
   lateinit var sarIntegrationTestHelper: SarIntegrationTestHelper
 
@@ -98,9 +97,10 @@ class SubjectAccessRequestIntegrationTest :
       @Value("\${hmpps.sar.tests.expected-jpa-entity-schema.path}") expectedJpaEntitySchemaPath: String,
       objectMapper: ObjectMapper,
     ): SarIntegrationTestHelper {
-      val templateDataFetcherFacade = Mockito.mock(Class.forName("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateDataFetcherFacade"))
-      val templateHelpers = Mockito.mock(Class.forName("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateHelpers"))
-      val templateRenderService = Mockito.mock(Class.forName("uk.gov.justice.digital.hmpps.subjectaccessrequest.templates.TemplateRenderService"))
+      val sarTemplatePackage = "uk.gov.justice.digital.hmpps.subjectaccessrequest.templates"
+      val templateDataFetcherFacade = Mockito.mock(Class.forName("$sarTemplatePackage.TemplateDataFetcherFacade"))
+      val templateHelpers = Mockito.mock(Class.forName("$sarTemplatePackage.TemplateHelpers"))
+      val templateRenderService = Mockito.mock(Class.forName("$sarTemplatePackage.TemplateRenderService"))
 
       return SarIntegrationTestHelper::class.java.declaredConstructors
         .first { it.parameterCount == 10 }
