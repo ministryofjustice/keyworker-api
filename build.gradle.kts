@@ -7,8 +7,18 @@ plugins {
   jacoco
 }
 
-ext["jackson-bom.version"] = "3.1.0"
-ext["jackson-2-bom.version"] = "2.21.1"
+configurations.all {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
+      useVersion("2.21.1")
+      because("Fix GHSA-72hv-8253-57qq: jackson-core async parser DoS")
+    }
+    if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
+      useVersion("3.1.0")
+      because("Fix GHSA-72hv-8253-57qq and CVE-2026-29062: jackson-core async parser DoS")
+    }
+  }
+}
 
 dependencies {
 
