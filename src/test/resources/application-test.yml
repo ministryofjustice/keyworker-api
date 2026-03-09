@@ -53,4 +53,17 @@ spring:
 
 api.health-timeout-ms: 400
 
+hmpps:
+  sar:
+    template:
+      enabled: false
+    tests:
+      expected-api-response:
+        path: /sar/sar-api-response.json
+      expected-render-result:
+        path: /sar/sar-generated-report.html
+      expected-flyway-schema-version: "19.0"
+      expected-jpa-entity-schema:
+        path: /sar/entity-schema-snapshot.json
+
 logging.level.org.springframework.security.oauth2: DEBUG
