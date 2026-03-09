@@ -7,6 +7,9 @@ plugins {
   jacoco
 }
 
+ext["jackson-bom.version"] = "3.1.0"
+ext["jackson-2-bom.version"] = "2.21.1"
+
 dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
