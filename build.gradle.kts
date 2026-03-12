@@ -1,23 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.5"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.0.4"
   kotlin("plugin.spring") version "2.3.10"
   kotlin("plugin.jpa") version "2.3.10"
   jacoco
-}
-
-configurations.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
-      useVersion("2.21.1")
-      because("Fix GHSA-72hv-8253-57qq: jackson-core async parser DoS")
-    }
-    if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
-      useVersion("3.1.0")
-      because("Fix GHSA-72hv-8253-57qq and CVE-2026-29062: jackson-core async parser DoS")
-    }
-  }
 }
 
 dependencies {
@@ -28,7 +15,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.0.2")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.0.1")
 
-  implementation("io.sentry:sentry-spring-boot-4:8.34.1")
+  implementation("io.sentry:sentry-spring-boot-4:8.32.0")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
   implementation("org.springframework.data:spring-data-envers")
 
