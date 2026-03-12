@@ -122,7 +122,7 @@ management:
 hmpps:
   sar:
     template:
-      path: /resources/template_keyworker-api.mustache
+      path: /template_keyworker-api.mustache
       enabled: true
 
 api.health-timeout-ms: 1000

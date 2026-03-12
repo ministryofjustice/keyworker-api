@@ -7,19 +7,6 @@ plugins {
   jacoco
 }
 
-configurations.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "com.fasterxml.jackson.core" && requested.name == "jackson-core") {
-      useVersion("2.21.1")
-      because("Fix GHSA-72hv-8253-57qq: jackson-core async parser DoS")
-    }
-    if (requested.group == "tools.jackson.core" && requested.name == "jackson-core") {
-      useVersion("3.1.0")
-      because("Fix GHSA-72hv-8253-57qq and CVE-2026-29062: jackson-core async parser DoS")
-    }
-  }
-}
-
 dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
