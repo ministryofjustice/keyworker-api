@@ -94,7 +94,7 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
         // job-classifications endpoint is used by shared component and often provides values that are not prison codes
         "/prisons/[^/]+/staff/\\d*/job-classifications" to setOf(GET),
         "/staff/returning-from-leave" to setOf(PUT),
-        "/subject-access-request" to setOf(GET),
+        "/subject-access-request(/template)?" to setOf(GET),
         "/prisons/HVI/switch-policy" to setOf(POST),
       ).map { PolicyNotRequired(it.first.toRegex(), it.second) }
   }

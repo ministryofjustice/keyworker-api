@@ -8,22 +8,27 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-hmpps.sqs:
-  provider: localstack
-  queues:
-    offenderevents:
-      queueName: keyworker_api_queue
-      dlqName: keyworker_api_dlq
-      subscribeTopicId: keyworkerevents
-    domaineventsqueue:
-      queueName: domain_events_queue
-      dlqName: domain_events_dlq
-      subscribeTopicId: domaineventstopic
-  topics:
-    keyworkerevents:
-      arn: arn:aws:sns:eu-west-2:000000000000:offender_events
-    domaineventstopic:
-      arn: arn:aws:sns:eu-west-2:000000000000:domain_events_topic
+hmpps:
+  sqs:
+    provider: localstack
+    queues:
+      offenderevents:
+        queueName: keyworker_api_queue
+        dlqName: keyworker_api_dlq
+        subscribeTopicId: keyworkerevents
+      domaineventsqueue:
+        queueName: domain_events_queue
+        dlqName: domain_events_dlq
+        subscribeTopicId: domaineventstopic
+    topics:
+      keyworkerevents:
+        arn: arn:aws:sns:eu-west-2:000000000000:offender_events
+      domaineventstopic:
+        arn: arn:aws:sns:eu-west-2:000000000000:domain_events_topic
+  sar:
+    tests:
+      expected-render-result:
+        path: /templates/sar.html
 
 nomis-user-roles.api.uri.root: http://localhost:9994
 prison-register.api.uri.root: http://localhost:9995
