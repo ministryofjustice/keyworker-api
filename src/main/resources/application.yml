@@ -120,3 +120,9 @@ management:
       enabled: true
 
 api.health-timeout-ms: 1000
+
+hmpps:
+  sar:
+    template:
+      path: /templates/sar-template.mustache
+      enabled: true

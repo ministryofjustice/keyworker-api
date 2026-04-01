@@ -25,11 +25,14 @@ dependencies {
 
   testImplementation("org.testcontainers:postgresql:1.21.4")
   testImplementation("org.testcontainers:localstack:1.21.4")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.2")
+  testImplementation("org.wiremock:wiremock-standalone:3.13.2")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.0.2")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.0.3")
+  // fix version to prevent dependency clash between sar test support lib and hmpps kotlin plugin
+  testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
   testImplementation("org.awaitility:awaitility:4.3.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
-  testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 }
 
 kotlin {

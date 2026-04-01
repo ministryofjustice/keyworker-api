@@ -2,6 +2,9 @@ package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Import
+import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
@@ -12,10 +15,17 @@ import uk.gov.justice.digital.hmpps.keyworker.sar.SarAllocation
 import uk.gov.justice.digital.hmpps.keyworker.sar.StaffMember
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelper
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarIntegrationTestHelperConfig
+import uk.gov.justice.digital.hmpps.subjectaccessrequest.SarReportTest
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class SubjectAccessIntegrationTest : IntegrationTest() {
+@Import(SarIntegrationTestHelperConfig::class)
+class SubjectAccessIntegrationTest(
+  @Autowired val sarIntegrationTestHelper: SarIntegrationTestHelper,
+) : IntegrationTest(),
+  SarReportTest {
   @Test
   fun `401 unauthorised without a valid token`() {
     webTestClient
@@ -185,8 +195,61 @@ class SubjectAccessIntegrationTest : IntegrationTest() {
     id: Long = newId(),
   ): StaffSummary = StaffSummary(id, firstName, lastName)
 
+  override fun setupTestData() {
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    val al1 =
+      givenAllocation(
+        staffAllocation(
+          SAR_GENERATION_PRN,
+          SAR_GENERATION_PRISON_CODE,
+          allocatedAt = LocalDateTime.of(2026, 2, 20, 9, 45, 40),
+          deallocatedAt = LocalDateTime.of(2026, 3, 31, 12, 30, 50),
+          deallocatedBy = "D341L",
+          deallocationReason = DeallocationReason.OVERRIDE,
+          active = false,
+        ),
+      )
+    val al2 =
+      givenAllocation(
+        staffAllocation(
+          SAR_GENERATION_PRN,
+          SAR_GENERATION_PRISON_CODE,
+          allocatedAt = LocalDateTime.of(2026, 3, 31, 10, 15, 45),
+        ),
+      )
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    val al3 =
+      givenAllocation(
+        staffAllocation(
+          SAR_GENERATION_PRN,
+          SAR_GENERATION_PRISON_CODE,
+          allocatedAt = LocalDateTime.of(2026, 3, 31, 12, 30, 50),
+        ),
+      )
+
+    val staffMembers =
+      listOf(
+        staffSummary("Previous", "Worker", al1.staffId),
+        staffSummary("Key", "Worker", al2.staffId),
+        staffSummary("Personal", "Officer", al3.staffId),
+      )
+    prisonMockServer.stubStaffSummaries(staffMembers)
+  }
+
+  override fun getPrn(): String = SAR_GENERATION_PRN
+
+  override fun getFromDate(): LocalDate? = LocalDate.of(2026, 2, 19)
+
+  override fun getToDate(): LocalDate? = LocalDate.of(2026, 4, 1)
+
+  override fun getWebTestClientInstance(): WebTestClient = webTestClient
+
+  override fun getSarHelper(): SarIntegrationTestHelper = sarIntegrationTestHelper
+
   companion object {
     const val SAR_URL = "/subject-access-request"
+    const val SAR_GENERATION_PRN = "S1234RN"
+    const val SAR_GENERATION_PRISON_CODE = "MDI"
   }
 
   private data class TestSarContent(
