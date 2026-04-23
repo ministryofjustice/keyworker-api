@@ -27,10 +27,10 @@ generic-service:
   resources:
     requests:
       cpu: 128m
-      memory: 1024Mi
+      memory: 1280Mi
     limits:
       cpu: 2048m
-      memory: 1280Mi
+      memory: 1536Mi
 
   ingress:
     enabled: true
