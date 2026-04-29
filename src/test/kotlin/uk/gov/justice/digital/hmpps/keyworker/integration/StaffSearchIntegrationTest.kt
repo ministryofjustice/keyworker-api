@@ -23,8 +23,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -57,15 +55,11 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val prisonCode = "SFI"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
-    val staffIds = (0..10).map { newId() }
+    val staffIds = (0..10).map { newStaffId() }
     val request = searchRequest(query = "First")
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds.filter { it % 2 != 0L }))
-    } else {
-      staffIds.filter { it % 2 != 0L }.forEach {
-        givenStaffRole(staffRole(prisonCode, it))
-      }
+    staffIds.filter { it % 2 != 0L }.forEach {
+      givenStaffRole(staffRole(prisonCode, it))
     }
 
     val staffConfigs: List<StaffConfiguration> =
@@ -162,15 +156,11 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val prisonCode = "STA"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
-    val staffIds = (0..10).map { newId() }
+    val staffIds = (0..10).map { newStaffId() }
     val request = searchRequest(status = StaffStatus.ALL)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds))
-    } else {
-      staffIds.forEach {
-        givenStaffRole(staffRole(prisonCode, it))
-      }
+    staffIds.forEach {
+      givenStaffRole(staffRole(prisonCode, it))
     }
 
     val staffConfigs: List<StaffConfiguration> =
@@ -213,31 +203,14 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val prisonCode = "NSR"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
-    val staffId = newId()
+    val staffId = newStaffId()
     val request = searchRequest()
     nomisUserRolesMockServer.stubGetUserStaff(
       prisonCode,
       NomisStaffMembers(fromStaffIds(listOf(staffId))),
       request,
     )
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(
-        prisonCode,
-        listOf(
-          nomisStaffRole(
-            staffId,
-            position = "PRO",
-            scheduleType = "FT",
-            firstName = { "No" },
-            lastName = { "Config" },
-            hoursPerWeek = BigDecimal.valueOf(34.5),
-            fromDate = LocalDate.now().minusDays(7),
-          ),
-        ),
-      )
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId, hoursPerWeek = BigDecimal(34.5)))
-    }
+    givenStaffRole(staffRole(prisonCode, staffId, hoursPerWeek = BigDecimal(34.5)))
 
     val allocations =
       listOf(
@@ -307,15 +280,11 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val prisonCode = "HKR"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
-    val staffIds = (0..5).map { newId() }
+    val staffIds = (0..5).map { newStaffId() }
     val request = searchRequest(hasPolicyStaffRole = true)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds.filter { it % 2 == 0L }))
-    } else {
-      staffIds.filter { it % 2 == 0L }.forEach {
-        givenStaffRole(staffRole(prisonCode, it))
-      }
+    staffIds.filter { it % 2 == 0L }.forEach {
+      givenStaffRole(staffRole(prisonCode, it))
     }
 
     val staffConfigs: List<StaffConfiguration> =
@@ -381,6 +350,9 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
   companion object {
     const val SEARCH_URL = "/search/prisons/{prisonCode}/staff"
+    private val STAFF_ID_OFFSET = (System.currentTimeMillis() % 100_000L) * 1_000L
+
+    private fun newStaffId() = STAFF_ID_OFFSET + newId()
 
     @JvmStatic
     fun policyProvider() =

@@ -47,6 +47,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /staff/keyworker-roles/sync {
+          deny all;
+          return 401;
+        }
         location /prison-statistics/calculate {
           deny all;
           return 401;

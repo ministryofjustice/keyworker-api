@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationResponse
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.time.LocalDate
 
 class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
@@ -24,7 +23,6 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   @Test
   fun `404 not found from prison api is not a keyworker`() {
     val prisonCode = "GFF"
-    prisonMockServer.stubKeyworkerSearchNotFound(prisonCode)
 
     val res =
       getStaffJobClassifications(prisonCode, newId())
@@ -41,7 +39,8 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `can retrieve all job classification policies for a staff member`() {
     val prisonCode = "AJC"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenStaffRole(staffRole(prisonCode, staffId))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId))
 
@@ -60,7 +59,8 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `can retrieve all job classification policies for a keyworker`() {
     val prisonCode = "KJC"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenStaffRole(staffRole(prisonCode, staffId))
 
     val res =
       getStaffJobClassifications(prisonCode, staffId)
@@ -77,7 +77,6 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `can retrieve all job classification policies for a personal officer`() {
     val prisonCode = "PJC"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, listOf())
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId))
 
@@ -96,7 +95,8 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `only retrieve active job classification policies for a staff member`() {
     val prisonCode = "CADM_I"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
+    setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenStaffRole(staffRole(prisonCode, staffId))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId, toDate = LocalDate.now()))
 
@@ -115,7 +115,6 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
   fun `undefined prison code receives a 200 response`() {
     val prisonCode = "undefined"
     val staffId = newId()
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf()))
 
     val res =
       getStaffJobClassifications(prisonCode, staffId)

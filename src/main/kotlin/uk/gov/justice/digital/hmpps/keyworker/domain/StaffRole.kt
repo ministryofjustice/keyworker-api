@@ -63,6 +63,11 @@ interface StaffRoleRepository : JpaRepository<StaffRole, UUID> {
 
   fun findAllByPrisonCode(prisonCode: String): List<StaffRole>
 
+  fun findAllByPrisonCodeAndPolicy(
+    prisonCode: String,
+    policy: String,
+  ): List<StaffRole>
+
   @Query(
     """
         select * from staff_role where prison_code = :prisonCode and staff_id = :staffId and policy_code = :policyCode

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.services.staff
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
@@ -20,7 +21,6 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.getReferenceData
 import uk.gov.justice.digital.hmpps.keyworker.domain.of
 import uk.gov.justice.digital.hmpps.keyworker.domain.toModel
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.JobClassification
-import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.NomisUserRolesApiClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.nomisuserroles.StaffJobClassificationRequest
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.NomisStaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonapi.PrisonApiClient
@@ -37,10 +37,10 @@ class StaffConfigManager(
   private val referenceDataRepository: ReferenceDataRepository,
   private val staffConfigRepository: StaffConfigRepository,
   private val allocationRepository: AllocationRepository,
-  private val nurApi: NomisUserRolesApiClient,
   private val staffRoleRepository: StaffRoleRepository,
   private val prisonApi: PrisonApiClient,
   private val prisonConfigRepository: PrisonConfigurationRepository,
+  private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
   fun mergeStaffDetails(
     prisonCode: String,
@@ -63,25 +63,18 @@ class StaffConfigManager(
     val policy = AllocationContext.get().requiredPolicy()
     deallocateAllocationsFor(prisonCode, staffId)
     staffConfigRepository.deleteByStaffId(staffId)
-    policy.nomisUserRoleCode?.also { code ->
-      findStaffRole(prisonCode, staffId)?.also {
-        nurApi.setStaffRole(
-          prisonCode,
-          staffId,
-          code,
-          StaffJobClassificationRequest(
-            position = it.position.code,
-            scheduleType = it.scheduleType.code,
-            hoursPerWeek = it.hoursPerWeek,
-            fromDate = it.fromDate,
-            toDate = LocalDate.now(),
-          ),
+    findStaffRole(prisonCode, staffId)?.also {
+      val request =
+        StaffJobClassificationRequest(
+          position = it.position.code,
+          scheduleType = it.scheduleType.code,
+          hoursPerWeek = it.hoursPerWeek,
+          fromDate = it.fromDate,
+          toDate = LocalDate.now(),
         )
-      }
-    } ?: run {
-      staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId)?.apply {
-        toDate = LocalDate.now()
-      }
+
+      setStaffRole(policy, prisonCode, staffId, request)
+      publishNomisStaffRoleUpdate(policy, prisonCode, staffId, request)
     }
   }
 
@@ -128,10 +121,8 @@ class StaffConfigManager(
     staffId: Long,
   ): StaffRoleInfo? {
     val policy = AllocationContext.get().requiredPolicy()
-    return when (policy.nomisUserRoleCode) {
-      null -> staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
-      else -> prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo()
-    }
+    return staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name)?.toModel()
+      ?: policy.nomisUserRoleCode?.let { prisonApi.getKeyworkerForPrison(prisonCode, staffId)?.staffRoleInfo() }
   }
 
   private fun NomisStaffRole.staffRoleInfo(): StaffRoleInfo {
@@ -166,12 +157,11 @@ class StaffConfigManager(
         fromDate = fromDate,
         toDate = toDate,
       )
-    policy.nomisUserRoleCode?.let {
-      nurApi.setStaffRole(prisonCode, staffId, it, jobRoleRequest)
-    } ?: setStaffRole(policy, prisonCode, staffId, jobRoleRequest)
+    setStaffRole(policy, prisonCode, staffId, jobRoleRequest)
+    publishNomisStaffRoleUpdate(policy, prisonCode, staffId, jobRoleRequest)
   }
 
-  private fun setStaffRole(
+  fun setStaffRole(
     policy: AllocationPolicy,
     prisonCode: String,
     staffId: Long,
@@ -184,9 +174,21 @@ class StaffConfigManager(
       hoursPerWeek = request.hoursPerWeek
       fromDate = request.fromDate
       toDate = request.toDate
-    } ?: staffRoleRepository.save(request.asStaffRole(prisonCode, staffId))
+    } ?: staffRoleRepository.save(request.asStaffRole(policy, prisonCode, staffId))
+
+  private fun publishNomisStaffRoleUpdate(
+    policy: AllocationPolicy,
+    prisonCode: String,
+    staffId: Long,
+    request: StaffJobClassificationRequest,
+  ) {
+    policy.nomisUserRoleCode?.also {
+      applicationEventPublisher.publishEvent(NomisStaffRoleUpdateEvent(prisonCode, staffId, it, request))
+    }
+  }
 
   private fun JobClassification.asStaffRole(
+    policy: AllocationPolicy,
     prisonCode: String,
     staffId: Long,
   ) = StaffRole(
@@ -197,5 +199,6 @@ class StaffConfigManager(
     toDate,
     prisonCode,
     staffId,
+    policy = policy.name,
   )
 }
