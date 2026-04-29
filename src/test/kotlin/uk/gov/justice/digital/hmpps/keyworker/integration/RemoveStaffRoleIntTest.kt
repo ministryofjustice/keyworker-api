@@ -5,6 +5,7 @@ import org.hibernate.envers.RevisionType
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
@@ -22,7 +23,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.username
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
 import java.math.BigDecimal
 import java.time.LocalDate.now
 
@@ -31,23 +31,23 @@ class RemoveStaffRoleIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `Deactivate job role, delete staff config, and deallocate active allocations`(policy: AllocationPolicy) {
     val prisonCode = "RSR"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
+    val localStaffRole =
+      givenStaffRole(staffRole(prisonCode, staffId, scheduleType = "PT", hoursPerWeek = BigDecimal(20)))
     val nomisRequest =
       if (policy.nomisUserRoleCode != null) {
-        val staffRole = nomisStaffRole(staffId, scheduleType = "PT", position = "PRO", hoursPerWeek = BigDecimal(20))
         val roleRequest =
           StaffJobClassificationRequest(
-            position = staffRole.position,
-            scheduleType = staffRole.scheduleType,
-            hoursPerWeek = staffRole.hoursPerWeek,
-            fromDate = staffRole.fromDate,
+            position = localStaffRole.position.code,
+            scheduleType = localStaffRole.scheduleType.code,
+            hoursPerWeek = localStaffRole.hoursPerWeek,
+            fromDate = localStaffRole.fromDate,
             toDate = now(),
           )
-        prisonMockServer.stubKeyworkerDetails(prisonCode, staffId, staffRole)
         nomisUserRolesMockServer.stubSetStaffRole(
           StaffJobClassification(
             prisonCode,
@@ -57,7 +57,6 @@ class RemoveStaffRoleIntTest : IntegrationTest() {
         )
         roleRequest
       } else {
-        givenStaffRole(staffRole(prisonCode, staffId, scheduleType = "PT", hoursPerWeek = BigDecimal(20)))
         null
       }
     val allocations =
@@ -68,11 +67,12 @@ class RemoveStaffRoleIntTest : IntegrationTest() {
     removeStaffRole(prisonCode, staffId, policy, username = username).expectStatus().isNoContent
 
     if (policy.nomisUserRoleCode != null) {
-      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
-    } else {
-      val staffRole =
-        requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
-      assertThat(staffRole.toDate).isEqualTo(now())
+      verify(nomisUserRolesApiClient, timeout(5_000)).setStaffRole(prisonCode, staffId, "KW", nomisRequest!!)
+    }
+    val staffRole =
+      requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
+    assertThat(staffRole.toDate).isEqualTo(now())
+    if (policy.nomisUserRoleCode == null) {
       verifyAudit(
         staffRole,
         staffRole.id,
@@ -111,6 +111,9 @@ class RemoveStaffRoleIntTest : IntegrationTest() {
   companion object {
     const val STAFF_DETAILS_URL = "/prisons/{prisonCode}/staff/{staffId}"
     const val TEST_USERNAME = "T35TUS3R"
+    private val STAFF_ID_OFFSET = (System.currentTimeMillis() % 100_000L) * 1_000L
+
+    private fun newStaffId() = STAFF_ID_OFFSET + newId()
 
     @JvmStatic
     fun policyProvider() =

@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -28,7 +28,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   @EnumSource(value = AllocationPolicy::class)
   fun `calculate prison statistics for yesterday for a prison without complex needs`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
-    val prisonCode = "CALWOC"
+    val prisonCode = uniquePrisonCode("CW")
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val staff =
@@ -40,11 +40,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           ),
         )
       }
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staff.map { it.staffId }))
-    } else {
-      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     val additionalStaff =
       (0..5).map { index ->
         givenStaffConfig(
@@ -143,7 +139,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   @Test
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
-    val prisonCode = "CALWIC"
+    val prisonCode = uniquePrisonCode("CI")
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
     val keyworkers =
@@ -155,7 +151,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           ),
         )
       }
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(keyworkers.map { it.staffId }))
+    keyworkers.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     val prisoners = prisoners(includeComplexNeeds = true)
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     val eligiblePrisoners =
@@ -286,6 +282,8 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
       },
     )
   }
+
+  private fun uniquePrisonCode(prefix: String) = "$prefix${newId() % 10_000L}"
 }
 
 private fun calculateStatsEvent(

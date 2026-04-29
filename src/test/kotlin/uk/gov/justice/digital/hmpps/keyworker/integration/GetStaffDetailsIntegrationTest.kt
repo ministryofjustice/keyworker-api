@@ -72,29 +72,15 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
     val staffConfig =
       givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(
+    prisonMockServer.stubStaffSummaries(listOf(staffSummary(id = staffConfig.staffId)))
+    givenStaffRole(
+      staffRole(
         prisonCode,
         staffConfig.staffId,
-        nomisStaffRole(
-          staffConfig.staffId,
-          scheduleType = "FT",
-          position = "PRO",
-          hoursPerWeek = BigDecimal(36.5),
-          fromDate = now().minusWeeks(6),
-        ),
-      )
-    } else {
-      prisonMockServer.stubStaffSummaries(listOf(staffSummary(id = staffConfig.staffId)))
-      givenStaffRole(
-        staffRole(
-          prisonCode,
-          staffConfig.staffId,
-          hoursPerWeek = BigDecimal(36.5),
-          fromDate = now().minusWeeks(6),
-        ),
-      )
-    }
+        hoursPerWeek = BigDecimal(36.5),
+        fromDate = now().minusWeeks(6),
+      ),
+    )
 
     val currentMonth = ReportingPeriod.currentMonth()
     val allocations =
@@ -298,20 +284,17 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val staff =
       nomisStaffRole(newId(), { "Noah" }, { "Locations" }, "CHAP", "PT", BigDecimal(36.5), now().minusWeeks(6))
     prisonRegisterMockServer.stubGetPrisons(setOf(prison))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(prisonCode, staff.staffId, staff)
-    } else {
-      prisonMockServer.stubStaffSummaries(listOf(staffSummary("Noah", "Locations", staff.staffId)))
-      givenStaffRole(
-        staffRole(
-          prisonCode,
-          staff.staffId,
-          scheduleType = "PT",
-          hoursPerWeek = BigDecimal(36.5),
-          fromDate = now().minusWeeks(6),
-        ),
-      )
-    }
+    prisonMockServer.stubStaffSummaries(listOf(staffSummary("Noah", "Locations", staff.staffId)))
+    givenStaffRole(
+      staffRole(
+        prisonCode,
+        staff.staffId,
+        position = if (policy == AllocationPolicy.KEY_WORKER) "CHAP" else "PRO",
+        scheduleType = "PT",
+        hoursPerWeek = BigDecimal(36.5),
+        fromDate = now().minusWeeks(6),
+      ),
+    )
 
     val response =
       getStaffDetailSpec(prisonCode, staff.staffId, policy)
@@ -372,19 +355,16 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
           reactivateOn = now().plusDays(7),
         ),
       )
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerDetails(prisonCode, staff.staffId, staff)
-    } else {
-      prisonMockServer.stubStaffSummaries(listOf(staffSummary("On", "Holiday", staffConfig.staffId)))
-      givenStaffRole(
-        staffRole(
-          prisonCode,
-          staffConfig.staffId,
-          hoursPerWeek = BigDecimal(36.5),
-          fromDate = now().minusWeeks(6),
-        ),
-      )
-    }
+    prisonMockServer.stubStaffSummaries(listOf(staffSummary("On", "Holiday", staffConfig.staffId)))
+    givenStaffRole(
+      staffRole(
+        prisonCode,
+        staffConfig.staffId,
+        position = if (policy == AllocationPolicy.KEY_WORKER) "AO" else "PRO",
+        hoursPerWeek = BigDecimal(36.5),
+        fromDate = now().minusWeeks(6),
+      ),
+    )
 
     val response =
       getStaffDetailSpec(prisonCode, staff.staffId, policy)

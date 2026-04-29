@@ -248,7 +248,7 @@ class SubjectAccessIntegrationTest(
 
   companion object {
     const val SAR_URL = "/subject-access-request"
-    const val SAR_GENERATION_PRN = "S1234RN"
+    val SAR_GENERATION_PRN = personIdentifier()
     const val SAR_GENERATION_PRISON_CODE = "MDI"
   }
 

@@ -33,7 +33,7 @@ object NomisStaffGenerator {
     position: String = positionTypes.random(),
     scheduleType: String = scheduleTypes.random(),
     hoursPerWeek: BigDecimal = BigDecimal.valueOf(37.5),
-    fromDate: LocalDate = LocalDate.now().minusDays(staffId * 64),
+    fromDate: LocalDate = LocalDate.now().minusDays((staffId % 1_000L) * 64),
     toDate: LocalDate? = null,
   ): NomisStaffRole =
     NomisStaffRole(

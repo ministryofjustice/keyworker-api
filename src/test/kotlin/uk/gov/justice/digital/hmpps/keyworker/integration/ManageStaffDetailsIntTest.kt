@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -57,7 +58,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `does not create staff config for defaults`(policy: AllocationPolicy) {
     val prisonCode = "NDS"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     val pc = givenPrisonConfig(prisonConfig(prisonCode, true))
 
@@ -90,7 +91,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `create staff config with submitted and fallback values if not already exists`(policy: AllocationPolicy) {
     val prisonCode = "UBP"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
 
     if (policy == AllocationPolicy.KEY_WORKER) {
@@ -125,11 +126,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       staffConfig,
       staffConfig.id,
       RevisionType.ADD,
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        setOf(StaffConfiguration::class.simpleName!!)
-      } else {
-        setOf(StaffConfiguration::class.simpleName!!, StaffRole::class.simpleName!!)
-      },
+      setOf(StaffConfiguration::class.simpleName!!, StaffRole::class.simpleName!!),
       AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
     )
   }
@@ -138,7 +135,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `create staff role with submitted and fallback values if not already exists`(policy: AllocationPolicy) {
     val prisonCode = "SRC"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
@@ -173,14 +170,20 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       .isNoContent
 
     if (policy.nomisUserRoleCode != null) {
-      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, policy.nomisUserRoleCode, nomisRequest!!)
-    } else {
-      val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
-      assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
-      assertThat(staffRole.scheduleType.code).isEqualTo("FT")
-      assertThat(staffRole.position.code).isEqualTo("PRO")
-      assertThat(staffRole.fromDate).isEqualTo(now())
-      assertThat(staffRole.toDate).isNull()
+      verify(nomisUserRolesApiClient, timeout(5_000)).setStaffRole(
+        prisonCode,
+        staffId,
+        policy.nomisUserRoleCode,
+        nomisRequest!!,
+      )
+    }
+    val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
+    assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
+    assertThat(staffRole.scheduleType.code).isEqualTo("FT")
+    assertThat(staffRole.position.code).isEqualTo("PRO")
+    assertThat(staffRole.fromDate).isEqualTo(now())
+    assertThat(staffRole.toDate).isNull()
+    if (policy.nomisUserRoleCode == null) {
       verifyAudit(
         staffRole,
         staffRole.id,
@@ -195,7 +198,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `staff config properties are updated if they are defined in the request`(policy: AllocationPolicy) {
     val prisonCode = "SCP"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
     val sc =
@@ -233,7 +236,11 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       staffConfig,
       staffConfig.id,
       RevisionType.MOD,
-      setOf(StaffConfiguration::class.simpleName!!),
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        setOf(StaffConfiguration::class.simpleName!!, StaffRole::class.simpleName!!)
+      } else {
+        setOf(StaffConfiguration::class.simpleName!!)
+      },
       AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
     )
   }
@@ -241,7 +248,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @Test
   fun `staff role can be reactivated`() {
     val prisonCode = "UDR"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     val policy = AllocationPolicy.PERSONAL_OFFICER
     setContext(AllocationContext.get().copy(policy = policy))
@@ -283,7 +290,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `unset reactivatedOn if null value is submitted`(policy: AllocationPolicy) {
     val prisonCode = "RON"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 6, reactivateOn = LocalDate.of(2001, 1, 1)))
@@ -318,7 +325,11 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       staffConfig,
       staffConfig.id,
       RevisionType.MOD,
-      setOf(StaffConfiguration::class.simpleName!!),
+      if (policy == AllocationPolicy.KEY_WORKER) {
+        setOf(StaffConfiguration::class.simpleName!!, StaffRole::class.simpleName!!)
+      } else {
+        setOf(StaffConfiguration::class.simpleName!!)
+      },
       AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
     )
   }
@@ -327,7 +338,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `deallocate active allocations if deactivateActiveAllocations is true`(policy: AllocationPolicy) {
     val prisonCode = "UBP"
-    val staffId = newId()
+    val staffId = newStaffId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
@@ -404,6 +415,9 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   companion object {
     const val STAFF_DETAILS_URL = "/prisons/{prisonCode}/staff/{staffId}"
     const val TEST_USERNAME = "T35TUS3R"
+    private val STAFF_ID_OFFSET = System.currentTimeMillis() * 1_000L
+
+    private fun newStaffId() = STAFF_ID_OFFSET + newId()
 
     @JvmStatic
     fun policyProvider() =
