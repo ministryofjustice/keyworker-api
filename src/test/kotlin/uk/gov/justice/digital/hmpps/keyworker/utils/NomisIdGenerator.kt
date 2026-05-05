@@ -17,6 +17,6 @@ object NomisIdGenerator {
     val prisonCode = (1..6).map { letters.random() }.joinToString("")
     return if (usedPrisonCodes.add(prisonCode)) prisonCode else prisonCode(attempts - 1)
   }
-  
+
   fun username(): String = (0..12).joinToString("") { letters.random().toString() }
 }
