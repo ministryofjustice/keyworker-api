@@ -10,7 +10,6 @@ import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpMethod.PUT
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
-import org.springframework.web.servlet.ModelAndView
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisoner
@@ -55,14 +54,14 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
     return true
   }
 
-  override fun postHandle(
+  override fun afterCompletion(
     request: HttpServletRequest,
     response: HttpServletResponse,
     handler: Any,
-    modelAndView: ModelAndView?,
+    ex: Exception?,
   ) {
     AllocationContext.clear()
-    super.postHandle(request, response, handler, modelAndView)
+    super.afterCompletion(request, response, handler, ex)
   }
 
   private fun getUsername(): String =
@@ -93,7 +92,7 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
         "/prisons/[^/]+/policies" to setOf(GET, PUT),
         // job-classifications endpoint is used by shared component and often provides values that are not prison codes
         "/prisons/[^/]+/staff/\\d*/job-classifications" to setOf(GET),
-        "/staff/returning-from-leave" to setOf(PUT),
+        "/staff/returning-from-leave" to setOf(POST),
         "/subject-access-request(/template)?" to setOf(GET),
         "/prisons/HVI/switch-policy" to setOf(POST),
       ).map { PolicyNotRequired(it.first.toRegex(), it.second) }

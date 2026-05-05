@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonStats
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonCode
 import java.time.LocalDate
 import java.time.LocalDate.now
 
@@ -36,7 +37,7 @@ class PrisonStatsIntTest : IntegrationTest() {
   @EnumSource(AllocationPolicy::class)
   fun `200 ok - when stats do not exist for date ranges`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
-    val prisonCode = "NSP"
+    val prisonCode = prisonCode()
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val start = LocalDate.of(2021, 6, 5)
     val end = LocalDate.of(2021, 6, 13)
@@ -97,7 +98,7 @@ class PrisonStatsIntTest : IntegrationTest() {
   @EnumSource(AllocationPolicy::class)
   fun `200 ok prison stats returned`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
-    val prisonCode = "GST"
+    val prisonCode = prisonCode()
     givenPrisonConfig(
       prisonConfig(
         prisonCode,

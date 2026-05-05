@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
+import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonCode
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.time.LocalDate.now
 import java.time.LocalDateTime
@@ -28,7 +29,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   @EnumSource(value = AllocationPolicy::class)
   fun `calculate prison statistics for yesterday for a prison without complex needs`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
-    val prisonCode = "CALWOC"
+    val prisonCode = prisonCode()
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val staff =
@@ -143,7 +144,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   @Test
   fun `calculate prison statistics for yesterday for a prison with complex needs`() {
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
-    val prisonCode = "CALWIC"
+    val prisonCode = prisonCode()
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
     val keyworkers =
