@@ -24,6 +24,7 @@ class SecurityConfig {
             "/swagger-resources/configuration/security",
             "/queue-admin/retry-all-dlqs",
             "/staff/returning-from-leave",
+            "/staff/keyworker-roles/sync",
             "/prison-statistics/calculate",
           )
       }

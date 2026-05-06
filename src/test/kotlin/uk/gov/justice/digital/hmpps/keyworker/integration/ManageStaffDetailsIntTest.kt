@@ -8,7 +8,8 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.mockito.kotlin.verify
+import org.mockito.Mockito.timeout
+import org.mockito.Mockito.verify
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
@@ -125,11 +126,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
       staffConfig,
       staffConfig.id,
       RevisionType.ADD,
-      if (policy == AllocationPolicy.KEY_WORKER) {
-        setOf(StaffConfiguration::class.simpleName!!)
-      } else {
-        setOf(StaffConfiguration::class.simpleName!!, StaffRole::class.simpleName!!)
-      },
+      setOf(StaffConfiguration::class.simpleName!!, StaffRole::class.simpleName!!),
       AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
     )
   }
@@ -172,23 +169,22 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     ).expectStatus()
       .isNoContent
 
-    if (policy.nomisUserRoleCode != null) {
-      verify(nomisUserRolesApiClient).setStaffRole(prisonCode, staffId, policy.nomisUserRoleCode, nomisRequest!!)
-    } else {
-      val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
-      assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
-      assertThat(staffRole.scheduleType.code).isEqualTo("FT")
-      assertThat(staffRole.position.code).isEqualTo("PRO")
-      assertThat(staffRole.fromDate).isEqualTo(now())
-      assertThat(staffRole.toDate).isNull()
-      verifyAudit(
-        staffRole,
-        staffRole.id,
-        RevisionType.ADD,
-        setOf(StaffRole::class.simpleName!!),
-        AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
-      )
+    policy.nomisUserRoleCode?.also {
+      verify(nomisUserRolesApiClient, timeout(5000)).setStaffRole(prisonCode, staffId, it, nomisRequest!!)
     }
+    val staffRole = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, staffId))
+    assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(40))
+    assertThat(staffRole.scheduleType.code).isEqualTo("FT")
+    assertThat(staffRole.position.code).isEqualTo("PRO")
+    assertThat(staffRole.fromDate).isEqualTo(now())
+    assertThat(staffRole.toDate).isNull()
+    verifyAudit(
+      staffRole,
+      staffRole.id,
+      RevisionType.ADD,
+      setOf(StaffRole::class.simpleName!!),
+      AllocationContext(username = username, activeCaseloadId = prisonCode, policy = policy),
+    )
   }
 
   @ParameterizedTest
@@ -215,9 +211,8 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
           ),
         ),
       )
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
     }
+    givenStaffRole(staffRole(prisonCode, staffId))
 
     val request = staffDetailsRequest(capacity = 100, reactivateOn = sc.reactivateOn)
     setStaffDetails(prisonCode, staffId, request, policy, username = username)
@@ -238,12 +233,12 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     )
   }
 
-  @Test
-  fun `staff role can be reactivated`() {
+  @ParameterizedTest
+  @MethodSource("policyProvider")
+  fun `staff role can be reactivated`(policy: AllocationPolicy) {
     val prisonCode = "UDR"
     val staffId = newId()
     val username = username()
-    val policy = AllocationPolicy.PERSONAL_OFFICER
     setContext(AllocationContext.get().copy(policy = policy))
     val sc = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
     val sr =
@@ -260,11 +255,25 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     assertThat(role).isNotNull
 
     val roleRequest = staffRoleRequest(sr.position.code, sr.scheduleType.code, BigDecimal(42), sr.fromDate)
+    val nomisRequest =
+      StaffJobClassificationRequest(
+        roleRequest.position,
+        roleRequest.scheduleType,
+        roleRequest.hoursPerWeek,
+        roleRequest.fromDate,
+        roleRequest.toDate,
+      )
+    policy.nomisUserRoleCode?.also {
+      nomisUserRolesMockServer.stubSetStaffRole(StaffJobClassification(prisonCode, staffId, nomisRequest))
+    }
     val request = staffDetailsRequest(sc.status.code, sc.capacity, staffRole = roleRequest)
     setStaffDetails(prisonCode, staffId, request, policy, username = username)
       .expectStatus()
       .isNoContent
 
+    policy.nomisUserRoleCode?.also {
+      verify(nomisUserRolesApiClient, timeout(5000)).setStaffRole(prisonCode, staffId, it, nomisRequest)
+    }
     val staffRole =
       requireNotNull(staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, staffId, policy.name))
     assertThat(staffRole.hoursPerWeek).isEqualTo(BigDecimal(42))
@@ -302,9 +311,8 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
           ),
         ),
       )
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
     }
+    givenStaffRole(staffRole(prisonCode, staffId))
 
     val request = staffDetailsRequest().copy(reactivateOn = null)
     setStaffDetails(prisonCode, staffId, request, policy, username = username)
@@ -350,9 +358,8 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
           ),
         ),
       )
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
     }
+    givenStaffRole(staffRole(prisonCode, staffId))
 
     val request = staffDetailsRequest().copy(deactivateActiveAllocations = true)
     setStaffDetails(prisonCode, staffId, request, policy, username = username)
