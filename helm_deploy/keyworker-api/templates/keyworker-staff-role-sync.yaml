@@ -23,5 +23,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPOST -H 'Policy: KEY_WORKER' http://keyworker-api/staff/keyworker-roles/sync
+                - "curl --retry 2 -XPOST -H 'Policy: KEY_WORKER' http://keyworker-api/staff/keyworker-roles/sync"
           restartPolicy: Never
