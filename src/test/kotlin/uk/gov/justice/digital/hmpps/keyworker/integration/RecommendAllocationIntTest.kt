@@ -52,11 +52,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
     val staff = nomisStaffRole()
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staff.staffId)))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, listOf(staff))
-    } else {
-      givenStaffRole(staffRole(prisonCode, staff.staffId))
-    }
+    givenStaffRole(staffRole(prisonCode, staff.staffId))
     givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staff.staffId, 10))
 
     val res =
@@ -83,11 +79,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
 
     val staff = (0..2).map { nomisStaffRole() }
     prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
-    } else {
-      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
 
     staff.forEach {
       givenAllocation(staffAllocation(personIdentifier(), prisonCode, it.staffId))
@@ -119,11 +111,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     val staffAtCapacity = (0..2).map { nomisStaffRole() }
     val allStaff = staffWithCapacity + staffAtCapacity
     prisonMockServer.stubStaffSummaries(staffSummaries(allStaff.map { it.staffId }.toSet()))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, allStaff)
-    } else {
-      allStaff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    allStaff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
 
     val prisonersReversed = prisoners.content.reversed()
     val previousAllocations =
@@ -179,11 +167,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     val otherStaff = (0..4).map { nomisStaffRole() }
     val allStaff = otherStaff + latestPreviousStaff
     prisonMockServer.stubStaffSummaries(staffSummaries(allStaff.map { it.staffId }.toSet()))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, allStaff)
-    } else {
-      allStaff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    allStaff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
 
     allStaff
       .mapIndexed { i, s ->
@@ -242,11 +226,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     val staff = (0..4).map { nomisStaffRole() }
     staff.forEach { givenStaffConfig(staffConfig(StaffStatus.ACTIVE, it.staffId, 6)) }
     prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
-    } else {
-      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     staff.mapIndexed { i, s ->
       (1..5 - i).map {
         givenAllocation(
@@ -306,11 +286,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[0].staffId, 6))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staff[1].staffId, 12))
     prisonMockServer.stubStaffSummaries(staffSummaries(staff.map { it.staffId }.toSet()))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, staff)
-    } else {
-      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
 
     val res =
       getAllocationRecommendations(prisonCode, policy)

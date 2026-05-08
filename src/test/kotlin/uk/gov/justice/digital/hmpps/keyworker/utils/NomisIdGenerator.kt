@@ -1,12 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.utils
 
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicLong
 
 object NomisIdGenerator {
   private val id = AtomicLong((System.currentTimeMillis() % 100_000L) * 1_000L)
   private val letters = ('A'..'Z')
   private val numbers = (1111..9999)
-  private val usedPrisonCodes = mutableSetOf<String>()
+  private val usedPrisonCodes = ConcurrentSkipListSet<String>()
 
   fun newId(): Long = id.getAndIncrement()
 
