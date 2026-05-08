@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.staffSummaries
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 import java.time.LocalDate
@@ -133,7 +132,6 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psa = personStaffAllocation(prisoner.prisonerNumber, staffId)
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(listOf(staffId))))
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf()))
 
     val res =
       allocateAndDeallocate(prisonCode, personStaffAllocations(listOf(psa)), policy)
@@ -157,11 +155,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psa = personStaffAllocation(prisoner.prisonerNumber, staffId)
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(psa.personIdentifier), listOf(prisoner))
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
+    givenStaffRole(staffRole(prisonCode, staffId))
 
     givenStaffConfig(staffConfig(StaffStatus.INACTIVE, staffId))
 
@@ -187,11 +181,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
+    givenStaffRole(staffRole(prisonCode, staffId))
 
     allocateAndDeallocate(prisonCode, personStaffAllocations(psas), policy).expectStatus().isNoContent
 
@@ -223,11 +213,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
+    givenStaffRole(staffRole(prisonCode, staffId))
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode)) }
 
@@ -265,11 +251,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(listOf(staffId)))
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId))
-    }
+    givenStaffRole(staffRole(prisonCode, staffId))
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode, staffId)) }
 

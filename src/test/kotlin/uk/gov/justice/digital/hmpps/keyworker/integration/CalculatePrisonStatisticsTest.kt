@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.ACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonCode
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -41,11 +40,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           ),
         )
       }
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staff.map { it.staffId }))
-    } else {
-      staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
-    }
+    staff.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     val additionalStaff =
       (0..5).map { index ->
         givenStaffConfig(
@@ -156,7 +151,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
           ),
         )
       }
-    prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(keyworkers.map { it.staffId }))
+    keyworkers.forEach { givenStaffRole(staffRole(prisonCode, it.staffId)) }
     val prisoners = prisoners(includeComplexNeeds = true)
     prisonerSearchMockServer.stubFindAllPrisoners(prisonCode, prisoners)
     val eligiblePrisoners =

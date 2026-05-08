@@ -23,8 +23,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus.INACTIVE
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.fromStaffIds
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
-import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRoles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,12 +58,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..10).map { newId() }
     val request = searchRequest(query = "First")
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds.filter { it % 2 != 0L }))
-    } else {
-      staffIds.filter { it % 2 != 0L }.forEach {
-        givenStaffRole(staffRole(prisonCode, it))
-      }
+    staffIds.filter { it % 2 != 0L }.forEach {
+      givenStaffRole(staffRole(prisonCode, it))
     }
 
     val staffConfigs: List<StaffConfiguration> =
@@ -165,12 +159,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..10).map { newId() }
     val request = searchRequest(status = StaffStatus.ALL)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds))
-    } else {
-      staffIds.forEach {
-        givenStaffRole(staffRole(prisonCode, it))
-      }
+    staffIds.forEach {
+      givenStaffRole(staffRole(prisonCode, it))
     }
 
     val staffConfigs: List<StaffConfiguration> =
@@ -220,24 +210,14 @@ class StaffSearchIntegrationTest : IntegrationTest() {
       NomisStaffMembers(fromStaffIds(listOf(staffId))),
       request,
     )
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(
+    givenStaffRole(
+      staffRole(
         prisonCode,
-        listOf(
-          nomisStaffRole(
-            staffId,
-            position = "PRO",
-            scheduleType = "FT",
-            firstName = { "No" },
-            lastName = { "Config" },
-            hoursPerWeek = BigDecimal.valueOf(34.5),
-            fromDate = LocalDate.now().minusDays(7),
-          ),
-        ),
-      )
-    } else {
-      givenStaffRole(staffRole(prisonCode, staffId, hoursPerWeek = BigDecimal(34.5)))
-    }
+        staffId,
+        hoursPerWeek = BigDecimal(34.5),
+        fromDate = LocalDate.now().minusDays(7),
+      ),
+    )
 
     val allocations =
       listOf(
@@ -310,12 +290,8 @@ class StaffSearchIntegrationTest : IntegrationTest() {
     val staffIds = (0..5).map { newId() }
     val request = searchRequest(hasPolicyStaffRole = true)
     nomisUserRolesMockServer.stubGetUserStaff(prisonCode, NomisStaffMembers(fromStaffIds(staffIds)), request)
-    if (policy == AllocationPolicy.KEY_WORKER) {
-      prisonMockServer.stubKeyworkerSearch(prisonCode, nomisStaffRoles(staffIds.filter { it % 2 == 0L }))
-    } else {
-      staffIds.filter { it % 2 == 0L }.forEach {
-        givenStaffRole(staffRole(prisonCode, it))
-      }
+    staffIds.filter { it % 2 == 0L }.forEach {
+      givenStaffRole(staffRole(prisonCode, it))
     }
 
     val staffConfigs: List<StaffConfiguration> =
