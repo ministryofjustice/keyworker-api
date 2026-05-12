@@ -8,7 +8,7 @@
         <tr><td>Policy description</td><td>{{ optionalValue policy.description }}</td></tr>
         <tr><td>Allocation reason</td><td>{{ optionalValue allocationReason }}</td></tr>
         <tr><td>Allocation is active</td><td>{{ convertBoolean activeAllocation }}</td></tr>
-        <tr><td>Allocation expired at</td><td>{{ optionalValue (formatDate allocationExpiredAt) }}</td></tr>
+        <tr><td>Deallocated at</td><td>{{ optionalValue (formatDate allocationExpiredAt) }}</td></tr>
         <tr><td>Deallocation reason</td><td>{{ optionalValue deallocationReason }}</td></tr>
     </table>
 {{/.}}
