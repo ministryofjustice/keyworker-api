@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
+import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
+import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonCode
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
@@ -76,5 +79,12 @@ class KeyworkerStaffRoleSyncIntTest : IntegrationTest() {
         staffRoleRepository.findRoleIncludingInactiveForPolicy(prisonCode, removedStaffId, AllocationPolicy.KEY_WORKER.name),
       )
     assertThat(removed.toDate).isEqualTo(LocalDate.now())
+    verifyAudit(
+      removed,
+      removed.id,
+      RevisionType.MOD,
+      setOf(StaffRole::class.simpleName!!),
+      AllocationContext(username = SYSTEM_USERNAME, policy = AllocationPolicy.KEY_WORKER),
+    )
   }
 }
