@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.5.0"
   kotlin("plugin.spring") version "2.4.0"
   kotlin("plugin.jpa") version "2.4.0"
   jacoco
@@ -14,9 +14,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.5.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.5.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.4.0")
 
-  implementation("io.sentry:sentry-spring-boot-4:8.43.1")
+  implementation("io.sentry:sentry-spring-boot-4:8.43.2")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
   implementation("org.springframework.data:spring-data-envers")
 
