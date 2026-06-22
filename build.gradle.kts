@@ -16,7 +16,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-lib:2.5.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.4.0")
 
-  implementation("io.sentry:sentry-spring-boot-4:8.44.0")
+  implementation("io.sentry:sentry-spring-boot-4:8.44.1")
   implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
   implementation("org.springframework.data:spring-data-envers")
 
