@@ -17,7 +17,7 @@ class CachingClientService(
 
   override fun <T : OAuth2AuthorizedClient> loadAuthorizedClient(
     clientRegistrationId: String,
-    principalName: String?,
+    principalName: String,
   ): T? =
     clientRegistrationRepository
       .findByRegistrationId(clientRegistrationId)
@@ -27,7 +27,7 @@ class CachingClientService(
 
   override fun saveAuthorizedClient(
     authorizedClient: OAuth2AuthorizedClient,
-    principal: Authentication?,
+    principal: Authentication,
   ) {
     authorizedClients[
       OAuth2AuthorizedClientId(authorizedClient.clientRegistration.registrationId, SYSTEM_USERNAME),
@@ -36,7 +36,7 @@ class CachingClientService(
 
   override fun removeAuthorizedClient(
     clientRegistrationId: String,
-    principalName: String?,
+    principalName: String,
   ) {
     // no-op
   }
