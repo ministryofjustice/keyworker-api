@@ -16,6 +16,7 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
     stubFor(
       WireMock
         .put(WireMock.urlPathEqualTo("/agency/${sjc.prisonCode}/staff-members/${sjc.staffId}/staff-role/KW"))
+        .withBearerToken()
         .withRequestBody(
           equalToJson(
             jsonMapper.writeValueAsString(sjc.asRequest()),

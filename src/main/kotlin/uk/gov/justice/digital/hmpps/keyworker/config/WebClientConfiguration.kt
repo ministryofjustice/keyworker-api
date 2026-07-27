@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.Builder
 import reactor.netty.http.client.HttpClient
 import reactor.netty.http.client.HttpClient.create
+import uk.gov.justice.hmpps.kotlin.auth.ServletRequestResponseNonNullFilterFunction
 import uk.gov.justice.hmpps.kotlin.auth.healthWebClient
 import java.time.Duration
 import java.time.Duration.ofSeconds
@@ -104,6 +105,7 @@ class WebClientConfiguration(
     return builder
       .baseUrl(rootUri)
       .clientConnector(clientConnector(timeout))
+      .filter(ServletRequestResponseNonNullFilterFunction())
       .apply(oauth2Client.oauth2Configuration())
       .build()
   }

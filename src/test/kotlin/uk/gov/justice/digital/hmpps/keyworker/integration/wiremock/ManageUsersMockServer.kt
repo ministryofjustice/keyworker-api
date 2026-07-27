@@ -17,6 +17,7 @@ class ManageUsersMockServer : WireMockServer(9998) {
   ): StubMapping =
     stubFor(
       get("/users/$username")
+        .withBearerToken()
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")

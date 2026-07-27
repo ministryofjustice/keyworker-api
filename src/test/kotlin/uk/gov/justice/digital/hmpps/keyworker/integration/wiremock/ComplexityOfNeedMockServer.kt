@@ -15,6 +15,7 @@ class ComplexityOfNeedMockServer : WireMockServer(10000) {
     stubFor(
       WireMock
         .post(WireMock.urlPathEqualTo("/v1/complexity-of-need/multiple/offender-no"))
+        .withBearerToken()
         .withRequestBody(equalToJson(jsonMapper.writeValueAsString(personIdentifiers), true, true))
         .willReturn(
           WireMock
