@@ -24,6 +24,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
   fun stubGetCaseNote(caseNote: CaseNote): StubMapping =
     stubFor(
       get("/case-notes/${caseNote.personIdentifier}/${caseNote.id}")
+        .withBearerToken()
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -39,6 +40,7 @@ class CaseNotesMockServer : WireMockServer(9997) {
   ): StubMapping =
     stubFor(
       post("/search/case-notes/$personIdentifier")
+        .withBearerToken()
         .withRequestBody(equalToJson(jsonMapper.writeValueAsString(SearchCaseNotes(ofInterest.asRequest())), true, true))
         .willReturn(
           aResponse()

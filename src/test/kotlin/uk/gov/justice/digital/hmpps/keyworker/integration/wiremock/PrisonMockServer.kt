@@ -43,6 +43,7 @@ class PrisonMockServer : WireMockServer(9999) {
     stubFor(
       WireMock
         .post(WireMock.urlEqualTo("/api/staff"))
+        .withBearerToken()
         .withRequestBody(equalToJson(jsonMapper.writeValueAsString(staffSummaries.map { it.staffId }), true, true))
         .willReturn(
           WireMock

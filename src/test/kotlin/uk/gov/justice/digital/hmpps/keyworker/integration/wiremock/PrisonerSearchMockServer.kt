@@ -21,6 +21,7 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
   ): StubMapping =
     stubFor(
       get(urlPathEqualTo("/prisoner-search/prison/$prisonCode"))
+        .withBearerToken()
         .willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
@@ -34,7 +35,9 @@ class PrisonerSearchMockServer : WireMockServer(9996) {
     prisoners: Prisoners,
     queryParams: Map<String, String> = mapOf(),
   ): StubMapping {
-    val request = get(urlPathEqualTo("/prison/$prisonCode/prisoners"))
+    val request =
+      get(urlPathEqualTo("/prison/$prisonCode/prisoners"))
+        .withBearerToken()
     queryParams.forEach { queryParam ->
       request.withQueryParam(queryParam.key, equalTo(queryParam.value))
     }

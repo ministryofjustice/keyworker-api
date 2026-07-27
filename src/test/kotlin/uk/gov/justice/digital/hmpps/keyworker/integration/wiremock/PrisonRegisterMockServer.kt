@@ -13,6 +13,7 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
     stubFor(
       WireMock
         .post(WireMock.urlPathEqualTo("/prisons/prisonsByIds"))
+        .withBearerToken()
         .withRequestBody(
           equalToJson(
             jsonMapper.writeValueAsString(PrisonsByIdsRequest(prisons.map { it.prisonId }.toSet())),
@@ -36,6 +37,7 @@ class PrisonRegisterMockServer : WireMockServer(9995) {
     stubFor(
       WireMock
         .post(WireMock.urlPathEqualTo("/prisons/prisonsByIds"))
+        .withBearerToken()
         .withRequestBody(
           equalToJson(
             jsonMapper.writeValueAsString(PrisonsByIdsRequest(prisonCodes)),
