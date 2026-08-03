@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
 
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.0")
