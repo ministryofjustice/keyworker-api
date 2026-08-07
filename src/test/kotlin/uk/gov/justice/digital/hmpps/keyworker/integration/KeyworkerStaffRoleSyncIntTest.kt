@@ -1,16 +1,12 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
-import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
@@ -23,7 +19,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class KeyworkerStaffRoleSyncIntTest(
-  @Autowired private val ksrSync: KeyworkerStaffRoleSync
+  @Autowired private val ksrSync: KeyworkerStaffRoleSync,
 ) : IntegrationTest() {
   @Test
   fun `syncs keyworker staff roles from NOMIS to local staff roles`() {
