@@ -55,3 +55,7 @@ data class CaseNoteInformation(
 ) : AdditionalInformation
 
 data object CaseNoteMigrationInformation : AdditionalInformation
+
+data class KeyworkerPrisonInformation(
+  val prisonCode: String,
+) : AdditionalInformation
