@@ -1,20 +1,30 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration
 
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.hibernate.envers.RevisionType
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext.Companion.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.PolicyHeader
 import uk.gov.justice.digital.hmpps.keyworker.domain.StaffRole
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.HmppsDomainEvent
+import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.KeyworkerPrisonInformation
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.KeyworkerStaffRoleSync
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.prisonCode
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisStaffGenerator.nomisStaffRole
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class KeyworkerStaffRoleSyncIntTest : IntegrationTest() {
+class KeyworkerStaffRoleSyncIntTest(
+  @Autowired private val ksrSync: KeyworkerStaffRoleSync
+) : IntegrationTest() {
   @Test
   fun `syncs keyworker staff roles from NOMIS to local staff roles`() {
     val prisonCode = prisonCode()
@@ -53,14 +63,7 @@ class KeyworkerStaffRoleSyncIntTest : IntegrationTest() {
       ),
     )
 
-    webTestClient
-      .post()
-      .uri("/staff/keyworker-roles/sync")
-      .headers(setHeaders(username = "sync-job"))
-      .header(PolicyHeader.NAME, AllocationPolicy.KEY_WORKER.name)
-      .exchange()
-      .expectStatus()
-      .isNoContent
+    ksrSync.syncKeyworkerStaffRoles(HmppsDomainEvent(EventType.SyncKeyworkers.name, KeyworkerPrisonInformation(prisonCode)))
 
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     val retained = requireNotNull(staffRoleRepository.findByPrisonCodeAndStaffId(prisonCode, retainedStaffId))

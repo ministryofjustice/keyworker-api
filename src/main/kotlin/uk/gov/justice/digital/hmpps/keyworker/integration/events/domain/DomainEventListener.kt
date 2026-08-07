@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.MigrateRecordedEvents
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.PersonInformation
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventService
+import uk.gov.justice.digital.hmpps.keyworker.services.staff.KeyworkerStaffRoleSync
 import uk.gov.justice.digital.hmpps.keyworker.statistics.PrisonStatisticCalculator
 
 @Service
@@ -32,6 +33,7 @@ class DomainEventListener(
   private val prisonStats: PrisonStatisticCalculator,
   private val recordedEvent: RecordedEventService,
   private val migrateRecordedEvents: MigrateRecordedEvents,
+  private val ksrSync: KeyworkerStaffRoleSync,
   private val jsonMapper: JsonMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -64,6 +66,8 @@ class DomainEventListener(
           migrateRecordedEvents.handle(
             jsonMapper.readValue<HmppsDomainEvent<CaseNoteMigrationInformation>>(notification.message),
           )
+
+        is EventType.SyncKeyworkers -> ksrSync.syncKeyworkerStaffRoles(jsonMapper.readValue(notification.message))
 
         is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
       }
