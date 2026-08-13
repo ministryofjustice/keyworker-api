@@ -7,6 +7,10 @@ sealed interface EventType {
     override val name = "keyworker-api.prison-statistics.calculate"
   }
 
+  data object SyncKeyworkers : EventType {
+    override val name = "keyworker-api.sync.keyworkers"
+  }
+
   data object ComplexityOfNeedChanged : EventType {
     override val name = "complexity-of-need.level.changed"
   }
