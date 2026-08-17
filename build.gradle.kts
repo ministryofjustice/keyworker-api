@@ -25,7 +25,6 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   testImplementation("org.testcontainers:postgresql:1.21.4")
-  testImplementation("org.testcontainers:localstack:1.21.4")
   testImplementation("org.wiremock:wiremock-standalone:3.13.2")
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
