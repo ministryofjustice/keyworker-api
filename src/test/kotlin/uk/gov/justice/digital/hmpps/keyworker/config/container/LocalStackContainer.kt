@@ -1,49 +1,40 @@
 package uk.gov.justice.digital.hmpps.keyworker.config.container
 
-import org.slf4j.LoggerFactory
 import org.springframework.test.context.DynamicPropertyRegistry
-import org.testcontainers.containers.localstack.LocalStackContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 import java.io.IOException
 import java.net.ServerSocket
 
 object LocalStackContainer {
-  private val log = LoggerFactory.getLogger(this::class.java)
-  val instance by lazy { startLocalstackIfNotRunning() }
+  val instance by lazy { startMiniStackIfNotRunning() }
 
-  fun setLocalStackProperties(
-    localStackContainer: LocalStackContainer,
+  fun setMiniStackProperties(
+    miniStackContainer: GenericContainer<*>,
     registry: DynamicPropertyRegistry,
   ) {
-    val localstackSnsUrl = localStackContainer.getEndpointOverride(LocalStackContainer.Service.SNS).toString()
-    val region = localStackContainer.region
-    registry.add("hmpps.sqs.localstackUrl") { localstackSnsUrl }
+    val endpoint = "http://${miniStackContainer.host}:${miniStackContainer.getMappedPort(4566)}"
+    val region = miniStackContainer.envMap.getOrDefault("DEFAULT_REGION", "eu-west-2")
+    registry.add("hmpps.sqs.localstackUrl") { endpoint }
     registry.add("hmpps.sqs.region") { region }
   }
 
-  private fun startLocalstackIfNotRunning(): LocalStackContainer? {
-    if (localstackIsRunning()) return null
-    val logConsumer = Slf4jLogConsumer(log).withPrefix("localstack")
-    return LocalStackContainer(
-      DockerImageName.parse("localstack/localstack:4.14.0"),
-    ).apply {
-      withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.SNS)
+  private fun startMiniStackIfNotRunning(): GenericContainer<*>? {
+    if (miniStackIsRunning()) return null
+    return GenericContainer(DockerImageName.parse("nahuelnucera/ministack:latest")).apply {
+      withExposedPorts(4566)
       withEnv("DEFAULT_REGION", "eu-west-2")
-      waitingFor(
-        Wait.forLogMessage(".*Ready.\n", 1),
-      )
+      waitingFor(Wait.forHttp("/_localstack/health").forPort(4566))
       start()
-      followOutput(logConsumer)
     }
   }
 
-  private fun localstackIsRunning(): Boolean =
+  private fun miniStackIsRunning(): Boolean =
     try {
       val serverSocket = ServerSocket(4566)
       serverSocket.localPort == 0
-    } catch (e: IOException) {
+    } catch (_: IOException) {
       true
     }
 }

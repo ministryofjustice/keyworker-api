@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContext
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationContextHolder
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer
-import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setLocalStackProperties
+import uk.gov.justice.digital.hmpps.keyworker.config.container.LocalStackContainer.setMiniStackProperties
 import uk.gov.justice.digital.hmpps.keyworker.config.container.PostgresContainer
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
@@ -292,7 +292,7 @@ abstract class IntegrationTest {
 
       System.setProperty("aws.region", "eu-west-2")
 
-      localStackContainer?.also { setLocalStackProperties(it, registry) }
+      localStackContainer?.also { setMiniStackProperties(it, registry) }
     }
   }
 
