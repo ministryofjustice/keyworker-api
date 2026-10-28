@@ -91,7 +91,6 @@ class StaffSearch(
     val staffMembers = nomisUsersApi.getUsers(prisonCode, nameFilter).content
     val roleInfo = requireNotNull(staffRoleRetriever[policy]).getStaffRoles(prisonCode)
     return staffMembers
-      .filter { it.staffStatus == StaffStatus.ACTIVE.name }
       .map {
         StaffWithRole(
           it.staffId,
