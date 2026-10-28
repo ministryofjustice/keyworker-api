@@ -42,7 +42,7 @@ class NomisUserRolesMockServer : WireMockServer(9994) {
     if (ssr?.query?.isNotBlank() == true) {
       request.withQueryParam("nameFilter", equalTo(ssr.query))
     }
-    request.withQueryParam("status", equalTo("ACTIVE"))
+    request.withQueryParam("status", equalTo("ALL"))
     request.withQueryParam("caseload", equalTo(prisonCode))
     stubFor(
       request.willReturn(
