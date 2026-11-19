@@ -29,6 +29,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
   fun `calculate prison statistics for yesterday for a prison without complex needs`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = prisonCode()
+    givenCachedPrison(cachedPrison(prisonCode))
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true))
     val staff =
@@ -142,6 +143,7 @@ class CalculatePrisonStatisticsTest : IntegrationTest() {
     val prisonCode = prisonCode()
     val yesterday = now().minusDays(1)
     givenPrisonConfig(prisonConfig(prisonCode, true, hasPrisonersWithHighComplexityNeeds = true))
+    givenCachedPrison(cachedPrison(prisonCode))
     val keyworkers =
       (0..10).map { index ->
         givenStaffConfig(

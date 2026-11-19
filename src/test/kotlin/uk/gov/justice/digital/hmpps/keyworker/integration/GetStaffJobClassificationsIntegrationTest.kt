@@ -40,6 +40,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
     val prisonCode = "AJC"
     val staffId = newId()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffRole(staffRole(prisonCode, staffId))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId))
@@ -60,6 +61,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
     val prisonCode = "KJC"
     val staffId = newId()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffRole(staffRole(prisonCode, staffId))
 
     val res =
@@ -78,6 +80,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
     val prisonCode = "PJC"
     val staffId = newId()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffRole(staffRole(prisonCode, staffId))
 
     val res =
@@ -96,6 +99,7 @@ class GetStaffJobClassificationsIntegrationTest : IntegrationTest() {
     val prisonCode = "CADM_I"
     val staffId = newId()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffRole(staffRole(prisonCode, staffId))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
     givenStaffRole(staffRole(prisonCode, staffId, toDate = LocalDate.now()))

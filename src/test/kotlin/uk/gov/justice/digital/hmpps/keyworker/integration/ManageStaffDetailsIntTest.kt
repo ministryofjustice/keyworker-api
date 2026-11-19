@@ -58,9 +58,10 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `does not create staff config for defaults`(policy: AllocationPolicy) {
     val prisonCode = "NDS"
+    givenCachedPrison(cachedPrison(prisonCode))
+    val pc = givenPrisonConfig(prisonConfig(prisonCode, true))
     val staffId = newId()
     val username = username()
-    val pc = givenPrisonConfig(prisonConfig(prisonCode, true))
 
     if (policy == AllocationPolicy.KEY_WORKER) {
       nomisUserRolesMockServer.stubSetStaffRole(
@@ -91,6 +92,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `create staff config with submitted and fallback values if not already exists`(policy: AllocationPolicy) {
     val prisonCode = "UBP"
+    givenCachedPrison(cachedPrison(prisonCode))
     val staffId = newId()
     val username = username()
 
@@ -135,6 +137,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `create staff role with submitted and fallback values if not already exists`(policy: AllocationPolicy) {
     val prisonCode = "SRC"
+    givenCachedPrison(cachedPrison(prisonCode))
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
@@ -194,6 +197,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
     val sc =
       givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId, capacity = 6, reactivateOn = LocalDate.of(2001, 1, 1)))
 
@@ -237,6 +241,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `staff role can be reactivated`(policy: AllocationPolicy) {
     val prisonCode = "UDR"
+    givenCachedPrison(cachedPrison(prisonCode))
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
@@ -292,6 +297,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `unset reactivatedOn if null value is submitted`(policy: AllocationPolicy) {
     val prisonCode = "RON"
+    givenCachedPrison(cachedPrison(prisonCode))
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
@@ -338,6 +344,7 @@ class ManageStaffDetailsIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
     val allocations =
       (0..10).map {

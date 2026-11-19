@@ -34,6 +34,7 @@ class RemoveStaffRoleIntTest : IntegrationTest() {
     val staffId = newId()
     val username = username()
     setContext(AllocationContext.get().copy(policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffConfig(staffConfig(StaffStatus.ACTIVE, staffId))
 
     val nomisRequest =

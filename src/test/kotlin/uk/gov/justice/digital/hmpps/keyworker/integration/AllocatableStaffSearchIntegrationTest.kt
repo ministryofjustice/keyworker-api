@@ -52,6 +52,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
 
     val prisonCode = "ASF"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
     val staffIds = (0..10).map { newId() }
@@ -198,6 +199,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     val currentMonth = ReportingPeriod.currentMonth()
 
     val prisonCode = "ATA"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
     val staffIds = (0..10).map { newId() }
@@ -249,6 +251,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
 
     val prisonCode = "ASR"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
     val staffId = newId()
@@ -315,6 +318,7 @@ class AllocatableStaffSearchIntegrationTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
 
     val prisonCode = "ASN"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
 
     val staffIds = (0..5).map { newId() }

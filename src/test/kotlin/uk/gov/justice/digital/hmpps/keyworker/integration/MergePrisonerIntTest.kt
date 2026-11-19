@@ -37,6 +37,7 @@ class MergePrisonerIntTest : IntegrationTest() {
   fun `merge updates prison number for allocation`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "MNA"
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
     val newNoms = personIdentifier()
 
@@ -58,6 +59,7 @@ class MergePrisonerIntTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "MDO"
     val staffId = newId()
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
     val new = givenAllocation(staffAllocation(personIdentifier(), prisonCode, staffId = staffId))
 

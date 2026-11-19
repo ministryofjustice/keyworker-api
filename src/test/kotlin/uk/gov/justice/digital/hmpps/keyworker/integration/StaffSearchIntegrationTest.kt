@@ -54,6 +54,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val prisonCode = "SFI"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
 
     val staffIds = (0..10).map { newId() }
     val request = searchRequest(query = "First")
@@ -155,6 +156,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val prisonCode = "STA"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
 
     val staffIds = (0..10).map { newId() }
     val request = searchRequest(status = StaffStatus.ALL)
@@ -202,6 +204,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val prisonCode = "NSR"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
 
     val staffId = newId()
     val request = searchRequest()
@@ -286,6 +289,7 @@ class StaffSearchIntegrationTest : IntegrationTest() {
 
     val prisonCode = "HKR"
     givenPrisonConfig(prisonConfig(prisonCode, policy = policy))
+    givenCachedPrison(cachedPrison(prisonCode))
 
     val staffIds = (0..5).map { newId() }
     val request = searchRequest(hasPolicyStaffRole = true)

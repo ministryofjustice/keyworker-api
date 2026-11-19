@@ -56,6 +56,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
   @MethodSource("policyProvider")
   fun `200 ok and staff details returned`(policy: AllocationPolicy) {
     val prisonCode = "DEF"
+    givenCachedPrison(cachedPrison(prisonCode))
 
     // adding config with a different policy to confirm correct config is returned
     setContext(
@@ -283,7 +284,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     val (prisonCode, prisonDescription) = prison
     val staff =
       nomisStaffRole(newId(), { "Noah" }, { "Locations" }, "CHAP", "PT", BigDecimal(36.5), now().minusWeeks(6))
-    prisonRegisterMockServer.stubGetPrisons(setOf(prison))
+    givenCachedPrison(cachedPrison(prisonCode, prisonDescription))
     prisonMockServer.stubStaffSummaries(listOf(staffSummary("Noah", "Locations", staff.staffId)))
     givenStaffRole(
       staffRole(
@@ -343,7 +344,7 @@ class GetStaffDetailsIntegrationTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
 
     val prison = Prison("UAL", "Unavailable for Annual Leave)")
-    prisonRegisterMockServer.stubGetPrisons(setOf(prison))
+    givenCachedPrison(cachedPrison(prison.prisonId, prison.prisonName))
     val prisonCode = prison.prisonId
     val staff = nomisStaffRole(newId(), { "On" }, { "Holiday" }, "AO", "FT", BigDecimal(36.5), now().minusWeeks(6))
     val staffConfig =

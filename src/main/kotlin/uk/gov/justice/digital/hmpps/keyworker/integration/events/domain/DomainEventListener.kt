@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.events.domain
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.microsoft.applicationinsights.TelemetryClient
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Service
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventTyp
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.domain.EventType.PrisonMerged
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.ComplexityOfNeedEventProcessor
 import uk.gov.justice.digital.hmpps.keyworker.services.MergePrisonNumbers
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonCache
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.MigrateRecordedEvents
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.PersonInformation
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventService
@@ -34,6 +36,7 @@ class DomainEventListener(
   private val recordedEvent: RecordedEventService,
   private val migrateRecordedEvents: MigrateRecordedEvents,
   private val ksrSync: KeyworkerStaffRoleSync,
+  private val prisonCache: PrisonCache,
   private val jsonMapper: JsonMapper,
   private val telemetryClient: TelemetryClient,
 ) {
@@ -68,6 +71,8 @@ class DomainEventListener(
           )
 
         is EventType.SyncKeyworkers -> ksrSync.syncKeyworkerStaffRoles(jsonMapper.readValue(notification.message))
+
+        is EventType.PrisonCreated, is EventType.PrisonAmended -> prisonCache.mergePrison(jsonMapper.readValue(notification.message))
 
         is Other -> telemetryClient.trackEvent("UnrecognisedEvent", mapOf("name" to eventType.name), null)
       }

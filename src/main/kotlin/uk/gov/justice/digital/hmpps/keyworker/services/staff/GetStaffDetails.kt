@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.Prisone
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRelevantAlertCodes
 import uk.gov.justice.digital.hmpps.keyworker.integration.prisonersearch.getRemainingAlertCount
-import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.keyworker.model.CodedDescription
 import uk.gov.justice.digital.hmpps.keyworker.model.ReportingPeriod
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.JobClassificationResponse
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.keyworker.model.staff.LatestSession
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffCountStats
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffDetails
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStats
+import uk.gov.justice.digital.hmpps.keyworker.services.PrisonCache
 import uk.gov.justice.digital.hmpps.keyworker.services.Statistic
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventRetriever
 import uk.gov.justice.digital.hmpps.keyworker.services.recordedevents.RecordedEventSummaries
@@ -39,7 +39,7 @@ class GetStaffDetails(
   private val staffConfigRepository: StaffConfigRepository,
   private val allocationRepository: AllocationRepository,
   private val prisonerSearch: PrisonerSearchClient,
-  private val prisonRegisterApi: PrisonRegisterClient,
+  private val prisonCache: PrisonCache,
   private val caseNotesRetriever: RecordedEventRetriever,
 ) {
   private val staffRoleRetriever = staffRoleRetrievers.flatMap { it.policies.map { policy -> policy to it } }.toMap()
@@ -94,7 +94,7 @@ class GetStaffDetails(
         .associateBy { it.prisonerNumber }
 
     val prisonName =
-      prisonerDetails.values.firstOrNull()?.prisonName ?: prisonRegisterApi.findPrison(prisonCode)!!.prisonName
+      prisonerDetails.values.firstOrNull()?.prisonName ?: requireNotNull(prisonCache.findByCode(prisonCode)).prisonName
 
     val (allocations, stats) =
       if (includeStats) {

@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import uk.gov.justice.digital.hmpps.keyworker.config.set
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
-import uk.gov.justice.digital.hmpps.keyworker.integration.prisonregister.PrisonRegisterClient
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigRequest
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonConfigResponse
@@ -18,14 +17,14 @@ import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
 @Service
 class PrisonService(
   private val prisonConfig: PrisonConfigurationRepository,
-  private val prisonRegister: PrisonRegisterClient,
+  private val prisonCache: PrisonCache,
 ) {
   fun findPolicyEnabledPrisons(policyCode: String): Set<String> =
     AllocationPolicy.of(policyCode)?.name?.let { policyCode ->
       prisonConfig.findEnabledPrisonsForPolicyCode(policyCode).map { it.code }.toSet()
     } ?: emptySet()
 
-  fun findPrisons(ids: Set<String>): List<Prison> = prisonRegister.findPrisons(ids)
+  fun findPrisons(ids: Set<String>): List<Prison> = prisonCache.findByCodes(ids)
 
   fun setPrisonConfig(
     prisonCode: String,
@@ -52,7 +51,7 @@ class PrisonService(
     prisonCode: String,
     prison: PrisonPolicies,
   ): PrisonPolicies {
-    checkNotNull(prisonRegister.findPrison(prisonCode)) { "Provided prison code was invalid" }
+    checkNotNull(prisonCache.findByCode(prisonCode)) { "Provided prison code was invalid" }
     val configs =
       prisonConfig
         .findConfigurationsForPolicies(prisonCode, prison.policies.map { it.policy.name }.toSet())

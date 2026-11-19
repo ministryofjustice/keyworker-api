@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "app.fullname" . }}-reconcile-prison-cache
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  schedule: "0 8 * * *"
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            cron-job-name: reconcile-prison-cache-cron-job
+        spec:
+          containers:
+            - name: reconcile-prison-cache
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              args:
+                - /bin/sh
+                - -c
+                - curl --retry 2 -XPOST http://keyworker-api/prison-chache
+          restartPolicy: Never

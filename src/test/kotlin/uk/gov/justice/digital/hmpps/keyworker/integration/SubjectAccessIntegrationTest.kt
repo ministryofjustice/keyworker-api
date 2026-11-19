@@ -59,6 +59,7 @@ class SubjectAccessIntegrationTest(
   @Test
   fun `200 ok - allocations returned for all policies`() {
     val prisonCode = "SA1"
+    givenCachedPrison(cachedPrison(prisonCode))
     val pi = personIdentifier()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     val al1 = givenAllocation(staffAllocation(pi, prisonCode))
@@ -97,6 +98,7 @@ class SubjectAccessIntegrationTest(
     val staffId = newId()
     val from = LocalDate.now().minusDays(20)
     val to = LocalDate.now().minusDays(10)
+    givenCachedPrison(cachedPrison(prisonCode))
     givenAllocation(
       staffAllocation(
         pi,

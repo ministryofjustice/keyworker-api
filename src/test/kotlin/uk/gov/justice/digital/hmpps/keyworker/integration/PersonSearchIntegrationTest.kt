@@ -50,6 +50,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
   fun `can filter people and decorate with staff member`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "FIND"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode))
 
     val prisoners = prisoners(prisonCode, 10)
@@ -135,6 +136,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
   fun `can filter complex needs people and decorate with staff member`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "COMP"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, hasPrisonersWithHighComplexityNeeds = true))
 
     val prisoners = prisoners(prisonCode, 6)
@@ -204,6 +206,7 @@ class PersonSearchIntegrationTest : IntegrationTest() {
   fun `can exclude active and decorate with staff member`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EXAC"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode))
 
     val prisoners = prisoners(prisonCode, 10)

@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
 import uk.gov.justice.digital.hmpps.keyworker.model.person.StaffAllocationHistory
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDateTime
@@ -56,7 +55,7 @@ class GetStaffAllocationsIntegrationTest : IntegrationTest() {
         )
       }
 
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Indicated Prison")))
+    givenCachedPrison(cachedPrison(prisonCode, "Indicated Prison"))
 
     val historicAllocations =
       staffConfig.mapIndexed { i, a ->

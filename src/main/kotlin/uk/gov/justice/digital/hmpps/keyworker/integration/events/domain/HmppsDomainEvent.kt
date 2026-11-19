@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.keyworker.integration.events.domain
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import uk.gov.justice.digital.hmpps.keyworker.config.AllocationPolicy
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -58,4 +59,8 @@ data object CaseNoteMigrationInformation : AdditionalInformation
 
 data class KeyworkerPrisonInformation(
   val prisonCode: String,
+) : AdditionalInformation
+
+data class PrisonInformation(
+  @JsonAlias("prisonId") val prisonCode: String,
 ) : AdditionalInformation
