@@ -46,6 +46,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
   fun `will not recommend staff who are not active`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "NAS"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 10, policy = policy))
     val prisoners = prisoners(prisonCode, 10)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
@@ -73,6 +74,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
   fun `identifies cases that have no recommendations when all staff are at max capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "FUL"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 1, policy = policy))
     val prisoners = prisoners(prisonCode, 10)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
@@ -219,6 +221,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
   fun `will balance recommendations based on capacity availability and report when staff are at max capacity`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "BAL"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 9, policy = policy))
     val prisoners = prisoners(prisonCode, 16)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)
@@ -278,6 +281,7 @@ class RecommendAllocationIntTest : IntegrationTest() {
   fun `will balance recommendations based on capacity availability when capacity is different`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "BAL"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, capacity = 9, policy = policy))
     val prisoners = prisoners(prisonCode, 16)
     prisonerSearchMockServer.stubFindFilteredPrisoners(prisonCode, prisoners)

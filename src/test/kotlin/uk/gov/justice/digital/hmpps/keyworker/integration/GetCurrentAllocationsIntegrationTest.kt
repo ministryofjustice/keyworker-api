@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.RecordedEventType
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffStatus
 import uk.gov.justice.digital.hmpps.keyworker.model.staff.StaffSummary
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.newId
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 import java.time.LocalDate
@@ -71,7 +70,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
+    givenCachedPrison(cachedPrison(prisonCode))
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -174,7 +173,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
+    givenCachedPrison(cachedPrison(prisonCode))
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -256,7 +255,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, true))
 
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
+    givenCachedPrison(cachedPrison(prisonCode))
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))
@@ -354,7 +353,7 @@ class GetCurrentAllocationsIntegrationTest : IntegrationTest() {
     val personIdentifier = personIdentifier()
     givenPrisonConfig(prisonConfig(prisonCode, false))
 
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, "Description of $prisonCode")))
+    givenCachedPrison(cachedPrison(prisonCode))
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, setOf(personIdentifier))
 
     val previous = givenStaffConfig(staffConfig(StaffStatus.ACTIVE, capacity = 10))

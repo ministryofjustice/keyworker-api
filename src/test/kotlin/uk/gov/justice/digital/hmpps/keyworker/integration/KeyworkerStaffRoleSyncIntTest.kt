@@ -28,6 +28,7 @@ class KeyworkerStaffRoleSyncIntTest(
     val removedStaffId = newId()
     val addedStaffId = newId()
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true, policy = AllocationPolicy.KEY_WORKER))
     givenStaffRole(
       staffRole(

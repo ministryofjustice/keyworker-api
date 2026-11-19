@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.TestingAuthenticationToken
@@ -38,9 +39,11 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationOrder
 import uk.gov.justice.digital.hmpps.keyworker.domain.AllocationRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.AuditRevision
+import uk.gov.justice.digital.hmpps.keyworker.domain.CachedPrison
 import uk.gov.justice.digital.hmpps.keyworker.domain.CaseNoteRecordedEventRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfiguration
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonConfigurationRepository
+import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatistic
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonStatisticRepository
 import uk.gov.justice.digital.hmpps.keyworker.domain.PrisonerStatisticRepository
@@ -110,6 +113,9 @@ abstract class IntegrationTest {
 
   @Autowired
   protected lateinit var prisonerStatisticRepository: PrisonerStatisticRepository
+
+  @Autowired
+  protected lateinit var prisonRepository: PrisonRepository
 
   @Autowired
   lateinit var webTestClient: WebTestClient
@@ -348,6 +354,18 @@ abstract class IntegrationTest {
       ),
     )
   }
+
+  protected fun cachedPrison(
+    code: String,
+    name: String = "Description of $code",
+  ) = CachedPrison(code, name)
+
+  protected fun givenCachedPrison(cachedPrison: CachedPrison): CachedPrison =
+    transactionTemplate.execute {
+      prisonRepository.findByIdOrNull(cachedPrison.code)?.also {
+        it.name = cachedPrison.name
+      } ?: prisonRepository.save(cachedPrison)
+    }
 
   protected fun prisonConfig(
     code: String,

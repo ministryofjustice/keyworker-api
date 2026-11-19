@@ -148,6 +148,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   fun `400 bad request - staff id not an active staff member`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "SIK"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoner = prisoner(prisonCode)
@@ -174,6 +175,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   fun `204 no content - new allocations`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "NAL"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoners = listOf(prisoner(prisonCode))
@@ -206,6 +208,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   fun `204 no content - new allocations and existing allocations deallocated`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "EAL"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val prisoners = listOf(prisoner(prisonCode))
@@ -251,6 +254,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
     val psas = prisoners.map { personStaffAllocation(it.prisonerNumber, staffId) }
     prisonerSearchMockServer.stubFindPrisonerDetails(prisonCode, prisoners.map { it.prisonerNumber }.toSet(), prisoners)
     prisonMockServer.stubStaffSummaries(staffSummaries(setOf(staffId)))
+    givenCachedPrison(cachedPrison(prisonCode))
     givenStaffRole(staffRole(prisonCode, staffId))
     val existingAllocations =
       prisoners.map { givenAllocation(staffAllocation(it.prisonerNumber, prisonCode, staffId)) }
@@ -282,6 +286,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   fun `204 no content - deallocate existing allocations`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "DAL"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val staffId = newId()
@@ -312,6 +317,7 @@ class ManageAllocationsIntegrationTest : IntegrationTest() {
   fun `204 no content - doesn't deallocate unless person and staff match`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "DDA"
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(prisonConfig(prisonCode, enabled = true))
 
     val staffId = newId()

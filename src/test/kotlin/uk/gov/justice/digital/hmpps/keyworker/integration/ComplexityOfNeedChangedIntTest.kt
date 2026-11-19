@@ -22,7 +22,9 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
   @Test
   fun `receiving a change event that is not active is ignored without failing`() {
     val prisonCode = "CII"
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
+    givenCachedPrison(cachedPrison(prisonCode))
     publishEventToTopic(complexityChanged(ComplexityOfNeedLevel.HIGH, alloc.personIdentifier, false))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
@@ -36,7 +38,9 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
   @Test
   fun `receiving a change event that is not a high does not deallocate`() {
     val prisonCode = "CMI"
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
+    givenCachedPrison(cachedPrison(prisonCode))
     publishEventToTopic(complexityChanged(ComplexityOfNeedLevel.MEDIUM, alloc.personIdentifier, true))
 
     await untilCallTo { domainEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
@@ -53,6 +57,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
     val prisonCode = "CHD"
     val username = "H1ghC0"
     val requestedAt = LocalDateTime.now().minusMinutes(30)
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     complexityOfNeedMockServer.stubComplexOffenders(
@@ -92,6 +97,7 @@ class ComplexityOfNeedChangedIntTest : IntegrationTest() {
     val prisonCode = "CHD"
     val username = "H1ghC0"
     val requestedAt = LocalDateTime.now().minusMinutes(30)
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     complexityOfNeedMockServer.stubComplexOffenders(

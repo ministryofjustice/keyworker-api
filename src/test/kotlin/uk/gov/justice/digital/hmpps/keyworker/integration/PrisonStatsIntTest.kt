@@ -99,6 +99,7 @@ class PrisonStatsIntTest : IntegrationTest() {
   fun `200 ok prison stats returned`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = prisonCode()
+    givenCachedPrison(cachedPrison(prisonCode))
     givenPrisonConfig(
       prisonConfig(
         prisonCode,

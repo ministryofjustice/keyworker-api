@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.keyworker.config.CaseloadIdHeader
 import uk.gov.justice.digital.hmpps.keyworker.controllers.Roles
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PolicyEnabled
 import uk.gov.justice.digital.hmpps.keyworker.model.prison.PrisonPolicies
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 class PrisonPoliciesEnabledIntTest : IntegrationTest() {
@@ -42,7 +41,6 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
   @Test
   fun `400 bad request - prison does not exist`() {
     val prisonCode = "PDE"
-    prisonRegisterMockServer.stubGetPrisons(setOf(prisonCode), emptySet())
     val res =
       setPrisonPolicies(prisonCode)
         .expectStatus()
@@ -63,7 +61,7 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
           PolicyEnabled(AllocationPolicy.PERSONAL_OFFICER, true),
         ),
       )
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
+    givenCachedPrison(cachedPrison(prisonCode))
     val res =
       setPrisonPolicies(prisonCode, pp, caseloadId = prisonCode)
         .expectStatus()
@@ -91,7 +89,7 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
   @Test
   fun `200 ok - can update multiple policies for prison`() {
     val prisonCode = "UPP"
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
+    givenCachedPrison(cachedPrison(prisonCode))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     givenPrisonConfig(prisonConfig(prisonCode, true))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))
@@ -137,7 +135,7 @@ class PrisonPoliciesEnabledIntTest : IntegrationTest() {
   @Test
   fun `200 ok - can retrieve policies for prison`() {
     val prisonCode = "RMP"
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
+    givenCachedPrison(cachedPrison(prisonCode))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.KEY_WORKER))
     givenPrisonConfig(prisonConfig(prisonCode, true))
     setContext(AllocationContext.get().copy(policy = AllocationPolicy.PERSONAL_OFFICER))

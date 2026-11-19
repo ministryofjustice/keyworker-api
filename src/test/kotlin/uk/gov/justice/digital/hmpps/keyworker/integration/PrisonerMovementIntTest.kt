@@ -15,14 +15,13 @@ import uk.gov.justice.digital.hmpps.keyworker.domain.Allocation
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.OffenderEvent
 import uk.gov.justice.digital.hmpps.keyworker.integration.events.offender.OffenderEventListener.Companion.EXTERNAL_MOVEMENT
 import uk.gov.justice.digital.hmpps.keyworker.model.DeallocationReason
-import uk.gov.justice.digital.hmpps.keyworker.services.Prison
 import uk.gov.justice.digital.hmpps.keyworker.utils.NomisIdGenerator.personIdentifier
 
 class PrisonerMovementIntTest : IntegrationTest() {
   @Test
   fun `receiving a movement event where no allocation information exists does not cause a failure`() {
     val prisonCode = "POR"
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
+    givenCachedPrison(cachedPrison(prisonCode))
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("NIM", prisonCode, "OUT", "TRN"))
 
     await untilCallTo { offenderEventsQueue.countAllMessagesOnQueue() } matches { it == 0 }
@@ -32,6 +31,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
   @EnumSource(AllocationPolicy::class)
   fun `release deallocates allocation`(policy: AllocationPolicy) {
     val prisonCode = "DAA"
+    givenCachedPrison(cachedPrison(prisonCode))
     setContext(AllocationContext.get().copy(policy = policy))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
@@ -52,7 +52,8 @@ class PrisonerMovementIntTest : IntegrationTest() {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "SMO"
     val toPrisonCode = "TOP"
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(toPrisonCode, toPrisonCode)))
+    givenCachedPrison(cachedPrison(prisonCode))
+    givenCachedPrison(cachedPrison(toPrisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent(prisonCode, toPrisonCode, "OUT", "TRN", alloc.personIdentifier))
@@ -71,7 +72,7 @@ class PrisonerMovementIntTest : IntegrationTest() {
   fun `does not deallocate if already at new prison`(policy: AllocationPolicy) {
     setContext(AllocationContext.get().copy(policy = policy))
     val prisonCode = "ARD"
-    prisonRegisterMockServer.stubGetPrisons(setOf(Prison(prisonCode, prisonCode)))
+    givenCachedPrison(cachedPrison(prisonCode))
     val alloc = givenAllocation(staffAllocation(personIdentifier(), prisonCode))
 
     publishOffenderEvent(EXTERNAL_MOVEMENT, offenderEvent("OTHER", prisonCode, "IN", "ADM", alloc.personIdentifier))
