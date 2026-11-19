@@ -23,5 +23,5 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPOST http://keyworker-api/prison-chache
+                - curl --retry 2 -XPOST http://keyworker-api/prison-cache
           restartPolicy: Never

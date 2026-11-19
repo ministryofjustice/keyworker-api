@@ -15,7 +15,7 @@ class PrisonCacheController(
 ) {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Reconcile prison cache", hidden = true)
-  @PostMapping(value = ["/prison-chache"])
+  @PostMapping(value = ["/prison-cache"])
   fun reconcilePrisonCache() {
     prisonCache.reconcileAll()
   }

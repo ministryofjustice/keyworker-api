@@ -26,6 +26,7 @@ class SecurityConfig {
             "/staff/returning-from-leave",
             "/staff/keyworker-roles/sync",
             "/prison-statistics/calculate",
+            "/prison-cache",
           )
       }
     }

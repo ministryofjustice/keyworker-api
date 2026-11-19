@@ -26,6 +26,7 @@ class KeyworkerContextConfiguration(
         "/staff/returning-from-leave",
         "/prison-statistics/calculate",
         "/queue-admin/retry-all-dlqs",
+        "/prison-cache",
         "/health/**",
         "/info",
         "/ping",
@@ -93,6 +94,7 @@ class KeyworkerContextInterceptor : HandlerInterceptor {
         // job-classifications endpoint is used by shared component and often provides values that are not prison codes
         "/prisons/[^/]+/staff/\\d*/job-classifications" to setOf(GET),
         "/staff/returning-from-leave" to setOf(POST),
+        "/prison-cache" to setOf(POST),
         "/subject-access-request(/template)?" to setOf(GET),
         "/prisons/HVI/switch-policy" to setOf(POST),
       ).map { PolicyNotRequired(it.first.toRegex(), it.second) }

@@ -43,9 +43,6 @@ tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     compilerOptions {
       jvmTarget = JVM_25
-      freeCompilerArgs.addAll(
-        "-Xannotation-default-target=param-property",
-      )
     }
   }
   test {
