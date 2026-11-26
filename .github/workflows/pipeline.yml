@@ -83,6 +83,8 @@ jobs:
       database_user: 'admin'
       database_password: 'admin_password'
     secrets: inherit
+    permissions:
+      contents: write
   deploy_dev:
     name: Deploy to the dev environment
     concurrency:
