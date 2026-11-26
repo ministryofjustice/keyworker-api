@@ -40,7 +40,7 @@ jobs:
   schema-spy:
     name: Schema Spy report generation
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 60
     environment: test
 
     steps:
@@ -71,3 +71,12 @@ jobs:
           schema: ${{ inputs.database_schema }}
           user: ${{ inputs.database_user }}
           password: ${{ inputs.database_password }}
+
+      - name: Publish to GitHub Pages
+        if: ${{ inputs.publish }}
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
+        with:
+          branch: gh-pages
+          folder: /tmp/schemaspy
+          target-folder: schema-spy-report
+

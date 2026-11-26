@@ -22,7 +22,7 @@ object LocalStackContainer {
 
   private fun startMiniStackIfNotRunning(): GenericContainer<*>? {
     if (miniStackIsRunning()) return null
-    return GenericContainer(DockerImageName.parse("nahuelnucera/ministack:latest")).apply {
+    return GenericContainer(DockerImageName.parse("ministackorg/ministack:latest")).apply {
       withExposedPorts(4566)
       withEnv("DEFAULT_REGION", "eu-west-2")
       waitingFor(Wait.forHttp("/_localstack/health").forPort(4566))

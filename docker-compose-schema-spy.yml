@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18
+    image: postgres:19
     networks:
       - hmpps
     container_name: keyworker-api-db
