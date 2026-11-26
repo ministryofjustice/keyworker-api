@@ -35,6 +35,10 @@ on:
         description: Database schema name
         type: string
         required: true
+      publish:
+        description: Publish the report to GitHub Pages
+        type: boolean
+        default: true
 
 jobs:
   schema-spy:

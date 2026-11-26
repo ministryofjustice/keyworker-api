@@ -82,6 +82,7 @@ jobs:
       database_schema: 'public'
       database_user: 'admin'
       database_password: 'admin_password'
+      publish: ${{ github.ref == 'refs/heads/main' }}
     secrets: inherit
     permissions:
       contents: write
